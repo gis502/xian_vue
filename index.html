@@ -9,6 +9,25 @@
   <link rel="icon" href="/favicon.ico">
   <title>若依管理系统</title>
   <!--[if lt IE 11]><script>window.location.href='/html/ie.html';</script><![endif]-->
+    <!--引入天地图-->
+    <script src="http://api.tianditu.gov.cn/api?v=4.0&tk=7f013d0186775b063d6a046977bbefc6" type="text/javascript"></script>
+    <!-- 引入Cesium CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/cesium@1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script type="text/javascript">
+        window.CESIUM_BASE_URL = '/node_modules/cesium/Build/Cesium/';
+        let env = window.location.href;
+        console.log(env)
+        let url = "";
+        if (env.indexOf("59.213")!==-1||env.indexOf("172")!==-1) {
+            // url = "\<script src=\'http://59.255.48.160:82/getscript?v=4.0&tk=7f013d0186775b063d6a046977bbefc6\'>\<\/script\>";
+            url = "\<script src=\'http://api.tianditu.gov.cn/api?v=4.0&tk=7f013d0186775b063d6a046977bbefc6\'>\<\/script\>";
+
+        } else {
+            url = "\<script src=\'http://api.tianditu.gov.cn/api?v=4.0&tk=7f013d0186775b063d6a046977bbefc6\'>\<\/script\>";
+            // url = "\<script src=\'http://59.255.48.160:82/getscript?v=4.0&tk=7f013d0186775b063d6a046977bbefc6\'>\<\/script\>";
+        }
+        document.write(url);
+    </script>
   <style>
     html,
     body,
