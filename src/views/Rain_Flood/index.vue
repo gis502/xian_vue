@@ -68,6 +68,7 @@ import lakeData from '@/assets/static/json/lake.json'; // 湖面数据
 // 引入滑坡，泥石流灾害点数据
 import HuapoData from '@/assets/static/disaster/Huapo.json';
 import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
+import faultZone from '@/assets/static/disaster/faultZone.json'
 
 export default {
   name: 'CesiumRainMap',
@@ -94,12 +95,14 @@ export default {
       // 行政区划数据
       administrationData: [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi],
       adminDataSources: [],
+      faultZoneList: [],
       // 河流数据
       riverData: riverData,
       lakeData: lakeData,
       // 灾害点数据
       HuapoData: HuapoData,
       NishiliuData: NishiliuData,
+      faultZone: faultZone,
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
@@ -133,7 +136,8 @@ export default {
             scale: 1.2
           }
         }
-      }
+      },
+      clickHandler: null
     }
   },
   computed: {},
@@ -391,6 +395,7 @@ export default {
       this.isLoading = true;
       this.loadingText = '加载灾害点数据...';
 
+
       try {
         // 确保数据存在且格式正确
         const huapoFeatures = this.HuapoData?.features || [];
@@ -414,24 +419,24 @@ export default {
               color: Cesium.Color.RED, // 点位颜色
               outlineColor: Cesium.Color.BLACK,
               outlineWidth: 1,
-              pixelSize: 10 // 像素点大小
+              pixelSize: 15 // 像素点大小
             },
             // 文字
             label: {
               text: `${disasterNAME}`,
-              font: '14pt Source Han Sans CN',
-              fillColor: Cesium.Color.BLACK,
+              font: '15pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
               backgroundColor: Cesium.Color.AQUA,
-              showBackground: true,
+              showBackground: false,
               outline: true,
-              outlineColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
               outlineWidth: 10,
               scale: 1.0,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(10, 0),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1500),
+              pixelOffset: new Cesium.Cartesian2(20, -20),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
               show: true
             },
             // 添加灾害类型信息，用于弹窗显示
@@ -441,13 +446,12 @@ export default {
           // 保存实体引用
           this.disasterEntities.push(entity);
         });
-
         // 加载泥石流点
         nishiliuFeatures.forEach(point => {
           const properties = point.properties || {};
           const disasterNAME = properties.disasterName || '未知灾害点';
-          const longitude = point.geometry.coordinates[0];
-          const latitude = point.geometry.coordinates[1];
+          const longitude = parseFloat(point.geometry.coordinates[0]);
+          const latitude = parseFloat(point.geometry.coordinates[1]);
 
           // 创建灾害点实体
           const entity = this.viewer.entities.add({
@@ -457,24 +461,24 @@ export default {
               color: Cesium.Color.YELLOW, // 点位颜色
               outlineColor: Cesium.Color.BLACK,
               outlineWidth: 1,
-              pixelSize: 10 // 像素点大小
+              pixelSize: 15 // 像素点大小
             },
             // 文字
             label: {
               text: `${disasterNAME}`,
-              font: '14pt Source Han Sans CN',
-              fillColor: Cesium.Color.BLACK,
+              font: '15pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
               backgroundColor: Cesium.Color.AQUA,
-              showBackground: true,
+              showBackground: false,
               outline: true,
-              outlineColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
               outlineWidth: 10,
               scale: 1.0,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(10, 0),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1500),
+              pixelOffset: new Cesium.Cartesian2(20, -20),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
               show: true
             },
             // 添加灾害类型信息，用于弹窗显示
@@ -484,6 +488,33 @@ export default {
           // 保存实体引用
           this.disasterEntities.push(entity);
         });
+
+
+
+
+        // 加载断裂带
+        // faultZone.RECORDS.forEach(line => {
+        //   this.faultZoneList.push(parseFloat(line.SmX)); // 转换为数值类型
+        //   this.faultZoneList.push(parseFloat(line.SmY)); // 转换为数值类型
+        // });
+        //
+        // console.log(this.faultZoneList, "转换后的数据类型：", this.faultZoneList.map(v => typeof v));
+        // this.viewer.entities.add({
+        //   polyline: {
+        //     positions: Cesium.Cartesian3.fromDegreesArray(this.faultZoneList),
+        //     // 宽度
+        //     width: 2,
+        //     // 线的颜色
+        //     material: Cesium.Color.RED,
+        //     // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
+        //     zIndex: 10,
+        //     // 显示在距相机的距离处的属性，多少区间内是可以显示的
+        //     distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 5000000),
+        //     // 是否显示
+        //     show: true
+        //   }
+        // });
+
 
         // 设置实体点击事件
         this.setupEntityClickHandler();
@@ -495,23 +526,23 @@ export default {
       }
     },
 
-// 创建灾害点详情描述
-    createDisasterDescription(properties, disasterType) {
+    // 创建灾害点详情描述
+    createDisasterDescription(properties) {
+      console.log(properties, "====================================>")
+      var disasterType = properties.disasterName.includes("滑坡") ? "滑坡" : "泥石流"
+
       return `
-    <div style="font-family: Arial, sans-serif; padding: 10px;">
+    <div style="font-family: Arial, sans-serif; padding: 50px;">
       <h3 style="color: ${disasterType === '滑坡' ? 'red' : 'yellow'}; margin-top: 0;">
         ${properties.disasterName || '未知灾害点'}
       </h3>
       <p><strong>灾害类型:</strong> ${disasterType}</p>
-      <p><strong>地理位置:</strong> ${properties.location || '未标注'}</p>
-      <p><strong>规模等级:</strong> ${properties.scaleLevel || '未标注'}</p>
-      <p><strong>险情等级:</strong> ${properties.riskLevel || '未标注'}</p>
-      <p><strong>坐标:</strong> ${properties.longitude || '未知'}, ${properties.latitude || '未知'}</p>
+      <p><strong>坐标:</strong> ${properties.disasterName || '未知'}, ${properties.latitude || '未知'}</p>
     </div>
   `;
     },
 
-// 设置实体点击事件处理
+    // 设置实体点击事件处理
     setupEntityClickHandler() {
       // 清除之前的点击事件处理程序
       if (this.clickHandler) {
@@ -527,14 +558,16 @@ export default {
         if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
           const entity = pickedObject.id;
 
+          console.log("点击率", entity, "=============")
+
           // 检查是否是灾害点实体
           if (this.disasterEntities.includes(entity)) {
             // 设置信息框显示内容
             this.viewer.selectedEntity = entity;
-
             // 如果信息框未显示，则显示它
             if (!this.viewer.infoBox._container.style.display === 'block') {
               this.viewer.infoBox._container.style.display = 'block';
+
             }
           }
         } else {
@@ -543,7 +576,6 @@ export default {
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
-
 
 
     // 加载行政区划数据
@@ -635,19 +667,19 @@ export default {
     generateRandomColor(i) {
       // 定义13种不同的颜色
       const colors = [
-        new Cesium.Color(255/255, 153/255, 0/255, 0.5),    // 活力橙
-        new Cesium.Color(255/255, 51/255, 102/255, 0.5),   // 亮粉红
-        new Cesium.Color(0/255, 178/255, 255/255, 0.5),    // 天蓝色
-        new Cesium.Color(102/255, 255/255, 102/255, 0.5),  // 浅绿色
-        new Cesium.Color(204/255, 102/255, 255/255, 0.5),  // 淡紫色
-        new Cesium.Color(255/255, 204/255, 0/255, 0.5),    // 金黄色
-        new Cesium.Color(0/255, 204/255, 153/255, 0.5),    // 青绿色
-        new Cesium.Color(255/255, 102/255, 102/255, 0.5),  // 浅红色
-        new Cesium.Color(102/255, 153/255, 255/255, 0.5),  // 淡蓝色
-        new Cesium.Color(255/255, 178/255, 102/255, 0.5),  // 浅橙色
-        new Cesium.Color(153/255, 255/255, 204/255, 0.5),  // 淡青色
-        new Cesium.Color(255/255, 153/255, 204/255, 0.5),  // 浅粉色
-        new Cesium.Color(190/255, 255/255, 232/255, 0.5),  // 淡靛紫
+        new Cesium.Color(255 / 255, 153 / 255, 0 / 255, 0.5),    // 活力橙
+        new Cesium.Color(255 / 255, 51 / 255, 102 / 255, 0.5),   // 亮粉红
+        new Cesium.Color(0 / 255, 178 / 255, 255 / 255, 0.5),    // 天蓝色
+        new Cesium.Color(102 / 255, 255 / 255, 102 / 255, 0.5),  // 浅绿色
+        new Cesium.Color(204 / 255, 102 / 255, 255 / 255, 0.5),  // 淡紫色
+        new Cesium.Color(255 / 255, 204 / 255, 0 / 255, 0.5),    // 金黄色
+        new Cesium.Color(0 / 255, 204 / 255, 153 / 255, 0.5),    // 青绿色
+        new Cesium.Color(255 / 255, 102 / 255, 102 / 255, 0.5),  // 浅红色
+        new Cesium.Color(102 / 255, 153 / 255, 255 / 255, 0.5),  // 淡蓝色
+        new Cesium.Color(255 / 255, 178 / 255, 102 / 255, 0.5),  // 浅橙色
+        new Cesium.Color(153 / 255, 255 / 255, 204 / 255, 0.5),  // 淡青色
+        new Cesium.Color(255 / 255, 153 / 255, 204 / 255, 0.5),  // 浅粉色
+        new Cesium.Color(190 / 255, 255 / 255, 232 / 255, 0.5),  // 淡靛紫
       ];
 
       // 确保索引在有效范围内
@@ -1019,15 +1051,13 @@ export default {
       while (legendContent.firstChild) {
         legendContent.removeChild(legendContent.firstChild);
       }
-
       // 新增：添加降雨区域图例项
       this.addRainAreaLegend(legendContent);
 
-      // 新增：添加灾害点图例
-      this.addDisasterLegend(legendContent);
-
       // 添加行政区划图例
       const addedDistricts = new Set();
+      const districtItems = []; // 存储所有行政区划图例项
+
       this.administrationData.forEach((district, index) => {
         const districtId = `district${index}`;
         const districtName = district.features[0].properties.name;
@@ -1041,16 +1071,17 @@ export default {
 
         if (color) {
           const item = document.createElement('div');
-          item.className = 'legend-item';
+          item.className = 'legend-item district-item';
           item.style.display = 'flex';
           item.style.alignItems = 'center';
           item.style.marginBottom = '10px';
+          item.style.width = '45%'; // 占45%宽度，留5%间隙
 
           const colorDiv = document.createElement('div');
           colorDiv.className = 'legend-color';
           colorDiv.style.backgroundColor = `rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, ${color.alpha})`;
           colorDiv.style.border = `1px solid rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, 1)`;
-          colorDiv.style.width = '20px';
+          colorDiv.style.width = '60px';
           colorDiv.style.height = '20px';
           colorDiv.style.marginRight = '10px';
 
@@ -1062,16 +1093,34 @@ export default {
 
           item.appendChild(colorDiv);
           item.appendChild(textDiv);
-          legendContent.appendChild(item);
+          districtItems.push(item);
         }
       });
+
+      // 创建两排两列的容器
+      const gridContainer = document.createElement('div');
+      gridContainer.style.display = 'flex';
+      gridContainer.style.flexWrap = 'wrap';
+      gridContainer.style.gap = '10px';
+      gridContainer.style.marginTop = '10px';
+
+      // 添加到容器中，实现两列布局
+      districtItems.forEach((item, index) => {
+        gridContainer.appendChild(item);
+      });
+
+      legendContent.appendChild(gridContainer);
 
       // 优化图例容器样式
       if (legendContent.style) {
         legendContent.style.padding = '10px';
         legendContent.style.borderRadius = '5px';
         legendContent.style.backgroundColor = 'rgba(255,255,255,0.9)';
+        legendContent.style.maxWidth = '300px'; // 限制最大宽度
       }
+
+      // 新增：添加灾害点图例
+      this.addDisasterLegend(legendContent);
     },
     // 添加降雨区域图例项的函数
     addRainAreaLegend(container) {
@@ -1088,13 +1137,13 @@ export default {
       colorDiv.style.border = '1px solid rgba(180, 30, 30, 1)';
       colorDiv.style.width = '60px';
       colorDiv.style.height = '20px';
-      colorDiv.style.marginRight = '30px';
-      colorDiv.style.borderRadius = '10px'; // 关键：设置圆角实现椭圆效果（高度的一半）
+      colorDiv.style.marginRight = '10px';
+      colorDiv.style.borderRadius = '100px'; // 关键：设置圆角实现椭圆效果（高度的一半）
       colorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
 
       const textDiv = document.createElement('div');
       textDiv.className = 'legend-text';
-      textDiv.textContent = '降雨区域';
+      textDiv.textContent = '降雨影响范围';
       textDiv.style.fontSize = '15px';
       textDiv.style.lineHeight = '20px';
       textDiv.style.flex = '1';
@@ -1305,6 +1354,51 @@ export default {
 }
 
 .legend-title {
+  font-size: 17px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.legend-content {
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.legend-text {
+  white-space: nowrap;
+}
+
+.legend-panel {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  padding: 10px;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  max-height: 70%;
+  overflow-y: auto;
+  max-width: 300px; /* 新增：限制图例最大宽度 */
+}
+
+.legend-title {
   font-size: 14px;
   font-weight: bold;
   margin-bottom: 8px;
@@ -1326,7 +1420,6 @@ export default {
 .legend-color, .legend-point {
   width: 16px;
   height: 16px;
-
   margin-right: 6px;
   border-radius: 2px;
 }
@@ -1334,25 +1427,6 @@ export default {
 .legend-text {
   white-space: nowrap;
 }
-/* 新增灾害点按钮样式 */
-.disaster-btn {
-  background-color: rgba(220, 53, 69, 0.8);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 8px;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
 
-.disaster-btn:hover {
-  background-color: rgba(220, 53, 69, 1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+
 </style>
