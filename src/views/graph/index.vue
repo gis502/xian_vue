@@ -47,14 +47,12 @@
     <div class="knowledgeGraph">
       <div class="chartContainer" ref="chart"></div>
       <div class="restart">
-        <button @click="getData">一键复原</button>
+
+        <button @click="getData(lastEqqueueId)">一键复原</button>
       </div>
       <div class="chartCount">
         <button>共{{chartDataCount}}个实体球</button>
       </div>
-<!--      <div class="go">-->
-<!--        <button @click="go">跳转指挥大屏</button>-->
-<!--      </div>-->
       <div class="graphLagend">
         <div class="legendHeader">
           <span>图例详情</span>
@@ -238,12 +236,14 @@ const echartsOption = ref({
 // 地震列表数据
 const tableData = ref([
   {
-    eqid: 'T2025062222234112888',
+    // eqid: 'T2025062222234112888',
+    eqid: 'T2025062222234112222',
     eqAddr: '2023年8月11日陕西省西安市喂子坪村山洪泥石流',
     time: '2023-08-11 18:00:00'
   },
   {
-    eqid: 'T2025062222234112777',
+    // eqid: 'T2025062222234112777',
+    eqid: 'T2025062222234112111',
     eqAddr: '2018年9月12日陕西汉中5.3级地震',
     magnitude: 5.3,
     depth: 8,
@@ -265,9 +265,11 @@ const chartDataCount = ref();
 const getData = async (eqid) => {
   try {
     let usedEqid;
+    lastEqqueueId.value=eqid;
 
     // 判断是否传入 eqid 且不是默认的那个 ID
-    if (eqid && eqid !== 'T2025062222234112777') {
+    // if (eqid && eqid !== 'T2025062222234112777') {
+    if (eqid && eqid !== 'T2025062222234112111') {
       lastEqData.value = tableData.value[0];
       usedEqid = lastEqData.value.eqid;
       firstData.value = [
@@ -280,145 +282,109 @@ const getData = async (eqid) => {
         { name: '社会援助与捐赠类' },
         { name: '灾后恢复与评估类' }
       ];
-      secondData.value = [
-        { name: '气象信息' },
-        { name: '水文信息' },
-        { name: '房屋与基础设施破坏类' },
-        { name: '基础设施破坏' },
-        { name: '部门' },
-        { name: '企业' },
-      ];
+        secondData.value = [
+          { name: '基本信息' },
+          { name: '人员与损失信息' },
+          { name: '救援与响应' },
+          { name: '外部条件与环境' },
+          { name: '影响范围' },
+          { name: '气象信息' },
+          { name: '水文信息' },
+          { name: '人员伤亡信息' },
+          { name: '转移安置信息' },
+          { name: '房屋破坏信息' },
+          { name: '基础设施破坏信息' },
+          { name: '次生灾害事件信息' },
+          { name: '响应与救援部门信息' },
+          { name: '企业援助信息' },
+          { name: '慈善机构援助信息' },
+          { name: '恢复与评估信息' },
+
+    ];
       list.value = [
-        {
-          id: 1,
-          value: '灾害基本信息类',
-          isOpen: false,
-          children: [
-            { id: 11, value: '发生时间' },
-            { id: 12, value: '发生地点' },
-            { id: 13, value: '灾害类型' },
-            { id: 14, value: '诱因' },
-            { id: 15, value: '灾害规模' },
-            { id: 16, value: '影响人口' },
-            { id: 17, value: '伤亡情况' },
-            { id: 18, value: '经济损失' },
-            { id: 19, value: '救援情况' },
-            { id: 20, value: '报警时间' },
-            { id: 21, value: '信息来源' },
-            { id: 22, value: '天气状况' },
-            { id: 23, value: '地形特征' },
-            { id: 24, value: '是否预警' },
-            { id: 25, value: '是否次生灾害' },
-            { id: 26, value: '次生灾害类型' },
-            { id: 27, value: '交通影响' },
-            { id: 28, value: '电力影响' },
-            { id: 29, value: '通讯影响' },
-            { id: 30, value: '环境影响' },
-            { id: 31, value: '灾害等级' }
-          ],
-          fatherCount: 21
-        },
-        {
-          id: 2,
-          value: '气象与水文触发信息类',
-          isOpen: false,
-          children: [
-            { id: 32, value: '气象信息-类型' },
-            { id: 33, value: '气象信息-降雨量' },
-            { id: 34, value: '气象信息-持续时间' },
-            { id: 35, value: '气象信息-降雨开始时间' },
-            { id: 36, value: '水文信息-河流名称' },
-            { id: 37, value: '水文信息-蓄水量' },
-            { id: 38, value: '水文信息-水库状态' },
-            { id: 39, value: '水文信息-地下水位' },
-            { id: 40, value: '河流-水位情况' },
-            { id: 41, value: '河流-堤防情况' },
-            { id: 42, value: '河流-水质情况' }
-          ],
-          fatherCount: 11
-        },
-        {
-          id: 3,
-          value: '人员伤亡与转移',
-          isOpen: false,
-          children: [
-            { id: 43, value: '死亡/失踪/受伤等情况' },
-            { id: 44, value: '转移人员情况' },
-            { id: 45, value: '安置点信息' },
-            { id: 46, value: '救援队伍情况' },
-            { id: 47, value: '医疗救治情况' },
-            { id: 48, value: '临时避难所容量' },
-            { id: 49, value: '物资供应情况' },
-            { id: 50, value: '心理援助情况' }
-          ],
-          fatherCount: 8
-        },
-        {
-          id: 4,
-          value: '房屋与基础设施破坏类',
-          isOpen: false,
-          children: [
-            { id: 51, value: '房屋倒塌情况' },
-            { id: 52, value: '基础设施-类型' },
-            { id: 53, value: '基础设施-状态' },
-            { id: 54, value: '基础设施-损坏程度' },
-            { id: 55, value: '基础设施-影响范围' }
-          ],
-          fatherCount: 5
-        },
-        {
-          id: 5,
-          value: '次生灾害类',
-          isOpen: false,
-          children: [
-            { id: 56, value: '发生次生灾害类型' },
-            { id: 57, value: '影响情况' },
-            { id: 58, value: '面积' },
-            { id: 59, value: '持续时间' },
-            { id: 60, value: '应急响应措施' },
-            { id: 61, value: '次生灾害等级' }
-          ],
-          fatherCount: 6
-        },
-        {
-          id: 6,
-          value: '应急响应与救援行动类',
-          isOpen: false,
-          children: [
-            { id: 62, value: '响应部门名称' },
-            { id: 63, value: '响应等级' },
-            { id: 64, value: '出动人员/车辆/装备' },
-            { id: 65, value: '安置点设立情况' },
-            { id: 66, value: '安置人数' },
-            { id: 67, value: '转移人数' }
-          ],
-          fatherCount: 6
-        },
-        {
-          id: 7,
-          value: '社会援助与捐赠类',
-          isOpen: false,
-          children: [
-            { id: 68, value: '企业名称' },
-            { id: 69, value: '企业捐赠物资' },
-            { id: 70, value: '企业捐赠数量' },
-            { id: 71, value: '慈善机构名称' },
-            { id: 72, value: '慈善机构捐赠物资' },
-            { id: 73, value: '慈善机构捐赠数量' }
-          ],
-          fatherCount: 6
-        },
-        {
-          id: 8,
-          value: '灾后恢复与评估类',
-          isOpen: false,
-          children: [
-            { id: 74, value: '恢复情况' },
-            { id: 75, value: '损失评估情况' }
-          ],
-          fatherCount: 2
-        }
-      ];
+          {
+            id: 1,
+            value: '灾害基本信息类',
+            isOpen: false,
+            children: [
+              { id: 11, value: '基本信息' },
+              { id: 12, value: '人员与损失信息' },
+              { id: 13, value: '救援与响应' },
+              { id: 14, value: '外部条件与环境' },
+              { id: 15, value: '影响范围' }
+            ],
+            fatherCount: 5
+          },
+          {
+            id: 2,
+            value: '气象与水文触发信息类',
+            isOpen: false,
+            children: [
+              { id: 21, value: '气象信息' },
+              { id: 22, value: '水文信息' }
+            ],
+            fatherCount: 2
+          },
+          {
+            id: 3,
+            value: '人员伤亡与转移',
+            isOpen: false,
+            children: [
+              { id: 31, value: '人员伤亡信息' },
+              { id: 32, value: '转移安置信息' }
+            ],
+            fatherCount: 2
+          },
+          {
+            id: 4,
+            value: '房屋与基础设施破坏类',
+            isOpen: false,
+            children: [
+              { id: 41, value: '房屋破坏信息' },
+              { id: 42, value: '基础设施破坏信息' }
+            ],
+            fatherCount: 2
+          },
+          {
+            id: 5,
+            value: '次生灾害类',
+            isOpen: false,
+            children: [
+              { id: 51, value: '次生灾害事件信息' }
+            ],
+            fatherCount: 1
+          },
+          {
+            id: 6,
+            value: '应急响应与救援行动类',
+            isOpen: false,
+            children: [
+              { id: 61, value: '响应与救援部门信息' }
+            ],
+            fatherCount: 1
+          },
+          {
+            id: 7,
+            value: '社会援助与捐赠类',
+            isOpen: false,
+            children: [
+              { id: 71, value: '企业援助信息' },
+              { id: 72, value: '慈善机构援助信息' }
+            ],
+            fatherCount: 2
+          },
+          {
+            id: 8,
+            value: '灾后恢复与评估类',
+            isOpen: false,
+            children: [
+              { id: 81, value: '恢复与评估信息' }
+            ],
+            fatherCount: 1
+          }
+        ]
+
+
 
 
     } else if (tableData.value && tableData.value[1]) {
@@ -437,24 +403,26 @@ const getData = async (eqid) => {
       ];
 
       secondData.value = [
-        { name: '气象信息' },
-        { name: '水文信息' },
-        { name: '房屋与基础设施破坏类' },
-        { name: '基础设施破坏' },
-        { name: '部门' },
-        { name: '企业' },
-        { name: '灾后恢复与评估类' },
-        { name: '生命线震害信息' },
-        { name: '次生灾害信息' },
-        { name: '人员伤亡' },
-        { name: '灾区灾情简报' },
-        { name: '用户上传会议信息' },
-        { name: '应急响应信息' },
-        { name: '应急决策基础信息' },
-        { name: '应急处置基础信息' },
-        { name: '态势标绘基础信息' },
-        { name: '灾害现场动态基础信息' },
-        { name: '社会反应动态基础信息' }
+        { "name": "地震参数" },
+        { "name": "强震监测信息" },
+        { "name": "测震监测信息" },
+        { "name": "预报信息" },
+        { "name": "余震情况" },
+        { "name": "人员伤亡" },
+        { "name": "房屋破坏" },
+        { "name": "经济损失" },
+        { "name": "会议信息" },
+        { "name": "生命线震害信息" },
+        { "name": "次生灾害信息" },
+        { "name": "人员伤亡" },
+        { "name": "灾区灾情简报" },
+        { "name": "用户上传会议信息" },
+        { "name": "应急响应信息" },
+        { "name": "应急决策基础信息" },
+        { "name": "应急处置基础信息" },
+        { "name": "态势标绘基础信息" },
+        { "name": "灾害现场动态基础信息" },
+        { "name": "社会反应动态基础信息" }
       ];
 
       list.value = [
@@ -490,7 +458,7 @@ const getData = async (eqid) => {
           value: '应急指挥协调信息',
           isOpen: false,
           children: [
-            { id: 31, value: '用户上传会议信息' },
+            { id: 31, value: '会议信息' },
             { id: 32, value: '应急响应信息' }
           ],
           fatherCount: 2
@@ -583,6 +551,7 @@ const getData = async (eqid) => {
             }
         )
     )
+
     chartStartData.value.push({ name: lastEqData.value.eqAddr });
 
     // 给每个子项计算 sonCount
@@ -1261,7 +1230,7 @@ onBeforeUnmount(() => {
       .search-input {
         border-radius: 0 12px 12px 0;
         color: whitesmoke;
-        width: 170px;
+        width: 200px;
       }
     }
 
@@ -1284,7 +1253,7 @@ onBeforeUnmount(() => {
           margin-bottom: 0px;
           margin-right: 20px;
 
-          li{x
+          li{
           line-height: 40px;
             margin-left: 0px;
             white-space: nowrap;  /* 防止换行 */
