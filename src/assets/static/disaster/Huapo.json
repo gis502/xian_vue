@@ -1,0 +1,363 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:EPSG::4490"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "石峡沟村滑坡",
+        "lon": "108.83508",
+        "lat": "33.9873"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.83508,
+          33.9873
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "黄土坡滑坡",
+        "lon": "109.09972",
+        "lat": "34.05444"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.09972,
+          34.05444
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "北石槽滑坡",
+        "lon": "108.85861",
+        "lat": "33.91611"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.85861,
+          33.91611
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "铁铺滑坡",
+        "lon": "108.89019",
+        "lat": "33.9697"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.89019,
+          33.9697
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "华严寺滑坡",
+        "lon": "108.96619",
+        "lat": "34.13681"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.96619,
+          34.13681
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "双竹村滑坡",
+        "lon": "108.95083",
+        "lat": "34.14583"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.95083,
+          34.14583
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "大门村滑坡",
+        "lon": "108.86969",
+        "lat": "33.97001"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.86969,
+          33.97001
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "抱龙峪滑坡",
+        "lon": "108.88972",
+        "lat": "34.00861"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.88972,
+          34.00861
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "太乙村滑坡",
+        "lon": "109.00139",
+        "lat": "34.01333"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.00139,
+          34.01333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "赵明田家东侧滑坡",
+        "lon": "109.00194",
+        "lat": "34.01194"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.00194,
+          34.01194
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "唐拴虎家滑坡",
+        "lon": "108.9225",
+        "lat": "34.02472"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.9225,
+          34.02472
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "长安一中滑坡",
+        "lon": "108.96111",
+        "lat": "34.14"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.96111,
+          34.14
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "杏园村二组滑坡",
+        "lon": "109.00667",
+        "lat": "34.00028"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.00667,
+          34.00028
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "皇甫村滑坡",
+        "lon": "108.95806",
+        "lat": "34.09222"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.95806,
+          34.09222
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "西岔村一组滑坡",
+        "lon": "108.99722",
+        "lat": "34.00278"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.99722,
+          34.00278
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "土门峪村三组滑坡",
+        "lon": "109.03556",
+        "lat": "34.02139"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.03556,
+          34.02139
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "郑家坡滑坡",
+        "lon": "109.06472",
+        "lat": "34.01667"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.06472,
+          34.01667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "十里庙滑坡",
+        "lon": "109.16504",
+        "lat": "33.97499"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.16504,
+          33.97499
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "凤翔沟滑坡",
+        "lon": "109.14573",
+        "lat": "34.01385"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.14573,
+          34.01385
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "凤翔沟滑坡",
+        "lon": "109.14536",
+        "lat": "34.01415"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.14536,
+          34.01415
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "十里庙三组滑坡",
+        "lon": "109.16361",
+        "lat": "33.99495"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.16361,
+          33.99495
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SmUserID": 0,
+        "disasterName": "向阳水库滑坡",
+        "lon": "109.13667",
+        "lat": "34.17667"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          109.13667,
+          34.17667
+        ]
+      }
+    }
+  ]
+}
