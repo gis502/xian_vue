@@ -237,7 +237,7 @@ const echartsOption = ref({
 const tableData = ref([
   {
     // eqid: 'T2025062222234112888',
-    eqid: 'T2025062222234112222',
+    eqid: 'T2025062222234112333',
     eqAddr: '2023年8月11日陕西省西安市喂子坪村山洪泥石流',
     time: '2023-08-11 18:00:00'
   },
@@ -290,6 +290,7 @@ const getData = async (eqid) => {
           { name: '影响范围' },
           { name: '气象信息' },
           { name: '水文信息' },
+          { name: '应急响应信息' },
           { name: '人员伤亡信息' },
           { name: '转移安置信息' },
           { name: '房屋破坏信息' },
@@ -655,51 +656,77 @@ const initChart = () => {
 };
 
 // 点击节点触发函数
+// 用于记录已展开的节点名
+const expandedNodes = new Set();
+
+// 点击节点处理展开或收起
 const handleNodeClick = (value) => {
-  // value:{name:"地震灾情信息",symbolSize:60}
-
-  // 打印被点击的节点信息
-  console.log(value, "这个节点被点击了");
-
-  // 获取节点的名称 (name)
   const nodeName = value.name;
 
-  // 从 chartLinks 中查找所有 source 等于 nodeName 的对象
-  const relatedLinks = chartLinks.value.filter(link => link.source === nodeName);
+  if (expandedNodes.has(nodeName)) {
+    // 如果已展开，则收起子孙
+    removeDescendantsSafely(nodeName);
+    expandedNodes.delete(nodeName);
+  } else {
+    // 如果未展开，则展开当前节点的下一级
+    const relatedLinks = chartLinks.value.filter(link => link.source === nodeName);
 
-  // 将相关的链接对象添加到 chartStartLinks 中
-  relatedLinks.forEach(link => {
-    // 如果 chartStartLinks 中没有该链接对象，则添加
-    if (!chartStartLinks.value.some(item => item.source === link.source && item.target === link.target)) {
-      chartStartLinks.value.push(link);
-    }
-  });
+    relatedLinks.forEach(link => {
+      if (!chartStartLinks.value.some(item => item.source === link.source && item.target === link.target)) {
+        chartStartLinks.value.push(link);
+      }
+    });
 
-  // 将更新后的 chartStartLinks 存入 chartChangeLinks
-  chartChangeLinks.value = [...chartStartLinks.value];
+    relatedLinks.map(link => link.target).forEach(target => {
+      if (!chartStartData.value.some(item => item.name === target)) {
+        chartStartData.value.push({ name: target });
+      }
+    });
 
-  // 打印更新后的 chartChangeLinks
-  console.log("更新后的 chartChangeLinks:", chartChangeLinks.value);
+    chartChangeLinks.value = [...chartStartLinks.value];
+    chartChangeData.value = [...chartStartData.value];
 
-  // 提取所有 target 值
-  const newTargets = relatedLinks.map(link => link.target);
+    expandedNodes.add(nodeName);
+  }
 
-  // 把这些 target 值添加到 chartStartData 中
-  newTargets.forEach(target => {
-    // 如果 chartStartData 中没有这个 target 名称的节点，则添加
-    if (!chartStartData.value.some(item => item.name === target)) {
-      chartStartData.value.push({ name: target });
-    }
-  });
-
-  // 将 chartStartData 存入 chartChangeData
-  chartChangeData.value = [...chartStartData.value];
-
-  // 打印更新后的 chartChangeData
-  console.log("更新后的 chartChangeData:", chartChangeData.value);
-
-  updateEchart(chartChangeData.value,chartChangeLinks.value)
+  updateEchart(chartChangeData.value, chartChangeLinks.value);
 };
+
+
+
+// 递归移除节点及其所有后代节点和连线
+const removeDescendantsSafely = (nodeName) => {
+  const directLinks = chartStartLinks.value.filter(link => link.source === nodeName);
+
+  directLinks.forEach(link => {
+    const target = link.target;
+
+    // 先递归处理子节点
+    removeDescendantsSafely(target);
+
+    // 移除当前连接
+    chartStartLinks.value = chartStartLinks.value.filter(
+        l => !(l.source === nodeName && l.target === target)
+    );
+
+    // 检查 target 是否还有其他连接（有就说明不能删）
+    const stillLinked = chartStartLinks.value.some(
+        l => l.source === target || l.target === target
+    );
+
+    if (!stillLinked) {
+      chartStartData.value = chartStartData.value.filter(node => node.name !== target);
+      expandedNodes.delete(target);
+    }
+  });
+
+  // 更新图谱
+  chartChangeLinks.value = [...chartStartLinks.value];
+  chartChangeData.value = [...chartStartData.value];
+};
+
+
+
 
 const updateEchart = (data,link) =>{
   if (echartsInstance.value !== null) {
