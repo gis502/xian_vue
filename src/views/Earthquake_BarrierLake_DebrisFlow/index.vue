@@ -30,6 +30,7 @@
       </el-col>
     </el-row>
   </div>
+<!--  <img src="@/assets/images/landslide.png" alt="">-->
 <!--  <div class="controls" v-if="viewer">-->
 <!--    <button @click="toggleDebrisFlow">-->
 <!--      {{ isDebrisFlowActive ? '停止模拟' : '开始泥石流模拟' }}-->
@@ -53,6 +54,8 @@
 import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
 import lineData from "@/assets/西安断层数据.json";
+import DebrisFlow from "@/assets/西安泥石流灾害点.json"
+import landslideIcon from "@/assets/images/landslide.png"
 import {renderList} from "vue";
 
 export default {
@@ -77,10 +80,13 @@ export default {
       line_data: [],
       FaultZone: [],
       showFaultZone: false,  // 控制断裂带显示状态的变量
+      DebrisFlow: DebrisFlow, // 泥石流隐患点
+      HazardPoint: [], // 泥石流隐患点数组
     };
   },
   mounted() {
     this.init();
+    this.AddHazardSource();
   },
   methods: {
     init() {
@@ -262,7 +268,7 @@ export default {
             // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
             zIndex: 10,
             // 显示在距相机的距离处的属性，多少区间内是可以显示的
-            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0),
             // 是否显示
             show: true,
           }
@@ -294,6 +300,32 @@ export default {
       //   }
       // }
     },
+    AddHazardSource(){
+      this.DebrisFlow.features.forEach(hazard_source => {
+        this.HazardPoint.push(hazard_source.geometry)
+      })
+      this.HazardPoint.forEach(hazard_point => {
+        let lon = hazard_point.coordinates[0]
+        let lat = hazard_point.coordinates[1]
+        this.viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(lon, lat),
+          billboard: {
+            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+            image: landslideIcon,
+            width: 30, // 图片宽度,单位px
+            height: 30, // 图片高度，单位px
+            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+            scale: 0.8, // 缩放比例
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+            depthTest: false, // 禁止深度测试
+            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+            show: true
+          }
+        });
+      })
+    },
     draw(type) {
       //绘制点
       let that = this;
@@ -313,8 +345,8 @@ export default {
             // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
             position = viewer.scene.globe.pick(ray, viewer.scene);
             let point = that.drawHypocenter(position);
-            // let circle = that.drawCircle(position);
-            // tempEntities.push(circle);
+            let circle = that.drawCircle(position);
+            tempEntities.push(circle);
             tempEntities.push(point);
 
             // 绘制完成后立即停止监听
@@ -506,99 +538,98 @@ export default {
         },
       });
     },
-    // drawCircle(position){
-    //   //绘制椭圆
-    //   // 定义多个椭圆的参数数组
-    //   const circleParams = [
-    //     { deviation: 0.15, numPoints: 48, extrudedHeight: 2000, alpha: 0.15 },
-    //     { deviation: 0.20, numPoints: 48, extrudedHeight: 4000, alpha: 0.10 },
-    //     { deviation: 0.25, numPoints: 64, extrudedHeight: 6000, alpha: 0.05 }
-    //   ];
-    //
-    //   // 基础椭圆尺寸
-    //   const baseMinorAxis = 20000;
-    //   const baseMajorAxis = 30000;
-    //
-    //   // 存储所有创建的不规则椭圆实体
-    //   const entities = [];
-    //
-    //   // 循环创建多个不规则同心椭圆
-    //   circleParams.forEach((params, index) => {
-    //     // 计算当前椭圆的尺寸（逐层放大）
-    //     const scale = 1 + index * 0.5;
-    //     const minorAxis = baseMinorAxis * scale;
-    //     const majorAxis = baseMajorAxis * scale;
-    //
-    //     // 生成不规则椭圆的点集
-    //     const points = [];
-    //     for (let i = 0; i < params.numPoints; i++) {
-    //       const angle = (i / params.numPoints) * Math.PI * 2;
-    //
-    //       // 计算基础椭圆上的点
-    //       let x = majorAxis * Math.cos(angle);
-    //       let y = minorAxis * Math.sin(angle);
-    //
-    //       // 添加随机偏移，创建不规则形状
-    //       const randomDeviation = 1 + (Math.random() * 2 - 1) * params.deviation;
-    //       x *= randomDeviation;
-    //       y *= randomDeviation;
-    //
-    //       // 将局部坐标转换为世界坐标
-    //       const cartographic = Cesium.Cartographic.fromCartesian(position);
-    //       const offsetPosition = Cesium.Cartesian3.fromRadians(
-    //           cartographic.longitude + x / Cesium.Ellipsoid.WGS84.maximumRadius,
-    //           cartographic.latitude + y / Cesium.Ellipsoid.WGS84.maximumRadius,
-    //           cartographic.height
-    //       );
-    //
-    //       points.push(offsetPosition);
-    //     }
-    //
-    //     // 创建不规则多边形
-    //     const polygon = new Cesium.Entity({
-    //       position: position,
-    //       name: "面几何对象",
-    //       polygon: {
-    //         hierarchy: new Cesium.PolygonHierarchy(points),
-    //         extrudedHeight: params.extrudedHeight,
-    //         material: Cesium.Color.RED.withAlpha(params.alpha),
-    //         outline: false,
-    //         outlineColor: Cesium.Color.BLUE
-    //       }
-    //     });
-    //
-    //     entities.push(this.viewer.entities.add(polygon));
-    //   });
-    //
-    //   return entities;
-    //   // const circleParams = [
-    //   //   { semiMinorAxis: 11873, semiMajorAxis: 21968, extrudedHeight: 952, alpha: 0.3 },
-    //   //   { semiMinorAxis: 34567, semiMajorAxis: 45678, extrudedHeight: 4000, alpha: 0.2 },
-    //   //   { semiMinorAxis: 40568, semiMajorAxis: 95666, extrudedHeight: 6000, alpha: 0.1 }
-    //   // ];
-    //   // // 存储所有创建的椭圆实体
-    //   // const entities = [];
-    //   // // 循环创建多个同心椭圆
-    //   // circleParams.forEach(params => {
-    //   //   const ellipse = new Cesium.Entity({
-    //   //     position: position,
-    //   //     name: "面几何对象",
-    //   //     ellipse: {
-    //   //       semiMinorAxis: params.semiMinorAxis,
-    //   //       semiMajorAxis: params.semiMajorAxis,
-    //   //       extrudedHeight: params.extrudedHeight,
-    //   //       material: Cesium.Color.RED.withAlpha(params.alpha),
-    //   //       outline: false,
-    //   //       outlineColor: Cesium.Color.BLUE,
-    //   //       rotation: Cesium.Math.toRadians(0)
-    //   //     }
-    //   //   });
-    //   //
-    //   //   entities.push(this.viewer.entities.add(ellipse));
-    //   // });
-    //   //
-    //   // return entities; // 返回创建的所有实体，方便后续操作
-    // },
+    drawCircle(position){
+      //绘制椭圆
+      // 定义多个椭圆的参数数组
+      // const circleParams = [
+      //   { deviation: 0.15, numPoints: 48, extrudedHeight: 2000, alpha: 0.4 },
+      //   { deviation: 0.20, numPoints: 48, extrudedHeight: 4000, alpha: 0.3 },
+      //   { deviation: 0.25, numPoints: 64, extrudedHeight: 6000, alpha: 0.2 }
+      // ];
+      //
+      // // 基础椭圆尺寸
+      // const baseMinorAxis = 20000;
+      // const baseMajorAxis = 30000;
+      //
+      // // 存储所有创建的不规则椭圆实体
+      // const entities = [];
+      //
+      // // 循环创建多个不规则同心椭圆
+      // circleParams.forEach((params, index) => {
+      //   // 计算当前椭圆的尺寸（逐层放大）
+      //   const scale = 1 + index * 0.5;
+      //   const minorAxis = baseMinorAxis * scale;
+      //   const majorAxis = baseMajorAxis * scale;
+      //
+      //   // 生成不规则椭圆的点集
+      //   const points = [];
+      //   for (let i = 0; i < params.numPoints; i++) {
+      //     const angle = (i / params.numPoints) * Math.PI * 2;
+      //
+      //     // 计算基础椭圆上的点
+      //     let x = majorAxis * Math.cos(angle);
+      //     let y = minorAxis * Math.sin(angle);
+      //
+      //     // 添加随机偏移，创建不规则形状
+      //     const randomDeviation = 1 + (Math.random() * 2 - 1) * params.deviation;
+      //     x *= randomDeviation;
+      //     y *= randomDeviation;
+      //
+      //     // 将局部坐标转换为世界坐标
+      //     const cartographic = Cesium.Cartographic.fromCartesian(position);
+      //     const offsetPosition = Cesium.Cartesian3.fromRadians(
+      //         cartographic.longitude + x / Cesium.Ellipsoid.WGS84.maximumRadius,
+      //         cartographic.latitude + y / Cesium.Ellipsoid.WGS84.maximumRadius,
+      //         cartographic.height
+      //     );
+      //
+      //     points.push(offsetPosition);
+      //   }
+      //   // 创建不规则多边形
+      //   const polygon = new Cesium.Entity({
+      //     position: position,
+      //     name: "面几何对象",
+      //     polygon: {
+      //       hierarchy: new Cesium.PolygonHierarchy(points),
+      //       extrudedHeight: params.extrudedHeight,
+      //       material: Cesium.Color.RED.withAlpha(params.alpha),
+      //       outline: false,
+      //       outlineColor: Cesium.Color.BLUE
+      //     }
+      //   });
+      //
+      //   entities.push(this.viewer.entities.add(polygon));
+      // });
+      //
+      // return entities;
+      const circleParams = [
+        { semiMinorAxis: 11873, semiMajorAxis: 21968, extrudedHeight: 952, alpha: 0.3 },
+        { semiMinorAxis: 34567, semiMajorAxis: 45678, extrudedHeight: 4000, alpha: 0.2 },
+        { semiMinorAxis: 40568, semiMajorAxis: 95666, extrudedHeight: 6000, alpha: 0.1 }
+      ];
+      // 存储所有创建的椭圆实体
+      const entities = [];
+      // 循环创建多个同心椭圆
+      circleParams.forEach(params => {
+        const ellipse = new Cesium.Entity({
+          position: position,
+          name: "面几何对象",
+          ellipse: {
+            semiMinorAxis: params.semiMinorAxis,
+            semiMajorAxis: params.semiMajorAxis,
+            extrudedHeight: params.extrudedHeight,
+            material: Cesium.Color.RED.withAlpha(params.alpha),
+            outline: false,
+            outlineColor: Cesium.Color.BLUE,
+            rotation: Cesium.Math.toRadians(0)
+          }
+        });
+
+        entities.push(this.viewer.entities.add(ellipse));
+      });
+
+      return entities; // 返回创建的所有实体，方便后续操作
+    },
     /**
      * 清除实体
      */
