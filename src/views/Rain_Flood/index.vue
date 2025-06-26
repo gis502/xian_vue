@@ -68,7 +68,7 @@ import lakeData from '@/assets/static/json/lake.json'; // 湖面数据
 // 引入滑坡，泥石流灾害点数据
 import HuapoData from '@/assets/static/disaster/Huapo.json';
 import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
-import faultZone from '@/assets/static/disaster/faultZone.json'
+// import faultZone from '@/assets/static/disaster/xian_fault.json'
 
 export default {
   name: 'CesiumRainMap',
@@ -102,7 +102,7 @@ export default {
       // 灾害点数据
       HuapoData: HuapoData,
       NishiliuData: NishiliuData,
-      faultZone: faultZone,
+      // faultZone: faultZone,
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
@@ -197,7 +197,7 @@ export default {
       this.viewer.cesiumWidget.creditContainer.style.display = "none";
       this.loadTDT(0);
       this.viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 1000000),
+        destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
         orientation: {
           heading: Cesium.Math.toRadians(0),
           pitch: Cesium.Math.toRadians(-90),
@@ -489,32 +489,28 @@ export default {
           this.disasterEntities.push(entity);
         });
 
-
-
-
         // 加载断裂带
-        // faultZone.RECORDS.forEach(line => {
-        //   this.faultZoneList.push(parseFloat(line.SmX)); // 转换为数值类型
-        //   this.faultZoneList.push(parseFloat(line.SmY)); // 转换为数值类型
-        // });
+        // faultZone.features.forEach(line => {
+        //   // 提取当前断层的坐标点
+        //   const coords = line.geometry.coordinates.flat();
         //
-        // console.log(this.faultZoneList, "转换后的数据类型：", this.faultZoneList.map(v => typeof v));
-        // this.viewer.entities.add({
-        //   polyline: {
-        //     positions: Cesium.Cartesian3.fromDegreesArray(this.faultZoneList),
-        //     // 宽度
-        //     width: 2,
-        //     // 线的颜色
-        //     material: Cesium.Color.RED,
-        //     // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
-        //     zIndex: 10,
-        //     // 显示在距相机的距离处的属性，多少区间内是可以显示的
-        //     distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 5000000),
-        //     // 是否显示
-        //     show: true
-        //   }
+        //   // 为每条断层创建单独的实体
+        //   this.viewer.entities.add({
+        //     polyline: {
+        //       positions: Cesium.Cartesian3.fromDegreesArray(coords),
+        //       // 宽度
+        //       width: 2,
+        //       // 线的颜色
+        //       material: Cesium.Color.RED,
+        //       // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
+        //       zIndex: 10,
+        //       // 显示在距相机的距离处的属性，多少区间内是可以显示的
+        //       distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 5000000),
+        //       // 是否显示
+        //       show: true
+        //     }
+        //   });
         // });
-
 
         // 设置实体点击事件
         this.setupEntityClickHandler();
