@@ -60,7 +60,7 @@ export default {
   data() {
     return {
       viewer: null,
-      tiandituKey:"d95d09b97c69e142567ab3337caa7972",//天地图密钥
+      tdtToken:"07f071d2d20098468ee7697112e8fc58",//天地图密钥
       handler: null, // 创建共享的 handler
       mapViewer: undefined,
       isDebrisFlowActive: false,
@@ -69,7 +69,6 @@ export default {
       flowProgress: 0,
       animationCallback: null,
       tempEntities: [],
-      cesiumToken:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0YmIxOGFlMS1kMTM5LTQ2MzAtOGVhYy1kZTJkZDg2ODExZGUiLCJpZCI6MzE0NTgwLCJpYXQiOjE3NTA2Mzk2OTV9.MC2gkk7GvviYj3MguPK028Iux2DHX-riLEO-NaOC0WM\"",// 创建的cesiumtoken
       popupVisible: false, // 弹窗的显示与隐藏，传值给子组件
       popupPosition: {x: 0, y: 0}, // 弹窗显示位置，传值给子组件
       popupData: {}, // 弹窗内容，传值给子组件
@@ -85,7 +84,6 @@ export default {
   },
   methods: {
     init() {
-      Cesium.Ion.defaultAccessToken = this.cesiumToken;
       this.viewer = new Cesium.Viewer("cesiumContainer", {
         homeButton: false,
         sceneModePicker: false,
@@ -104,47 +102,93 @@ export default {
       //天地图导入
       const imageLayers = this.viewer.scene.imageryLayers;
       imageLayers.remove(imageLayers.get(0)); //移除默认影像图层
-      this.addTianDiTuLayers();
+      this.addTianDiTuLayers(0);
       // 注释版权信息
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
 
       //定位到西安
       this.locatedXiAn();
     },
-    addTianDiTuLayers(){
-      // 添加图层请求间隔
-      setTimeout(() => {
-        this.viewer.imageryLayers.addImageryProvider(tdtLayer);
-      }, 1000);
+    addTianDiTuLayers(type){
+      this.viewer.imageryLayers.removeAll();
 
-      setTimeout(() => {
-        this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
-      }, 1000);
-      const subdomains = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'];
-      const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
-      // 天地图影像
-      const tdtLayer = new Cesium.WebMapTileServiceImageryProvider({
-        url: `http://${randomSubdomain}.tianditu.com/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
-        layer: "tdt",
-        style: "default",
-        format: "image/jpeg",
+      const option = {
         tileMatrixSetID: "w",
-        maximumLevel: 18,
-        show: false,
-      });
-      // 天地图注记
-      const tdtAnnotionLayer = new Cesium.WebMapTileServiceImageryProvider({
-        url: `http://${randomSubdomain}.tianditu.com/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
-        layer: "tdtAnno",
+        format: "tiles",
         style: "default",
-        format: "image/jpeg",
-        tileMatrixSetID: "w",
+        minimumLevel: 0,
         maximumLevel: 18,
-        show: false,
-      });
-      // 将图层添加到地图
-      this.viewer.imageryLayers.addImageryProvider(tdtLayer);
-      this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
+        credit: "Tianditu",
+        subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"]
+      };
+
+      if (type === 0) {
+        const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/img_w/wmts?tk=${this.tdtToken}`,
+          layer: "img",
+          ...option
+        });
+
+        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/cia_w/wmts?tk=${this.tdtToken}`,
+          layer: "cia",
+          ...option
+        });
+
+        this.viewer.imageryLayers.addImageryProvider(imageryProvider);
+        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+      } else {
+        const vectorProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/vec_w/wmts?tk=${this.tdtToken}`,
+          layer: "vec",
+          ...option
+        });
+
+        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/cva_w/wmts?tk=${this.tdtToken}`,
+          layer: "cva",
+          ...option
+        });
+
+        this.viewer.imageryLayers.addImageryProvider(vectorProvider);
+        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+      }
+
+      this.currentMapType = type;
+
+      // 添加图层请求间隔
+      // setTimeout(() => {
+      //   this.viewer.imageryLayers.addImageryProvider(tdtLayer);
+      // }, 1000);
+      //
+      // setTimeout(() => {
+      //   this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
+      // }, 1000);
+      // const subdomains = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'];
+      // const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
+      // // 天地图影像
+      // const tdtLayer = new Cesium.WebMapTileServiceImageryProvider({
+      //   url: `http://${randomSubdomain}.tianditu.com/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
+      //   layer: "tdt",
+      //   style: "default",
+      //   format: "image/jpeg",
+      //   tileMatrixSetID: "w",
+      //   maximumLevel: 18,
+      //   show: false,
+      // });
+      // // 天地图注记
+      // const tdtAnnotionLayer = new Cesium.WebMapTileServiceImageryProvider({
+      //   url: `http://${randomSubdomain}.tianditu.com/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
+      //   layer: "tdtAnno",
+      //   style: "default",
+      //   format: "image/jpeg",
+      //   tileMatrixSetID: "w",
+      //   maximumLevel: 18,
+      //   show: false,
+      // });
+      // // 将图层添加到地图
+      // this.viewer.imageryLayers.addImageryProvider(tdtLayer);
+      // this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
 
     },
     locatedXiAn(){
@@ -191,10 +235,12 @@ export default {
     },
     AddFaultZone(){
       console.log('显示断裂带');
+      console.log(lineData)
       this.lineData.features.forEach(line => {
+        console.log(line.geometry)
         this.line_data.push(line.geometry)
       })
-
+      let that = this
       this.line_data.forEach(Lon_Lat => {
         this.FaultZone = []
         Lon_Lat.coordinates.forEach(LonLat => {
@@ -202,6 +248,7 @@ export default {
             this.FaultZone.push(Number(point))
           })
         })
+        console.log(this.FaultZone,123)
         this.viewer.entities.add({
           polyline: {
             // fromDegrees返回给定的经度和纬度值数组（以度为单位），该数组由Cartesian3位置组成。
@@ -215,12 +262,13 @@ export default {
             // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
             zIndex: 10,
             // 显示在距相机的距离处的属性，多少区间内是可以显示的
-            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000000),
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
             // 是否显示
             show: true,
           }
         });
       })
+      // console.log(this.FaultZone,123123)
     },
     HideFaultZone() {
       console.log('隐藏断裂带');
@@ -265,8 +313,8 @@ export default {
             // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
             position = viewer.scene.globe.pick(ray, viewer.scene);
             let point = that.drawHypocenter(position);
-            let circle = that.drawCircle(position);
-            tempEntities.push(circle);
+            // let circle = that.drawCircle(position);
+            // tempEntities.push(circle);
             tempEntities.push(point);
 
             // 绘制完成后立即停止监听
