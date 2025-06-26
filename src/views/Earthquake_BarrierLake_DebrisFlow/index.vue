@@ -18,6 +18,10 @@
     <el-row type="flex" :gutter="24">
       <el-col :span="36">
         <div class="grid-content bg-purple">
+          <el-button type="primary" @click="toggleFaultZone()">
+            {{ showFaultZone ? '隐藏断裂带' : '显示断裂带' }}
+          </el-button>
+          <el-button type="primary" @click="draw('AddHypocenter')">添加震源</el-button>
           <el-button type="primary" @click="draw('point')">绘制点</el-button>
           <el-button type="primary" @click="draw('polyline')">绘制线</el-button>
           <el-button type="primary" @click="draw('polygon')">绘制面</el-button>
@@ -48,10 +52,9 @@
 <script>
 import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
-// import CesiumNavigation from "cesium-navigation-es6";
-// import {initCesium} from "@/cesium/tool/initCesium.js";
-// import RouterPanel from "@/components/Panel/RouterPanel.vue";
-// import cesiumPlot from "@/cesium/plot/cesiumPlot.js";
+import lineData from "@/assets/西安断层数据.json";
+import {renderList} from "vue";
+
 export default {
   name: "index",
   data() {
@@ -71,25 +74,14 @@ export default {
       popupPosition: {x: 0, y: 0}, // 弹窗显示位置，传值给子组件
       popupData: {}, // 弹窗内容，传值给子组件
       isShowMessage: false,  // 是否显示提示-添加受灾点
+      lineData: lineData,
+      line_data: [],
+      FaultZone: [],
+      showFaultZone: false,  // 控制断裂带显示状态的变量
     };
   },
   mounted() {
     this.init();
-    // this.handler = new Cesium.ScreenSpaceEventHandler(window.viewer.scene.canvas); // 初始化
-  },
-  beforeUnmount() {
-    if (window.viewer) {
-      let viewer = window.viewer
-      let gl = viewer.scene.context._gl
-      viewer.entities.removeAll()
-      // viewer.scene.primitives.removeAll()
-      // 不用写这个，viewer.destroy时包含此步，在DatasourceDisplay中
-      viewer.destroy()
-      gl.getExtension("WEBGL_lose_context").loseContext();
-      console.log("webglcontext 已清除")
-      gl = null
-      window.viewer = null;
-    }
   },
   methods: {
     init() {
@@ -130,6 +122,7 @@ export default {
       }, 1000);
       const subdomains = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'];
       const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
+      // 天地图影像
       const tdtLayer = new Cesium.WebMapTileServiceImageryProvider({
         url: `http://${randomSubdomain}.tianditu.com/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
         layer: "tdt",
@@ -184,116 +177,75 @@ export default {
         }));
       });
     },
-    // toggleDebrisFlow() {
-    //   if (this.isDebrisFlowActive) {
-    //     this.stopDebrisFlow();
-    //   } else {
-    //     this.startDebrisFlow();
-    //   }
-    //   this.isDebrisFlowActive = !this.isDebrisFlowActive;
-    // },
-    // startDebrisFlow() {
-    //   // 定义泥石流起点位置
-    //   const startPosition = Cesium.Cartesian3.fromDegrees(108.0, 34.2, 40000.0);
-    //
-    //   // 创建泥石流Primitive
-    //   this.debrisFlowPrimitive = new Cesium.Primitive({
-    //     geometryInstances: new Cesium.GeometryInstance({
-    //       geometry: new Cesium.PlaneGeometry({
-    //         vertexFormat: Cesium.VertexFormat.POSITION_AND_NORMAL,
-    //         dimensions: new Cesium.Cartesian2(5000, 20000)
-    //       }),
-    //       modelMatrix: Cesium.Matrix4.multiplyByTranslation(
-    //           Cesium.Transforms.eastNorthUpToFixedFrame(startPosition),
-    //           new Cesium.Cartesian3(0, 0, -100),
-    //           new Cesium.Matrix4()
-    //       ),
-    //       attributes: {
-    //         color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-    //             Cesium.Color.fromCssColorString('#8B4513').withAlpha(0.7)
-    //         )
-    //       }
-    //     }),
-    //     appearance: new Cesium.PerInstanceColorAppearance({
-    //       flat: true,
-    //       translucent: true
-    //     }),
-    //     asynchronous: false
-    //   });
-    //
-    //   // 添加到场景
-    //   this.viewer.scene.primitives.add(this.debrisFlowPrimitive);
-    //
-    //   // 开始动画
-    //   this.flowProgress = 0;
-    //   this.animationCallback = (time) => {
-    //     // 全面检查所有可能为空的对象
-    //     if (!this.debrisFlowPrimitive ||
-    //         !this.debrisFlowPrimitive.geometryInstances ||
-    //         !this.debrisFlowPrimitive.geometryInstances.attributes ||
-    //         !this.debrisFlowPrimitive.geometryInstances.attributes.position) {
-    //       return;
-    //     }
-    //
-    //     // 更新流动进度
-    //     this.flowProgress += 0.005 * this.flowSpeed;
-    //     if (this.flowProgress > 1) this.flowProgress = 0;
-    //
-    //     // 使用回调属性实现流动效果
-    //     const positionAttribute = this.debrisFlowPrimitive.geometryInstances.attributes.position;
-    //     const positions = positionAttribute.values;
-    //
-    //     // 创建一个动态位置回调
-    //     const dynamicPositions = new Cesium.CallbackProperty((time, result) => {
-    //       const animationOffset = Math.sin(this.flowProgress * Math.PI * 2) * 50;
-    //
-    //       // 如果结果数组不存在，创建一个新的
-    //       if (!result) {
-    //         result = new Float64Array(positions.length);
-    //       }
-    //
-    //       // 应用流动效果
-    //       for (let i = 0; i < positions.length; i += 3) {
-    //         result[i] = positions[i];
-    //         result[i + 1] = positions[i + 1] + animationOffset * (i / positions.length);
-    //         result[i + 2] = positions[i + 2];
-    //       }
-    //
-    //       return result;
-    //     }, false);
-    //
-    //     // 更新位置属性
-    //     positionAttribute.value = dynamicPositions;
-    //
-    //     // 标记属性需要重新计算
-    //     positionAttribute.definitionChanged.raiseEvent();
-    //
-    //     // 强制场景重新渲染
-    //     this.viewer.scene.requestRender();
-    //   };
-    //
-    //   // 注册动画回调
-    //   this.viewer.clock.onTick.addEventListener(this.animationCallback);
-    // },
-    // stopDebrisFlow() {
-    //   // 先移除动画回调，确保不再执行
-    //   if (this.animationCallback) {
-    //     this.viewer.clock.onTick.removeEventListener(this.animationCallback);
-    //     this.animationCallback = null;
-    //   }
-    //
-    //   // 再移除Primitive
-    //   if (this.debrisFlowPrimitive) {
-    //     this.viewer.scene.primitives.remove(this.debrisFlowPrimitive);
-    //     this.debrisFlowPrimitive = null;
-    //   }
-    // },
-    // updateDebrisFlow() {
-    //   // 当流速滑块更新时调用
-    //   if (this.isDebrisFlowActive) {
-    //     // 可以添加更复杂的流速调整逻辑
-    //   }
-    // },
+    toggleFaultZone() {
+      this.showFaultZone = !this.showFaultZone;
+
+      // 根据状态显示或隐藏断裂带
+      if (this.showFaultZone) {
+        // 显示断裂带的逻辑
+        this.AddFaultZone();
+      } else {
+        // 隐藏断裂带的逻辑
+        this.HideFaultZone();
+      }
+    },
+    AddFaultZone(){
+      console.log('显示断裂带');
+      this.lineData.features.forEach(line => {
+        this.line_data.push(line.geometry)
+      })
+
+      this.line_data.forEach(Lon_Lat => {
+        this.FaultZone = []
+        Lon_Lat.coordinates.forEach(LonLat => {
+          LonLat.forEach(point => {
+            this.FaultZone.push(Number(point))
+          })
+        })
+        this.viewer.entities.add({
+          polyline: {
+            // fromDegrees返回给定的经度和纬度值数组（以度为单位），该数组由Cartesian3位置组成。
+            // Cesium.Cartesian3.fromDegreesArray([经度1, 纬度1, 经度2, 纬度2,])
+            // Cesium.Cartesian3.fromDegreesArrayHeights([经度1, 纬度1, 高度1, 经度2, 纬度2, 高度2])
+            positions: Cesium.Cartesian3.fromDegreesArray(this.FaultZone),
+            // 宽度
+            width: 2,
+            // 线的颜色
+            material: Cesium.Color.RED,
+            // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
+            zIndex: 10,
+            // 显示在距相机的距离处的属性，多少区间内是可以显示的
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000000),
+            // 是否显示
+            show: true,
+          }
+        });
+      })
+    },
+    HideFaultZone() {
+      console.log('隐藏断裂带');
+
+      // 清空数据数组
+      this.line_data = [];
+      this.FaultZone = [];
+
+      // 移除所有断裂带实体
+      const entities = this.viewer.entities.values;
+      for (let i = entities.length - 1; i >= 0; i--) {
+        const entity = entities[i];
+        // if (entity.polyline && entity.polyline.material instanceof Cesium.Color &&
+        //     entity.polyline.material.color.equals(Cesium.Color.RED)) {
+          this.viewer.entities.remove(entity);
+        // }
+      }
+      // 移除标签实体
+      // for (let i = entities.length - 1; i >= 0; i--) {
+      //   const entity = entities[i];
+      //   if (entity.label && entity.label.text === '测试名称') {
+      //     this.viewer.entities.remove(entity);
+      //   }
+      // }
+    },
     draw(type) {
       //绘制点
       let that = this;
@@ -305,6 +257,34 @@ export default {
       viewer.scene.globe.depthTestAgainstTerrain = true;
       let handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       switch (type) {
+        case "AddHypocenter":
+          // 监听鼠标左键
+          handler.setInputAction(function (movement) {
+            // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
+            let ray = viewer.camera.getPickRay(movement.position);
+            // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
+            position = viewer.scene.globe.pick(ray, viewer.scene);
+            let point = that.drawHypocenter(position);
+            let circle = that.drawCircle(position);
+            tempEntities.push(circle);
+            tempEntities.push(point);
+
+            // 绘制完成后立即停止监听
+            handler.destroy();
+            handler = null;
+          }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+          // 双击或右键点击仍可停止绘制
+          handler.setInputAction(function () {
+            handler.destroy();
+            handler = null;
+          }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+          handler.setInputAction(function () {
+            handler.destroy();
+            handler = null;
+          }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+          break;
         case "point":
           // 监听鼠标左键
           handler.setInputAction(function (movement) {
@@ -416,7 +396,7 @@ export default {
         name: "点几何对象",
         position: position,
         point: {
-          color: Cesium.Color.SKYBLUE,
+          color: Cesium.Color.RED,
           pixelSize: 10,
           outlineColor: Cesium.Color.RED,
           outlineWidth: 3,
@@ -462,6 +442,115 @@ export default {
         },
       });
     },
+    drawHypocenter(position, config) {
+      let viewer = this.mapViewer;
+      let config_ = config ? config : {};
+      return viewer.entities.add({
+        name: "点几何对象",
+        position: position,
+        point: {
+          color: Cesium.Color.YELLOW,
+          pixelSize: 10,
+          outlineColor: Cesium.Color.YELLOW,
+          outlineWidth: 3,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        },
+      });
+    },
+    // drawCircle(position){
+    //   //绘制椭圆
+    //   // 定义多个椭圆的参数数组
+    //   const circleParams = [
+    //     { deviation: 0.15, numPoints: 48, extrudedHeight: 2000, alpha: 0.15 },
+    //     { deviation: 0.20, numPoints: 48, extrudedHeight: 4000, alpha: 0.10 },
+    //     { deviation: 0.25, numPoints: 64, extrudedHeight: 6000, alpha: 0.05 }
+    //   ];
+    //
+    //   // 基础椭圆尺寸
+    //   const baseMinorAxis = 20000;
+    //   const baseMajorAxis = 30000;
+    //
+    //   // 存储所有创建的不规则椭圆实体
+    //   const entities = [];
+    //
+    //   // 循环创建多个不规则同心椭圆
+    //   circleParams.forEach((params, index) => {
+    //     // 计算当前椭圆的尺寸（逐层放大）
+    //     const scale = 1 + index * 0.5;
+    //     const minorAxis = baseMinorAxis * scale;
+    //     const majorAxis = baseMajorAxis * scale;
+    //
+    //     // 生成不规则椭圆的点集
+    //     const points = [];
+    //     for (let i = 0; i < params.numPoints; i++) {
+    //       const angle = (i / params.numPoints) * Math.PI * 2;
+    //
+    //       // 计算基础椭圆上的点
+    //       let x = majorAxis * Math.cos(angle);
+    //       let y = minorAxis * Math.sin(angle);
+    //
+    //       // 添加随机偏移，创建不规则形状
+    //       const randomDeviation = 1 + (Math.random() * 2 - 1) * params.deviation;
+    //       x *= randomDeviation;
+    //       y *= randomDeviation;
+    //
+    //       // 将局部坐标转换为世界坐标
+    //       const cartographic = Cesium.Cartographic.fromCartesian(position);
+    //       const offsetPosition = Cesium.Cartesian3.fromRadians(
+    //           cartographic.longitude + x / Cesium.Ellipsoid.WGS84.maximumRadius,
+    //           cartographic.latitude + y / Cesium.Ellipsoid.WGS84.maximumRadius,
+    //           cartographic.height
+    //       );
+    //
+    //       points.push(offsetPosition);
+    //     }
+    //
+    //     // 创建不规则多边形
+    //     const polygon = new Cesium.Entity({
+    //       position: position,
+    //       name: "面几何对象",
+    //       polygon: {
+    //         hierarchy: new Cesium.PolygonHierarchy(points),
+    //         extrudedHeight: params.extrudedHeight,
+    //         material: Cesium.Color.RED.withAlpha(params.alpha),
+    //         outline: false,
+    //         outlineColor: Cesium.Color.BLUE
+    //       }
+    //     });
+    //
+    //     entities.push(this.viewer.entities.add(polygon));
+    //   });
+    //
+    //   return entities;
+    //   // const circleParams = [
+    //   //   { semiMinorAxis: 11873, semiMajorAxis: 21968, extrudedHeight: 952, alpha: 0.3 },
+    //   //   { semiMinorAxis: 34567, semiMajorAxis: 45678, extrudedHeight: 4000, alpha: 0.2 },
+    //   //   { semiMinorAxis: 40568, semiMajorAxis: 95666, extrudedHeight: 6000, alpha: 0.1 }
+    //   // ];
+    //   // // 存储所有创建的椭圆实体
+    //   // const entities = [];
+    //   // // 循环创建多个同心椭圆
+    //   // circleParams.forEach(params => {
+    //   //   const ellipse = new Cesium.Entity({
+    //   //     position: position,
+    //   //     name: "面几何对象",
+    //   //     ellipse: {
+    //   //       semiMinorAxis: params.semiMinorAxis,
+    //   //       semiMajorAxis: params.semiMajorAxis,
+    //   //       extrudedHeight: params.extrudedHeight,
+    //   //       material: Cesium.Color.RED.withAlpha(params.alpha),
+    //   //       outline: false,
+    //   //       outlineColor: Cesium.Color.BLUE,
+    //   //       rotation: Cesium.Math.toRadians(0)
+    //   //     }
+    //   //   });
+    //   //
+    //   //   entities.push(this.viewer.entities.add(ellipse));
+    //   // });
+    //   //
+    //   // return entities; // 返回创建的所有实体，方便后续操作
+    // },
     /**
      * 清除实体
      */
@@ -485,10 +574,8 @@ export default {
     },
     addVuex() {},
   },
-  created() {},
-
   beforeDestroy() {
-    this.stopDebrisFlow();
+    // this.stopDebrisFlow();
     if (this.viewer) {
       this.viewer.destroy();
       this.viewer = null;
@@ -528,6 +615,7 @@ export default {
 }
 .text{
   font-size: 20px;
+  margin: auto;
 }
 .controls {
   position: absolute;
@@ -548,16 +636,10 @@ button {
   text-decoration: none;
   display: inline-block;
   font-size: 14px;
-  margin-bottom: 10px;
+  /*margin-bottom: 10px;*/
   cursor: pointer;
   border-radius: 4px;
+  margin: auto;
 }
-.slider-container {
-  display: flex;
-  align-items: center;
-}
-input[type="range"] {
-  margin-left: 10px;
-  width: 150px;
-}
+
 </style>
