@@ -27,6 +27,10 @@ import Layout from '@/layout'
 // 公共路由
 export const constantRoutes = [
   {
+    path: '/index',
+    redirect: '/graph'
+  },
+  {
     path: '/redirect',
     component: Layout,
     hidden: true,
@@ -55,16 +59,17 @@ export const constantRoutes = [
   {
     path: '',
     component: Layout,
-    redirect: '/index',
+    redirect: '/graph',
     children: [
       {
-        path: '/index',
-        component: () => import('@/views/index'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
+        path: '/graph',
+        component: () => import('@/views/graph/index.vue'),
+        name: 'Graph',
+        meta: { title: '智能知识图谱灾害链', icon: 'dashboard', affix: true }
       }
     ]
   },
+
   {
     path: '/user',
     component: Layout,
