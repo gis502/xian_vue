@@ -12,7 +12,11 @@
             <el-button type="primary" @click="toggleFaultZone()">
               {{ showFaultZone ? '隐藏断裂带' : '显示断裂带' }}
             </el-button>
-            <el-button type="primary" @click="draw('AddHypocenter')">添加震源</el-button>
+            <el-button type="primary"
+                       :disabled="isButtonDisabled"
+                       @click="handleDraw('AddHypocenter')">
+              {{ buttonText }}
+            </el-button>
             <el-button type="primary" @click="toggleHazardSource()">
               {{ showHazardSource ? '隐藏隐患点' : '显示隐患点' }}
             </el-button>
@@ -81,6 +85,10 @@ export default {
       DebrisFlow: DebrisFlow, // 泥石流隐患点
       HazardPoint: [], // 泥石流隐患点数组
       showHazardSource: false,  // 控制隐患点显示状态的变量
+      hasDrawn: false, // 标记是否已经点击过
+      isButtonDisabled: false,
+      buttonText: '添加震源',
+      operationCompleted: false
     };
   },
   mounted() {
@@ -112,6 +120,29 @@ export default {
 
       //定位到西安
       this.locatedXiAn();
+    },
+    handleDraw(action) {
+      if (this.isButtonDisabled) return;
+
+      this.isButtonDisabled = true;
+      this.buttonText = '震源添加中...';
+
+      // 调用绘制方法
+      this.draw('AddHypocenter').then(() => {
+        this.buttonText = '已添加震源';
+        this.operationCompleted = true;
+        this.resetButton();
+      }).catch(err => {
+        console.error('绘制失败:', err);
+        this.resetButton(); // 失败时重置按钮
+      });
+    },
+
+    resetButton() {
+      // 重置按钮状态，允许再次点击
+      this.isButtonDisabled = false;
+      this.buttonText = '添加震源';
+      this.operationCompleted = false;
     },
     addTianDiTuLayers(type) {
       this.viewer.imageryLayers.removeAll();
@@ -370,32 +401,39 @@ export default {
       let handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       switch (type) {
         case "AddHypocenter":
-          // 监听鼠标左键
-          handler.setInputAction(function (movement) {
-            // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
-            let ray = viewer.camera.getPickRay(movement.position);
-            // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
-            position = viewer.scene.globe.pick(ray, viewer.scene);
-            let point = that.drawHypocenter(position);
-            // let circle = that.drawCircle(position);
-            that.pointToLineDistance(position);
-            // tempEntities.push(circle);
-            tempEntities.push(point);
-            // 绘制完成后立即停止监听
-            handler.destroy();
-            handler = null;
-          }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+          return new Promise((resolve, reject) => {
+            // 你的绘制逻辑
+            // 监听鼠标左键
+            handler.setInputAction(function (movement) {
+              // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
+              let ray = viewer.camera.getPickRay(movement.position);
+              // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
+              position = viewer.scene.globe.pick(ray, viewer.scene);
+              let point = that.drawHypocenter(position);
+              // let circle = that.drawCircle(position);
+              that.pointToLineDistance(position);
+              // tempEntities.push(circle);
+              tempEntities.push(point);
+              // 绘制完成后立即停止监听
+              handler.destroy();
+              handler = null;
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-          // 双击或右键点击仍可停止绘制
-          handler.setInputAction(function () {
-            handler.destroy();
-            handler = null;
-          }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+            // 双击或右键点击仍可停止绘制
+            handler.setInputAction(function () {
+              handler.destroy();
+              handler = null;
+            }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
-          handler.setInputAction(function () {
-            handler.destroy();
-            handler = null;
-          }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+            handler.setInputAction(function () {
+              handler.destroy();
+              handler = null;
+            }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+            setTimeout(() => {
+              // 模拟绘制成功
+            resolve();
+            }, 1500);
+          });
           break;
         case "point":
           // 监听鼠标左键
