@@ -15,7 +15,6 @@
         <label><input type="checkbox" v-model="showRiskArea" @change="toggleRiskVisibility"> 显示危险点 </label>
       </div>
     </div>
-
     <!-- 地震信息面板 -->
     <div v-if="showInfoPanel" class="earthquake-info-panel">
       <div class="panel-title">地震信息</div>
