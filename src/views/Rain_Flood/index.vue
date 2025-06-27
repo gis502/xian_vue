@@ -68,7 +68,7 @@ import lakeData from '@/assets/static/json/lake.json'; // 湖面数据
 // 引入滑坡，泥石流灾害点数据
 import HuapoData from '@/assets/static/disaster/Huapo.json';
 import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
-// import faultZone from '@/assets/static/disaster/xian_fault.json'
+import DangerAreaData from '@/assets/static/disaster/riskArea.json'
 
 export default {
   name: 'CesiumRainMap',
@@ -103,11 +103,12 @@ export default {
       HuapoData: HuapoData,
       NishiliuData: NishiliuData,
       // faultZone: faultZone,
+      DangerAreaData: DangerAreaData,
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
       rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
-      rainEllipseRotation: 0, // 椭圆默认旋转角度
+      rainEllipseRotation: 70, // 椭圆默认旋转角度
       // 图例相关
       districtColors: {}, // 存储各区县的颜色
       showDisasterLayer: true, // 控制灾害点显示/隐藏
@@ -137,7 +138,10 @@ export default {
           }
         }
       },
-      clickHandler: null
+      clickHandler: null,
+      landslidePoints: [],     // 滑坡点
+      debrisFlowPoints: [],    // 泥石流点
+      secondaryRiskPoints: [], // 次生灾害风险点
     }
   },
   computed: {},
@@ -390,19 +394,23 @@ export default {
         };
       });
     },
-
+    // 加载灾害点数据
     loadDisasterData() {
       this.isLoading = true;
       this.loadingText = '加载灾害点数据...';
-
 
       try {
         // 确保数据存在且格式正确
         const huapoFeatures = this.HuapoData?.features || [];
         const nishiliuFeatures = this.NishiliuData?.features || [];
-
+        const dangerAreaFeatures = this.DangerAreaData?.features || [];
         // 存储所有添加的实体，用于事件处理
         this.disasterEntities = [];
+
+        // 分别存储不同类型灾害点的实体引用
+        this.landslideEntities = [];
+        this.debrisFlowEntities = [];
+        this.secondaryRiskEntities = [];
 
         // 加载滑坡点
         huapoFeatures.forEach(point => {
@@ -410,6 +418,9 @@ export default {
           const disasterNAME = properties.disasterName || '未知灾害点';
           const longitude = point.geometry.coordinates[0];
           const latitude = point.geometry.coordinates[1];
+
+          // 加入滑坡点到数组
+          this.landslidePoints.push([longitude, latitude])
 
           // 创建灾害点实体
           const entity = this.viewer.entities.add({
@@ -435,24 +446,32 @@ export default {
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(20, -20),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
               show: true
             },
             // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription(properties, '滑坡')
+            description: this.createDisasterDescription(properties, '滑坡'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'landslide'
           });
 
           // 保存实体引用
           this.disasterEntities.push(entity);
+          this.landslideEntities.push(entity);
         });
+
         // 加载泥石流点
         nishiliuFeatures.forEach(point => {
           const properties = point.properties || {};
           const disasterNAME = properties.disasterName || '未知灾害点';
           const longitude = parseFloat(point.geometry.coordinates[0]);
           const latitude = parseFloat(point.geometry.coordinates[1]);
-
+          // 加入泥石流点
+          this.debrisFlowPoints.push([longitude, latitude])
           // 创建灾害点实体
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
@@ -477,40 +496,75 @@ export default {
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(20, -20),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
+              pixelOffset: new Cesium.Cartesian2(-70, 35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
               show: true
             },
             // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription(properties, '泥石流')
+            description: this.createDisasterDescription(properties, '泥石流'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.YELLOW,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'debrisFlow'
           });
 
           // 保存实体引用
           this.disasterEntities.push(entity);
+          this.debrisFlowEntities.push(entity);
         });
 
-        // 加载断裂带
-        // faultZone.features.forEach(line => {
-        //   // 提取当前断层的坐标点
-        //   const coords = line.geometry.coordinates.flat();
-        //
-        //   // 为每条断层创建单独的实体
-        //   this.viewer.entities.add({
-        //     polyline: {
-        //       positions: Cesium.Cartesian3.fromDegreesArray(coords),
-        //       // 宽度
-        //       width: 2,
-        //       // 线的颜色
-        //       material: Cesium.Color.RED,
-        //       // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
-        //       zIndex: 10,
-        //       // 显示在距相机的距离处的属性，多少区间内是可以显示的
-        //       distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 5000000),
-        //       // 是否显示
-        //       show: true
-        //     }
-        //   });
-        // });
+        // 添加风险区点
+        dangerAreaFeatures.forEach(point => {
+          const area = point.properties.area_Km2 || {};   // 面积
+          const position = point.properties.position;
+          const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
+          const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
+          const grade = point.properties.grade;  //  风险等级
+
+          // 加入次生灾害点
+          this.secondaryRiskPoints.push([longitude, latitude])
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            point: {
+              color: Cesium.Color.ORANGE, // 点位颜色
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 1,
+              pixelSize: 15 // 像素点大小
+            },
+            // 文字
+            label: {
+              text: `${position}`,
+              font: '15pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+              show: true
+            },
+            // 添加灾害类型信息，用于弹窗显示
+            description: this.createDisasterDescription({grade, position}, '次生灾害风险区'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.ORANGE,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'secondaryRisk'
+          });
+
+          // 保存实体引用
+          this.disasterEntities.push(entity);
+          this.secondaryRiskEntities.push(entity);
+        });
 
         // 设置实体点击事件
         this.setupEntityClickHandler();
@@ -521,23 +575,20 @@ export default {
         console.error('处理灾害数据时出错:', error);
       }
     },
-
     // 创建灾害点详情描述
-    createDisasterDescription(properties) {
-      console.log(properties, "====================================>")
-      var disasterType = properties.disasterName.includes("滑坡") ? "滑坡" : "泥石流"
+    createDisasterDescription(properties, type) {
 
+      var disasterType = type.includes("滑坡") ? "滑坡" : "泥石流"
       return `
     <div style="font-family: Arial, sans-serif; padding: 50px;">
       <h3 style="color: ${disasterType === '滑坡' ? 'red' : 'yellow'}; margin-top: 0;">
-        ${properties.disasterName || '未知灾害点'}
+        ${type || '未知灾害点'}
       </h3>
       <p><strong>灾害类型:</strong> ${disasterType}</p>
-      <p><strong>坐标:</strong> ${properties.disasterName || '未知'}, ${properties.latitude || '未知'}</p>
+      <p><strong>坐标:</strong> ${properties.longitude || '未知'}, ${properties.latitude || '未知'}</p>
     </div>
-  `;
+`;
     },
-
     // 设置实体点击事件处理
     setupEntityClickHandler() {
       // 清除之前的点击事件处理程序
@@ -572,8 +623,6 @@ export default {
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
-
-
     // 加载行政区划数据
     loadAdminData() {
       this.isLoading = true;
@@ -1011,15 +1060,23 @@ export default {
       const majorRadius = rainfall * this.rainEllipseScale; // 长轴半径
       const minorRadius = majorRadius * 0.7; // 短轴半径，形成椭圆
 
+      // 计算椭圆边界的经纬度坐标
+      const ellipseCoordinates = this.calculateEllipseCoordinates(
+          centerCartesian,
+          majorRadius,
+          minorRadius,
+          this.rainEllipseRotation
+      );
+
       // 创建椭圆实体
-      return this.viewer.entities.add({
+      const ellipseEntity = this.viewer.entities.add({
         position: centerCartesian,
         ellipse: {
           semiMajorAxis: majorRadius,
           semiMinorAxis: minorRadius,
           height: 0,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          material: new Cesium.Color(1, 0, 0, 0.5), // 半透明红色
+          material: new Cesium.Color(1, 0, 0, 0.2), // 半透明红色
           outline: true,
           outlineColor: Cesium.Color.RED,
           outlineWidth: 1,
@@ -1029,14 +1086,263 @@ export default {
           depthFailMaterial: new Cesium.Color(0, 0, 1, 0.1)
         },
         description: `
-          <div style="font-family: Arial, sans-serif;">
-            <h3>暴雨影响区域</h3>
-            <p><strong>降雨量:</strong> ${rainfall} mm</p>
-            <p><strong>影响半径:</strong> 长轴 ${(majorRadius / 1000).toFixed(2)} km, 短轴 ${(minorRadius / 1000).toFixed(2)} km</p>
-            <p><strong>标记时间:</strong> ${new Date().toLocaleString()}</p>
-          </div>
-        `
+        <div style="font-family: Arial, sans-serif;">
+          <h3>暴雨影响区域</h3>
+          <p><strong>降雨量:</strong> ${rainfall} mm</p>
+          <p><strong>影响半径:</strong> 长轴 ${(majorRadius / 1000).toFixed(2)} km, 短轴 ${(minorRadius / 1000).toFixed(2)} km</p>
+          <p><strong>标记时间:</strong> ${new Date().toLocaleString()}</p>
+          <p><strong>边界点数:</strong> ${ellipseCoordinates.length}</p>
+        </div>
+      `
       });
+
+      // 存储椭圆坐标数据
+      ellipseEntity.coordinates = ellipseCoordinates;
+
+      // 检测灾害点是否在椭圆范围内
+      this.checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, majorRadius, minorRadius, rainfall);
+
+      return ellipseEntity;
+    },
+    // 计算椭圆边界的经纬度坐标
+    calculateEllipseCoordinates(centerCartesian, majorRadius, minorRadius, rotation) {
+      const centerCartographic = Cesium.Cartographic.fromCartesian(centerCartesian);
+      const centerLon = centerCartographic.longitude;
+      const centerLat = centerCartographic.latitude;
+
+      const samples = 100; // 采样点数量，决定精度
+      const coordinates = [];
+
+      for (let i = 0; i < samples; i++) {
+        const angle = (i / samples) * Math.PI * 2;
+
+        // 考虑旋转的椭圆参数方程
+        const cosAngle = Math.cos(angle);
+        const sinAngle = Math.sin(angle);
+        const cosRotation = Math.cos(rotation);
+        const sinRotation = Math.sin(rotation);
+
+        // 计算椭圆上的点在局部坐标系中的偏移
+        const x = majorRadius * cosAngle * cosRotation - minorRadius * sinAngle * sinRotation;
+        const y = majorRadius * cosAngle * sinRotation + minorRadius * sinAngle * cosRotation;
+
+        // 将偏移转换为经纬度偏移
+        const latOffset = y / 111320; // 1度纬度约等于111320米
+        const lonOffset = x / (111320 * Math.cos(centerLat)); // 经度距离随纬度变化
+
+        // 计算椭圆边界点的经纬度
+        const lon = centerLon + lonOffset;
+        const lat = centerLat + latOffset;
+
+        // 存储坐标 [经度, 纬度]
+        coordinates.push([Cesium.Math.toDegrees(lon), Cesium.Math.toDegrees(lat)]);
+      }
+
+      return coordinates;
+    },
+    // 检查灾害点是否在椭圆范围内
+    checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, majorRadius, minorRadius, rainfall) {
+      // 获取椭圆中心点的经纬度
+      const centerCartographic = Cesium.Cartographic.fromCartesian(centerCartesian);
+
+      // 存储在椭圆内的灾害点坐标
+      const landslidePointsInside = [];
+      const debrisFlowPointsInside = [];
+      const secondaryRiskPointsInside = [];
+
+      // 检查所有滑坡点
+      this.landslidePoints.forEach(point => {
+        if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
+          landslidePointsInside.push(point);
+        }
+      });
+
+      // 检查所有泥石流点
+      this.debrisFlowPoints.forEach(point => {
+        if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
+          debrisFlowPointsInside.push(point);
+        }
+      });
+
+      // 检查所有次生灾害风险点
+      this.secondaryRiskPoints.forEach(point => {
+        if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
+          secondaryRiskPointsInside.push(point);
+        }
+      });
+
+      // 合并所有在椭圆内的灾害点坐标
+      const allPointsInside = [
+        ...landslidePointsInside,
+        ...debrisFlowPointsInside,
+        ...secondaryRiskPointsInside
+      ];
+
+      // 闪烁在椭圆内的灾害点
+      if (allPointsInside.length > 0) {
+        // 直接传递坐标数组到闪烁函数
+        this.flashDisasterPoints(allPointsInside);
+
+        console.log(`在椭圆内的灾害点数量: ${allPointsInside.length}`);
+        console.log(`滑坡点: ${landslidePointsInside.length}`);
+        console.log(`泥石流点: ${debrisFlowPointsInside.length}`);
+        console.log(`次生灾害风险点: ${secondaryRiskPointsInside.length}`);
+
+        // 更新椭圆描述，显示检测结果
+        const description = ellipseEntity.description.getValue();
+        ellipseEntity.description = description + `
+  <p><strong>影响灾害点:</strong> ${allPointsInside.length}个</p>
+  <p><strong>滑坡:</strong> ${landslidePointsInside.length}个</p>
+  <p><strong>泥石流:</strong> ${debrisFlowPointsInside.length}个</p>
+  <p><strong>次生灾害风险点:</strong> ${secondaryRiskPointsInside.length}个</p>
+`;
+      }
+    },
+    // 判断点是否在椭圆内 - 使用正确的椭圆方程
+    isPointInEllipse(pointPosition, ellipseCenter, majorRadius, minorRadius, rotation) {
+      // 将经纬度转换为笛卡尔坐标（世界坐标）
+      const pointCartographic = Cesium.Cartographic.fromDegrees(
+          pointPosition[0],
+          pointPosition[1]
+      );
+
+      // 确保点高度与椭圆中心一致（消除高度影响）
+      const centerCartographic = Cesium.Cartographic.fromCartesian(ellipseCenter);
+      pointCartographic.height = centerCartographic.height;
+
+      const pointCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(pointCartographic);
+
+      // 计算点到椭圆中心的地表距离（沿地球表面）
+      const geodesic = new Cesium.EllipsoidGeodesic();
+      geodesic.setEndPoints(
+          centerCartographic,
+          pointCartographic
+      );
+      const surfaceDistance = geodesic.surfaceDistance;
+
+      // 计算点相对于椭圆中心的方位角（弧度）
+      const azimuth = geodesic.startHeading;
+
+      // 计算椭圆在该方位角上的半径
+      const cosAz = Math.cos(azimuth - rotation);
+      const sinAz = Math.sin(azimuth - rotation);
+      const ellipseRadiusAtAzimuth =
+          (majorRadius * minorRadius) /
+          Math.sqrt(
+              Math.pow(minorRadius * cosAz, 2) +
+              Math.pow(majorRadius * sinAz, 2)
+          );
+
+      // 比较距离与椭圆在该方向上的半径，增加容差值以解决浮点数精度问题
+      const tolerance = 0.1; // 10厘米容差，可根据需要调整
+      return surfaceDistance <= ellipseRadiusAtAzimuth + tolerance;
+    },
+    // 闪烁灾害点 - 光晕扩散效果
+    flashDisasterPoints(points) {
+      // 停止之前的闪烁动画
+      if (this.flashInterval) {
+        clearInterval(this.flashInterval);
+      }
+      if (this.haloCollection) {
+        this.haloCollection.removeAll();
+      }
+
+      // 创建光晕点集合
+      this.haloCollection = new Cesium.PointPrimitiveCollection();
+      this.viewer.scene.primitives.add(this.haloCollection);
+
+      // 从所有灾害实体中查找匹配的点
+      const entitiesToFlash = [];
+      this.disasterEntities.forEach(entity => {
+        const position = entity.position.getValue(Cesium.JulianDate.now());
+        const cartographic = Cesium.Cartographic.fromCartesian(position);
+        const entityPoint = [
+          Cesium.Math.toDegrees(cartographic.longitude),
+          Cesium.Math.toDegrees(cartographic.latitude)
+        ];
+
+        // 检查该实体是否在需要闪烁的点列表中
+        for (const point of points) {
+          if (Math.abs(point[0] - entityPoint[0]) < 0.00001 &&
+              Math.abs(point[1] - entityPoint[1]) < 0.00001) {
+            entitiesToFlash.push(entity);
+
+            // 创建光晕点
+            this.haloCollection.add({
+              position: position,
+              pixelSize: 15,
+              color: entity.point.color.getValue(),
+              outlineColor: Cesium.Color.RED,
+              outlineWidth: 1,
+              show: true,
+              // 自定义材质用于光晕效果
+              material: new Cesium.Material({
+                fabric: {
+                  type: 'Halo',
+                  uniforms: {
+                    color: entity.point.color.getValue(),
+                    glowPower: 0.5,
+                    innerRadius: 0.5,
+                    outerRadius: 1.0
+                  },
+                  source: `
+                uniform vec4 color;
+                uniform float glowPower;
+                uniform float innerRadius;
+                uniform float outerRadius;
+
+                czm_material czm_getMaterial(czm_materialInput materialInput) {
+                  czm_material material = czm_getDefaultMaterial(materialInput);
+                  vec2 st = materialInput.st;
+                  float dist = distance(st, vec2(0.5, 0.5));
+                  float alpha = smoothstep(outerRadius, innerRadius, dist);
+                  alpha = pow(alpha, glowPower);
+                  material.diffuse = color.rgb;
+                  material.alpha = alpha * color.a;
+                  return material;
+                }
+              `
+                }
+              })
+            });
+
+            break;
+          }
+        }
+      });
+
+      // 如果没有找到匹配的实体，直接返回
+      if (entitiesToFlash.length === 0) return;
+
+      // 动画控制变量
+      let animationTime = 0;
+      const animationDuration = 2000; // 动画周期，毫秒
+
+      // 启动动画循环
+      this.flashInterval = setInterval(() => {
+        animationTime = (animationTime + 50) % animationDuration;
+        const normalizedTime = animationTime / animationDuration;
+
+        // 更新所有光晕点的大小和透明度
+        for (let i = 0; i < this.haloCollection.length; i++) {
+          const halo = this.haloCollection.get(i);
+
+          // 计算光晕大小（从原始大小到3倍）
+          const baseSize = 15;
+          const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
+          halo.pixelSize = baseSize * sizeFactor;
+
+          // 计算光晕透明度（大小最大时透明度最低）
+          const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
+          const originalColor = entitiesToFlash[i].point.color.getValue();
+          halo.color = new Cesium.Color(
+              originalColor.red,
+              originalColor.green,
+              originalColor.blue,
+              alphaFactor * 0.8
+          );
+        }
+      }, 50); // 每50ms更新一次
     },
     // 创建图例（修改版，添加灾害点图例）
     createLegend() {
@@ -1168,7 +1474,7 @@ export default {
 
       const landslideTextDiv = document.createElement('div');
       landslideTextDiv.className = 'legend-text';
-      landslideTextDiv.textContent = '滑坡灾害点';
+      landslideTextDiv.textContent = '历史滑坡灾害点';
       landslideTextDiv.style.fontSize = '14px';
       landslideTextDiv.style.lineHeight = '20px';
 
@@ -1195,13 +1501,43 @@ export default {
 
       const debrisFlowTextDiv = document.createElement('div');
       debrisFlowTextDiv.className = 'legend-text';
-      debrisFlowTextDiv.textContent = '泥石流灾害点';
+      debrisFlowTextDiv.textContent = '历史泥石流灾害点';
       debrisFlowTextDiv.style.fontSize = '14px';
       debrisFlowTextDiv.style.lineHeight = '20px';
 
       debrisFlowItem.appendChild(debrisFlowColorDiv);
       debrisFlowItem.appendChild(debrisFlowTextDiv);
       container.appendChild(debrisFlowItem);
+
+
+      // 地质灾害风险区图例（黄色圆形）
+      const dangerItem = document.createElement('div');
+      dangerItem.className = 'legend-item';
+      dangerItem.style.display = 'flex';
+      dangerItem.style.alignItems = 'center';
+      dangerItem.style.marginBottom = '10px';
+
+      const dangerColorDiv = document.createElement('div');
+      dangerColorDiv.className = 'legend-point';
+      dangerColorDiv.style.backgroundColor = 'rgba(255,134,0,0.8)'; // 黄色
+      dangerColorDiv.style.width = '16px';
+      dangerColorDiv.style.height = '16px';
+      dangerColorDiv.style.marginRight = '10px';
+      dangerColorDiv.style.border = '1px solid #333'; // 添加边框
+      dangerColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
+      dangerColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
+
+      const dangerTextDiv = document.createElement('div');
+      dangerTextDiv.className = 'legend-text';
+      dangerTextDiv.textContent = '地质灾害风险点';
+      dangerTextDiv.style.fontSize = '14px';
+      dangerTextDiv.style.lineHeight = '20px';
+
+      dangerItem.appendChild(dangerColorDiv);
+      dangerItem.appendChild(dangerTextDiv);
+      container.appendChild(dangerItem);
+
+
     },
     // 更新图例
     updateLegend() {
@@ -1413,7 +1749,7 @@ export default {
   margin-bottom: 6px;
 }
 
-.legend-color, .legend-point {
+.legend-color {
   width: 16px;
   height: 16px;
   margin-right: 6px;
