@@ -12,6 +12,7 @@
         <label><input type="checkbox" v-model="showFaultLines" @change="toggleFaultLines" /> 显示断裂带 </label>
         <label><input type="checkbox" v-model="showDisasterLayer" @change="toggleDisasterPoints" /> 显示灾害点 </label>
         <label><input type="checkbox" v-model="showDangerPoints" @change="toggleDangerPoints" /> 显示隐患点 </label>
+        <label><input type="checkbox" v-model="showRiskArea" @change="toggleRiskVisibility"> 显示危险源 </label>
       </div>
     </div>
 
@@ -30,27 +31,47 @@
     <!-- 图例 -->
     <div class="legend">
       <div class="legend-title">图例</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 215, 0, 0.3);"></span>Ⅸ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 128, 0, 0.25);"></span>Ⅷ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 0, 255, 0.2);"></span> Ⅶ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(75, 0, 130, 0.15);"></span>Ⅵ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 0, 0, 0.6);"></span>Ⅻ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 69, 0, 0.5);"></span>Ⅺ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 140, 0, 0.45);"></span>Ⅹ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 215, 0, 0.4);"></span>Ⅸ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(124, 252, 0, 0.35);"></span>Ⅷ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 191, 255, 0.3);"></span>Ⅶ度</div>
+      <div class="legend-item"><span class="legend-color" style="background: rgba(138, 43, 226, 0.25);"></span>Ⅵ度</div>
+
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 断裂带</div>
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 滑坡点</div>
       <div class="legend-item"><span class="legend-color" style="background: #ffea00;"></span> 泥石流点</div>
       <div class="legend-item"><span class="legend-color" style="background: #15a151;"></span> 隐患点</div>
+      <div class="legend-item"><span class="legend-color" style="background: #fcb56c;"></span> 危险源</div>
     </div>
+
+<!--    <div class="legend">-->
+<!--      <div class="legend-title">图例</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(255,215,0,0.34);"></span>Ⅸ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 128, 0, 0.25);"></span>Ⅷ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 0, 255, 0.2);"></span> Ⅶ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(75, 0, 130, 0.15);"></span>Ⅵ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 断裂带</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 滑坡点</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: #ffea00;"></span> 泥石流点</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: #15a151;"></span> 隐患点</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: #fcb56c;"></span> 危险源</div>-->
+<!--    </div>-->
   </div>
 </template>
 
 <script>
 import * as Cesium from 'cesium';
-import HuapoData from '@/assets/styles/Huapo.json';
-import NishiliuData from '@/assets/styles/Nishiliu.json';
-import FaultZoneData from '@/assets/styles/faultZone.json';
+import HuapoData from '@/assets/disaster/Huapo.json';
+import NishiliuData from '@/assets/disaster/Nishiliu.json';
+import FaultZoneData from '@/assets/disaster/faultZone.json';
+import RiskAreaData from '@/assets/disaster/riskArea.json';
 
 export default {
   name: 'CesiumMap',
@@ -66,6 +87,8 @@ export default {
       faultLineEntities: [], // 存储断裂带实体
       showDisasterLayer: true,  // 控制显示/隐藏所有灾害点
       disasterEntities: [],     // 存储所有灾害点（滑坡 + 泥石流）
+      riskEntities: [],
+      showRiskArea: true, // 控制是否显示危险源点
       viewer: null,
       handler: null,
       tdtToken: "7f013d0186775b063d6a046977bbefc6",
@@ -135,7 +158,8 @@ export default {
     this.initViewer();
     this.loadDisasterData();  // 加载灾害点数据
     this.loadFaultZoneData(); // 加载断裂带数据
-    this.loadDangerPoints();  // 加载隐患点数据（之前的loadGasStationPoints拼写错误）
+    this.loadDangerPoints();  // 加载隐患点数据
+    this.loadRiskAreas();
   },
   beforeDestroy() {
     this.cleanup();
@@ -151,141 +175,6 @@ export default {
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
-
-    // // 新增：加载灾害点数据
-    // loadDisasterData() {
-    //   console.log('开始加载灾害点数据...');
-    //   try {
-    //     // 确保数据存在且格式正确
-    //     const huapoFeatures = this.HuapoData?.features || [];
-    //     const nishiliuFeatures = this.NishiliuData?.features || [];
-    //
-    //     // 清空之前的灾害点实体
-    //     this.disasterEntities = [];
-    //     // this.faultZoneEntities = []; // 新增断裂带实体数组
-    //
-    //     // 加载滑坡点
-    //     huapoFeatures.forEach(point => {
-    //       const properties = point.properties || {};
-    //       const disasterNAME = properties.disasterName || '未知灾害点';
-    //       const longitude = point.geometry.coordinates[0];
-    //       const latitude = point.geometry.coordinates[1];
-    //
-    //       // 创建灾害点实体
-    //       const entity = this.viewer.entities.add({
-    //         position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-    //         // 点
-    //         point: {
-    //           color: Cesium.Color.RED, // 红色表示滑坡
-    //           outlineColor: Cesium.Color.BLACK,
-    //           outlineWidth: 1,
-    //           pixelSize: 12 // 像素点大小
-    //         },
-    //         // 文字
-    //         label: {
-    //           text: `${disasterNAME}`,
-    //           font: '14pt Source Han Sans CN',
-    //           fillColor: Cesium.Color.WHITE,
-    //           backgroundColor: Cesium.Color.RED.withAlpha(0.7),
-    //           showBackground: true,
-    //           outline: true,
-    //           outlineColor: Cesium.Color.BLACK,
-    //           outlineWidth: 1,
-    //           scale: 0.8,
-    //           verticalOrigin: Cesium.VerticalOrigin.CENTER,
-    //           horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-    //           pixelOffset: new Cesium.Cartesian2(20, -20),
-    //           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
-    //           show: this.showDisasterLayer // 控制显示/隐藏
-    //         },
-    //         // 添加灾害类型信息，用于弹窗显示
-    //         description: this.createDisasterDescription(properties, '滑坡')
-    //       });
-    //
-    //       // 保存实体引用
-    //       this.disasterEntities.push(entity);
-    //     });
-    //
-    //     // 加载泥石流点
-    //     nishiliuFeatures.forEach(point => {
-    //       const properties = point.properties || {};
-    //       const disasterNAME = properties.disasterName || '未知灾害点';
-    //       const longitude = parseFloat(point.geometry.coordinates[0]);
-    //       const latitude = parseFloat(point.geometry.coordinates[1]);
-    //
-    //       // 创建灾害点实体
-    //       const entity = this.viewer.entities.add({
-    //         position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-    //         // 点
-    //         point: {
-    //           color: Cesium.Color.YELLOW, // 黄色表示泥石流
-    //           outlineColor: Cesium.Color.BLACK,
-    //           outlineWidth: 1,
-    //           pixelSize: 12 // 像素点大小
-    //         },
-    //         // 文字
-    //         label: {
-    //           text: `${disasterNAME}`,
-    //           font: '14pt Source Han Sans CN',
-    //           fillColor: Cesium.Color.WHITE,
-    //           backgroundColor: Cesium.Color.YELLOW.withAlpha(0.7),
-    //           showBackground: true,
-    //           outline: true,
-    //           outlineColor: Cesium.Color.BLACK,
-    //           outlineWidth: 1,
-    //           scale: 0.8,
-    //           verticalOrigin: Cesium.VerticalOrigin.CENTER,
-    //           horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-    //           pixelOffset: new Cesium.Cartesian2(20, -20),
-    //           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
-    //           show: this.showDisasterLayer // 控制显示/隐藏
-    //         },
-    //         // 添加灾害类型信息，用于弹窗显示
-    //         description: this.createDisasterDescription(properties, '泥石流')
-    //       });
-    //
-    //       // 保存实体引用
-    //       this.disasterEntities.push(entity);
-    //     });
-    //
-    //     // 设置实体点击事件
-    //     this.setupEntityClickHandler();
-    //
-    //     // 加载断裂带
-    //     const faultFeatures = FaultZoneData?.features || [];
-    //
-    //     faultFeatures.forEach((lineFeature, idx) => {
-    //       const coords = lineFeature.geometry?.coordinates || [];
-    //       if (!Array.isArray(coords) || coords.length < 2) return;
-    //
-    //       const linePositions = coords.flatMap(coord => [coord[0], coord[1]]);
-    //
-    //       const entity = this.viewer.entities.add({
-    //         name: lineFeature.properties?.FN_En || `断裂带 ${idx + 1}`,
-    //         polyline: {
-    //           positions: Cesium.Cartesian3.fromDegreesArray(linePositions),
-    //           width: 2,
-    //           material: Cesium.Color.RED.withAlpha(0.8),
-    //           clampToGround: true,
-    //           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0.0, 10000000.0),
-    //           zIndex: 10
-    //         },
-    //         description: `
-    //           <div>
-    //             <strong>名称:</strong> ${lineFeature.properties?.FN_En || '未知'}<br>
-    //             <strong>类型:</strong> ${lineFeature.properties?.Fea_En || '未知'}<br>
-    //             <strong>年代:</strong> ${lineFeature.properties?.AGE || '未知'}
-    //           </div>
-    //         `
-    //       });
-    //
-    //       this.faultLineEntities.push(entity);
-    //     });
-    //
-    //   } catch (error) {
-    //     console.error('处理灾害数据时出错:', error);
-    //   }
-    // },
 
     loadDisasterData() {
       console.log('开始加载灾害点数据...');
@@ -452,6 +341,7 @@ export default {
       const mgLon = lon + dLon;
       return [lon * 2 - mgLon, lat * 2 - mgLat];
     },
+
     loadDangerPoints() {
       const dangerPoints = [
         {
@@ -463,11 +353,6 @@ export default {
           name: '延长壳牌加油站(西安先锋路站)',
           bdLon: 108.98221043775547,
           bdLat: 34.32570169842432
-        },
-        {
-          name: '中国石化加油站(太元路站)',
-          bdLon: 108.9949413200951,
-          bdLat: 34.30689644916352
         },
         {
           name: '中国国际能源加油站(北辰路站)',
@@ -517,6 +402,55 @@ export default {
         });
 
         this.dangerPointEntities.push(entity);
+      });
+    },
+
+    loadRiskAreas() {
+      // 先清除已有危险源实体
+      this.riskEntities.forEach(e => this.viewer.entities.remove(e));
+      this.riskEntities = [];
+
+      const features = RiskAreaData?.features || [];
+
+      features.forEach((feature, idx) => {
+        const coords = feature.geometry?.coordinates || [];
+        const props = feature.properties || {};
+        const name = props.disasterName || `危险源${idx + 1}`;
+
+        const entity = this.viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(coords[0], coords[1], 5),
+          point: {
+            color: Cesium.Color.ORANGE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 1,
+            pixelSize: 12
+          },
+          label: {
+            text: name,
+            font: '14pt Source Han Sans CN',
+            fillColor: Cesium.Color.WHITE,
+            backgroundColor: Cesium.Color.ORANGE.withAlpha(0.7),
+            showBackground: true,
+            outline: true,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 1,
+            scale: 0.8,
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+            pixelOffset: new Cesium.Cartesian2(20, -20),
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
+            show: this.showRiskArea
+          },
+          description: `
+          <div style="padding: 10px;">
+            <h4 style="color: orange;">${name}</h4>
+            <p><strong>类型:</strong> 危险源</p>
+            <p><strong>位置:</strong> ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}</p>
+          </div>
+        `
+        });
+
+        this.riskEntities.push(entity);
       });
     },
 
@@ -634,12 +568,14 @@ export default {
         cartesian: cartesian
       };
     },
+
     removeClickHandler() {
       if (this.handler) {
         this.handler.destroy();
         this.handler = null;
       }
     },
+
     confirmEarthquake() {
       if (!this.selectedPosition) return;
       // 清除现有烈度圈
@@ -737,43 +673,6 @@ export default {
       });
     },
 
-    // // 绘制烈度圈方法修改
-    // drawIntensityCircles() {
-    //   const { longitude, latitude, cartesian: center } = this.selectedPosition;
-    //   const M = this.magnitude;
-    //
-    //   // 清除现有烈度圈
-    //   this.clearIntensityCircles();
-    //
-    //   // 震级≤6时不生成烈度圈
-    //   if (M <= 6.0) {
-    //     return;
-    //   }
-    //
-    //   const intensityLevels = this.getIntensityLevels(M);
-    //
-    //   intensityLevels.forEach((Ia, index) => {
-    //     // 计算椭圆长短轴
-    //     const semiMajorAxis = this.calculateRa(M, Ia);
-    //     const semiMinorAxis = this.calculateRb(M, Ia);
-    //
-    //     const ellipse = this.viewer.entities.add({
-    //       position: center,
-    //       ellipse: {
-    //         semiMajorAxis,
-    //         semiMinorAxis,
-    //         rotation: Cesium.Math.toRadians(0),
-    //         // material: this.getIntensityColor(Ia),
-    //         material: this.getColorByIntensity(Ia),
-    //         outline: true,
-    //         outlineColor: Cesium.Color.BLACK,
-    //         outlineWidth: 1
-    //       }
-    //     });
-    //
-    //     this.intensityCircles.push(ellipse);
-    //   });
-    // },
     calculateRa(M, Ia) {
       const { offset, magnitudeFactor, decayFactor, minValue, unitConversion } = this.axisCalculationParams.Ra;
       const value = Math.pow(10, (offset + magnitudeFactor * M - Ia) / decayFactor) - minValue;
@@ -790,22 +689,6 @@ export default {
       return result;
     },
 
-    // calculateRa(M, Ia) {
-    //   const { offset, magnitudeFactor, decayFactor, minValue, unitConversion } = this.axisCalculationParams.Ra;
-    //   const value = Math.pow(10, (offset + magnitudeFactor * M - Ia) / decayFactor) - minValue;
-    //   return value <= 0 ? 100 : value * unitConversion;
-    // },
-    //
-    // calculateRb(M, Ib) {
-    //   const { offset, magnitudeFactor, decayFactor, minValue, unitConversion } = this.axisCalculationParams.Rb;
-    //   const value = Math.pow(10, (offset + magnitudeFactor * M - Ib) / decayFactor) - minValue;
-    //   return value <= 0 ? 60 : value * unitConversion;
-    // },
-    // // 更新后的颜色映射方法
-    // getIntensityColor(level) {
-    //   const colorConfig = this.intensityConfig.colorMap.find(c => c.level === level);
-    //   return colorConfig ? colorConfig.color : Cesium.Color.WHITE.withAlpha(0.1);
-    // },
     getColorByIntensity(level) {
       const entry = this.intensityConfig.colorMap.find(item => item.level === level);
       if (entry) {
@@ -855,6 +738,12 @@ export default {
     toggleDisasterPoints() {
       this.disasterEntities.forEach(entity => {
         entity.show = this.showDisasterLayer;
+      });
+    },
+
+    toggleRiskVisibility() {
+      this.riskEntities.forEach(e => {
+        e.show = this.showRiskArea;
       });
     },
 
