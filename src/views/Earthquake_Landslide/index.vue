@@ -8,6 +8,7 @@ import landslide from '@/assets/landslide/landslide.json'
 import landslideIcon from '@/assets/images/landslide.png'
 import earthquake from '@/assets/images/earthquake.png'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
+import lineData from "@/assets/西安断层数据.json";
 
 const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
 
@@ -35,6 +36,8 @@ function load(){
   loadTDT(0)
   loadLandSlide(landslide)
   weiNanEarthquake()
+  earthquakeLine()
+  earthquakeLine()
   viewer.cesiumWidget.creditContainer.style.display = "none";
 
   viewer.camera.setView({
@@ -67,6 +70,39 @@ function weiNanEarthquake() {
     properties: {
 
     }
+  })
+}
+
+function earthquakeLine(){
+  let line_data = []
+  lineData.features.forEach(line => {
+    console.log(line.geometry)
+    line_data.push(line.geometry)
+  })
+
+  line_data.forEach(Lon_Lat => {
+    let FaultZone = []
+    Lon_Lat.coordinates.forEach(LonLat => {
+      LonLat.forEach(point => {
+        FaultZone.push(Number(point))
+      })
+    })
+    window.viewer.entities.add({
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(FaultZone),
+        // 宽度
+        width: 2,
+        // 线的颜色
+        material: Cesium.Color.RED,
+        // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
+        zIndex: 10,
+        // 显示在距相机的距离处的属性，多少区间内是可以显示的
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0),
+        // 是否显示
+        show: true,
+      },
+      // label
+    });
   })
 }
 
