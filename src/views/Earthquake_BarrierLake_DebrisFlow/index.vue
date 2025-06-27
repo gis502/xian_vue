@@ -53,8 +53,8 @@
 <script>
 import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
-import lineData from "@/assets/西安断层数据.json";
-import DebrisFlow from "@/assets/西安泥石流灾害点.json"
+// import lineData from "@/assets/西安断层数据.json";
+// import DebrisFlow from "@/assets/西安泥石流灾害点.json"
 import landslideIcon from "@/assets/images/landslide.png"
 import {renderList} from "vue";
 
