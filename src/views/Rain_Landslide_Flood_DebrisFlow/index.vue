@@ -1,5 +1,6 @@
 <template>
   <div class="cesium-container" ref="cesiumContainer">
+    <el-icon-location-information></el-icon-location-information>
     <div class="rain-btn" @click="toggleRainMode">
       {{ rainMode ? '取消暴雨标记' : '暴雨模拟' }}
     </div>
@@ -12,6 +13,11 @@
     <!-- 新增：灾害图层控制按钮 -->
     <div class="disaster-btn" @click="toggleDisasterLayer">
       {{ showDisasterLayer ? '隐藏灾害点' : '显示灾害点' }}
+    </div>
+
+    <!-- 在template合适位置加 -->
+    <div class="risk-village-btn" @click="toggleRiskVillageLayer">
+      {{ showRiskVillageLayer ? '隐藏风险村庄' : '显示风险村庄' }}
     </div>
 
     <div v-if="showInfoPanel" class="rain-info-panel">
@@ -71,6 +77,11 @@
           <div class="legend-color" style="background-color: rgba(255, 255, 0, 1); border: 1px solid #fff;"></div>
           <div class="legend-name">泥石流灾害点</div>
         </div>
+        <div class="legend-title">风险区域图例</div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(0, 255, 0, 1); border: 1px solid #fff;"></div>
+          <div class="legend-name">风险村庄</div>
+        </div>
       </div>
     </div>
 
@@ -78,6 +89,7 @@
     <div class="layer-control" @click="toggleAdminLayer">
       {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
     </div>
+
   </div>
 </template>
 
@@ -101,6 +113,8 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 // 引入滑坡，泥石流灾害点数据
 import HuapoData from '@/assets/static/disaster/Huapo.json';
 import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
+//引入村庄数据
+import RiskArea from '@/assets/static/json/riskArea.json'
 
 export default {
   name: 'CesiumMap',
@@ -108,6 +122,7 @@ export default {
     return {
       HuapoData: HuapoData,
       NishiliuData: NishiliuData,
+      RiskArea:RiskArea,
       disasterEntities: [], // 存储灾害点实体
       showDisasterLayer: true, // 控制灾害点图层显示
       clickHandler: null, // 点击事件处理器
@@ -121,10 +136,7 @@ export default {
       duration: 6,
       rainEntities: [],
       weatherActive: false,
-      rainEffect: null,
-      gasStationEntities: [], // 存储加油站实体,
       handler: null, // 屏幕事件处理器
-      rainParticleSystem: null, // 新增粒子雨效系统
       scaleDistance: '1km', // 比例尺距离
       scaleUpdateInterval: null, // 比例尺更新定时器
       compassHeading: 0, // 指南针角度
@@ -154,11 +166,16 @@ export default {
       showAdminLayer: true, // 新增：控制行政区划图层显示
       isCompassHovering: false,
       orthographicPitch: Cesium.Math.toRadians(-90), // 正射视角的俯仰角
-      disasterFlashing: new Map(), // 存储闪烁中的灾害点及其定时器
       rainRangePolygons: [], // 存储降雨范围的多边形表示
-      flashInterval: 1000, // 闪烁间隔（毫秒），默认1秒
       isCheckingDisasters: false, // 避免同时进行多次检测
-      rainRangeCheckInterval: null // 新增：存储定时检查的定时器
+      rainRangeCheckInterval: null, // 新增：存储定时检查的定时器
+      rippleEllipses: new Map(),// 存储每个灾害点的水波纹动画定时器和实体
+      originalDisasterColors: new Map(), // 存储灾害点原始颜色
+      isRainSimulationActive: false, // 标记暴雨模拟是否活跃
+      riskVillageEntities: [], // 存储风险村庄实体
+      riskVillageColor: new Cesium.Color(0, 255/255, 0, 1), // 绿色表示风险村庄
+      showRiskVillageLayer: true, // 控制风险村庄图层显示
+
     }
   },
   computed: {
@@ -177,10 +194,12 @@ export default {
       // 确保viewer完全初始化后再设置粒子系统
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      this.initRainEffect();
       this.initScaleBar(); // 初始化比例尺
       this.loadAdminData(); // 加载行政区划数据
       this.loadDisasterData(); // 新增：加载灾害点数据
+
+      // 新增：加载风险村庄数据
+      this.loadRiskVillages();
 
       document.addEventListener('keydown', this.onKeyDown);
 
@@ -196,8 +215,7 @@ export default {
 
       // 新增：定时检查降雨范围内的灾害点
       this.rainRangeCheckInterval = setInterval(() => {
-        this.checkDisastersInRainRange();
-      }, this.flashInterval);
+      }, 1000);
     } catch (error) {
       console.error("初始化失败:", error);
     }
@@ -220,6 +238,20 @@ export default {
 
       this.viewer.destroy();
       this.viewer = null;
+
+      if (this.rainRangeCheckInterval) {
+        clearInterval(this.rainRangeCheckInterval);
+      }
+
+      if (this.originalDisasterColors) {
+        this.originalDisasterColors.clear();
+        this.originalDisasterColors = null;
+      }
+
+      if (this.viewer) {
+        this.viewer.destroy();
+        this.viewer = null;
+      }
     }
     // 移除键盘事件
     document.removeEventListener('keydown', this.onKeyDown);
@@ -229,6 +261,23 @@ export default {
     // 清除定时检查
     if (this.rainRangeCheckInterval) {
       clearInterval(this.rainRangeCheckInterval);
+    }
+
+    // 额外资源清理
+    if (this.originalDisasterColors) {
+      this.originalDisasterColors.clear();
+      this.originalDisasterColors = null;
+    }
+
+    // 确保所有定时器已清除
+    if (this.rainRangeCheckInterval) {
+      clearInterval(this.rainRangeCheckInterval);
+    }
+
+    // 释放 Cesium 资源
+    if (this.viewer) {
+      this.viewer.destroy();
+      this.viewer = null;
     }
   },
 
@@ -267,11 +316,12 @@ export default {
             roll: 0.0
           }
         });
-        this.initRainEffect();
         this.initScaleBar(); // 初始化比例尺
         document.addEventListener('keydown', this.onKeyDown);
+        this.viewer.scene.globe.readyPromise;
       } catch (error) {
         console.error("Cesium初始化错误:", error);
+        throw error;
       }
     },
     // 初始化比例尺
@@ -381,12 +431,16 @@ export default {
     loadDisasterData() {
       console.log('开始加载灾害点数据...');
       try {
+        if (!(this.originalDisasterColors instanceof Map)) {
+          this.originalDisasterColors = new Map();
+        }
         // 确保数据存在且格式正确
         const huapoFeatures = this.HuapoData?.features || [];
         const nishiliuFeatures = this.NishiliuData?.features || [];
 
         // 清空之前的灾害点实体
         this.disasterEntities = [];
+        this.originalDisasterColors.clear(); // 清空之前的颜色记录
 
         // 加载滑坡点
         huapoFeatures.forEach(point => {
@@ -419,7 +473,7 @@ export default {
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(20, -20),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 50000),
               show: this.showDisasterLayer // 控制显示/隐藏
             },
             // 添加灾害类型信息，用于弹窗显示
@@ -428,6 +482,8 @@ export default {
 
           // 保存实体引用
           this.disasterEntities.push(entity);
+          // 保存原始颜色
+          this.originalDisasterColors.set(entity.id, Cesium.Color.RED);
         });
 
         // 加载泥石流点
@@ -461,7 +517,7 @@ export default {
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(20, -20),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 100000),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 50000),
               show: this.showDisasterLayer // 控制显示/隐藏
             },
             // 添加灾害类型信息，用于弹窗显示
@@ -470,6 +526,8 @@ export default {
 
           // 保存实体引用
           this.disasterEntities.push(entity);
+          // 保存原始颜色
+          this.originalDisasterColors.set(entity.id, Cesium.Color.YELLOW);
         });
 
         // 设置实体点击事件
@@ -478,6 +536,77 @@ export default {
       } catch (error) {
         console.error('处理灾害数据时出错:', error);
       }
+    },
+
+    // 加载风险村庄数据（独立方法）
+    loadRiskVillages() {
+      console.log('开始加载风险村庄数据...');
+      this.riskVillageEntities = [];
+
+      // 确保数据存在且格式正确
+      const riskVillageFeatures = this.RiskArea?.features || [];
+      console.log(`风险村庄数据点数: ${riskVillageFeatures.length}`);
+
+      if (riskVillageFeatures.length === 0) {
+        console.warn('riskArea.json中没有风险村庄数据');
+        return;
+      }
+
+      riskVillageFeatures.forEach(point => {
+        const properties = point.properties || {};
+        const villageName = properties.position || '未知村庄';
+        const longitude = parseFloat(point.geometry.coordinates[0]);
+        const latitude = parseFloat(point.geometry.coordinates[1]);
+        const grade = properties.grade || '未知等级';
+        const area = properties.area_Km2 || '未知面积';
+
+        const entity = this.viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+          point: {
+            color: this.riskVillageColor,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 1,
+            pixelSize: 10
+          },
+          label: {
+            text: `${villageName}`,
+            font: '14pt Source Han Sans CN',
+            fillColor: Cesium.Color.WHITE,
+            backgroundColor: this.riskVillageColor.withAlpha(0.7),
+            showBackground: true,
+            outline: true,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 1,
+            scale: 0.8,
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+            pixelOffset: new Cesium.Cartesian2(20, -20),
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 50000),
+            show: this.showRiskVillageLayer // 独立控制显示/隐藏
+          },
+          description: `
+            <div style="font-family: Arial, sans-serif; padding: 10px;">
+              <h3 style="color: green; margin-top: 0;">${villageName}</h3>
+              <p><strong>坐标:</strong> ${longitude.toFixed(6)}, ${latitude.toFixed(6)}</p>
+              <p><strong>风险等级:</strong> ${grade}</p>
+              <p><strong>区域面积:</strong> ${area} km²</p>
+            </div>
+          `
+        });
+
+        this.riskVillageEntities.push(entity);
+      });
+
+      console.log(`成功加载 ${riskVillageFeatures.length} 个风险村庄`);
+    },
+
+    // 切换风险村庄显示
+    toggleRiskVillageLayer() {
+      this.showRiskVillageLayer = !this.showRiskVillageLayer;
+      this.riskVillageEntities.forEach(entity => {
+        entity.point.show = this.showRiskVillageLayer;
+        entity.label.show = this.showRiskVillageLayer;
+      });
     },
 
     // 创建灾害点详情描述
@@ -741,9 +870,6 @@ export default {
 
       // 新增：激活全局降雨效果
       this.weatherActive = true;
-      if (this.rainEffect) {
-        this.rainEffect.enabled = true;
-      }
 
       // 新增：相机飞行到降雨区域并设置45度角视角
       this.flyToRainArea(longitude, latitude, this.rainRadius);
@@ -761,112 +887,9 @@ export default {
       });
 
       // 开始检查灾害点
-      this.checkDisastersInRainRange();
       this.updateRainRanges();
     },
 
-    // 优化后的灾害点检查方法
-    checkDisastersInRainRange() {
-      if (this.isCheckingDisasters || this.rainRangePolygons.length === 0 || this.disasterEntities.length === 0) {
-        return;
-      }
-
-      this.isCheckingDisasters = true;
-      console.log('开始检查灾害点是否在降雨范围内...');
-      console.log('降雨范围数量:', this.rainRangePolygons.length);
-      console.log('灾害点数量:', this.disasterEntities.length);
-
-      // 清除之前的闪烁效果
-      this.clearDisasterFlashing();
-
-      // 遍历所有灾害点
-      this.disasterEntities.forEach(disaster => {
-        const position = disaster.position.getValue(Cesium.JulianDate.now());
-        if (!position) {
-          console.warn('灾害点位置无效');
-          return;
-        }
-
-        // 检查灾害点是否在任何降雨范围内
-        const isInRainRange = this.isPointInRainRanges(position);
-
-        if (isInRainRange) {
-          console.log(`灾害点 ${disaster.label.text.getValue()} 在降雨范围内`);
-          this.startDisasterFlashing(disaster);
-        } else {
-          // 不在降雨范围内，确保灾害点正常显示
-          disaster.point.show = true;
-          disaster.label.show = true;
-        }
-      });
-
-      this.isCheckingDisasters = false;
-      console.log('灾害点检查完成');
-    },
-
-// 检查点是否在任何降雨范围内（优化版）
-    isPointInRainRanges(point) {
-      const surface = Cesium.Ellipsoid.WGS84;
-      const pointCartographic = surface.cartesianToCartographic(point);
-
-      for (const rainRange of this.rainRangePolygons) {
-        const { center, radius } = rainRange;
-        const centerCartographic = surface.cartesianToCartographic(center);
-
-        // 计算地表距离（更精确）
-        const distanceOnSurface = surface.geodeticSurfaceDistance(pointCartographic, centerCartographic);
-
-        if (distanceOnSurface <= radius) {
-          return true;
-        }
-      }
-      return false;
-    },
-    
-    // 开始灾害点闪烁
-    startDisasterFlashing(disaster) {
-      if (this.disasterFlashing.has(disaster.id)) {
-        return; // 已在闪烁中
-      }
-
-      console.log(`启动灾害点闪烁: ${disaster.label.text.getValue()}`);
-
-      // 保存原始显示状态
-      const originalPointShow = disaster.point.show;
-      const originalLabelShow = disaster.label.show;
-
-      // 设置初始显示状态
-      disaster.point.show = true;
-      disaster.label.show = true;
-
-      let isVisible = true;
-      const flashTimer = setInterval(() => {
-        isVisible = !isVisible;
-        disaster.point.show = isVisible;
-        disaster.label.show = isVisible;
-      }, this.flashInterval);
-
-      // 存储定时器和原始状态
-      this.disasterFlashing.set(disaster.id, {
-        timer: flashTimer,
-        originalPointShow,
-        originalLabelShow
-      });
-      console.log('闪烁灾害点ID:', disaster.id);
-    },
-
-// 清除所有灾害点闪烁效果（优化版）
-    clearDisasterFlashing() {
-      this.disasterFlashing.forEach(({ timer, originalPointShow, originalLabelShow }, id) => {
-        clearInterval(timer);
-        const disaster = this.disasterEntities.find(d => d.id === id);
-        if (disaster) {
-          disaster.point.show = originalPointShow;
-          disaster.label.show = originalLabelShow;
-        }
-      });
-      this.disasterFlashing.clear();
-    },
 
 // 当降雨范围变化时更新检测（优化版）
     updateRainRanges() {
@@ -876,7 +899,7 @@ export default {
           const position = entity.position.getValue(Cesium.JulianDate.now());
           if (position) {
             const radius = entity.ellipse.semiMajorAxis.getValue(Cesium.JulianDate.now());
-            
+
             this.rainRangePolygons.push({
               center: position,
               radius: radius,
@@ -884,7 +907,6 @@ export default {
             });
           }
         });
-        this.checkDisastersInRainRange();
       }
     },
 
@@ -934,38 +956,6 @@ export default {
         this.toggleRainMode();
       }
     },
-    initRainEffect() {
-      const rainFragmentShader = `
-        #version 300 es
-        precision highp float;
-        uniform sampler2D colorTexture;
-        in vec2 v_textureCoordinates;
-        out vec4 fragColor;
-        float hash(float x){
-            return fract(sin(x*23.3)*13.13);
-        }
-        void main(){
-            float time = czm_frameNumber / 100.0;
-            vec2 resolution = czm_viewport.zw;
-            vec2 uv=(gl_FragCoord.xy*2.-resolution.xy)/min(resolution.x,resolution.y);
-            vec3 c=vec3(.6,.7,.8);
-            float a=-.6;
-            float si=sin(a),co=cos(a);
-            uv*=mat2(co,-si,si,co);
-            uv*=length(uv+vec2(0,8.9))*.3+1.;
-            float v=1.-sin(hash(floor(uv.x*100.))*2.);
-            float b=clamp(abs(sin(20.*time*v+uv.y*(5./(2.+v))))-.95,0.,1.)*20.;
-            c*=v*b;
-            fragColor = mix(texture(colorTexture, v_textureCoordinates), vec4(c, 1), 0.5);
-        }
-      `;
-      this.rainEffect = new Cesium.PostProcessStage({
-        fragmentShader: rainFragmentShader
-      });
-      this.viewer.scene.postProcessStages.add(this.rainEffect);
-      this.rainEffect.enabled = false;
-    },
-
     toggleWeatherEffect() {
       this.weatherActive = !this.weatherActive;
       // 控制所有降雨粒子系统的显示/隐藏
@@ -980,6 +970,7 @@ export default {
       }
     },
 
+    // 清除暴雨模拟
     clearRainSimulations() {
       // 关闭下雨效果
       this.weatherActive = false;
@@ -987,24 +978,16 @@ export default {
         this.rainEffect.enabled = false;
       }
 
-      // 删除所有降雨点
-      if (this.rainEntities && this.rainEntities.length > 0) {
-        this.rainEntities.forEach(entity => {
-          this.viewer.entities.remove(entity);
-        });
+      // 删除所有降雨相关实体
+      if (this.rainEntities.length > 0) {
+        this.rainEntities.forEach(entity => this.viewer.entities.remove(entity));
         this.rainEntities = [];
       }
-
-      // 删除所有降雨范围圆
-      if (this.rainRangeEntities && this.rainRangeEntities.length > 0) {
-        this.rainRangeEntities.forEach(entity => {
-          this.viewer.entities.remove(entity);
-        });
+      if (this.rainRangeEntities.length > 0) {
+        this.rainRangeEntities.forEach(entity => this.viewer.entities.remove(entity));
         this.rainRangeEntities = [];
       }
-
-      // 删除所有降雨粒子系统
-      if (this.rainParticleSystems && this.rainParticleSystems.length > 0) {
+      if (this.rainParticleSystems.length > 0) {
         this.rainParticleSystems.forEach(ps => {
           if (this.viewer.scene.primitives.contains(ps)) {
             this.viewer.scene.primitives.remove(ps);
@@ -1013,18 +996,51 @@ export default {
         this.rainParticleSystems = [];
       }
 
+      // 恢复灾害点原始颜色
+      this.restoreOriginalDisasterColors();
+
+      // 停止降雨范围检查
+      this.stopRainRangeChecking();
+
+      // 停止降雨范围检查
+      if (this.rainRangeCheckInterval) {
+        clearInterval(this.rainRangeCheckInterval);
+        this.rainRangeCheckInterval = null;
+      }
+
+
       // 重置状态
       this.showInfoPanel = false;
       this.rainMode = false;
-      if (this.handler) {
-        this.handler.destroy();
-        this.handler = null;
-      }
+      this.isRainSimulationActive = false;
+      if (this.handler) this.handler.destroy();
+      this.handler = null;
       document.body.style.cursor = '';
       this.selectedPosition = null;
+      this.rainRangePolygons = [];
 
-      console.log('所有暴雨模拟已清除');
+      console.log('所有暴雨模拟已清除，灾害点恢复原始状态');
     },
+
+    // 恢复灾害点原始颜色
+    restoreOriginalDisasterColors() {
+      this.disasterEntities.forEach(entity => {
+        const originalColor = this.originalDisasterColors.get(entity.id);
+        if (originalColor) {
+          entity.point.color = originalColor;
+        }
+      });
+    },
+
+    // 停止降雨范围检查
+    stopRainRangeChecking() {
+      if (this.rainRangeCheckInterval) {
+        clearInterval(this.rainRangeCheckInterval);
+        this.rainRangeCheckInterval = null;
+      }
+      this.isCheckingDisasters = false;
+    },
+
 
     initCompassListener() {
       if (!this.viewer) return;
@@ -1050,6 +1066,11 @@ export default {
 
       // 添加事件监听
       this.viewer.camera.changed.addEventListener(this.compassHandler);
+      // 恢复灾害点颜色
+      this.restoreOriginalDisasterColors();
+
+      // 清空降雨范围数据，停止检查
+      this.rainRangePolygons = [];
     },
 
     // 新增：为每个降雨点添加独立粒子系统
@@ -1062,7 +1083,7 @@ export default {
       const boxSize = radiusKm * 1000 * 2;
       const emissionRate = Math.max(50, Math.min(1500, Math.round(intensity * 1.5)));
       const rainParticleSystem = new Cesium.ParticleSystem({
-        image: this.createRaindropCanvas(),
+        image: 'https://cesium.com/downloads/cesiumjs/releases/1.70/Apps/Sandcastle/images/star.png',
         startColor: new Cesium.Color(1.0, 1.0, 1.0, 0.8),
         endColor: new Cesium.Color(0.8, 0.9, 1.0, 0.4),
         startScale: 0.5,
@@ -1105,29 +1126,7 @@ export default {
       ctx.fill();
       return canvas;
     },
-    focusGasStation(cartesian) {
-      if (!cartesian) return;
-      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-      const lon = Cesium.Math.toDegrees(cartographic.longitude);
-      const lat = Cesium.Math.toDegrees(cartographic.latitude);
-      const rainPosition = Cesium.Cartesian3.fromDegrees(lon, lat, 300);
-      const modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(rainPosition);
-      if (this.rainParticleSystem) {
-        this.rainParticleSystem.modelMatrix = modelMatrix;
-        this.rainParticleSystem.show = true;
-        console.log("更新后的雨粒子系统 modelMatrix：", this.rainParticleSystem.modelMatrix);
-      }
-      // 飞行到雨点
-      this.viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(lon, lat, 2000),
-        orientation: {
-          heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-30),
-          roll: 0.0
-        },
-        duration: 2.0
-      });
-    },
+
 
     //点击指南针回到正北方向
     resetToNorth() {
@@ -1175,11 +1174,11 @@ export default {
 
 <style scoped>
 .cesium-container {
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 .rain-btn {
   width: 108px;
@@ -1451,5 +1450,23 @@ export default {
 
 .layer-control:hover {
   background-color: rgba(0, 0, 0, 0.9);
+}
+
+.risk-village-btn {
+  position: absolute;
+  top: 20px;
+  left: 360px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 100;
+  transition: background-color 0.3s;
+}
+
+.risk-village-btn:hover {
+  background-color: #388E3C;
 }
 </style>
