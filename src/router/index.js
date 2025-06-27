@@ -65,7 +65,7 @@ export const constantRoutes = [
         path: '/graph',
         component: () => import('@/views/graph/index.vue'),
         name: 'Graph',
-        meta: { title: '智能知识图谱灾害链', icon: 'dashboard', affix: true }
+        meta: { title: '多灾种灾害链分析', icon: 'dashboard', affix: true }
       }
     ]
   },
