@@ -382,7 +382,7 @@ async function loadLandSlide(landslide) {
 <style scoped>
 #cesium-container {
   width: 100%;
-  height: calc(100vh - 84px);
+  height: calc(100vh - 50px);
   padding: 0;
   margin: 0;
   position: relative;
