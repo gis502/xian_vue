@@ -65,7 +65,7 @@ function weiNanEarthquake() {
       disableDepthTestDistance: Number.POSITIVE_INFINITY // 不进行深度测试
     },
     properties: {
-      data:landslide[i]
+
     }
   })
 }
