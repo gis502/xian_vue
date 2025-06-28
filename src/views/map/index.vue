@@ -59,6 +59,7 @@ export default {
     },
     // 加载天地图
     loadTDT(type) {
+      //开发用这个
       let layerProvider=new Cesium.WebMapTileServiceImageryProvider({
         url: `http://t0.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=${this.tdtToken}`,
         layer: "tdtBasicLayer",
@@ -75,15 +76,18 @@ export default {
         subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
         tileMatrixLabels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18'],
       });
+      this.viewer.imageryLayers.addImageryProvider(layerProvider)
+      this.viewer.imageryLayers.addImageryProvider(tdtCvaProvider)
+      //开发用这个 end
 
+      //部署内网用这个
       // viewer.imageryLayers.get(0).show = false;
       // let layerProvider = new Cesium.UrlTemplateImageryProvider({
       //   url: 'https://10.22.245.226:8889/kgis/rest/services/GETileMercatorNew/MapServer/tile/{z}/{y}/{x}',
       //   fileExtension: 'png',
       //
       // })
-      this.viewer.imageryLayers.addImageryProvider(layerProvider)
-      this.viewer.imageryLayers.addImageryProvider(tdtCvaProvider)
+      //部署内网用这个
     }
   }
 }
