@@ -43,6 +43,12 @@ import ImagePreview from "@/components/ImagePreview"
 import TreeSelect from '@/components/TreeSelect'
 // 字典标签组件
 import DictTag from '@/components/DictTag'
+//Cesium 的样式文件：
+import 'cesium/Build/Cesium/Widgets/widgets.css';
+import * as Cesium from 'cesium';
+// 配置Cesium资源基础路径
+window.CESIUM_BASE_URL = '/node_modules/cesium/Build/Cesium/';
+
 
 const app = createApp(App)
 
