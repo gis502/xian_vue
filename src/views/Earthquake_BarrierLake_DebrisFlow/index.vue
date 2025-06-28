@@ -12,13 +12,23 @@
             <el-button type="primary" @click="toggleFaultZone()">
               {{ showFaultZone ? '隐藏断裂带' : '显示断裂带' }}
             </el-button>
-            <el-button type="primary"
-                       :disabled="isButtonDisabled"
-                       @click="handleDraw('AddHypocenter')">
-              {{ buttonText }}
+
+<!--            <el-button type="primary"-->
+<!--                       :disabled="isButtonDisabled"-->
+<!--                       @click="handleDraw('AddHypocenter')">-->
+<!--              {{ buttonText }}-->
+<!--            </el-button>-->
+
+            <el-button class="earthquake-btn" @click="toggleEarthquakeMode()">
+              {{ earthquakeMode ? '取消地震模拟' : '地震模拟' }}
             </el-button>
-            <el-button type="primary" @click="toggleHazardSource()">
-              {{ showHazardSource ? '隐藏隐患点' : '显示隐患点' }}
+
+            <el-button class="earthquake-btn" @click="draw('AddHypocenter')">
+              {{ earthquakeMode ? '取消地震模拟' : '地震模拟' }}
+            </el-button>
+
+            <el-button type="primary" @click="toggleHiddenDangerPoints()">
+              {{ showHiddenDangerPoints ? '隐藏隐患点' : '显示隐患点' }}
             </el-button>
             <!--          <el-button type="primary" @click="draw('point')">绘制点</el-button>-->
             <!--          <el-button type="primary" @click="draw('polyline')">绘制线</el-button>-->
@@ -28,6 +38,19 @@
         </el-col>
       </el-row>
     </div>
+
+    <div v-if="showInfoPanel" class="earthquake-info-panel">
+      <div class="panel-title">地震信息</div>
+      <div class="panel-content">
+        <div>震级: <input v-model.number="magnitude" type="number" min="0" max="10" step="0.1" /></div>
+        <div>深度: <input v-model.number="depth" type="number" min="0" max="1000" step="1" /> km</div>
+        <div>震中位置: {{ selectedPosition ? `${selectedPosition.latitude.toFixed(4)}, ${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
+        <button @click="DrawCircle(this.earthPoint,this.bearing,this.magnitude)">确认添加</button>
+        <button @click="cancel_Earthquake">取消</button>
+      </div>
+    </div>
+
+
     <div class="legend">
       <div class="legend-title">图例</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>
@@ -44,12 +67,12 @@
       <!--    <div class="legend-item"><span class="legend-color" style="background: #15a151;"></span> 隐患点</div>-->
       <div class="legend-item">
         <span class="legend-color"
-              style="background-image: url('./src/assets/images/landslide.png'); background-size: cover;"></span>
+              :style="{ backgroundImage: 'url(' + image_landslideIcon + ')' }"></span>
         隐患点
       </div>
     </div>
-  </div>
 
+  </div>
 </template>
 
 <script>
@@ -64,9 +87,10 @@ export default {
   name: "index",
   data() {
     return {
+      image_landslideIcon:landslideIcon,
       viewer: null,
-      tdtToken: "07f071d2d20098468ee7697112e8fc58",//天地图密钥
       handler: null, // 创建共享的 handler
+      tdtToken: "07f071d2d20098468ee7697112e8fc58",//天地图密钥
       mapViewer: undefined,
       isDebrisFlowActive: false,
       debrisFlowPrimitive: null,
@@ -84,11 +108,22 @@ export default {
       showFaultZone: false,  // 控制断裂带显示状态的变量
       DebrisFlow: DebrisFlow, // 泥石流隐患点
       HazardPoint: [], // 泥石流隐患点数组
-      showHazardSource: false,  // 控制隐患点显示状态的变量
+      showHiddenDangerPoints: false,  // 控制隐患点显示状态的变量
       hasDrawn: false, // 标记是否已经点击过
       isButtonDisabled: false,
-      buttonText: '添加震源',
-      operationCompleted: false
+      buttonText: '地震模拟',
+      operationCompleted: false,
+      FaultZone_entities: [],//断裂带实体数组
+      HiddenDangerPoints_entities: [],//隐患点实体数组
+      dialogVisible: false,
+      showInfoPanel: false,
+      magnitude: 5.0,
+      depth: 10,
+      selectedPosition: null,
+      earthquakeMode: false,
+      bearing: 0,//烈度圈偏转角度
+      earthPoint: null,//地震点数组
+
     };
   },
   mounted() {
@@ -121,29 +156,70 @@ export default {
       //定位到西安
       this.locatedXiAn();
     },
-    handleDraw(action) {
-      if (this.isButtonDisabled) return;
 
-      this.isButtonDisabled = true;
-      this.buttonText = '震源添加中...';
+    toggleEarthquakeMode() {
+      this.earthquakeMode = !this.earthquakeMode;
 
-      // 调用绘制方法
-      this.draw('AddHypocenter').then(() => {
-        this.buttonText = '已添加震源';
-        this.operationCompleted = true;
-        this.resetButton();
-      }).catch(err => {
-        console.error('绘制失败:', err);
-        this.resetButton(); // 失败时重置按钮
-      });
+      if (this.earthquakeMode) {
+        // 进入地震模式
+        this.draw('AddHypocenter');
+        document.body.style.cursor = 'crosshair';
+        console.log("地震模式已激活");
+      } else {
+        // 退出地震模式
+        this.remove_ClickHandler();
+        document.body.style.cursor = '';
+        this.showInfoPanel = false;
+        console.log("地震模式已取消");
+      }
+    },
+    remove_ClickHandler() {
+      if (this.handler) {
+        this.handler.destroy();
+        this.handler = null;
+      }
+    },
+    // handleDraw(action) {
+    //   if (this.isButtonDisabled) return;
+    //
+    //   this.isButtonDisabled = true;
+    //   this.buttonText = '震源添加中...';
+    //   console.log("模拟震源添加中")
+    //
+    //
+    //   // 调用绘制方法
+    //   this.draw('AddHypocenter').then(() => {
+    //     this.buttonText = '已添加震源';
+    //     this.operationCompleted = true;
+    //     this.resetButton();
+    //   }).catch(err => {
+    //     console.error('绘制失败:', err);
+    //     this.resetButton(); // 失败时重置按钮
+    //   });
+    // },
+    //
+    // resetDialog() {
+    //   this.dialogVisible = false;
+    //   // this.quakeForm = { magnitude: null, depth: null };
+    //   // 如果需要允许再次点击，取消下面的注释
+    //   this.isButtonDisabled = false;
+    //   this.buttonText = '添加震源';
+    // },
+    //
+    // resetButton() {
+    //   // 重置按钮状态，允许再次点击
+    //   this.isButtonDisabled = false;
+    //   this.buttonText = '添加震源';
+    //   this.resetDialog();
+    // },
+
+    cancel_Earthquake() {
+      this.showInfoPanel = false;
+      this.earthquakeMode = false;
+      this.remove_ClickHandler();
+      document.body.style.cursor = '';
     },
 
-    resetButton() {
-      // 重置按钮状态，允许再次点击
-      this.isButtonDisabled = false;
-      this.buttonText = '添加震源';
-      this.operationCompleted = false;
-    },
     addTianDiTuLayers(type) {
       this.viewer.imageryLayers.removeAll();
 
@@ -264,23 +340,23 @@ export default {
         this.AddFaultZone();
       } else {
         // 隐藏断裂带的逻辑
-        if (entities.name=="隐藏断裂带"){
+
           this.HideFaultZone();
-        }
+
       }
     },
-    toggleHazardSource() {
-      this.showHazardSource = !this.showHazardSource;
+    toggleHiddenDangerPoints() {
+      this.showHiddenDangerPoints = !this.showHiddenDangerPoints;
 
       // 根据状态显示或隐藏隐患点
-      if (this.showHazardSource) {
+      if (this.showHiddenDangerPoints) {
         // 显示隐患点的逻辑
-        this.AddHazardSource();
+        this.AddHiddenDangerPoints();
       } else {
-        // 隐藏断裂带的逻辑
-        if (entities.name=="隐藏隐患点"){
-          this.HideHazardSource();
-        }
+        // 隐藏隐患点的逻辑
+        // if (entities.name=="隐藏隐患点"){
+          this.HideHiddenDangerPoints();
+        // }
       }
     },
     AddFaultZone() {
@@ -295,7 +371,7 @@ export default {
             this.FaultZone.push(Number(point))
           })
         })
-        this.viewer.entities.add({
+        let f = this.viewer.entities.add({
           polyline: {
             // fromDegrees返回给定的经度和纬度值数组（以度为单位），该数组由Cartesian3位置组成。
             // Cesium.Cartesian3.fromDegreesArray([经度1, 纬度1, 经度2, 纬度2,])
@@ -313,9 +389,10 @@ export default {
             show: true,
           }
         });
+        this.FaultZone_entities.push(f);
       })
     },
-    AddHazardSource() {
+    AddHiddenDangerPoints() {
       //添加隐患点
       this.DebrisFlow.features.forEach(hazard_source => {
         this.HazardPoint.push(hazard_source.geometry)
@@ -323,7 +400,7 @@ export default {
       this.HazardPoint.forEach(hazard_point => {
         let lon = hazard_point.coordinates[0]
         let lat = hazard_point.coordinates[1]
-        this.viewer.entities.add({
+        let a = this.viewer.entities.add({
           position: Cesium.Cartesian3.fromDegrees(lon, lat),
           billboard: {
             // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
@@ -340,6 +417,7 @@ export default {
             show: true
           }
         });
+        this.HiddenDangerPoints_entities.push(a);
       })
     },
     HideFaultZone() {
@@ -352,45 +430,31 @@ export default {
 
 
       // 移除所有断裂带实体
-      const entities = this.viewer.entities.values;
-      for (let i = entities.length - 1; i >= 0; i--) {
-        const entity = entities[i];
+      // const entities = this.viewer.entities.values;
+      for (let i = 0; i <this.FaultZone_entities.length; i++) {
+        // const entity = entities[i];
         // if (entity.polyline && entity.polyline.material instanceof Cesium.Color &&
         //     entity.polyline.material.color.equals(Cesium.Color.RED)) {
-        this.viewer.entities.remove(entity);
+        this.viewer.entities.remove(this.FaultZone_entities[i]);
         // }
       }
-      // 移除标签实体
-      // for (let i = entities.length - 1; i >= 0; i--) {
-      //   const entity = entities[i];
-      //   if (entity.label && entity.label.text === '测试名称') {
-      //     this.viewer.entities.remove(entity);
-      //   }
-      // }
     },
-    HideHazardSource() {
+    HideHiddenDangerPoints() {
       name: "隐藏隐患点";
       // 清空数据数组
       this.HazardPoint = [];
       // 移除所有断裂带实体
-      const entities = this.viewer.entities.values;
-      for (let i = entities.length - 1; i >= 0; i--) {
-        const entity = entities[i];
+      // const entities = this.viewer.entities.values;
+      for (let i = 0; i < this.HiddenDangerPoints_entities.length; i++) {
+        // const entity = entities[i];
         // if (entity.polyline && entity.polyline.material instanceof Cesium.Color &&
         //     entity.polyline.material.color.equals(Cesium.Color.RED)) {
-        this.viewer.entities.remove(entity);
+        this.viewer.entities.remove(this.HiddenDangerPoints_entities[i]);
         // }
       }
-      // 移除标签实体
-      // for (let i = entities.length - 1; i >= 0; i--) {
-      //   const entity = entities[i];
-      //   if (entity.label && entity.label.text === '测试名称') {
-      //     this.viewer.entities.remove(entity);
-      //   }
-      // }
+
     },
     draw(type) {
-      //绘制点
       let that = this;
       let viewer = this.mapViewer;
       let tempEntities = this.tempEntities;
@@ -398,46 +462,41 @@ export default {
       let tempPoints = [];
       // 开启深度检测
       viewer.scene.globe.depthTestAgainstTerrain = true;
-      let handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       switch (type) {
         case "AddHypocenter":
-          return new Promise((resolve, reject) => {
             // 你的绘制逻辑
             // 监听鼠标左键
-            handler.setInputAction(function (movement) {
-              // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
-              let ray = viewer.camera.getPickRay(movement.position);
-              // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
-              position = viewer.scene.globe.pick(ray, viewer.scene);
-              let point = that.drawHypocenter(position);
-              // let circle = that.drawCircle(position);
-              that.pointToLineDistance(position);
-              // tempEntities.push(circle);
-              tempEntities.push(point);
-              // 绘制完成后立即停止监听
-              handler.destroy();
-              handler = null;
-            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+          this.handler.setInputAction(function (movement) {
+            // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
+            let ray = viewer.camera.getPickRay(movement.position);
+            // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
+            position = viewer.scene.globe.pick(ray, viewer.scene);
+            let point = that.drawHypocenter(position);
+            // console.log(position)
+            // let circle = that.drawCircle(position);
+            that.pointToLineDistance(position);
+            // tempEntities.push(circle);
+            tempEntities.push(point);
+            // 绘制完成后立即停止监听
+            this.handler.destroy();
+            this.handler = null;
+          }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
             // 双击或右键点击仍可停止绘制
-            handler.setInputAction(function () {
-              handler.destroy();
-              handler = null;
+          this.handler.setInputAction(function () {
+            this.handler.destroy();
+            this. handler = null;
             }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
-            handler.setInputAction(function () {
-              handler.destroy();
-              handler = null;
+          this. handler.setInputAction(function () {
+            this.handler.destroy();
+            this.handler = null;
             }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-            setTimeout(() => {
-              // 模拟绘制成功
-            resolve();
-            }, 1500);
-          });
           break;
         case "point":
           // 监听鼠标左键
-          handler.setInputAction(function (movement) {
+          this.handler.setInputAction(function (movement) {
             // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
             let ray = viewer.camera.getPickRay(movement.position);
             // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
@@ -446,23 +505,23 @@ export default {
             tempEntities.push(point);
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           // 左键双击停止绘制
-          handler.setInputAction(function () {
-            handler.destroy(); //关闭事件句柄
-            handler = null;
+          this.handler.setInputAction(function () {
+            this.handler.destroy(); //关闭事件句柄
+            this.handler = null;
           }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
           // 右击单击停止绘制
-          handler.setInputAction(function () {
-            handler.destroy(); //关闭事件句柄
-            handler = null;
+          this.handler.setInputAction(function () {
+            this.handler.destroy(); //关闭事件句柄
+            this.handler = null;
           }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
           break;
         case "polyline":
           //鼠标移动事件
-          handler.setInputAction(function (movement) {
+          this.handler.setInputAction(function (movement) {
               },
               Cesium.ScreenSpaceEventType.MOUSE_MOVE);
           //左键点击操作
-          handler.setInputAction(function (click) {
+          this.handler.setInputAction(function (click) {
             //调用获取位置信息的接口
             let ray = viewer.camera.getPickRay(click.position);
             position = viewer.scene.globe.pick(ray, viewer.scene);
@@ -482,19 +541,19 @@ export default {
             }
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           //右键点击操作
-          handler.setInputAction(function (click) {
+          this.handler.setInputAction(function (click) {
             tempPoints = [];
-            handler.destroy(); //关闭事件句柄
-            handler = null;
+            this.handler.destroy(); //关闭事件句柄
+            this.handler = null;
           }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
           break;
         case "polygon":
           //鼠标移动事件
-          handler.setInputAction(function (movement) {
+          this.handler.setInputAction(function (movement) {
               },
               Cesium.ScreenSpaceEventType.MOUSE_MOVE);
           //左键点击操作
-          handler.setInputAction(function (click) {
+          this.handler.setInputAction(function (click) {
             //调用获取位置信息的接口
             let ray = viewer.camera.getPickRay(click.position);
             position = viewer.scene.globe.pick(ray, viewer.scene);
@@ -514,7 +573,7 @@ export default {
             }
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           //右键点击操作
-          handler.setInputAction(function (click) {
+          this.handler.setInputAction(function (click) {
             let cartesian = viewer.camera.pickEllipsoid(
                 click.position,
                 viewer.scene.globe.ellipsoid
@@ -533,8 +592,8 @@ export default {
                 tempEntities.push(pointline);
                 that.drawPolygon(tempPoints);
                 tempEntities.push(tempPoints);
-                handler.destroy(); //关闭事件句柄
-                handler = null;
+                this.handler.destroy(); //关闭事件句柄
+                this.handler = null;
               }
             }
           }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
@@ -622,12 +681,13 @@ export default {
       let min_line_distance = 1000000000;
       let min_line = null
       let des;
+      this.earthPoint = position;
       //坐标系转换
       let ellipsoid = this.viewer.scene.globe.ellipsoid;
       let cartographic = ellipsoid.cartesianToCartographic(point);
       let latitude = Cesium.Math.toDegrees(cartographic.latitude);
       let longitude = Cesium.Math.toDegrees(cartographic.longitude);
-      let height = cartographic.height;
+      // let height = cartographic.height;
       point = {x: longitude, y: latitude}
       // console.log(point,123,point)
       const distancePointToLine = (point, linePoint1, linePoint2) => {
@@ -700,10 +760,10 @@ export default {
       let first_point = min_line.coordinates[0]
       let last_point = min_line.coordinates[min_line.coordinates.length - 1]
       //计算角度
-      let bearing = this.calculateStrikeDirection(first_point[1], first_point[0], last_point[1], last_point[0])
-      console.log(bearing, "==================")
-      // 绘制椭圆
-      let circle = this.DrawCircle(point, bearing, 6);
+      this.bearing = this.calculateStrikeDirection(first_point[1], first_point[0], last_point[1], last_point[0])
+      // console.log(bearing, "==================")
+      // // 绘制椭圆
+      let circle = this.DrawCircle(point, this.bearing, 9);
       this.tempEntities.push(circle)
     },
     calculateStrikeDirection(lon1, lat1, lon2, lat2) {
@@ -727,118 +787,120 @@ export default {
 
       return bearing;
     },
-    drawCircle(point, bearing) {
-      //绘制椭圆
-      let position = point;//地震源位置
-      let strikeDirection = bearing;//根据断裂带计算的角度
-      const ellipseParams = [
-        {semiMinorAxis: 11873, semiMajorAxis: 21968, extrudedHeight: 952, alpha: 0.3},
-        {semiMinorAxis: 34567, semiMajorAxis: 45678, extrudedHeight: 4000, alpha: 0.2},
-        {semiMinorAxis: 40568, semiMajorAxis: 95666, extrudedHeight: 6000, alpha: 0.1}
-      ];
-      // 存储所有创建的椭圆实体
-      const entities = [];
-      // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
-      ellipseParams.forEach(params => {
-        // 将角度转换为弧度（Cesium使用弧度）
-        const rotation = Cesium.Math.toRadians(strikeDirection);
-        console.log(rotation)
-        console.log(position)
-        let ellipse = new Cesium.Entity({
-          position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-          name: "面几何对象",
-          ellipse: {
-            semiMinorAxis: params.semiMinorAxis,
-            semiMajorAxis: params.semiMajorAxis,
-            extrudedHeight: params.extrudedHeight,
-            material: Cesium.Color.RED.withAlpha(params.alpha),
-            outline: false,
-            outlineColor: Cesium.Color.BLUE,
-            rotation: rotation // 设置椭圆旋转角度
-          }
-        });
-        this.viewer.entities.add(ellipse)
-        // console.log(ellipse)
-      });
-    },
-    draw_Circle(point, bearing, magnitude) {
-      // 地震源位置
-      let position = point;
-      // 根据断裂带计算的角度
-      let strikeDirection = bearing;
-
-      // 根据震级计算椭圆参数的函数
-      function calculateEllipseParams(magnitude) {
-        // 基础大小参数，可根据实际需求调整
-        const baseMinor = 5000;
-        const baseMajor = 10000;
-        const baseHeight = 1000;
-
-        // 使用指数函数让椭圆大小随震级增长
-        const scaleFactor = Math.pow(2, magnitude - 4);
-
-        // 创建三组不同透明度的椭圆参数
-        return [
-          {
-            semiMinorAxis: baseMinor * scaleFactor,
-            semiMajorAxis: baseMajor * scaleFactor,
-            extrudedHeight: baseHeight * scaleFactor,
-            alpha: 0.3
-          },
-          {
-            semiMinorAxis: baseMinor * scaleFactor * 1.5,
-            semiMajorAxis: baseMajor * scaleFactor * 1.5,
-            extrudedHeight: baseHeight * scaleFactor * 2,
-            alpha: 0.2
-          },
-          {
-            semiMinorAxis: baseMinor * scaleFactor * 2,
-            semiMajorAxis: baseMajor * scaleFactor * 3,
-            extrudedHeight: baseHeight * scaleFactor * 3,
-            alpha: 0.1
-          }
-        ];
-      }
-
-      // 根据震级计算椭圆参数
-      const ellipseParams = calculateEllipseParams(magnitude);
-
-      // 存储所有创建的椭圆实体
-      const entities = [];
-
-      // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
-      ellipseParams.forEach(params => {
-        // 将角度转换为弧度（Cesium使用弧度）
-        const rotation = Cesium.Math.toRadians(strikeDirection);
-
-        let ellipse = new Cesium.Entity({
-          position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-          name: "面几何对象",
-          ellipse: {
-            semiMinorAxis: params.semiMinorAxis,
-            semiMajorAxis: params.semiMajorAxis,
-            extrudedHeight: params.extrudedHeight,
-            material: Cesium.Color.RED.withAlpha(params.alpha),
-            outline: false,
-            outlineColor: Cesium.Color.BLUE,
-            rotation: rotation // 设置椭圆旋转角度
-          }
-        });
-
-        this.viewer.entities.add(ellipse);
-        entities.push(ellipse); // 将实体添加到返回数组
-      });
-
-      return entities; // 返回创建的所有椭圆实体
-    },
+    // drawCircle(point, bearing) {
+    //   //绘制椭圆
+    //   let position = point;//地震源位置
+    //   let strikeDirection = bearing;//根据断裂带计算的角度
+    //   const ellipseParams = [
+    //     {semiMinorAxis: 11873, semiMajorAxis: 21968, extrudedHeight: 952, alpha: 0.3},
+    //     {semiMinorAxis: 34567, semiMajorAxis: 45678, extrudedHeight: 4000, alpha: 0.2},
+    //     {semiMinorAxis: 40568, semiMajorAxis: 95666, extrudedHeight: 6000, alpha: 0.1}
+    //   ];
+    //   // 存储所有创建的椭圆实体
+    //   const entities = [];
+    //   // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
+    //   ellipseParams.forEach(params => {
+    //     // 将角度转换为弧度（Cesium使用弧度）
+    //     // const rotation = Cesium.Math.toRadians(strikeDirection);
+    //     console.log(rotation)
+    //     console.log(position)
+    //     let ellipse = new Cesium.Entity({
+    //       position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
+    //       name: "面几何对象",
+    //       ellipse: {
+    //         semiMinorAxis: params.semiMinorAxis,
+    //         semiMajorAxis: params.semiMajorAxis,
+    //         extrudedHeight: params.extrudedHeight,
+    //         material: Cesium.Color.RED.withAlpha(params.alpha),
+    //         outline: false,
+    //         outlineColor: Cesium.Color.BLUE,
+    //         rotation: rotation // 设置椭圆旋转角度
+    //       }
+    //     });
+    //     this.viewer.entities.add(ellipse)
+    //     // console.log(ellipse)
+    //   });
+    // },
+    // draw_Circle(point, bearing, magnitude) {
+    //   // 地震源位置
+    //   let position = point;
+    //   // 根据断裂带计算的角度
+    //   let strikeDirection = bearing;
+    //
+    //   // 根据震级计算椭圆参数的函数
+    //   function calculateEllipseParams(magnitude) {
+    //     // 基础大小参数，可根据实际需求调整
+    //     const baseMinor = 5000;
+    //     const baseMajor = 10000;
+    //     const baseHeight = 1000;
+    //
+    //     // 使用指数函数让椭圆大小随震级增长
+    //     const scaleFactor = Math.pow(2, magnitude - 4);
+    //
+    //     // 创建三组不同透明度的椭圆参数
+    //     return [
+    //       {
+    //         semiMinorAxis: baseMinor * scaleFactor,
+    //         semiMajorAxis: baseMajor * scaleFactor,
+    //         extrudedHeight: baseHeight * scaleFactor,
+    //         alpha: 0.3
+    //       },
+    //       {
+    //         semiMinorAxis: baseMinor * scaleFactor * 1.5,
+    //         semiMajorAxis: baseMajor * scaleFactor * 1.5,
+    //         extrudedHeight: baseHeight * scaleFactor * 2,
+    //         alpha: 0.2
+    //       },
+    //       {
+    //         semiMinorAxis: baseMinor * scaleFactor * 2,
+    //         semiMajorAxis: baseMajor * scaleFactor * 3,
+    //         extrudedHeight: baseHeight * scaleFactor * 3,
+    //         alpha: 0.1
+    //       }
+    //     ];
+    //   }
+    //
+    //   // 根据震级计算椭圆参数
+    //   const ellipseParams = calculateEllipseParams(magnitude);
+    //
+    //   // 存储所有创建的椭圆实体
+    //   const entities = [];
+    //
+    //   // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
+    //   ellipseParams.forEach(params => {
+    //     // 将角度转换为弧度（Cesium使用弧度）
+    //     const rotation = Cesium.Math.toRadians(strikeDirection);
+    //
+    //     let ellipse = new Cesium.Entity({
+    //       position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
+    //       name: "面几何对象",
+    //       ellipse: {
+    //         semiMinorAxis: params.semiMinorAxis,
+    //         semiMajorAxis: params.semiMajorAxis,
+    //         extrudedHeight: params.extrudedHeight,
+    //         material: Cesium.Color.RED.withAlpha(params.alpha),
+    //         outline: false,
+    //         outlineColor: Cesium.Color.BLUE,
+    //         rotation: rotation // 设置椭圆旋转角度
+    //       }
+    //     });
+    //
+    //     this.viewer.entities.add(ellipse);
+    //     entities.push(ellipse); // 将实体添加到返回数组
+    //   });
+    //
+    //   return entities; // 返回创建的所有椭圆实体
+    // },
     DrawCircle(point, bearing, magnitude) {
+      // console.log("88888888888888888")
       // 地震源位置
       let position = point;
       // 根据断裂带计算的角度
-      let strikeDirection = bearing;
+      let rotation = bearing;
+      let i = 0;
 
       // 根据震级计算椭圆参数
-      const ellipseParams = this.calculateEllipseParams(magnitude);
+      const ellipseParams = this.calculateEllipseParams(this.magnitude);
 
       // 存储所有创建的椭圆实体
       // const entities = [];
@@ -846,7 +908,7 @@ export default {
       // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
       ellipseParams.forEach(params => {
         // 将角度转换为弧度（Cesium使用弧度）
-        const rotation = Cesium.Math.toRadians(strikeDirection);
+        // const rotation = Cesium.Math.toRadians(strikeDirection);
 
         let ellipse = new Cesium.Entity({
           position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
@@ -855,13 +917,15 @@ export default {
             semiMinorAxis: params.semiMinorAxis,
             semiMajorAxis: params.semiMajorAxis,
             //extrudedHeight: params.extrudedHeight,
-            material: Cesium.Color.RED.withAlpha(params.alpha),
+            material: Cesium.Color.RED.withAlpha(params.alpha[i]),
             outline: false,
             outlineColor: Cesium.Color.BLUE,
             rotation: rotation // 设置椭圆旋转角度
           }
         });
         this.viewer.entities.add(ellipse);
+        i++;
+        this.tempEntities.push(ellipse)
         // entities.push(ellipse); // 将实体添加到返回数组
       });
 
@@ -886,13 +950,27 @@ export default {
         }
       }
     },
-    addVuex() {
-    },
+    /**
+     * @param M  震级
+     * @param Ia 长轴烈度
+     * @author: xiaodemos
+     * @date: 2025/3/31 9:43
+     * @description: 计算椭圆长轴
+     * @return: 返回椭圆长轴
+     */
     calculateRa(M, Ia) {
       const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) * 27;
       console.log(a, "=============================")
       return a;
     },
+    /**
+     * @param M  震级
+     * @param Ib 短轴烈度
+     * @author: xiaodemos
+     * @date: 2025/3/31 9:43
+     * @description: 计算椭圆短轴
+     * @return: 返回椭圆短轴
+     */
     calculateRb(M, Ib) {
       const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5) * 27;
       console.log(b, "=============================")
@@ -900,23 +978,25 @@ export default {
       return b;
     },
     // 根据震级和烈度计算椭圆参数的函数
-    calculateEllipseParams(magnitude) {
+      calculateEllipseParams(magnitude) {
+      let sum = magnitude+2;
       // 定义不同层级的烈度值
-      const intensityLevels = [
-        {ia: 6, ib: 6},  // 内层椭圆：较高烈度
-        {ia: 7, ib: 7},  // 中层椭圆：中等烈度
-        {ia: 8, ib: 8}   // 外层椭圆：较低烈度
+
+      let intensityLevels = [
+        {ia: sum-2, ib: sum-2},  // 内层椭圆：较高烈度
+        {ia: sum-1, ib: sum-1},  // 中层椭圆：中等烈度
+        {ia: sum, ib: sum}   // 外层椭圆：较低烈度
       ];
 
       // 存储计算出的椭圆参数
-      const params = intensityLevels.map(level => {
+      let params = intensityLevels.map(level => {
         // 使用提供的公式计算长短轴
-        const semiMajorAxis = this.calculateRa(magnitude, level.ia);
+        let semiMajorAxis = this.calculateRa(magnitude, level.ia);
 
-        const semiMinorAxis= this.calculateRb(magnitude, level.ia);
+        let semiMinorAxis= this.calculateRb(magnitude, level.ib);
 
         // 根据烈度级别设置透明度
-        const alpha = 0.5 - (level.ia - 5) * 0.1;
+        let alpha = [0.1,0.25,0.4];
 
         // 计算 extrusion height，使较大的椭圆有更高的 extrusion
         // const extrudedHeight = semiMajorAxis * 0.15;
@@ -1036,4 +1116,65 @@ button {
   margin-right: 8px; /* 调整颜色块与文字间距 */
   border: 1px solid rgba(255, 255, 255, 0.3); /* 浅色边框 */
 }
+
+
+.panel-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-content label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.earthquake-info-panel {
+  position: absolute;
+  top: 200px;
+  left: 20px;
+  background-color: rgba(40, 40, 40, 0.9);
+  color: white;
+  padding: 15px;
+  border-radius: 4px;
+  z-index: 1000;
+  width: 250px;
+}
+
+.earthquake-info-panel input {
+  width: 60px;
+  margin-left: 10px;
+  padding: 5px;
+  background-color: rgba(255,255,255,0.1);
+  border: 1px solid #666;
+  color: white;
+}
+
+.earthquake-info-panel button {
+  margin-top: 10px;
+  margin-right: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.earthquake-info-panel button:first-child {
+  background-color: #386641;
+  color: white;
+}
+
+.earthquake-info-panel button:last-child {
+  background-color: #bc4749;
+  color: white;
+}
+
 </style>
