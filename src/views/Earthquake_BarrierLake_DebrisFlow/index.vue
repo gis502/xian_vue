@@ -66,8 +66,7 @@
       <div class="legend-item"><span class="legend-color" style="background: #ffea00;"></span> 泥石流点</div>
       <!--    <div class="legend-item"><span class="legend-color" style="background: #15a151;"></span> 隐患点</div>-->
       <div class="legend-item">
-        <span class="legend-color"
-              :style="{ backgroundImage: 'url(' + image_landslideIcon + ')' }"></span>
+        <div class="legend-color" id="yhdlen"></div>
         隐患点
       </div>
     </div>
@@ -1117,6 +1116,10 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.3); /* 浅色边框 */
 }
 
+#yhdlen{
+  background-image: url("../../assets/images/landslide.png");
+  background-size: cover;
+}
 
 .panel-title {
   font-weight: bold;
