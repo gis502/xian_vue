@@ -887,7 +887,7 @@ onBeforeUnmount(() => {
 
 .content-body {
   width: 100%;
-  height: 100%;
+  height: 100vh;
   position: absolute;
   display: flex;
   flex-direction: row; /* 使元素横向排列 */
