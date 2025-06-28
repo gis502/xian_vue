@@ -23,7 +23,7 @@
             <el-button type="primary" @click="toggleHiddenDangerPoints()">
               {{ showHiddenDangerPoints ? '隐藏隐患点' : '显示隐患点' }}
             </el-button>
-            <!--          <el-button type="primary" @click="draw('point')">绘制点</el-button>-->
+            <el-button type="primary" @click="draw('point')">添加危险源</el-button>
             <!--          <el-button type="primary" @click="draw('polyline')">绘制线</el-button>-->
             <!--          <el-button type="primary" @click="draw('polygon')">绘制面</el-button>-->
             <el-button type="primary" @click="clearDrawEntities">清空</el-button>
@@ -38,7 +38,7 @@
         <div>震级: <input v-model.number="this.magnitude" type="number" min="0" max="10" step="0.1" /></div>
         <div>深度: <input v-model.number="depth" type="number" min="0" max="1000" step="1" /> km</div>
         <div>震中位置: {{ selectedPosition ? `${selectedPosition.latitude.toFixed(4)}, ${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
-        <button @click="DrawCircle(this.earthPoint,this.bearing,this.magnitude)">确认添加</button>
+        <button @click="confirm_Earthquake">确认添加</button>
         <button @click="cancel_Earthquake">取消</button>
       </div>
     </div>
@@ -55,7 +55,7 @@
       <div class="legend-item"><span class="legend-color" style="background: rgba(75, 0, 130, 0.15);"></span>Ⅵ度</div>
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 断裂带</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 滑坡点</div>
+      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 危险源</div>
       <div class="legend-item"><span class="legend-color" style="background: #ffea00;"></span> 泥石流点</div>
       <!--    <div class="legend-item"><span class="legend-color" style="background: #15a151;"></span> 隐患点</div>-->
       <div class="legend-item">
@@ -114,7 +114,7 @@ export default {
       selectedPosition: null,
       earthquakeMode: false,
       bearing: 0,//烈度圈偏转角度
-      earthPoint: null,//地震点数组
+      earthPoint:null,//地震点
 
     };
   },
@@ -154,7 +154,7 @@ export default {
 
       if (this.earthquakeMode) {
         // 进入地震模式
-        this.draw('AddHypocenter');
+        this.setup_ClickHandler();
         // document.body.style.cursor = 'crosshair';//改变鼠标样式
         console.log("地震模式已激活");
       } else {
@@ -166,51 +166,71 @@ export default {
         console.log("地震模式已取消");
       }
     },
-    remove_ClickHandler() {
+
+    setup_ClickHandler() {
       if (this.handler) {
         this.handler.destroy();
-        this.handler = null;
       }
+      this.handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
+      this.handler.setInputAction((movement) => {
+        this.earthPoint = this.get_ClickedPosition(movement.position);
+        if (this.earthPoint) {
+          this.selectedPosition = this.earthPoint;
+          this.showInfoPanel = true;
+          console.log("位置已选择:", this.earthPoint);
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
-    // handleDraw(action) {
-    //   if (this.isButtonDisabled) return;
-    //
-    //   this.isButtonDisabled = true;
-    //   this.buttonText = '震源添加中...';
-    //   console.log("模拟震源添加中")
-    //
-    //
-    //   // 调用绘制方法
-    //   this.draw('AddHypocenter').then(() => {
-    //     this.buttonText = '已添加震源';
-    //     this.operationCompleted = true;
-    //     this.resetButton();
-    //   }).catch(err => {
-    //     console.error('绘制失败:', err);
-    //     this.resetButton(); // 失败时重置按钮
-    //   });
-    // },
-    //
-    // resetDialog() {
-    //   this.dialogVisible = false;
-    //   // this.quakeForm = { magnitude: null, depth: null };
-    //   // 如果需要允许再次点击，取消下面的注释
-    //   this.isButtonDisabled = false;
-    //   this.buttonText = '添加震源';
-    // },
-    //
-    // resetButton() {
-    //   // 重置按钮状态，允许再次点击
-    //   this.isButtonDisabled = false;
-    //   this.buttonText = '添加震源';
-    //   this.resetDialog();
-    // },
+
+    get_ClickedPosition(screenPosition) {
+      const ray = this.viewer.camera.getPickRay(screenPosition);
+      if (!ray) return null;
+
+      const cartesian = this.viewer.scene.globe.pick(ray, this.viewer.scene);
+      if (!cartesian) return null;
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      return {
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        cartesian: cartesian
+      };
+    },
 
     cancel_Earthquake() {
       this.showInfoPanel = false;
       this.earthquakeMode = false;
       this.remove_ClickHandler();
       document.body.style.cursor = '';
+    },
+
+    confirm_Earthquake() {
+      let position = this.earthPoint;
+      console.log(this.earthPoint,"==============================")
+      // if (!this.selectedPosition) return;
+      // 清除现有烈度圈
+      // this.clearIntensityCircles();
+      this.drawHypocenter(position);
+      this.pointToLineDistance(position);
+
+      // 创建地震点
+      // const entity = this.createEarthquakeEntity();
+      // this.earthquakeEntities.push(entity);
+      // // 绘制烈度圈
+      // this.drawIntensityCircles();
+      // 重置状态
+      this.showInfoPanel = false;
+      this.earthquakeMode = false;
+      this.remove_ClickHandler();
+      // document.body.style.cursor = '';
+      // 飞行到震中
+      // this.flyToEarthquake(entity);
+    },
+
+    remove_ClickHandler() {
+      if (this.handler) {
+        this.handler.destroy();
+        this.handler = null;
+      }
     },
 
     addTianDiTuLayers(type) {
@@ -456,38 +476,38 @@ export default {
       viewer.scene.globe.depthTestAgainstTerrain = true;
       this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       switch (type) {
-        case "AddHypocenter":
-            // 监听鼠标左键
-          this.handler.setInputAction(movement => {
-            // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
-            let ray = viewer.camera.getPickRay(movement.position);
-            // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
-            position = viewer.scene.globe.pick(ray, viewer.scene);
-            if (position) {
-              this.selectedPosition = position;
-              this.showInfoPanel = true;
-              // console.log(this.showInfoPanel)
-              that.pointToLineDistance(position);
-              // console.log("位置已选择:", position);
-            }
-            let Hypo = that.drawHypocenter(position);
-            tempEntities.push(Hypo);
-            // 绘制完成后立即停止监听
-            this.handler.destroy();
-            this.handler = null;
-          }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-            // 双击或右键点击仍可停止绘制
-          this.handler.setInputAction(function () {
-            this.handler.destroy();
-            this. handler = null;
-            }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-
-          this. handler.setInputAction(function () {
-            this.handler.destroy();
-            this.handler = null;
-            }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-          break;
+        // case "AddHypocenter":
+        //     // 监听鼠标左键
+        //   this.handler.setInputAction(movement => {
+        //     // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
+        //     let ray = viewer.camera.getPickRay(movement.position);
+        //     // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
+        //     position = viewer.scene.globe.pick(ray, viewer.scene);
+        //     if (position) {
+        //       this.selectedPosition = position;
+        //       this.showInfoPanel = true;
+        //       // console.log(this.showInfoPanel)
+        //       that.pointToLineDistance(position);
+        //       // console.log("位置已选择:", position);
+        //     }
+        //     let Hypo = that.drawHypocenter(position);
+        //     tempEntities.push(Hypo);
+        //     // 绘制完成后立即停止监听
+        //     this.handler.destroy();
+        //     this.handler = null;
+        //   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        //
+        //     // 双击或右键点击仍可停止绘制
+        //   this.handler.setInputAction(function () {
+        //     this.handler.destroy();
+        //     this. handler = null;
+        //     }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+        //
+        //   this. handler.setInputAction(function () {
+        //     this.handler.destroy();
+        //     this.handler = null;
+        //     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+        //   break;
         case "point":
           // 监听鼠标左键
           this.handler.setInputAction(function (movement) {
@@ -603,7 +623,7 @@ export default {
         position: position,
         point: {
           color: Cesium.Color.RED,
-          pixelSize: 10,
+          pixelSize: 5,
           outlineColor: Cesium.Color.RED,
           outlineWidth: 3,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -648,12 +668,13 @@ export default {
         },
       });
     },
-    drawHypocenter(position, config) {
-      let viewer = this.mapViewer;
-      let config_ = config ? config : {};
-      return viewer.entities.add({
+    drawHypocenter(position) {
+      // let config_ = config ? config : {};
+      console.log("123313132131",position)
+      this.viewer.entities.add({
         name: "点几何对象",
-        position: position,
+        //输入笛卡尔坐标系
+        position: position.cartesian,
         point: {
           color: Cesium.Color.YELLOW,
           pixelSize: 10,
@@ -672,11 +693,12 @@ export default {
        * linePoint1, linePoint2：线的两个端点   longitude latitude height
        * return  距离（m）  point ：笛卡尔
        */
-      let point = position;
+      let point = position.cartesian;
       let min_line_distance = 1000000000;
       let min_line = null
       let des;
-      this.earthPoint = position;
+      let magnitude = this.magnitude;
+      let bearing = this.bearing;
       //坐标系转换
       let ellipsoid = this.viewer.scene.globe.ellipsoid;
       let cartographic = ellipsoid.cartesianToCartographic(point);
@@ -754,36 +776,37 @@ export default {
       // console.log(min_line_distance,min_line,"==================")
       let first_point = min_line.coordinates[0]
       let last_point = min_line.coordinates[min_line.coordinates.length - 1]
-      this.viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(first_point[0],first_point[1]),
-        point: {
-          color: Cesium.Color.YELLOW,
-          pixelSize: 10,
-          outlineColor: Cesium.Color.YELLOW,
-          outlineWidth: 3,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        },
-      });
+      //测试用
+      // this.viewer.entities.add({
+      //   position: Cesium.Cartesian3.fromDegrees(first_point[0],first_point[1]),
+      //   point: {
+      //     color: Cesium.Color.YELLOW,
+      //     pixelSize: 10,
+      //     outlineColor: Cesium.Color.YELLOW,
+      //     outlineWidth: 3,
+      //     disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      //   },
+      // });
+      // this.viewer.entities.add({
+      //   position: Cesium.Cartesian3.fromDegrees(last_point[0],last_point[1]),
+      //   point: {
+      //     color: Cesium.Color.RED,
+      //     pixelSize: 10,
+      //     outlineColor: Cesium.Color.RED,
+      //     outlineWidth: 3,
+      //     disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      //   },
+      // });
 
-      this.viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(last_point[0],last_point[1]),
-        point: {
-          color: Cesium.Color.RED,
-          pixelSize: 10,
-          outlineColor: Cesium.Color.RED,
-          outlineWidth: 3,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        },
-      });
       //计算角度
       // this.bearing = this.calculateStrikeDirection(last_point[1], last_point[0], first_point[1], first_point[0])
-      this.bearing = this.calculateStrikeDirection(first_point[0], first_point[1], last_point[0], last_point[1])
+      bearing = this.calculateStrikeDirection(first_point[0], first_point[1], last_point[0], last_point[1])
 
       // console.log(bearing, "==================")
       // // 绘制椭圆
-      let circle = this.DrawCircle(point, this.bearing, 9);
+      let circle = this.DrawCircle(point, bearing, magnitude);
       this.tempEntities.push(circle)
     },
     calculateStrikeDirection(lon1, lat1, lon2, lat2) {
