@@ -5,6 +5,16 @@
       {{ earthquakeMode ? '取消地震标记' : '触发地震模拟' }}
     </div>
 
+    <!-- 清除地震按钮 -->
+    <div v-if="earthquakeEntities.length > 0" class="clear-earthquake-btn" @click="clearEarthquake">
+      清除地震
+    </div>
+
+    <!-- 光晕状态显示 -->
+    <div v-if="isHaloActive" class="halo-status">
+      光晕效果已激活
+    </div>
+
     <!-- 次生灾害控制面板 -->
     <div class="secondary-panel">
       <div class="panel-title">次生灾害</div>
@@ -38,10 +48,12 @@
       <div class="legend-item"><span class="legend-color" style="background: rgba(0, 191, 255, 0.3);"></span>Ⅶ度</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(138, 43, 226, 0.25);"></span>Ⅵ度</div>
       <!--      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>-->
-      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 滑坡点</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ffea00;"></span> 泥石流点</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 断裂带</div>
-      <div class="legend-item"><span class="legend-color" style="background: #f89c2b;"></span> 危险点</div>
+      <div class="legend-item"><span class="legend-color circle" style="background: #ff0000;"></span> 滑坡点</div>
+      <div class="legend-item"><span class="legend-color circle" style="background: #ffea00;"></span> 泥石流点</div>
+      <div class="legend-item"><span class="legend-color circle" style="background: #f89c2b;"></span> 危险点</div>
+      <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span> 断裂带</div>
+      <div class="legend-item"><img class="legend-icon" src="@/assets/images/gasstation.png" alt="隐患点" /> 加油站</div>
+
     </div>
 
   </div>
@@ -83,6 +95,9 @@ export default {
       intensityCircles: [],
       // faultLines: [],
       dangerPoints: [],
+      // 光晕效果相关变量
+      haloEntities: [], // 存储光晕实体
+      isHaloActive: false, // 光晕是否激活
       intensityConfig: {
         magnitudeRanges: [
           { min: 8.0, max: 8.9, intensities: [12, 11, 10] },
@@ -680,7 +695,22 @@ export default {
       return range ? range.intensities : [7, 6, 5];
     },
 
-// 绘制烈度圈方法
+    // 获取所有烈度圈的长短轴（明确最大圈为第三个）
+    getAllEllipseAxes(M) {
+      const intensityLevels = this.getIntensityLevels(M);
+      const sizeMultiplier = 150;
+      const baseMajorAxis = this.calculateRa(M, intensityLevels[0]) * sizeMultiplier;
+      const baseMinorAxis = this.calculateRb(M, intensityLevels[0]) * sizeMultiplier;
+
+      // 明确三个圈的比例（第一个圈最小，第三个圈最大）
+      const scaleFactors = [1.0, 1.8, 3.0]; // 增大第三个圈的比例，确保范围足够大
+      return scaleFactors.map(factor => ({
+        major: baseMajorAxis * factor,
+        minor: baseMinorAxis * factor
+      }));
+    },
+
+    // 绘制烈度圈方法（调用统一参数）
     drawIntensityCircles() {
       const { longitude, latitude, cartesian: center } = this.selectedPosition;
       const M = this.magnitude;
@@ -694,41 +724,28 @@ export default {
         return;
       }
 
-      const intensityLevels = this.getIntensityLevels(M);
+      // 获取所有烈度圈长短轴
+      const ellipses = this.getAllEllipseAxes(M);
 
-      // 计算基准烈度圈的大小（使用最高烈度）
-
-      const baseIntensity = intensityLevels[0];
-      const sizeMultiplier = 150; //
-      const baseMajorAxis = this.calculateRa(M, baseIntensity) * sizeMultiplier;
-      const baseMinorAxis = this.calculateRb(M, baseIntensity) * sizeMultiplier;
-
-      // 定义缩放比例（三个圈依次扩大，比例相同）
-      const scaleFactors = [1.0, 1.5, 2.0]; // 可根据需要调整比例
-
-      intensityLevels.forEach((Ia, index) => {
-        // 计算当前圈的缩放比例
-        const scaleFactor = scaleFactors[index] || 1.0;
-
-        // 等比例缩放长短轴
-        const semiMajorAxis = baseMajorAxis * scaleFactor;
-        const semiMinorAxis = baseMinorAxis * scaleFactor;
-
-        const ellipse = this.viewer.entities.add({
+      ellipses.forEach((ellipse, index) => {
+        const entity = this.viewer.entities.add({
           position: center,
           ellipse: {
-            semiMajorAxis,
-            semiMinorAxis,
+            semiMajorAxis: ellipse.major,
+            semiMinorAxis: ellipse.minor,
             rotation: Cesium.Math.toRadians(0),
-            material: this.getColorByIntensity(Ia),
+            material: this.getColorByIntensity(12 - index), // 颜色映射可自定义
             outline: true,
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 1
           }
         });
-
-        this.intensityCircles.push(ellipse);
+        this.intensityCircles.push(entity);
       });
+
+      setTimeout(() => {
+        this.addHaloEffect();
+      }, 500);  // 延迟 300ms 更安全
 
     },
 
@@ -763,6 +780,9 @@ export default {
         this.viewer.entities.remove(circle);
       });
       this.intensityCircles = [];
+
+      // 清除光晕效果
+      this.clearHaloEffect();
     },
 
     flyToEarthquake(entity) {
@@ -813,12 +833,180 @@ export default {
       document.body.style.cursor = '';
     },
 
+    // 清除地震
+    clearEarthquake() {
+      // 清除地震实体
+      this.earthquakeEntities.forEach(entity => {
+        this.viewer.entities.remove(entity);
+      });
+      this.earthquakeEntities = [];
+
+      // 清除烈度圈和光晕效果
+      this.clearIntensityCircles();
+
+      console.log("地震已清除");
+    },
+
     cleanup() {
       this.removeClickHandler();
+      this.clearHaloEffect(); // 清除光晕效果
       if (this.viewer) {
         this.viewer.destroy();
       }
-    }
+    },
+
+    addHaloEffect() {
+      if (this.isHaloActive) {
+        this.clearHaloEffect();
+      }
+
+      const { longitude, latitude } = this.selectedPosition;
+      const ellipses = this.getAllEllipseAxes(this.magnitude);
+      if (!ellipses.length) return;
+
+      // 取最大圈
+      const outermost = ellipses[ellipses.length - 1];
+
+      const viewer = this.viewer;
+      const time = Cesium.JulianDate.now();
+
+      const allEntities = [
+        ...this.disasterEntities.map(e => ({ entity: e, color: Cesium.Color.RED })),
+        ...this.riskEntities.map(e => ({ entity: e, color: Cesium.Color.ORANGE })),
+        ...this.dangerPointEntities.map(e => ({ entity: e, color: Cesium.Color.YELLOW }))
+      ];
+
+      allEntities.forEach(({ entity, color }) => {
+        let position;
+
+        try {
+          if (entity.position && typeof entity.position.getValue === 'function') {
+            position = entity.position.getValue(time);
+          } else if (entity.position) {
+            position = entity.position;
+          }
+        } catch (e) {
+          console.warn('实体坐标异常，跳过', e);
+          return;
+        }
+
+        if (!position || !Cesium.defined(position)) {
+          console.warn('实体位置无效，跳过');
+          return;
+        }
+
+        const cartographic = Cesium.Cartographic.fromCartesian(position);
+        const entityLon = Cesium.Math.toDegrees(cartographic.longitude);
+        const entityLat = Cesium.Math.toDegrees(cartographic.latitude);
+
+
+        console.log(outermost,1212)
+        // ✅ 判断是否在最大烈度圈范围内
+        const inEllipse = this.isPointInEllipse(
+            entityLon, entityLat,
+            longitude, latitude,
+            outermost.major, outermost.minor
+        );
+        console.log(inEllipse)
+        if (inEllipse) {
+          this.addHaloToEntity(entity, color);
+        } else {
+          console.log(`❌ 点(${entityLon.toFixed(4)}, ${entityLat.toFixed(4)}) 未进入最大圈`);
+        }
+      });
+
+      this.isHaloActive = true;
+    },
+
+    // 判断点是否在椭圆范围内（地理坐标转米，考虑地球曲率）
+    isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis) {
+      // 1. 计算中心点和目标点的经纬度差
+      const R = 6371000; // 地球半径（米）
+      const dLat = (pointLat - centerLat) * Math.PI / 180;
+      const avgLat = (pointLat + centerLat) / 2 * Math.PI / 180;
+
+      const dLon = (pointLon - centerLon) * Math.PI / 180;
+      // 2. 近似投影到平面（横向距离和纵向距离，单位米）
+      const dx = dLon * R * Math.cos(avgLat);
+      const dy = dLat * R;
+
+      // 3. 椭圆方程 (x/a)^2 + (y/b)^2 <= 1
+      const normX = dx / (majorAxis);
+      const normY = dy / (minorAxis);
+      const result = (normX * normX + normY * normY) <= 1;
+
+      // 添加调试信息
+      if (Math.abs(dx) < majorAxis && Math.abs(dy) < minorAxis) {
+        console.log(`点(${pointLon.toFixed(4)}, ${pointLat.toFixed(4)}) 在椭圆范围内: ${result}, 距离: ${Math.sqrt(dx*dx + dy*dy).toFixed(0)}m, 椭圆大小: ${majorAxis.toFixed(0)}x${minorAxis.toFixed(0)}m`);
+      }
+      // 添加调试信息（明确打印圈的大小和点是否在圈内）
+      console.log(`[光晕调试] 中心坐标: (${centerLon.toFixed(4)}, ${centerLat.toFixed(4)})`);
+      console.log(`[光晕调试] 椭圆大小: 长轴 ${majorAxis.toFixed(0)}m, 短轴 ${minorAxis.toFixed(0)}m`);
+      console.log(`[光晕调试] 检查点: (${pointLon.toFixed(4)}, ${pointLat.toFixed(4)})`);
+
+      return result;
+    },
+
+    // 为单个实体添加光晕
+    addHaloToEntity(entity, haloColor) {
+      const position = entity.position.getValue(Cesium.JulianDate.now());
+      if (!position) return;
+
+      // 创建光晕实体
+      const haloEntity = this.viewer.entities.add({
+        position: position,
+        point: {
+          pixelSize: 40, // 增大光晕大小，使其更明显
+          color: haloColor.withAlpha(0.4), // 提高透明度，使其更明显
+          outlineColor: haloColor.withAlpha(1.0), // 完全不透明的边框
+          outlineWidth: 3, // 适中的边框宽度
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY // 确保不被地形遮挡
+        }
+      });
+
+      // 添加脉冲动画效果
+      this.addPulseAnimation(haloEntity, haloColor);
+
+      this.haloEntities.push(haloEntity);
+      console.log('光晕实体已添加:', haloEntity);
+    },
+
+    // 添加脉冲动画效果
+    addPulseAnimation(haloEntity, baseColor) {
+      let pulsePhase = 0;
+
+      // 使用定时器创建脉冲效果
+      const pulseInterval = setInterval(() => {
+        pulsePhase += 0.2; // 稍微加快动画速度
+        const alpha = 0.2 + 0.5 * Math.sin(pulsePhase); // 提高透明度范围
+        const size = 35 + 20 * Math.sin(pulsePhase); // 增大尺寸变化范围
+
+        haloEntity.point.color = baseColor.withAlpha(alpha);
+        haloEntity.point.pixelSize = size;
+
+        // 如果光晕被清除，停止动画
+        if (!this.isHaloActive) {
+          clearInterval(pulseInterval);
+        }
+      }, 100); // 适中的更新频率
+
+      // 存储定时器引用以便清理
+      haloEntity.pulseInterval = pulseInterval;
+    },
+
+    // 清除光晕效果
+    clearHaloEffect() {
+      this.haloEntities.forEach(entity => {
+        // 清理定时器
+        if (entity.pulseInterval) {
+          clearInterval(entity.pulseInterval);
+        }
+        this.viewer.entities.remove(entity);
+      });
+      this.haloEntities = [];
+      this.isHaloActive = false;
+    },
   },
 }
 </script>
@@ -851,6 +1039,25 @@ export default {
 
 .earthquake-btn:hover {
   background-color: #ba1f1f;
+}
+
+.clear-earthquake-btn {
+  position: absolute;
+  top: 20px;
+  left: 150px;
+  padding: 10px 15px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1000;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.clear-earthquake-btn:hover {
+  background-color: #5a6268;
 }
 
 .secondary-panel {
@@ -953,6 +1160,39 @@ export default {
   height: 18px;
   margin-right: 8px; /* 调整颜色块与文字间距 */
   border: 1px solid rgba(255, 255, 255, 0.3); /* 浅色边框 */
+}
+
+.legend-color.circle {
+  border-radius: 50%; /* 让色块变圆 */
+}
+
+.legend-line {
+  width: 24px;
+  height: 3px;
+  margin-right: 8px;
+  background-color: red;
+  border-radius: 2px;
+}
+
+.legend-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+
+.halo-status {
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  padding: 8px 12px;
+  background-color: rgba(40, 40, 40, 0.8);
+  color: #00ff00;
+  border-radius: 4px;
+  z-index: 1000;
+  font-size: 12px;
+  border: 1px solid #00ff00;
 }
 
 </style>
