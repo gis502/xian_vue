@@ -887,8 +887,8 @@ onBeforeUnmount(() => {
 
 .content-body {
   width: 100%;
-  height: 100%;
-  position: absolute;
+  height: calc(100vh - 50px);
+  position: relative;
   display: flex;
   flex-direction: row; /* 使元素横向排列 */
   // 确保 flex 容器允许子元素增长和收缩

@@ -9,7 +9,7 @@ import landslideIcon from '@/assets/images/landslide.png'
 import earthquake from '@/assets/images/earthquake.png'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import lineData from "@/assets/西安断层数据.json";
-
+import DebrisFlow from "@/assets/西安泥石流灾害点.json"
 const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
 
 onMounted(() => {
@@ -38,6 +38,8 @@ function load(){
   weiNanEarthquake()
   earthquakeLine()
   earthquakeLine()
+  DrawWeiNanEllipse()
+  // AddHazardSource()
   viewer.cesiumWidget.creditContainer.style.display = "none";
 
   viewer.camera.setView({
@@ -52,6 +54,7 @@ function load(){
 }
 
 function weiNanEarthquake() {
+  // console.log(Cesium.Cartesian3.fromDegrees(109.7, 34.5),111)
   window.viewer.entities.add({
     // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
     position: Cesium.Cartesian3.fromDegrees(109.7, 34.5),
@@ -76,7 +79,7 @@ function weiNanEarthquake() {
 function earthquakeLine(){
   let line_data = []
   lineData.features.forEach(line => {
-    console.log(line.geometry)
+    // console.log(line.geometry)
     line_data.push(line.geometry)
   })
 
@@ -210,7 +213,7 @@ async function loadLandSlide(landslide) {
         }
       }
 
-      console.log(polylinePositions)
+      // console.log(polylinePositions)
       // 绘制原始点路线
       if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
         window.viewer.entities.add({
@@ -375,6 +378,244 @@ async function loadLandSlide(landslide) {
       // ... existing code ...
     }
   }
+}
+
+function AddHazardSource() {
+  let HazardPoint = []
+      //添加隐患点
+  DebrisFlow.features.forEach(hazard_source => {
+    HazardPoint.push(hazard_source.geometry)
+  })
+  HazardPoint.forEach(hazard_point => {
+    let lon = hazard_point.coordinates[0]
+    let lat = hazard_point.coordinates[1]
+    window.viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(lon, lat),
+      billboard: {
+        // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+        image: landslideIcon,
+        width: 50, // 图片宽度,单位px
+        height: 50, // 图片高度，单位px
+        eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+        color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+        scale: 0.8, // 缩放比例
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+        scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+        depthTest: false, // 禁止深度测试
+        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+        show: true
+      }
+    });
+  })
+}
+
+function pointToLineDistance_getMinLine(position,lineData) {
+  /**
+   * point:线外点 longitude latitude height
+   * linePoint1, linePoint2：线的两个端点   longitude latitude height
+   * return  距离（m）  point ：笛卡尔
+   */
+  let point = null;
+  let min_line_distance = 1000000000;
+  let min_line = null
+  let des;
+
+  let line_data = []
+
+  //坐标系转换
+  // let ellipsoid = window.viewer.scene.globe.ellipsoid;
+  // let cartographic = ellipsoid.cartesianToCartographic(point);
+  // let latitude = Cesium.Math.toDegrees(cartographic.latitude);
+  // let longitude = Cesium.Math.toDegrees(cartographic.longitude);
+  // let height = cartographic.height;
+  point = {x: position.longitude, y: position.latitude}
+
+  //计算点到线的距离
+  const distancePointToLine = (point, linePoint1, linePoint2) => {
+    let p = Cesium.Cartesian3.fromDegrees(point.x, point.y)
+    let a = Cesium.Cartesian3.fromDegrees(linePoint1[0], linePoint1[1])
+    let b = Cesium.Cartesian3.fromDegrees(linePoint2[0], linePoint2[1])
+
+    //向量ab
+    let ab = new Cesium.Cartesian3()
+    Cesium.Cartesian3.subtract(b, a, ab)
+
+    //向量ap
+    let ap = new Cesium.Cartesian3()
+    Cesium.Cartesian3.subtract(p, a, ap)
+
+    //向量ap在ab上的投影
+    let abNormalized = new Cesium.Cartesian3()
+    Cesium.Cartesian3.normalize(ab, abNormalized)
+    let apProjectionMagnitude = Cesium.Cartesian3.dot(ap, abNormalized)
+    let apProjection = Cesium.Cartesian3.multiplyByScalar(abNormalized, apProjectionMagnitude, new Cesium.Cartesian3())
+
+    //ap在zb投影的垂足坐标
+    let footPoint = new Cesium.Cartesian3()
+    Cesium.Cartesian3.add(a, apProjection, footPoint)
+
+    let distanceToA = Cesium.Cartesian3.distance(footPoint, a)
+    let distanceToB = Cesium.Cartesian3.distance(footPoint, b)
+
+    let distanceAB = Cesium.Cartesian3.distance(a, b)
+
+    // 浮点数的精度有限，可能会存在微小的误差  因此认为距离差小于0.1 的在ab上
+    if (Math.abs(distanceToA + distanceToB - distanceAB) < 0.1) {
+      // console.log("footPoint在ab上")
+      let distance = Cesium.Cartesian3.distance(footPoint, p)
+      return {point: footPoint, distance: distance}
+    } else {
+      // console.log("footPoint在ab延长线上")
+      if (distanceToA < distanceToB) {
+        //a距离footPoint最近 返回端点a
+        let distance = Cesium.Cartesian3.distance(a, p)
+        return {point: a, distance: distance}
+      } else {
+        //b距离footPoint最近 返回端点b
+        let distance = Cesium.Cartesian3.distance(b, p)
+        return {point: b, distance: distance}
+      }
+    }
+  }
+
+  // 断裂带数据导入
+  lineData.features.forEach(line => {
+    line_data.push(line.geometry)
+  })
+
+  line_data.forEach(lonlat => {
+    let min = 100000000000
+    for (let i = 0; i < lonlat.coordinates.length - 1; i++) {
+      let linePoint1 = lonlat.coordinates[i]
+      let linePoint2 = lonlat.coordinates[i + 1]
+      des = distancePointToLine(point, linePoint1, linePoint2).distance
+      if (des <= min) {
+        min = des;
+      }
+    }
+    if (min < min_line_distance) {
+      min_line_distance = min
+      //把距离最近的断裂带数组传递给min_line
+      min_line = lonlat
+    }
+  })
+  return min_line
+}
+
+function calculateStrikeDirection(lon1, lat1, lon2, lat2) {
+  // 计算角度，将角度转换为弧度
+  const radLat1 = Cesium.Math.toRadians(lat1);
+  const radLon1 = Cesium.Math.toRadians(lon1);
+  const radLat2 = Cesium.Math.toRadians(lat2);
+  const radLon2 = Cesium.Math.toRadians(lon2);
+
+  // 计算经纬度差
+  const dLon = radLon2 - radLon1;
+
+  // 计算方位角
+  const y = Math.sin(dLon) * Math.cos(radLat2);
+  const x = Math.cos(radLat1) * Math.sin(radLat2) -
+      Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(dLon);
+
+  // 计算角度并转换为0-360度范围
+  let bearing = Cesium.Math.toDegrees(Math.atan2(y, x));
+  bearing = (bearing + 360) % 360;
+
+  return bearing;
+}
+
+function calculateEllipseParams(magnitude) {
+  let sum = magnitude + 2
+  // 定义不同层级的烈度值
+  const intensityLevels = [
+    {ia: sum-2, ib: sum-2},  // 内层椭圆：较高烈度
+    {ia: sum-1, ib: sum-1},  // 中层椭圆：中等烈度
+    {ia: sum, ib: sum}   // 外层椭圆：较低烈度
+  ];
+
+  const calculateRa = (M, Ia)=>{
+      const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) * 27;
+      console.log(a, "=============================")
+      return a;
+    }
+
+  const  calculateRb = (M, Ib) =>{
+    const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5) * 27;
+    console.log(b, "=============================")
+
+    return b;
+  }
+
+  let plphas = [0.2,0.3,0.7]
+  let i = 0
+  // 存储计算出的椭圆参数
+  const params = intensityLevels.map(level => {
+
+    // 使用提供的公式计算长短轴
+    const semiMajorAxis = calculateRa(magnitude, level.ia);
+
+    const semiMinorAxis= calculateRb(magnitude, level.ib);
+
+    // 根据烈度级别设置透明度
+    // const alpha = 0.8 - (level.ia - 5) * 0.3;
+    let alpha = plphas[i]
+    i++
+    // 计算 extrusion height，使较大的椭圆有更高的 extrusion
+    // const extrudedHeight = semiMajorAxis * 0.15;
+
+    return {
+      semiMinorAxis,
+      semiMajorAxis,
+      // extrudedHeight,
+      alpha
+    };
+  })
+  return params;
+}
+
+function DrawCircle(point, bearing, magnitude) {
+  // 地震源位置
+  let position = point;
+  // 根据断裂带计算的角度
+  let strikeDirection = bearing;
+
+  // 根据震级计算椭圆参数
+  const ellipseParams = calculateEllipseParams(magnitude);
+
+  // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
+  ellipseParams.forEach(params => {
+    // 将角度转换为弧度（Cesium使用弧度）
+    const rotation = Cesium.Math.toRadians(strikeDirection-90);
+
+    let ellipse = new Cesium.Entity({
+      position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
+      name: "面几何对象",
+      ellipse: {
+        semiMinorAxis: params.semiMinorAxis*50,
+        semiMajorAxis: params.semiMajorAxis*70,
+        //extrudedHeight: params.extrudedHeight,
+        material: Cesium.Color.RED.withAlpha(params.alpha),
+        outline: false,
+        outlineColor: Cesium.Color.BLUE,
+        rotation: rotation // 设置椭圆旋转角度
+      }
+    });
+    window.viewer.entities.add(ellipse);
+  });
+}
+
+function DrawWeiNanEllipse() {
+  let weinan = {longitude: 109.7,latitude:34.5}
+  let min_line = pointToLineDistance_getMinLine(weinan,lineData)
+  console.log(min_line,"==================")
+  let first_point = min_line.coordinates[0]
+  let last_point = min_line.coordinates[min_line.coordinates.length - 1]
+  //计算角度
+  let bearing = calculateStrikeDirection(first_point[0], first_point[1], last_point[0], last_point[1])
+  console.log(bearing, "==================")
+  Cesium.Cartesian3.fromDegrees(109.7, 34.5)
+  // 绘制椭圆
+  DrawCircle({x:109.7,y:34.5}, bearing, 8);
 }
 
 </script>
