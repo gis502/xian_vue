@@ -13,20 +13,36 @@
               {{ showFaultZone ? '隐藏断裂带' : '显示断裂带' }}
             </el-button>
 
-
-
             <el-button class="earthquake-btn" @click="toggleEarthquakeMode()">
               {{ earthquakeMode ? '取消地震模拟' : '地震模拟' }}
             </el-button>
-
 
             <el-button type="primary" @click="toggleHiddenDangerPoints()">
               {{ showHiddenDangerPoints ? '隐藏隐患点' : '显示隐患点' }}
             </el-button>
             <el-button type="primary" @click="draw('point')">添加危险源</el-button>
-            <!--          <el-button type="primary" @click="draw('polyline')">绘制线</el-button>-->
+            <el-button type="primary" @click="toggleRiskArea()">
+              {{ showriskArea ? '隐藏风险区' : '显示风险区' }}
+            </el-button>
             <!--          <el-button type="primary" @click="draw('polygon')">绘制面</el-button>-->
             <el-button type="primary" @click="clearDrawEntities">清空</el-button>
+<!--            <div class="SearchEarth">-->
+              <el-select
+                  v-model="eqlistName"
+                  placeholder="请选择地震信息"
+                  size="large"
+                  style="width: 350px"
+                  filterable
+              >
+<!--                <el-option-->
+<!--                    v-for="item in tableNameOptions"-->
+<!--                    :key="item.value"-->
+<!--                    :label="item.label"-->
+<!--                    :value="item.value"-->
+<!--                    @click="handleEqListChange"-->
+<!--                />-->
+              </el-select>
+<!--            </div>-->
           </div>
         </el-col>
       </el-row>
@@ -38,8 +54,16 @@
         <div>震级: <input v-model.number="this.magnitude" type="number" min="0" max="10" step="0.1" /></div>
         <div>深度: <input v-model.number="depth" type="number" min="0" max="1000" step="1" /> km</div>
         <div>震中位置: {{ selectedPosition ? `${selectedPosition.latitude.toFixed(4)}, ${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
-        <button @click="confirm_Earthquake">确认添加</button>
-        <button @click="cancel_Earthquake">取消</button>
+        <el-row type="flex" :gutter="24">
+          <el-col :span="36">
+        <div>
+          <button @click="confirm_Earthquake">确认添加</button>
+          <button @click="cancel_Earthquake">取消</button>
+        </div>
+          </el-col>
+        </el-row>
+<!--        <button @click="confirm_Earthquake">确认添加</button>-->
+<!--        <button @click="cancel_Earthquake">取消</button>-->
       </div>
     </div>
 
@@ -56,11 +80,13 @@
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 断裂带</div>
       <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 危险源</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ffea00;"></span> 泥石流点</div>
-      <!--    <div class="legend-item"><span class="legend-color" style="background: #15a151;"></span> 隐患点</div>-->
       <div class="legend-item">
         <div class="legend-color" id="yhdlen"></div>
         隐患点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="risk_area"></div>
+        危险区
       </div>
     </div>
 
@@ -71,8 +97,10 @@
 import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
 import lineData from "@/assets/西安断层数据.json";
-import DebrisFlow from "@/assets/西安泥石流灾害点.json"
+import DebrisFlow from "@/assets/static/disaster/Huapo.json"
 import landslideIcon from "@/assets/images/landslide.png"
+import riskArea from "@/assets/static/disaster/riskArea.json"
+import riskAreaIcon from "@/assets/images/riskArea.png"
 import {renderList} from "vue";
 
 export default {
@@ -99,14 +127,18 @@ export default {
       FaultZone: [], // 西安所有断裂带点的数据
       showFaultZone: false,  // 控制断裂带显示状态的变量
       DebrisFlow: DebrisFlow, // 泥石流隐患点
+      riskArea: riskArea, // 泥石流风险区
       HazardPoint: [], // 泥石流隐患点数组
+      riskZone: [], // 风险区数组
       showHiddenDangerPoints: false,  // 控制隐患点显示状态的变量
+      showriskArea: false, //控制风险区显示的变量
       hasDrawn: false, // 标记是否已经点击过
       isButtonDisabled: false,
       buttonText: '地震模拟',
       operationCompleted: false,
       FaultZone_entities: [],//断裂带实体数组
       HiddenDangerPoints_entities: [],//隐患点实体数组
+      riskArea_entities: [],//风险区实体数组
       dialogVisible: false,
       showInfoPanel: false,
       magnitude: 6.0,
@@ -115,6 +147,7 @@ export default {
       earthquakeMode: false,
       bearing: 0,//烈度圈偏转角度
       earthPoint:null,//地震点
+      eqlistName: '',
 
     };
   },
@@ -147,6 +180,120 @@ export default {
 
       //定位到西安
       this.locatedXiAn();
+    },
+
+    addTianDiTuLayers(type) {
+      this.viewer.imageryLayers.removeAll();
+
+      const option = {
+        tileMatrixSetID: "w",
+        format: "tiles",
+        style: "default",
+        minimumLevel: 0,
+        maximumLevel: 18,
+        credit: "Tianditu",
+        subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"]
+      };
+
+      if (type === 0) {
+        const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/img_w/wmts?tk=${this.tdtToken}`,
+          layer: "img",
+          ...option
+        });
+
+        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/cia_w/wmts?tk=${this.tdtToken}`,
+          layer: "cia",
+          ...option
+        });
+
+        this.viewer.imageryLayers.addImageryProvider(imageryProvider);
+        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+      } else {
+        const vectorProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/vec_w/wmts?tk=${this.tdtToken}`,
+          layer: "vec",
+          ...option
+        });
+
+        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
+          url: `https://{s}.tianditu.gov.cn/cva_w/wmts?tk=${this.tdtToken}`,
+          layer: "cva",
+          ...option
+        });
+
+        this.viewer.imageryLayers.addImageryProvider(vectorProvider);
+        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+      }
+
+      this.currentMapType = type;
+
+      // 添加图层请求间隔
+      // setTimeout(() => {
+      //   this.viewer.imageryLayers.addImageryProvider(tdtLayer);
+      // }, 1000);
+      //
+      // setTimeout(() => {
+      //   this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
+      // }, 1000);
+      // const subdomains = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'];
+      // const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
+      // // 天地图影像
+      // const tdtLayer = new Cesium.WebMapTileServiceImageryProvider({
+      //   url: `http://${randomSubdomain}.tianditu.com/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
+      //   layer: "tdt",
+      //   style: "default",
+      //   format: "image/jpeg",
+      //   tileMatrixSetID: "w",
+      //   maximumLevel: 18,
+      //   show: false,
+      // });
+      // // 天地图注记
+      // const tdtAnnotionLayer = new Cesium.WebMapTileServiceImageryProvider({
+      //   url: `http://${randomSubdomain}.tianditu.com/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
+      //   layer: "tdtAnno",
+      //   style: "default",
+      //   format: "image/jpeg",
+      //   tileMatrixSetID: "w",
+      //   maximumLevel: 18,
+      //   show: false,
+      // });
+      // // 将图层添加到地图
+      // this.viewer.imageryLayers.addImageryProvider(tdtLayer);
+      // this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
+
+    },
+
+    locatedXiAn() {
+      //默认定位到西安
+      const savedView = localStorage.getItem('mapView');
+      if (savedView) {
+        const {destination, orientation} = JSON.parse(savedView);
+        this.viewer.camera.setView({destination, orientation});
+      } else {
+        this.viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(108.0, 34.2, 40000.0),
+          orientation: {
+            // 指向
+            heading: 6.283185307179581,
+            // 视角
+            pitch: -1.5688168484696687,
+            roll: 0.0
+          }
+        });
+      }
+      // 添加视图变化监听器，保存当前视图到localStorage
+      this.viewer.camera.changed.addEventListener(() => {
+        const position = this.viewer.camera.position;
+        const heading = this.viewer.camera.heading;
+        //const pitch = this.viewer.camera.pitch;
+        //const roll = this.viewer.camera.roll;
+        localStorage.setItem('mapView', JSON.stringify({
+          destination: position,
+          orientation: {heading}
+        }));
+      });
     },
 
     toggleEarthquakeMode() {
@@ -233,118 +380,6 @@ export default {
       }
     },
 
-    addTianDiTuLayers(type) {
-      this.viewer.imageryLayers.removeAll();
-
-      const option = {
-        tileMatrixSetID: "w",
-        format: "tiles",
-        style: "default",
-        minimumLevel: 0,
-        maximumLevel: 18,
-        credit: "Tianditu",
-        subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"]
-      };
-
-      if (type === 0) {
-        const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/img_w/wmts?tk=${this.tdtToken}`,
-          layer: "img",
-          ...option
-        });
-
-        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/cia_w/wmts?tk=${this.tdtToken}`,
-          layer: "cia",
-          ...option
-        });
-
-        this.viewer.imageryLayers.addImageryProvider(imageryProvider);
-        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
-      } else {
-        const vectorProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/vec_w/wmts?tk=${this.tdtToken}`,
-          layer: "vec",
-          ...option
-        });
-
-        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/cva_w/wmts?tk=${this.tdtToken}`,
-          layer: "cva",
-          ...option
-        });
-
-        this.viewer.imageryLayers.addImageryProvider(vectorProvider);
-        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
-      }
-
-      this.currentMapType = type;
-
-      // 添加图层请求间隔
-      // setTimeout(() => {
-      //   this.viewer.imageryLayers.addImageryProvider(tdtLayer);
-      // }, 1000);
-      //
-      // setTimeout(() => {
-      //   this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
-      // }, 1000);
-      // const subdomains = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'];
-      // const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
-      // // 天地图影像
-      // const tdtLayer = new Cesium.WebMapTileServiceImageryProvider({
-      //   url: `http://${randomSubdomain}.tianditu.com/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
-      //   layer: "tdt",
-      //   style: "default",
-      //   format: "image/jpeg",
-      //   tileMatrixSetID: "w",
-      //   maximumLevel: 18,
-      //   show: false,
-      // });
-      // // 天地图注记
-      // const tdtAnnotionLayer = new Cesium.WebMapTileServiceImageryProvider({
-      //   url: `http://${randomSubdomain}.tianditu.com/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
-      //   layer: "tdtAnno",
-      //   style: "default",
-      //   format: "image/jpeg",
-      //   tileMatrixSetID: "w",
-      //   maximumLevel: 18,
-      //   show: false,
-      // });
-      // // 将图层添加到地图
-      // this.viewer.imageryLayers.addImageryProvider(tdtLayer);
-      // this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
-
-    },
-    locatedXiAn() {
-      //默认定位到西安
-      const savedView = localStorage.getItem('mapView');
-      if (savedView) {
-        const {destination, orientation} = JSON.parse(savedView);
-        this.viewer.camera.setView({destination, orientation});
-      } else {
-        this.viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(108.0, 34.2, 40000.0),
-          orientation: {
-            // 指向
-            heading: 6.283185307179581,
-            // 视角
-            pitch: -1.5688168484696687,
-            roll: 0.0
-          }
-        });
-      }
-      // 添加视图变化监听器，保存当前视图到localStorage
-      this.viewer.camera.changed.addEventListener(() => {
-        const position = this.viewer.camera.position;
-        const heading = this.viewer.camera.heading;
-        //const pitch = this.viewer.camera.pitch;
-        //const roll = this.viewer.camera.roll;
-        localStorage.setItem('mapView', JSON.stringify({
-          destination: position,
-          orientation: {heading}
-        }));
-      });
-    },
     toggleFaultZone() {
       this.showFaultZone = !this.showFaultZone;
       // 根据状态显示或隐藏断裂带
@@ -358,6 +393,7 @@ export default {
 
       }
     },
+
     toggleHiddenDangerPoints() {
       this.showHiddenDangerPoints = !this.showHiddenDangerPoints;
 
@@ -371,6 +407,20 @@ export default {
           this.HideHiddenDangerPoints();
       }
     },
+
+    toggleRiskArea(){
+      this.showriskArea = !this.showriskArea;
+      // 根据状态显示或隐藏风险区
+      if (this.showriskArea) {
+        // 显示风险区的逻辑
+        this.Addriskzone();
+      } else {
+        // 隐藏风险区的逻辑
+
+        this.Hideriskzone();
+      }
+    },
+
     AddFaultZone() {
       // console.log('显示断裂带');
       this.lineData.features.forEach(line => {
@@ -404,6 +454,7 @@ export default {
         this.FaultZone_entities.push(f);
       })
     },
+
     AddHiddenDangerPoints() {
       //添加隐患点
       this.DebrisFlow.features.forEach(hazard_source => {
@@ -417,8 +468,8 @@ export default {
           billboard: {
             // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
             image: landslideIcon,
-            width: 30, // 图片宽度,单位px
-            height: 30, // 图片高度，单位px
+            width: 60, // 图片宽度,单位px
+            height: 60, // 图片高度，单位px
             eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
             color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
             scale: 0.8, // 缩放比例
@@ -432,9 +483,38 @@ export default {
         this.HiddenDangerPoints_entities.push(a);
       })
     },
+
+    Addriskzone() {
+      //添加风险区
+      this.riskArea.features.forEach(hazard_source => {
+        this.riskZone.push(hazard_source.geometry)
+      })
+      this.riskZone.forEach(hazard_point => {
+        let lon = hazard_point.coordinates[0]
+        let lat = hazard_point.coordinates[1]
+        let a = this.viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(lon, lat),
+          billboard: {
+            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+            image: riskAreaIcon,
+            width: 60, // 图片宽度,单位px
+            height: 60, // 图片高度，单位px
+            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+            scale: 0.8, // 缩放比例
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+            depthTest: false, // 禁止深度测试
+            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+            show: true
+          }
+        });
+        this.riskArea_entities.push(a);
+      })
+    },
+
     HideFaultZone() {
       // console.log('隐藏断裂带');
-      name: "隐藏断裂带";
 
       // 清空数据数组
       this.line_data = [];
@@ -451,21 +531,30 @@ export default {
         // }
       }
     },
+
     HideHiddenDangerPoints() {
-      name: "隐藏隐患点";
       // 清空数据数组
       this.HazardPoint = [];
       // 移除所有断裂带实体
-      // const entities = this.viewer.entities.values;
+
       for (let i = 0; i < this.HiddenDangerPoints_entities.length; i++) {
-        // const entity = entities[i];
-        // if (entity.polyline && entity.polyline.material instanceof Cesium.Color &&
-        //     entity.polyline.material.color.equals(Cesium.Color.RED)) {
+
         this.viewer.entities.remove(this.HiddenDangerPoints_entities[i]);
-        // }
-      }
+         }
 
     },
+
+    Hideriskzone(){
+      //隐藏风险区
+      this.riskZone=[];
+
+      // 移除所有断裂带实体
+      for (let i = 0; i < this.riskArea_entities.length; i++) {
+        this.viewer.entities.remove(this.riskArea_entities[i]);
+      }
+    },
+
+
     draw(type) {
       let that = this;
       let viewer = this.mapViewer;
@@ -615,6 +704,7 @@ export default {
           break;
       }
     },
+
     drawPoint(position, config) {
       let viewer = this.mapViewer;
       let config_ = config ? config : {};
@@ -631,6 +721,7 @@ export default {
         },
       });
     },
+
     drawPolyline(positions, config_) {
       let viewer = this.mapViewer;
       if (positions.length < 1) return;
@@ -654,6 +745,7 @@ export default {
         },
       });
     },
+
     drawPolygon(positions, config_) {
       let viewer = this.mapViewer;
       if (positions.length < 2) return;
@@ -668,6 +760,7 @@ export default {
         },
       });
     },
+
     drawHypocenter(position) {
       // let config_ = config ? config : {};
       console.log("123313132131",position)
@@ -687,6 +780,7 @@ export default {
         },
       });
     },
+
     pointToLineDistance(position) {
       /**
        * point:线外点 longitude latitude height
@@ -809,6 +903,7 @@ export default {
       let circle = this.DrawCircle(point, bearing, magnitude);
       this.tempEntities.push(circle)
     },
+
     calculateStrikeDirection(lon1, lat1, lon2, lat2) {
       // 计算角度，将角度转换为弧度
       const radLat1 = Cesium.Math.toRadians(lat1);
@@ -980,6 +1075,7 @@ export default {
 
       // return entities; // 返回创建的所有椭圆实体
     },
+
     clearDrawEntities() {
       //清除所有实体
       let viewer = this.mapViewer;
@@ -999,6 +1095,7 @@ export default {
         }
       }
     },
+
     /**
      * @param M  震级
      * @param Ia 长轴烈度
@@ -1012,6 +1109,7 @@ export default {
       console.log(a, "=============================")
       return a;
     },
+
     /**
      * @param M  震级
      * @param Ib 短轴烈度
@@ -1026,8 +1124,9 @@ export default {
 
       return b;
     },
+
     // 根据震级和烈度计算椭圆参数的函数
-      calculateEllipseParams(magnitude) {
+    calculateEllipseParams(magnitude) {
       let sum = magnitude+2;
       // 定义不同层级的烈度值
 
@@ -1063,6 +1162,7 @@ export default {
       return params;
     },
   },
+
   beforeDestroy() {
     if (this.viewer) {
       this.viewer.destroy();
@@ -1171,6 +1271,11 @@ button {
   background-size: cover;
 }
 
+#risk_area{
+  backgrand-image: url("../../assets/images/riskArea.png");
+  background-size: cover;
+}
+
 .panel-title {
   font-weight: bold;
   margin-bottom: 10px;
@@ -1192,8 +1297,8 @@ button {
 
 .earthquake-info-panel {
   position: absolute;
-  top: 200px;
-  left: 20px;
+  top: 70px;
+  left: 300px;
   background-color: rgba(40, 40, 40, 0.9);
   color: white;
   padding: 15px;
@@ -1230,4 +1335,11 @@ button {
   color: white;
 }
 
+.el-select--large {
+  font-size: 14px;
+  gap: 6px;
+  line-height: 24px;
+  min-height: 40px;
+  padding: 8px 16px;
+}
 </style>
