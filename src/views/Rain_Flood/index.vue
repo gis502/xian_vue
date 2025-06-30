@@ -12,6 +12,9 @@
         <div class="admin-btn" @click="toggleAdminLayer">
           {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
         </div>
+        <div class="table-btn" @click="toggleTablePanel" >
+          {{ showRiskTable ? '收起表格' : '展开表格' }}
+        </div>
       </div>
     </div>
 
@@ -22,42 +25,33 @@
     <!-- 风险区表格 - 固定在左下角 -->
     <div v-if="showRiskTable" class="risk-table-container">
       <div class="table-header">
-        <div class="table-title">
-          受灾区情况
-        </div>
-        <div class="table-toggle" @click="toggleTableExpand">
-          <i :class="isExpanded ? 'el-icon-caret-left' : 'el-icon-caret-right'"></i>
-        </div>
+        <span class="title-text">地质灾害风险区域</span>
       </div>
       <!-- 添加行点击事件 -->
       <el-table
           :data="displayData"
           border
           style="width: 100%; transition: width 0.3s ease;"
-          :style="{ width: isExpanded ? '800px' : '360px' }"
           height="350"
           v-loading="loading"
-          @row-click="handleRowClick"
-      >
+          element-loading-text="数据加载中..."
+          element-loading-spinner="el-icon-loading"
+          element-loading-background="rgba(0, 0, 0, 0.7)"
+          highlight-current-row
+          @row-click="handleRowClick">
         <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>
-        <el-table-column prop="riskAreaName" label="风险区名称" width="170" align="center"></el-table-column>
+        <el-table-column prop="disasterName" label="风险区名称" width="170" align="center"></el-table-column>
         <!-- 仅在扩展状态显示的列 -->
-        <el-table-column v-if="isExpanded" prop="position" label="地理位置" width="150"
-                         align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="residentCounts" label="居民户数(户)" width="100"
-                         align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="addressPopulation" label="户籍人口(人)" width="100"
-                         align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="riskProperty" label="威胁财产(万元)" width="120"
-                         align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="permanentPopulation" label="常住人口(人)" width="100"
-                         align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="housing" label="住房(间)" width="80" align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="username" label="巡查员" width="70" align="center"></el-table-column>
-        <el-table-column v-if="isExpanded" prop="phone" label="巡查人手机号" width="115"
-                         align="center"></el-table-column>
+        <el-table-column prop="position" label="地理位置" width="150" align="center"></el-table-column>
+        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>
+        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>
+        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>
+        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>
+        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>
+        <el-table-column prop="username" label="巡查员" width="70" align="center"></el-table-column>
+        <el-table-column prop="phone" label="巡查人手机号" width="115" align="center"></el-table-column>
       </el-table>
-      <div class="table-pagination" :style="{ display: isExpanded ? 'block' : 'none' }">
+      <div class="table-pagination">
         <el-pagination
             v-model:current-page="currentPage"
             v-model:page-size="pageSize"
@@ -92,9 +86,7 @@
   }"
         @click.stop="stopPropagation">
       <div class="popup-header">
-        <h3 v-if="selectedEntityData.properties.disasterName">{{
-            selectedEntityData.properties.disasterName || '受灾风险区'
-          }}</h3>
+        <h3 v-if="selectedEntityData.properties.disasterName">{{ selectedEntityData.properties.disasterName || '地质灾害风险区' }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
@@ -112,9 +104,9 @@
             <th>野外编号</th>
             <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
           </tr>
-          <tr v-if="selectedEntityData.properties.riskAreaName">
+          <tr v-if="selectedEntityData.properties.disasterName">
             <th>风险区名称</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.riskAreaName) }}</td>
+            <td>{{ getDisasterTypeName(selectedEntityData.properties.disasterName) }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.position">
             <th>地理位置</th>
@@ -292,7 +284,7 @@ export default {
       total: 0,
       loading: false,
       tableData: [],
-      isExpanded: true, // 表格扩展状态，true为扩展，false为收缩
+      isExpanded: false, // 表格扩展状态，true为扩展，false为收缩
     }
   },
   computed: {
@@ -569,7 +561,6 @@ export default {
         this.landslideEntities = [];
         this.debrisFlowEntities = [];
         this.secondaryRiskEntities = [];
-        const allEntities = [];
         // 加载滑坡点
         huapoFeatures.forEach(point => {
           const properties = point.properties || {};
@@ -621,7 +612,6 @@ export default {
           this.disasterEntities.push(entity);
           this.landslideEntities.push(entity);
         });
-
         // 加载泥石流点
         nishiliuFeatures.forEach(point => {
           const properties = point.properties || {};
@@ -672,11 +662,10 @@ export default {
           this.disasterEntities.push(entity);
           this.debrisFlowEntities.push(entity);
         });
-
         // 添加风险区点
         dangerAreaFeatures.forEach(point => {
           const SmId = point.properties.SmUserID; // id
-          const riskAreaName = point.properties.riskAreaName; //  风险区名称
+          const disasterName = point.properties.disasterName; //  风险区名称
           const unitCode = point.properties.unitCode; // 单位代码
           const position = point.properties.position; // 位置
           const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
@@ -731,7 +720,6 @@ export default {
           this.disasterEntities.push(entity);
           this.secondaryRiskEntities.push(entity);
         });
-
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
@@ -972,9 +960,6 @@ export default {
       this.clickHandler.setInputAction((movement) => {
         // 检查点击是否在实体上
         const pickedObject = this.viewer.scene.pick(movement.position);
-
-        console.log(pickedObject.id, "===============================")
-
         // 判断是否有disasterName属性
         if (pickedObject.id._disasterData === undefined) {
           return;
@@ -2038,7 +2023,7 @@ export default {
     highlightRiskArea(row) {
       // 这里可以添加高亮显示逻辑
       // 例如：在地图上标记该风险区位置
-      console.log('高亮显示风险区:', row.riskAreaName);
+      console.log('高亮显示风险区:', row.disasterName);
     },
     handleSizeChange(size) {
       this.pageSize = size;
@@ -2062,6 +2047,9 @@ export default {
         this.currentPage = 1; // 重置到第一页
       }
     },
+    toggleTablePanel(){
+      this.showRiskTable = !this.showRiskTable;
+    }
   }
 }
 </script>
@@ -2089,8 +2077,8 @@ export default {
   gap: 8px; /* 按钮间距 */
 }
 
-.rain-btn, .weather-btn, .admin-btn {
-  background-color: rgba(33, 158, 188, 0.8);
+.rain-btn, .weather-btn, .admin-btn , .table-btn{
+  background-color: rgba(35, 158, 187, 1);
   color: white;
   padding: 6px 12px;
   border-radius: 4px;
@@ -2380,13 +2368,6 @@ export default {
   border-bottom: none; /* 最后一行不显示底边 */
 }
 
-.popup-footer {
-  padding: 8px 12px; /* 减小内边距 */
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  text-align: right;
-}
-
 .popup-footer button {
   padding: 4px 10px; /* 减小按钮尺寸 */
   background-color: #409eff;
@@ -2407,7 +2388,7 @@ export default {
   position: fixed;
   top: 12%;
   left: 11%;
-  width: 1178px;
+  width: 550px;
   max-height: 700px;
   overflow: hidden;
   z-index: 900;
@@ -2424,23 +2405,6 @@ export default {
   padding: 12px 15px;
   background-color: #f5f7fa;
   border-bottom: 1px solid #ebeef5;
-}
-
-.table-title {
-  font-weight: 600;
-  color: #303133;
-}
-
-.table-toggle {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background-color: #409eff;
-  color: white;
-  border-radius: 50%;
 }
 
 .table-pagination {

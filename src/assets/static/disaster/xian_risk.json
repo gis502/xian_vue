@@ -5,7 +5,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 1,
-        "riskAreaName": "库峪河村十组佛爷庙-二十里庙(B13)",
+        "disasterName": "库峪河村十组佛爷庙-二十里庙(B13)",
         "unitCode": "610116023006FX2013",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -31,7 +31,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 2,
-        "riskAreaName": "新农村五组 1(C5)",
+        "disasterName": "新农村五组 1(C5)",
         "unitCode": "610116019009FX3005",
         "position": "五台街道新农村",
         "lon": "108.984103",
@@ -57,7 +57,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 3,
-        "riskAreaName": "库峪河村五组库峪乡(B15)",
+        "disasterName": "库峪河村五组库峪乡(B15)",
         "unitCode": "610116023006FX2015",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -83,7 +83,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 4,
-        "riskAreaName": "库峪河村十八组坪沟(B1)",
+        "disasterName": "库峪河村十八组坪沟(B1)",
         "unitCode": "610116023006FX2001",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -109,7 +109,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 5,
-        "riskAreaName": "嘴头村十组 1  (C3)",
+        "disasterName": "嘴头村十组 1  (C3)",
         "unitCode": "610116017015FX3003",
         "position": "鸣犊街道嘴头村",
         "lon": "109.109699",
@@ -135,7 +135,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 6,
-        "riskAreaName": "沣峪林场韭菜滩组大坝沟管护站(B9)",
+        "disasterName": "沣峪林场韭菜滩组大坝沟管护站(B9)",
         "unitCode": "610116003101FX2009",
         "position": "滦镇街道沣峪林场",
         "lon": "108.817912",
@@ -161,7 +161,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 7,
-        "riskAreaName": "喂子坪村北石槽组原北石槽村(B10)",
+        "disasterName": "喂子坪村北石槽组原北石槽村(B10)",
         "unitCode": "610116003017FX2010",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -187,7 +187,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 8,
-        "riskAreaName": "东祥村麓鸣圆小区组环山路东北侧、南侧(B6)",
+        "disasterName": "东祥村麓鸣圆小区组环山路东北侧、南侧(B6)",
         "unitCode": "610116008003FX2006",
         "position": "东大街道东祥村",
         "lon": "108.899798",
@@ -213,7 +213,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 9,
-        "riskAreaName": "百塔寺村四组西岭(B3)",
+        "disasterName": "百塔寺村四组西岭(B3)",
         "unitCode": "610116009010FX2003",
         "position": "子午街道百塔寺村",
         "lon": "108.931609",
@@ -239,7 +239,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 10,
-        "riskAreaName": "沣峪村碌碡坪组原碌碡坪村(B8)",
+        "disasterName": "沣峪村碌碡坪组原碌碡坪村(B8)",
         "unitCode": "610116003006FX2008",
         "position": "滦镇街道沣峪村",
         "lon": "108.817912",
@@ -265,7 +265,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 11,
-        "riskAreaName": "寺坡村五组     1(B2)",
+        "disasterName": "寺坡村五组     1(B2)",
         "unitCode": "610116012002FX2002",
         "position": "杜曲街道寺坡村",
         "lon": "109.013035",
@@ -291,7 +291,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 12,
-        "riskAreaName": "百塔寺村一、二组东岭(B6)",
+        "disasterName": "百塔寺村一、二组东岭(B6)",
         "unitCode": "610116009010FX2006",
         "position": "子午街道百塔寺村",
         "lon": "108.931609",
@@ -317,7 +317,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 13,
-        "riskAreaName": "五台林场南五台组台沟管护站(C2)",
+        "disasterName": "五台林场南五台组台沟管护站(C2)",
         "unitCode": "610116019101FX3002",
         "position": "五台街道五台林场",
         "lon": "108.970511",
@@ -343,7 +343,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 14,
-        "riskAreaName": "新街南村四组北确寺(C1)",
+        "disasterName": "新街南村四组北确寺(C1)",
         "unitCode": "610116007010FX3001",
         "position": "太乙宫街道新街南村",
         "lon": "109.014904",
@@ -369,7 +369,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 15,
-        "riskAreaName": "太乙村翠华山组西峰滑道售票处(C10)",
+        "disasterName": "太乙村翠华山组西峰滑道售票处(C10)",
         "unitCode": "610116007008FX3010",
         "position": "太乙宫街道太乙村",
         "lon": "109.006233",
@@ -395,7 +395,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 16,
-        "riskAreaName": "沙场村十组蛟峪农家乐  (C9)",
+        "disasterName": "沙场村十组蛟峪农家乐  (C9)",
         "unitCode": "610116007005FX3009",
         "position": "太乙宫街道沙场村",
         "lon": "109.014238",
@@ -421,7 +421,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 17,
-        "riskAreaName": "喂子坪村北石槽组南石槽沟西口(B9)",
+        "disasterName": "喂子坪村北石槽组南石槽沟西口(B9)",
         "unitCode": "610116003017FX2009",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -447,7 +447,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 18,
-        "riskAreaName": "库峪河村七组太沟(B11)",
+        "disasterName": "库峪河村七组太沟(B11)",
         "unitCode": "610116023006FX2011",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -473,7 +473,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 19,
-        "riskAreaName": "师村六组1   (B1)",
+        "disasterName": "师村六组1   (B1)",
         "unitCode": "610116017003FX2001",
         "position": "鸣犊街道师村",
         "lon": "109.090619",
@@ -499,7 +499,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 20,
-        "riskAreaName": "皇甫村三组赵成棋家屋后(C3)",
+        "disasterName": "皇甫村三组赵成棋家屋后(C3)",
         "unitCode": "610116016218FX3002",
         "position": "王曲街道皇甫村",
         "lon": "108.953608",
@@ -525,7 +525,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 21,
-        "riskAreaName": "太乙村四组原水湫池村(B6)",
+        "disasterName": "太乙村四组原水湫池村(B6)",
         "unitCode": "610116007008FX2006",
         "position": "太乙宫街道太乙村",
         "lon": "109.006233",
@@ -551,7 +551,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 22,
-        "riskAreaName": "库峪河村十二组柳树林(B8)",
+        "disasterName": "库峪河村十二组柳树林(B8)",
         "unitCode": "610116023006FX2008",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -577,7 +577,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 23,
-        "riskAreaName": "瓜洲村一组二组东北角   (C2)",
+        "disasterName": "瓜洲村一组二组东北角   (C2)",
         "unitCode": "610116001005FX3002",
         "position": "韦曲街道瓜洲村",
         "lon": "108.949937",
@@ -603,7 +603,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 24,
-        "riskAreaName": "沙场村天池寺组   .(C3)",
+        "disasterName": "沙场村天池寺组   .(C3)",
         "unitCode": "610116007005FX3003",
         "position": "太乙宫街道沙场村",
         "lon": "109.014238",
@@ -629,7 +629,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 25,
-        "riskAreaName": "嘉午台村七组大石头沟(C5)",
+        "disasterName": "嘉午台村七组大石头沟(C5)",
         "unitCode": "610116004012FX3005",
         "position": "引镇街道嘉午台村",
         "lon": "109.096052",
@@ -655,7 +655,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 26,
-        "riskAreaName": "喂子坪村鸡窝子组龙窝子-凤凰咀(B3)",
+        "disasterName": "喂子坪村鸡窝子组龙窝子-凤凰咀(B3)",
         "unitCode": "610116003017FX2003",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -681,7 +681,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 27,
-        "riskAreaName": "砲里村十组关家(B1)",
+        "disasterName": "砲里村十组关家(B1)",
         "unitCode": "610116024001FX2001",
         "position": "砲里街道砲里村",
         "lon": "109.142453",
@@ -707,7 +707,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 28,
-        "riskAreaName": "喂子坪村关坪寺组红岩子-玉皇坪(B11)",
+        "disasterName": "喂子坪村关坪寺组红岩子-玉皇坪(B11)",
         "unitCode": "610116003017FX2011",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -733,7 +733,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 29,
-        "riskAreaName": "高家湾村一组高春山屋后(B1)",
+        "disasterName": "高家湾村一组高春山屋后(B1)",
         "unitCode": "610116016225FX2001",
         "position": "王曲街道高家湾村",
         "lon": "108.945974",
@@ -759,7 +759,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 30,
-        "riskAreaName": "小峪口村十二组 1   (B3)",
+        "disasterName": "小峪口村十二组 1   (B3)",
         "unitCode": "610116018013FX2003",
         "position": "王莽街道小峪口村",
         "lon": "109.075191",
@@ -785,7 +785,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 31,
-        "riskAreaName": "劳动村六组周泉家屋后(C10)",
+        "disasterName": "劳动村六组周泉家屋后(C10)",
         "unitCode": "610116016231FX3001",
         "position": "王曲街道劳动村",
         "lon": "108.970855",
@@ -811,7 +811,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 32,
-        "riskAreaName": "王曲村一组雷元民家屋后(C7)",
+        "disasterName": "王曲村一组雷元民家屋后(C7)",
         "unitCode": "610116016200FX3003",
         "position": "王曲街道王曲村",
         "lon": "108.969846",
@@ -837,7 +837,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 33,
-        "riskAreaName": "库峪河村七组小关坪(B9)",
+        "disasterName": "库峪河村七组小关坪(B9)",
         "unitCode": "610116023006FX2009",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -863,7 +863,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 34,
-        "riskAreaName": "杜角镇村九组子午峪口(B2)",
+        "disasterName": "杜角镇村九组子午峪口(B2)",
         "unitCode": "610116009007FX2002",
         "position": "子午街道杜角镇村",
         "lon": "108.899798",
@@ -889,7 +889,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 35,
-        "riskAreaName": "白庙村七组   北侧(B2)",
+        "disasterName": "白庙村七组   北侧(B2)",
         "unitCode": "610116025002FX2002",
         "position": "魏寨街道白庙村",
         "lon": "109.199251",
@@ -915,7 +915,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 36,
-        "riskAreaName": "库峪河村十三组割膝岔(B7)",
+        "disasterName": "库峪河村十三组割膝岔(B7)",
         "unitCode": "610116023006FX2007",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -941,7 +941,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 37,
-        "riskAreaName": "候村六组   1(B1)",
+        "disasterName": "候村六组   1(B1)",
         "unitCode": "610116025004FX2001",
         "position": "魏寨街道候村",
         "lon": "108.899798",
@@ -967,7 +967,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 38,
-        "riskAreaName": "喂子坪村观坪寺组雨蒙农家院附近(B13)",
+        "disasterName": "喂子坪村观坪寺组雨蒙农家院附近(B13)",
         "unitCode": "610116003017FX2013",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -993,7 +993,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 39,
-        "riskAreaName": "许羊村二组许家沟村(C4)",
+        "disasterName": "许羊村二组许家沟村(C4)",
         "unitCode": "610116004020FX3004",
         "position": "引镇街道许羊村",
         "lon": "109.101030",
@@ -1019,7 +1019,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 40,
-        "riskAreaName": "喂子坪村青岗树组原青岗树村、关石村(B6)",
+        "disasterName": "喂子坪村青岗树组原青岗树村、关石村(B6)",
         "unitCode": "610116003017FX2006",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -1045,7 +1045,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 41,
-        "riskAreaName": "皇甫村一组皇甫小学  (C2)",
+        "disasterName": "皇甫村一组皇甫小学  (C2)",
         "unitCode": "610116016218FX3001",
         "position": "王曲街道皇甫村",
         "lon": "108.953608",
@@ -1071,7 +1071,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 42,
-        "riskAreaName": "天王村二、四组七里庙(B5)",
+        "disasterName": "天王村二、四组七里庙(B5)",
         "unitCode": "610116004017FX2005",
         "position": "引镇街道天王村",
         "lon": "109.127163",
@@ -1097,7 +1097,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 43,
-        "riskAreaName": "星火村三组   弥勒寺(C4)",
+        "disasterName": "星火村三组   弥勒寺(C4)",
         "unitCode": "610116019010FX3004",
         "position": "五台街道星火村",
         "lon": "108.972384",
@@ -1123,7 +1123,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 44,
-        "riskAreaName": "抱龙村一组抱龙峪沟口(B2)",
+        "disasterName": "抱龙村一组抱龙峪沟口(B2)",
         "unitCode": "610116009002FX2002",
         "position": "子午街道抱龙村",
         "lon": "108.915011",
@@ -1149,7 +1149,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 45,
-        "riskAreaName": "新二村三组. 青华山景区(C4)",
+        "disasterName": "新二村三组. 青华山景区(C4)",
         "unitCode": "610116003023FX3004",
         "position": "滦镇街道新二村",
         "lon": "108.830020",
@@ -1175,7 +1175,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 46,
-        "riskAreaName": "西尧村石砭峪水库发电站组  发电站(C5)",
+        "disasterName": "西尧村石砭峪水库发电站组  发电站(C5)",
         "unitCode": "610116019008FX3005",
         "position": "五台街道西尧村",
         "lon": "108.953148",
@@ -1201,7 +1201,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 47,
-        "riskAreaName": "夏候村三组夏候村三组(C3)",
+        "disasterName": "夏候村三组夏候村三组(C3)",
         "unitCode": "610116012009FX3003",
         "position": "杜曲街道夏候村",
         "lon": "109.000633",
@@ -1227,7 +1227,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 48,
-        "riskAreaName": "沣峪村黎园坪组黎园坪(B7)",
+        "disasterName": "沣峪村黎园坪组黎园坪(B7)",
         "unitCode": "610116003006FX2007",
         "position": "滦镇街道沣峪村",
         "lon": "108.817912",
@@ -1253,7 +1253,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 49,
-        "riskAreaName": "新农村五组康峪沟(B1)",
+        "disasterName": "新农村五组康峪沟(B1)",
         "unitCode": "610116019009FX2001",
         "position": "五台街道新农村",
         "lon": "108.984103",
@@ -1279,7 +1279,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 50,
-        "riskAreaName": "藏龙寨村十组杨立民家屋后(C8)",
+        "disasterName": "藏龙寨村十组杨立民家屋后(C8)",
         "unitCode": "610116016230FX3001",
         "position": "王曲街道藏龙寨村",
         "lon": "108.972712",
@@ -1305,7 +1305,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 51,
-        "riskAreaName": "大峪新村十五组杏园村(B1)",
+        "disasterName": "大峪新村十五组杏园村(B1)",
         "unitCode": "610116004002FX2001",
         "position": "引镇街道大峪新村",
         "lon": "109.118702",
@@ -1331,7 +1331,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 52,
-        "riskAreaName": "甫店村八组七里坪(B1)",
+        "disasterName": "甫店村八组七里坪(B1)",
         "unitCode": "610116009008FX2001",
         "position": "子午街道甫店村",
         "lon": "108.929077",
@@ -1357,7 +1357,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 53,
-        "riskAreaName": "石翔村三组凤翔新村(B3)",
+        "disasterName": "石翔村三组凤翔新村(B3)",
         "unitCode": "610116023008FX2003",
         "position": "杨庄街道石翔村",
         "lon": "109.145111",
@@ -1383,7 +1383,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 54,
-        "riskAreaName": "韦兆西村三组   1(C4)",
+        "disasterName": "韦兆西村三组   1(C4)",
         "unitCode": "610116018012FX3004",
         "position": "王莽街道韦兆西村",
         "lon": "109.067520",
@@ -1409,7 +1409,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 55,
-        "riskAreaName": "祥峪村高山流水别墅区组1(B9)",
+        "disasterName": "祥峪村高山流水别墅区组1(B9)",
         "unitCode": "610116008011FX2009",
         "position": "东大街道祥峪村",
         "lon": "108.793628",
@@ -1435,7 +1435,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 56,
-        "riskAreaName": "东尧村一组  村口(C2)",
+        "disasterName": "东尧村一组  村口(C2)",
         "unitCode": "610116019002FX3002",
         "position": "五台街道东尧村",
         "lon": "108.956337",
@@ -1461,7 +1461,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 57,
-        "riskAreaName": "东祥村十组观音堂(C4)",
+        "disasterName": "东祥村十组观音堂(C4)",
         "unitCode": "610116008003FX3004",
         "position": "东大街道东祥村",
         "lon": "108.793394",
@@ -1487,7 +1487,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 58,
-        "riskAreaName": "沣峪林场上鸡窝子组清凉寺(B7)",
+        "disasterName": "沣峪林场上鸡窝子组清凉寺(B7)",
         "unitCode": "610116003101FX2007",
         "position": "滦镇街道沣峪林场",
         "lon": "108.817912",
@@ -1513,7 +1513,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 59,
-        "riskAreaName": "五台林场康峪沟组管护站(C1)",
+        "disasterName": "五台林场康峪沟组管护站(C1)",
         "unitCode": "610116019101FX3001",
         "position": "五台街道五台林场",
         "lon": "108.970511",
@@ -1539,7 +1539,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 60,
-        "riskAreaName": "王曲村一组雷有民家屋后(C6)",
+        "disasterName": "王曲村一组雷有民家屋后(C6)",
         "unitCode": "610116016200FX3002",
         "position": "王曲街道王曲村",
         "lon": "108.969846",
@@ -1565,7 +1565,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 61,
-        "riskAreaName": "东三村一、三组松坪山口(B1)",
+        "disasterName": "东三村一、三组松坪山口(B1)",
         "unitCode": "610116009005FX2001",
         "position": "子午街道东三村",
         "lon": "108.899798",
@@ -1591,7 +1591,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 62,
-        "riskAreaName": "高家湾村一组钟洋屋后(C1)",
+        "disasterName": "高家湾村一组钟洋屋后(C1)",
         "unitCode": "610116016225FX3002",
         "position": "王曲街道高家湾村",
         "lon": "108.945974",
@@ -1617,7 +1617,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 63,
-        "riskAreaName": "光辉村十一组擂鼓石(C5)",
+        "disasterName": "光辉村十一组擂鼓石(C5)",
         "unitCode": "610116004007FX3005",
         "position": "引镇街道光辉村",
         "lon": "109.085782",
@@ -1643,7 +1643,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 64,
-        "riskAreaName": "百塔寺村四组西岭(B4)",
+        "disasterName": "百塔寺村四组西岭(B4)",
         "unitCode": "610116009010FX2004",
         "position": "子午街道百塔寺村",
         "lon": "108.931609",
@@ -1669,7 +1669,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 65,
-        "riskAreaName": "祥峪村三组祥峪沟(B7)",
+        "disasterName": "祥峪村三组祥峪沟(B7)",
         "unitCode": "610116008011FX2007",
         "position": "东大街道祥峪村",
         "lon": "108.793628",
@@ -1695,7 +1695,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 66,
-        "riskAreaName": "沙场村十组天池寺以东(B4)",
+        "disasterName": "沙场村十组天池寺以东(B4)",
         "unitCode": "610116007005FX2004",
         "position": "太乙宫街道沙场村",
         "lon": "109.014238",
@@ -1721,7 +1721,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 67,
-        "riskAreaName": "库峪河村七组 太沟(C13)",
+        "disasterName": "库峪河村七组 太沟(C13)",
         "unitCode": "610116023006FX3013",
         "position": "杨庄街道库峪河村",
         "lon": "109.162435",
@@ -1747,7 +1747,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 68,
-        "riskAreaName": "龙渠村八组沟底巷(C2)",
+        "disasterName": "龙渠村八组沟底巷(C2)",
         "unitCode": "610116004013FX3002",
         "position": "引镇街道龙渠村",
         "lon": "109.116213",
@@ -1773,7 +1773,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 69,
-        "riskAreaName": "向阳村十组   1(C2)",
+        "disasterName": "向阳村十组   1(C2)",
         "unitCode": "610116017008FX3002",
         "position": "鸣犊街道向阳村",
         "lon": "109.109699",
@@ -1799,7 +1799,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 70,
-        "riskAreaName": "喂子坪村鸡窝子组上鸡窝(B2)",
+        "disasterName": "喂子坪村鸡窝子组上鸡窝(B2)",
         "unitCode": "610116003017FX2002",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -1825,7 +1825,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 71,
-        "riskAreaName": "四皓村一、三、七组土台子(B1)",
+        "disasterName": "四皓村一、三、七组土台子(B1)",
         "unitCode": "610116007007FX2001",
         "position": "太乙宫街道四皓村",
         "lon": "109.006812",
@@ -1851,7 +1851,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 72,
-        "riskAreaName": "郭村六组砖厂(C1)",
+        "disasterName": "郭村六组砖厂(C1)",
         "unitCode": "610116017004FX3001",
         "position": "鸣犊街道郭村",
         "lon": "109.110843",
@@ -1877,7 +1877,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 73,
-        "riskAreaName": "光辉村十一组鲜峪口(C4)",
+        "disasterName": "光辉村十一组鲜峪口(C4)",
         "unitCode": "610116004007FX3004",
         "position": "引镇街道光辉村",
         "lon": "109.085782",
@@ -1903,7 +1903,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 74,
-        "riskAreaName": "喂子坪村北石槽组南石槽沟内(B7)",
+        "disasterName": "喂子坪村北石槽组南石槽沟内(B7)",
         "unitCode": "610116003017FX2007",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -1929,7 +1929,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 75,
-        "riskAreaName": "老凹庄村十三组   南侧(B1)",
+        "disasterName": "老凹庄村十三组   南侧(B1)",
         "unitCode": "610116025005FX2001",
         "position": "魏寨街道老凹庄村",
         "lon": "109.160098",
@@ -1955,7 +1955,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 76,
-        "riskAreaName": "东台新村二组台沟(B3)",
+        "disasterName": "东台新村二组台沟(B3)",
         "unitCode": "610116009006FX2003",
         "position": "子午街道东台新村",
         "lon": "108.903283",
@@ -1981,7 +1981,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 77,
-        "riskAreaName": "沣峪口村一 组沣峪沟口(B5)",
+        "disasterName": "沣峪口村一 组沣峪沟口(B5)",
         "unitCode": "610116003007FX2005",
         "position": "滦镇街道沣峪口村",
         "lon": "108.813389",
@@ -2007,7 +2007,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 78,
-        "riskAreaName": "双益湾村一组.  (C4)",
+        "disasterName": "双益湾村一组.  (C4)",
         "unitCode": "610116007006FX3004",
         "position": "太乙宫街道双益湾村",
         "lon": "109.012796",
@@ -2033,7 +2033,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 79,
-        "riskAreaName": "江兆村八组焦后海家屋后(C12)",
+        "disasterName": "江兆村八组焦后海家屋后(C12)",
         "unitCode": "610116016232FX3002",
         "position": "王曲街道江兆村",
         "lon": "108.993907",
@@ -2059,7 +2059,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 80,
-        "riskAreaName": "杨万村七组    1(B2)",
+        "disasterName": "杨万村七组    1(B2)",
         "unitCode": "610116012005FX2002",
         "position": "杜曲街道杨万村",
         "lon": "109.006352",
@@ -2085,7 +2085,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 81,
-        "riskAreaName": "库峪河村十七组西木湾-红庙子村(B3)",
+        "disasterName": "库峪河村十七组西木湾-红庙子村(B3)",
         "unitCode": "610116023006FX2003",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -2111,7 +2111,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 82,
-        "riskAreaName": "沙场村十、十一组蛟峪山村(B6)",
+        "disasterName": "沙场村十、十一组蛟峪山村(B6)",
         "unitCode": "610116007005FX2006",
         "position": "太乙宫街道沙场村",
         "lon": "109.014238",
@@ -2137,7 +2137,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 83,
-        "riskAreaName": "彰仪村一组南头(B1)",
+        "disasterName": "彰仪村一组南头(B1)",
         "unitCode": "610116012014FX2001",
         "position": "杜曲街道彰仪村",
         "lon": "109.014418",
@@ -2163,7 +2163,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 84,
-        "riskAreaName": "劳动村一组张跃民屋后(C11)",
+        "disasterName": "劳动村一组张跃民屋后(C11)",
         "unitCode": "610116016231FX3002",
         "position": "王曲街道劳动村",
         "lon": "108.970855",
@@ -2189,7 +2189,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 85,
-        "riskAreaName": "百塔寺村一组抱龙峪沟口(B5)",
+        "disasterName": "百塔寺村一组抱龙峪沟口(B5)",
         "unitCode": "610116009010FX2005",
         "position": "子午街道百塔寺村",
         "lon": "108.931609",
@@ -2215,7 +2215,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 86,
-        "riskAreaName": "四坡村六组    1(B1)",
+        "disasterName": "四坡村六组    1(B1)",
         "unitCode": "610116017006FX2001",
         "position": "鸣犊街道四坡村",
         "lon": "109.109699",
@@ -2241,7 +2241,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 87,
-        "riskAreaName": "光辉村十一组西翠花(B4)",
+        "disasterName": "光辉村十一组西翠花(B4)",
         "unitCode": "610116004007FX2004",
         "position": "引镇街道光辉村",
         "lon": "109.085782",
@@ -2267,7 +2267,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 88,
-        "riskAreaName": "西四府村一组   东北角(C1)",
+        "disasterName": "西四府村一组   东北角(C1)",
         "unitCode": "610116001008FX3001",
         "position": "韦曲街道西四府村",
         "lon": "108.963218",
@@ -2293,7 +2293,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 89,
-        "riskAreaName": "天王村三组嘉午台(C7)",
+        "disasterName": "天王村三组嘉午台(C7)",
         "unitCode": "610116004017FX3007",
         "position": "引镇街道天王村",
         "lon": "109.127163",
@@ -2319,7 +2319,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 90,
-        "riskAreaName": "兴教寺村十组   1(B3)",
+        "disasterName": "兴教寺村十组   1(B3)",
         "unitCode": "610116012007FX2003",
         "position": "杜曲街道兴教寺村",
         "lon": "109.033589",
@@ -2345,7 +2345,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 91,
-        "riskAreaName": "喂子坪村青岗树组夭佛岩(B4)",
+        "disasterName": "喂子坪村青岗树组夭佛岩(B4)",
         "unitCode": "610116003017FX2004",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -2371,7 +2371,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 92,
-        "riskAreaName": "王曲村一组王三民家屋后(C5)",
+        "disasterName": "王曲村一组王三民家屋后(C5)",
         "unitCode": "610116016200FX3001",
         "position": "王曲街道王曲村",
         "lon": "108.969846",
@@ -2397,7 +2397,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 93,
-        "riskAreaName": "皇甫村二组刘来志家屋后(C4)",
+        "disasterName": "皇甫村二组刘来志家屋后(C4)",
         "unitCode": "610116016218FX3003",
         "position": "王曲街道皇甫村",
         "lon": "108.953608",
@@ -2423,7 +2423,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 94,
-        "riskAreaName": "高寨新村十四、十五组    1(C1)",
+        "disasterName": "高寨新村十四、十五组    1(C1)",
         "unitCode": "610116017009FX3001",
         "position": "鸣犊街道高寨新村",
         "lon": "109.105423",
@@ -2449,7 +2449,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 95,
-        "riskAreaName": "库峪河村十六组西木斯沟(C14)",
+        "disasterName": "库峪河村十六组西木斯沟(C14)",
         "unitCode": "610116023006FX3014",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -2475,7 +2475,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 96,
-        "riskAreaName": "小峪口村十组小金坪(B2)",
+        "disasterName": "小峪口村十组小金坪(B2)",
         "unitCode": "610116018013FX2002",
         "position": "王莽街道小峪口村",
         "lon": "109.075191",
@@ -2501,7 +2501,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 97,
-        "riskAreaName": "库峪河村六组   太沟(B14)",
+        "disasterName": "库峪河村六组   太沟(B14)",
         "unitCode": "610116023006FX2014",
         "position": "杨庄街道库峪河村",
         "lon": "109.162435",
@@ -2527,7 +2527,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 98,
-        "riskAreaName": "沣峪口村二道桥组公路道班(C7)",
+        "disasterName": "沣峪口村二道桥组公路道班(C7)",
         "unitCode": "610116003007FX3007",
         "position": "滦镇街道沣峪口村",
         "lon": "108.813389",
@@ -2553,7 +2553,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 99,
-        "riskAreaName": "东四府村一组长安一中西北侧(B1)",
+        "disasterName": "东四府村一组长安一中西北侧(B1)",
         "unitCode": "610116001009FX2001",
         "position": "韦曲街道东四府村",
         "lon": "108.964749",
@@ -2579,7 +2579,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 100,
-        "riskAreaName": "韦兆南村八组   1(C4)",
+        "disasterName": "韦兆南村八组   1(C4)",
         "unitCode": "610116018011FX3004",
         "position": "王莽街道韦兆南村",
         "lon": "109.078960",
@@ -2605,7 +2605,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 101,
-        "riskAreaName": "沙场村十一组二郎山(C8)",
+        "disasterName": "沙场村十一组二郎山(C8)",
         "unitCode": "610116007005FX3008",
         "position": "太乙宫街道沙场村",
         "lon": "109.014238",
@@ -2631,7 +2631,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 102,
-        "riskAreaName": "彭村二组    蚕姑沟(B3)",
+        "disasterName": "彭村二组    蚕姑沟(B3)",
         "unitCode": "610116025007FX2003",
         "position": "魏寨街道彭村",
         "lon": "109.145281",
@@ -2657,7 +2657,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 103,
-        "riskAreaName": "沣峪村佘家湾组红草河上游(B9)",
+        "disasterName": "沣峪村佘家湾组红草河上游(B9)",
         "unitCode": "610116003006FX2009",
         "position": "滦镇街道沣峪村",
         "lon": "108.817912",
@@ -2683,7 +2683,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 104,
-        "riskAreaName": "黎明村一组   1(C1)",
+        "disasterName": "黎明村一组   1(C1)",
         "unitCode": "610116017014FX3001",
         "position": "鸣犊街道黎明村",
         "lon": "109.121407",
@@ -2709,7 +2709,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 105,
-        "riskAreaName": "马厂村九组裴瑞红家屋后(B2)",
+        "disasterName": "马厂村九组裴瑞红家屋后(B2)",
         "unitCode": "610116016228FX2001",
         "position": "王曲街道马厂村",
         "lon": "108.986106",
@@ -2735,7 +2735,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 106,
-        "riskAreaName": "三友村七组三联村(B1)",
+        "disasterName": "三友村七组三联村(B1)",
         "unitCode": "610116013010FX2001",
         "position": "大兆街道三友村",
         "lon": "109.085019",
@@ -2761,7 +2761,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 107,
-        "riskAreaName": "喂子坪村大坪组大坪(B10)",
+        "disasterName": "喂子坪村大坪组大坪(B10)",
         "unitCode": "610116003017FX3005",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -2787,7 +2787,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 108,
-        "riskAreaName": "江兆村八组范丽家屋后(C13)",
+        "disasterName": "江兆村八组范丽家屋后(C13)",
         "unitCode": "610116016232FX3003",
         "position": "王曲街道江兆村",
         "lon": "108.993907",
@@ -2813,7 +2813,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 109,
-        "riskAreaName": "嘉午台村九组太平村(C4)",
+        "disasterName": "嘉午台村九组太平村(C4)",
         "unitCode": "610116004012FX3004",
         "position": "引镇街道嘉午台村",
         "lon": "109.096052",
@@ -2839,7 +2839,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 110,
-        "riskAreaName": "小峪口村九组    1(B1)",
+        "disasterName": "小峪口村九组    1(B1)",
         "unitCode": "610116018013FX2001",
         "position": "王莽街道小峪口村",
         "lon": "109.075191",
@@ -2865,7 +2865,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 111,
-        "riskAreaName": "喂子坪村三组喂子坪小学(B14)",
+        "disasterName": "喂子坪村三组喂子坪小学(B14)",
         "unitCode": "610116003017FX2014",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -2891,7 +2891,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 112,
-        "riskAreaName": "东高村八、九组1     (B1)",
+        "disasterName": "东高村八、九组1     (B1)",
         "unitCode": "610116017012FX2001",
         "position": "鸣犊街道东高村",
         "lon": "109.108529",
@@ -2917,7 +2917,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 113,
-        "riskAreaName": "东祥村十组高山流水别墅区(B2)",
+        "disasterName": "东祥村十组高山流水别墅区(B2)",
         "unitCode": "610116008003FX2002",
         "position": "东大街道东祥村",
         "lon": "108.899798",
@@ -2943,7 +2943,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 114,
-        "riskAreaName": "大峪新村十组郑家坡(B3)",
+        "disasterName": "大峪新村十组郑家坡(B3)",
         "unitCode": "610116004002FX2003",
         "position": "引镇街道大峪新村",
         "lon": "109.118702",
@@ -2969,7 +2969,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 115,
-        "riskAreaName": "喂子坪村北石槽组南石槽(B8)",
+        "disasterName": "喂子坪村北石槽组南石槽(B8)",
         "unitCode": "610116003017FX2008",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -2995,7 +2995,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 116,
-        "riskAreaName": "东尧村一组水厂  (B1)",
+        "disasterName": "东尧村一组水厂  (B1)",
         "unitCode": "610116019002FX2001",
         "position": "五台街道东尧村",
         "lon": "108.956337",
@@ -3021,7 +3021,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 117,
-        "riskAreaName": "喂子坪村松花沟村组公路超限检测站(C6)",
+        "disasterName": "喂子坪村松花沟村组公路超限检测站(C6)",
         "unitCode": "610116003017FX3006",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845951",
@@ -3047,7 +3047,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 118,
-        "riskAreaName": "沣峪村大门村组红草河以东(B3)",
+        "disasterName": "沣峪村大门村组红草河以东(B3)",
         "unitCode": "610116003006FX2003",
         "position": "滦镇街道沣峪村",
         "lon": "108.817912",
@@ -3073,7 +3073,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 119,
-        "riskAreaName": "光辉村十一组新贯寺(B2)",
+        "disasterName": "光辉村十一组新贯寺(B2)",
         "unitCode": "610116004007FX2002",
         "position": "引镇街道光辉村",
         "lon": "109.085782",
@@ -3099,7 +3099,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 120,
-        "riskAreaName": "喂子坪村关坪寺组雨蒙农家院南(B12)",
+        "disasterName": "喂子坪村关坪寺组雨蒙农家院南(B12)",
         "unitCode": "610116003017FX2012",
         "position": "滦镇街道喂子坪村",
         "lon": "108.845325",
@@ -3125,7 +3125,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 121,
-        "riskAreaName": "库峪河村十五组西木斯村(B6)",
+        "disasterName": "库峪河村十五组西木斯村(B6)",
         "unitCode": "610116023006FX2006",
         "position": "杨庄街道库峪河村",
         "lon": "109.173148",
@@ -3151,7 +3151,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 122,
-        "riskAreaName": "新二村五组提香溪谷(B2)",
+        "disasterName": "新二村五组提香溪谷(B2)",
         "unitCode": "610116003023FX2002",
         "position": "滦镇街道新二村",
         "lon": "108.830020",
@@ -3177,7 +3177,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 123,
-        "riskAreaName": "祥峪村国岭别墅区组粟原西北侧(C8)",
+        "disasterName": "祥峪村国岭别墅区组粟原西北侧(C8)",
         "unitCode": "610116008011FX3008",
         "position": "东大街道祥峪村",
         "lon": "108.793628",
@@ -3203,7 +3203,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 124,
-        "riskAreaName": "江兆村八组辛平家屋后(B3)",
+        "disasterName": "江兆村八组辛平家屋后(B3)",
         "unitCode": "610116016232FX2001",
         "position": "王曲街道江兆村",
         "lon": "108.940990",
@@ -3229,7 +3229,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 125,
-        "riskAreaName": "上王村六组翠微宫园(C2)",
+        "disasterName": "上王村六组翠微宫园(C2)",
         "unitCode": "610116003014FX3002",
         "position": "滦镇街道上王村",
         "lon": "108.838888",
@@ -3255,7 +3255,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 126,
-        "riskAreaName": "百塔寺村三组王化沟(C8)",
+        "disasterName": "百塔寺村三组王化沟(C8)",
         "unitCode": "610116009010FX3008",
         "position": "子午街道百塔寺村",
         "lon": "108.931609",
@@ -3281,7 +3281,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 127,
-        "riskAreaName": "东祥村三组石佛寺(C1)",
+        "disasterName": "东祥村三组石佛寺(C1)",
         "unitCode": "610116008003FX3001",
         "position": "东大街道东祥村",
         "lon": "108.793394",
@@ -3307,7 +3307,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 128,
-        "riskAreaName": "沣峪林场鸡窝子组张家坪(B5)",
+        "disasterName": "沣峪林场鸡窝子组张家坪(B5)",
         "unitCode": "610116003101FX2005",
         "position": "滦镇街道沣峪林场",
         "lon": "108.817912",
@@ -3333,7 +3333,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 129,
-        "riskAreaName": "汪峪村四、五组冷水沟-东斜坡(B3)",
+        "disasterName": "汪峪村四、五组冷水沟-东斜坡(B3)",
         "unitCode": "610116023010FX2003",
         "position": "杨庄街道汪峪村",
         "lon": "109.145111",
@@ -3359,7 +3359,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 130,
-        "riskAreaName": "内苑村纬九组动物园-翠微寺-秦岭山水别墅区(C3)",
+        "disasterName": "内苑村纬九组动物园-翠微寺-秦岭山水别墅区(C3)",
         "unitCode": "610116003010FX3003",
         "position": "滦镇街道内苑村",
         "lon": "108.861707",
@@ -3385,7 +3385,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 131,
-        "riskAreaName": "沣峪村枣岭组砭子口(B4)",
+        "disasterName": "沣峪村枣岭组砭子口(B4)",
         "unitCode": "610116003006FX2004",
         "position": "滦镇街道沣峪村",
         "lon": "108.817912",
@@ -3411,7 +3411,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 132,
-        "riskAreaName": "沣峪村石峡沟组原石峡沟村(B6)",
+        "disasterName": "沣峪村石峡沟组原石峡沟村(B6)",
         "unitCode": "610116003006FX2006",
         "position": "滦镇街道沣峪村",
         "lon": "108.817912",
@@ -3437,7 +3437,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 133,
-        "riskAreaName": "藏龙寨村二组孙涛家屋后(C9)",
+        "disasterName": "藏龙寨村二组孙涛家屋后(C9)",
         "unitCode": "610116016230FX3002",
         "position": "王曲街道藏龙寨村",
         "lon": "108.972712",
@@ -3463,7 +3463,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 134,
-        "riskAreaName": "双竹村三组    纪念塔(B2)",
+        "disasterName": "双竹村三组    纪念塔(B2)",
         "unitCode": "610116001007FX2002",
         "position": "韦曲街道双竹村",
         "lon": "108.955355",
@@ -3489,7 +3489,7 @@
       "type": "Feature",
       "properties": {
         "SmUserID": 135,
-        "riskAreaName": "太乙村翠华山组景区博物馆(C9)",
+        "disasterName": "太乙村翠华山组景区博物馆(C9)",
         "unitCode": "610116007008FX3009",
         "position": "太乙宫街道太乙村",
         "lon": "109.006233",
