@@ -129,7 +129,7 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import HuapoData from '@/assets/static/disaster/Huapo.json';
 import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
 //引入村庄数据
-import RiskArea from '@/assets/static/disaster/riskArea.json'
+import RiskArea from '@/assets/static/disaster/xian_risk.json'
 
 export default {
   name: 'CesiumMap',
@@ -208,7 +208,7 @@ export default {
       return `rotate(${-angle}deg) scale(${scale})`;
     }
   },
- 
+
   async mounted() {
     try {
       this.load();
@@ -1478,7 +1478,7 @@ export default {
 
 <style scoped>
 .cesium-container {
-  position: absolute;
+  height: calc(100vh - 50px);
   top: 0;
   left: 0;
   right: 0;
