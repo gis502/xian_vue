@@ -64,7 +64,7 @@ import * as Cesium from 'cesium';
 import HuapoData from '@/assets/disaster/Huapo.json';
 import NishiliuData from '@/assets/disaster/Nishiliu.json';
 import FaultZoneData from '@/assets/disaster/faultZone.json';
-import RiskAreaData from '@/assets/disaster/riskArea.json';
+import RiskAreaData from '@/assets/static/disaster/xian_risk.json';
 import CesiumNavigation from 'cesium-navigation-es6';
 
 export default {
@@ -1017,7 +1017,7 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 50px);
   margin: 0;
   padding: 0;
   /* overflow: hidden; */
