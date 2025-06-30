@@ -21,17 +21,20 @@
       <div class="panel-content">
         <label><input type="checkbox" v-model="showFaultLines" @change="toggleFaultLines" /> 显示断裂带 </label>
         <label><input type="checkbox" v-model="showDisasterLayer" @change="toggleDisasterPoints" /> 显示灾害点 </label>
-        <label><input type="checkbox" v-model="showDangerPoints" @change="toggleDangerPoints" /> 显示隐患点 </label>
-        <label><input type="checkbox" v-model="showRiskArea" @change="toggleRiskVisibility"> 显示危险点 </label>
+        <label><input type="checkbox" v-model="showDangerPoints" @change="toggleDangerPoints" /> 显示加油站 </label>
+        <label><input type="checkbox" v-model="showRiskArea" @change="toggleRiskVisibility"> 显示村庄 </label>
       </div>
     </div>
     <!-- 地震信息面板 -->
     <div v-if="showInfoPanel" class="earthquake-info-panel">
       <div class="panel-title">地震信息</div>
       <div class="panel-content">
-        <div>震级: <input v-model.number="magnitude" type="number" min="0" max="10" step="0.1" /></div>
+        <div>震级: <input v-model.number="magnitude" type="number" min="0" max="10" step="0.1" /> Ms</div>
         <div>深度: <input v-model.number="depth" type="number" min="0" max="1000" step="1" /> km</div>
-        <div>震中位置: {{ selectedPosition ? `${selectedPosition.latitude.toFixed(4)}, ${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
+        <div>震中位置：</div>
+        <div>北纬：{{ selectedPosition ? selectedPosition.longitude.toFixed(4) + '°' : '' }}</div>
+        <div>东经：{{ selectedPosition ? selectedPosition.latitude.toFixed(4) + '°' : '' }}</div>
+<!--        <div>震中位置: {{ selectedPosition ? `${selectedPosition.latitude.toFixed(4)}, ${selectedPosition.longitude.toFixed(4)}` : '' }}</div>-->
         <button @click="confirmEarthquake">确认添加</button>
         <button @click="cancelEarthquake">取消</button>
       </div>
@@ -50,7 +53,7 @@
       <!--      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>-->
       <div class="legend-item"><span class="legend-color circle" style="background: #ff0000;"></span> 滑坡点</div>
       <div class="legend-item"><span class="legend-color circle" style="background: #ffea00;"></span> 泥石流点</div>
-      <div class="legend-item"><span class="legend-color circle" style="background: #f89c2b;"></span> 危险点</div>
+      <div class="legend-item"><span class="legend-color circle" style="background: #f89c2b;"></span> 村庄</div>
       <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span> 断裂带</div>
       <div class="legend-item"><img class="legend-icon" src="@/assets/images/gasstation.png" alt="隐患点" /> 加油站</div>
 
@@ -103,7 +106,7 @@ export default {
           { min: 8.0, max: 8.9, intensities: [12, 11, 10] },
           { min: 7.5, max: 7.9, intensities: [11, 10, 9] },
           { min: 7.0, max: 7.4, intensities: [10, 9, 8] },
-          { min: 6.5, max: 6.9, intensities: [9, 8, 7] },
+          { min: 6.5, max: 6.9, intensities : [9, 8, 7] },
           { min: 6.0, max: 6.4, intensities: [8, 7, 6] }
           // { min: 4.5, max: 5.9, intensities: [6, 5, 4] },
           // { min: 2.5, max: 4.4, intensities: [4, 3, 2] },
