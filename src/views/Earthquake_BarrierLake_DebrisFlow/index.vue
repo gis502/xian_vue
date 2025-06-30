@@ -51,19 +51,16 @@
     <div v-if="showInfoPanel" class="earthquake-info-panel">
       <div class="panel-title">地震信息</div>
       <div class="panel-content">
-        <div>震级: <input v-model.number="this.magnitude" type="number" min="0" max="10" step="0.1" /></div>
+        <div>震级: <input v-model.number="this.magnitude" type="number" min="0" max="10" step="0.1" /> ms</div>
         <div>深度: <input v-model.number="depth" type="number" min="0" max="1000" step="1" /> km</div>
-        <div>震中位置: {{ selectedPosition ? `${selectedPosition.latitude.toFixed(4)}, ${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
-        <el-row type="flex" :gutter="24">
-          <el-col :span="36">
-        <div>
+        <div>震中位置:</div>
+        <div> {{ selectedPosition ? `北纬:${selectedPosition.latitude.toFixed(4)}, 东经:${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
+        <el-row type="flex" :gutter="36">
+          <el-col :span="24">
           <button @click="confirm_Earthquake">确认添加</button>
           <button @click="cancel_Earthquake">取消</button>
-        </div>
           </el-col>
         </el-row>
-<!--        <button @click="confirm_Earthquake">确认添加</button>-->
-<!--        <button @click="cancel_Earthquake">取消</button>-->
       </div>
     </div>
 
@@ -73,20 +70,20 @@
       <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 215, 0, 0.3);"></span>Ⅸ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 128, 0, 0.25);"></span>Ⅷ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 0, 255, 0.2);"></span> Ⅶ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(75, 0, 130, 0.15);"></span>Ⅵ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 地震点</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 断裂带</div>
-      <div class="legend-item"><span class="legend-color" style="background: #ff0000;"></span> 危险源</div>
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 215, 0, 0.3);"></span>Ⅸ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 128, 0, 0.25);"></span>Ⅷ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 0, 255, 0.2);"></span> Ⅶ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(75, 0, 130, 0.15);"></span>Ⅵ度</div>-->
+      <div class="legend-item"><span class="legend-circle" style="background: yellow;"></span> 震源</div>
+      <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span>断裂带</div>
+      <div class="legend-item"><span class="legend-circle" style="background: #ff0000;"></span> 危险源</div>
       <div class="legend-item">
-        <div class="legend-color" id="yhdlen"></div>
+        <div class="legend-icon" id="yhdlen"></div>
         隐患点
       </div>
       <div class="legend-item">
-        <div class="legend-color" id="risk_area"></div>
-        危险区
+        <div class="legend-icon" id="risk_area"></div>
+        风险区
       </div>
     </div>
 
@@ -101,7 +98,6 @@ import DebrisFlow from "@/assets/static/disaster/Huapo.json"
 import landslideIcon from "@/assets/images/landslide.png"
 import riskArea from "@/assets/static/disaster/riskArea.json"
 import riskAreaIcon from "@/assets/images/riskArea.png"
-import {renderList} from "vue";
 
 export default {
   name: "index",
@@ -352,7 +348,7 @@ export default {
 
     confirm_Earthquake() {
       let position = this.earthPoint;
-      console.log(this.earthPoint,"==============================")
+      // console.log(this.earthPoint,"==============================")
       // if (!this.selectedPosition) return;
       // 清除现有烈度圈
       // this.clearIntensityCircles();
@@ -457,37 +453,209 @@ export default {
 
     AddHiddenDangerPoints() {
       //添加隐患点
+      let pointInfo;
       this.DebrisFlow.features.forEach(hazard_source => {
         this.HazardPoint.push(hazard_source.geometry)
+
+        // 存储点的详细信息（从原始数据中提取）
+        pointInfo = {
+          name: hazard_source.properties.disasterName || "灾害点名称",
+          lon: hazard_source.properties.lon || "经度",
+          lat: hazard_source.properties.lat || "纬度",
+          // description: hazard_source.properties.description || '无描述信息'
+          // 可根据实际数据结构添加更多字段
+        };
+        // console.log(pointInfo,"===================")
+        this.HazardPoint.forEach(hazard_point => {
+          let lon = hazard_point.coordinates[0]
+          let lat = hazard_point.coordinates[1]
+          let a = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(lon, lat),
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: landslideIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: true
+            },
+            // 绑定自定义数据，用于点击时获取信息
+            userData: {
+              type: 'hiddenDangerPoint',
+              info: pointInfo,
+              originalPosition: { lon, lat } // 保存原始经纬度
+            }
+          });
+          this.HiddenDangerPoints_entities.push(a);
+        })
+
       })
-      this.HazardPoint.forEach(hazard_point => {
-        let lon = hazard_point.coordinates[0]
-        let lat = hazard_point.coordinates[1]
-        let a = this.viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(lon, lat),
-          billboard: {
-            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-            image: landslideIcon,
-            width: 60, // 图片宽度,单位px
-            height: 60, // 图片高度，单位px
-            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-            scale: 0.8, // 缩放比例
-            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-            depthTest: false, // 禁止深度测试
-            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-            show: true
+
+      // 设置点击事件处理
+      this.setupEntityClickHandler();
+    },
+
+    setupEntityClickHandler() {
+      // 清除旧的事件处理程序
+      if (this.entityClickHandler) {
+        this.entityClickHandler.destroy();
+      }
+
+      // 添加新的事件处理程序
+      this.entityClickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
+      this.entityClickHandler.setInputAction((click) => {
+        // 清除现有信息窗口
+        const existingWindows = document.querySelectorAll('.cesium-info-window');
+        existingWindows.forEach(win => win.remove());
+        // 获取点击位置的实体
+        const pickedObject = this.viewer.scene.pick(click.position);
+
+        if (pickedObject && Cesium.defined(pickedObject.id)) {
+          const entity = pickedObject.id;
+          if (entity.userData && entity.userData.type === 'hiddenDangerPoint') {
+
+            //屏幕坐标转世界坐标
+            let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
+            //世界坐标转经纬度
+            let ellipsoid=this.viewer.scene.globe.ellipsoid;
+            let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+            let lat=Cesium.Math.toDegrees(cartographic.latitude);
+            let lon=Cesium.Math.toDegrees(cartographic.longitude);
+            this.viewer.camera.flyTo({
+              destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+              orientation: {
+                // 指向
+                heading: 6.283185307179581,
+                // 视角
+                pitch: -1.5688168484696687,
+                roll: 0.0
+              },
+              duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+              complete: () => {
+                // 飞行完成后显示信息窗口
+                this.showInfoList(entity.userData.info,entity);
+              }
+
+            });
           }
-        });
-        this.HiddenDangerPoints_entities.push(a);
-      })
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    },
+
+    showInfoList(info,entity) {
+      // 清除现有信息窗口
+      const existingWindows = document.querySelectorAll('.cesium-info-window');
+      existingWindows.forEach(win => win.remove());
+
+
+      // 获取实体位置的屏幕坐标
+      const position = entity.position.getValue(this.viewer.clock.currentTime);
+      const canvasPosition = this.viewer.scene.cartesianToCanvasCoordinates(position);
+      if (!canvasPosition) return; // 位置不可见时返回
+
+      // 创建信息列表DOM（可替换为框架组件）
+      const container = document.createElement('div');
+      container.className = 'cesium-info-window';
+
+      // 计算窗口位置（基于屏幕坐标偏移）
+      const left = canvasPosition.x + 20; // 右侧显示
+      const top = canvasPosition.y - 100; // 垂直居中
+
+      container.style.cssText = `
+        position: fixed;
+        left: ${left}px;
+        top: ${top-10}px;
+        width: 300px;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        padding: 15px;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+      `;
+
+      // 构建信息列表内容
+      if (entity.userData.type == 'hiddenDangerPoint'){
+        container.innerHTML = `
+    <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">灾害信息</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">名字:</span> ${info.name}</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">经度:</span> ${info.lon}</div>
+    <div style="margin-bottom: 10px;"><span style="color: #666;">纬度:</span> ${info.lat}</div>
+    <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
+  `;
+      }
+      else if (entity.userData.type == 'riskArea'){
+        container.innerHTML = `
+<!--    <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>-->
+    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区名称:</span> ${info.name}</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区经度:</span> ${info.lon}</div>
+    <div style="margin-bottom: 10px;"><span style="color: #666;">风险区纬度:</span> ${info.lat}</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区面积:</span> ${info.area_Km2}</div>
+    <div style="margin-bottom: 10px;"><span style="color: #666;">风险等级:</span> ${info.grade}</div>
+    <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
+  `;
+      }
+
+
+      // 添加到页面
+      document.body.appendChild(container);
+      // 检查是否超出视口边界并调整位置
+      this.adjustWindowPosition(container);
+      this.currentInfoWindow = {
+        element: container,
+        initialLeft: left,
+        initialTop: top,
+        entityId: entity.id
+      };
+    },
+
+    adjustWindowPosition(container) {
+      const rect = container.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // 右侧溢出时调整
+      if (rect.right > viewportWidth) {
+        container.style.left = `${parseInt(container.style.left) - (rect.right - viewportWidth + 20)}px`;
+      }
+
+      // 底部溢出时调整
+      if (rect.bottom > viewportHeight) {
+        container.style.top = `${parseInt(container.style.top) - (rect.bottom - viewportHeight + 20)}px`;
+      }
+
+      // 顶部溢出时调整
+      if (rect.top < 0) {
+        container.style.top = '20px';
+      }
     },
 
     Addriskzone() {
+      let riskAreaInfo;
       //添加风险区
       this.riskArea.features.forEach(hazard_source => {
         this.riskZone.push(hazard_source.geometry)
+
+        // 存储点的详细信息（从原始数据中提取）
+        riskAreaInfo = {
+          name: hazard_source.properties.position || "风险区名称",
+          lon: hazard_source.properties.lon || "经度",
+          lat: hazard_source.properties.lat || "纬度",
+          area_Km2: hazard_source.properties.area_Km2 || "风险区面积",
+          grade: hazard_source.properties.grade || "风险等级",
+          // description: hazard_source.properties.description || '无描述信息'
+          // 可根据实际数据结构添加更多字段
+        };
+
+        // console.log(riskAreaInfo,"====================================")
+
       })
       this.riskZone.forEach(hazard_point => {
         let lon = hazard_point.coordinates[0]
@@ -507,10 +675,67 @@ export default {
             depthTest: false, // 禁止深度测试
             disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
             show: true
+          },
+          // 绑定自定义数据，用于点击时获取信息
+          userData: {
+            type: 'riskArea',
+            info: riskAreaInfo,
+            originalPosition: { lon, lat } // 保存原始经纬度
           }
         });
         this.riskArea_entities.push(a);
       })
+
+      // 设置点击事件处理
+      this.setupEntityClickRiskArea();
+
+    },
+
+    setupEntityClickRiskArea() {
+      // 清除旧的事件处理程序
+      if (this.entityClickHandler) {
+        this.entityClickHandler.destroy();
+      }
+
+      // 添加新的事件处理程序
+      this.entityClickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
+      this.entityClickHandler.setInputAction((click) => {
+        // 清除现有信息窗口
+        const existingWindows = document.querySelectorAll('.cesium-info-window');
+        existingWindows.forEach(win => win.remove());
+        // 获取点击位置的实体
+        const pickedObject = this.viewer.scene.pick(click.position);
+
+        if (pickedObject && Cesium.defined(pickedObject.id)) {
+          const entity = pickedObject.id;
+          if (entity.userData && entity.userData.type === 'riskArea') {
+
+            // //屏幕坐标转世界坐标
+            // let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
+            // //世界坐标转经纬度
+            // let ellipsoid=this.viewer.scene.globe.ellipsoid;
+            // let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+            // let lat=Cesium.Math.toDegrees(cartographic.latitude);
+            // let lon=Cesium.Math.toDegrees(cartographic.longitude);
+            this.viewer.camera.flyTo({
+              destination: Cesium.Cartesian3.fromDegrees(entity.userData.originalPosition.lon, entity.userData.originalPosition.lat, 5000),
+              orientation: {
+                // 指向
+                heading: 6.283185307179581,
+                // 视角
+                pitch: -1.5688168484696687,
+                roll: 0.0
+              },
+              duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+              complete: () => {
+                // 飞行完成后显示信息窗口
+                this.showInfoList(entity.userData.info,entity);
+              }
+
+            });
+          }
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
 
     HideFaultZone() {
@@ -554,7 +779,6 @@ export default {
       }
     },
 
-
     draw(type) {
       let that = this;
       let viewer = this.mapViewer;
@@ -563,6 +787,9 @@ export default {
       let tempPoints = [];
       // 开启深度检测
       viewer.scene.globe.depthTestAgainstTerrain = true;
+      if (that.handler) {
+        that.handler.destroy();
+      }
       this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       switch (type) {
         // case "AddHypocenter":
@@ -606,17 +833,18 @@ export default {
             position = viewer.scene.globe.pick(ray, viewer.scene);
             let point = that.drawPoint(position);
             tempEntities.push(point);
-
+            that.handler.destroy();
+            that.handler = null;
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           // 左键双击停止绘制
-          this.handler.setInputAction(function () {
-            this.handler.destroy(); //关闭事件句柄
-            this.handler = null;
+          that.handler.setInputAction(function () {
+            that.handler.destroy(); //关闭事件句柄
+            that.handler = null;
           }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
           // 右击单击停止绘制
-          this.handler.setInputAction(function () {
-            this.handler.destroy(); //关闭事件句柄
-            this.handler = null;
+          that.handler.setInputAction(function () {
+            that.handler.destroy(); //关闭事件句柄
+            that.handler = null;
           }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
           break;
         case "polyline":
@@ -763,20 +991,21 @@ export default {
 
     drawHypocenter(position) {
       // let config_ = config ? config : {};
-      console.log("123313132131",position)
+      // console.log("123313132131",position)
       this.viewer.entities.add({
         name: "点几何对象",
         //输入笛卡尔坐标系
         position: position.cartesian,
         point: {
           color: Cesium.Color.YELLOW,
-          pixelSize: 10,
+          pixelSize: 20,
           outlineColor: Cesium.Color.YELLOW,
           outlineWidth: 3,
           depthTest: false, // 禁止深度测试
           scale: 0.8, // 缩放比例
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
         },
       });
     },
@@ -1106,7 +1335,7 @@ export default {
      */
     calculateRa(M, Ia) {
       const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) * 27;
-      console.log(a, "=============================")
+      // console.log(a, "=============================")
       return a;
     },
 
@@ -1120,7 +1349,7 @@ export default {
      */
     calculateRb(M, Ib) {
       const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5) * 27;
-      console.log(b, "=============================")
+      // console.log(b, "=============================")
 
       return b;
     },
@@ -1157,7 +1386,7 @@ export default {
         };
       });
 
-      console.log("paramas:===================>", params);
+      // console.log("paramas:===================>", params);
 
       return params;
     },
@@ -1266,13 +1495,36 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.3); /* 浅色边框 */
 }
 
+.legend-circle{
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  margin-right: 8px; /* 调整颜色块与文字间距 */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* 浅色边框 */
+}
+
+.legend-line {
+  width: 24px;
+  height: 3px;
+  margin-right: 8px;
+  background-color: red;
+  border-radius: 2px;
+}
+
+.legend-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
 #yhdlen{
   background-image: url("../../assets/images/landslide.png");
   background-size: cover;
 }
 
 #risk_area{
-  backgrand-image: url("../../assets/images/riskArea.png");
+  background-image:  url("../../assets/images/riskArea.png");
   background-size: cover;
 }
 
@@ -1316,9 +1568,10 @@ button {
   color: white;
 }
 
+
 .earthquake-info-panel button {
   margin-top: 10px;
-  margin-right: 10px;
+  margin-right: 30px;
   padding: 8px 15px;
   border: none;
   border-radius: 4px;
@@ -1328,11 +1581,15 @@ button {
 .earthquake-info-panel button:first-child {
   background-color: #386641;
   color: white;
+  width: 100%;
+
 }
 
 .earthquake-info-panel button:last-child {
   background-color: #bc4749;
   color: white;
+  width: 100%;
+
 }
 
 .el-select--large {
