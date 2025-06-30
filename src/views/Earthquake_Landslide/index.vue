@@ -8,7 +8,6 @@
       <div class="legend-item"><div class="legend-color" id="riskArea"></div>风险区域</div>
       <div class="legend-item"><div class="legend-color" id="earthquakeline"></div>断裂带</div>
     </div>
-
     <!-- 新增的表格区域 -->
     <div class="data-table">
       <button @click="toggleTableVisibility" class="toggle-table-btn">{{ isTableVisible ? '-' : '+' }}</button>
@@ -102,7 +101,7 @@ const tableData = ref([
 // 不同类型的数据
 const dataTypes = {
   type1: {
-    headers: [ '风险区名称','位置', '巡查员姓名', '联系方式'],
+    headers: [ '风险区名称','位置', '巡查员', '联系方式'],
     data: [
       { field1: '师村六组1(B1)', field2: '陕西省西安市长安区鸣犊街道师村', field3: '赵战民', field4: '17392247317',field5:109.090619,field6:34.164977},
       { field1: '砲里村十组关家(B1)', field2: '陕西省西安市长安区砲里街道砲里村', field3: '王民利', field4: '13892847490',field5:109.142453,field6:34.166387},
@@ -200,6 +199,8 @@ onMounted(() => {
   load()
 });
 
+let entityClickHandler = ref(null)
+
 function load(){
   const viewer = new Cesium.Viewer("cesium-container", {
     imageryProvider: false,
@@ -226,6 +227,7 @@ function load(){
   AddHazardSource()
   loadAdminData(administrationData)
   AddDangerAreaDataSource(DangerAreaData)
+  setupEntityClickHandler()
   viewer.cesiumWidget.creditContainer.style.display = "none";
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
@@ -362,7 +364,7 @@ function loadTDT(type) {
 
 function loadLandSlide(landslide) {
   for(let i=0;i<landslide.length;i++){
-    // console.log(landslide[i])
+    console.log(landslide[i])
     let lon = landslide[i].lon
     let lat =landslide[i].lat
     if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
@@ -380,13 +382,18 @@ function loadLandSlide(landslide) {
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
           scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
           depthTest: false, // 禁止深度测试
-          disableDepthTestDistance: Number.POSITIVE_INFINITY // 不进行深度测试
+          disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+          zIndex:99999999,
         },
         properties: {
           data:landslide[i]
-        }
+        },
+        // userData: {
+        //   type: 'LandSlide',
+        //   info: pointInfo,
+        //   originalPosition: { lon, lat } // 保存原始经纬度
+        // }
       })
-
       // 创建光晕实体
       const haloEntity = window.viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
@@ -618,7 +625,6 @@ function loadLandSlide(landslide) {
       })
     }
 
-
   }
 }
 
@@ -643,11 +649,11 @@ function AddHazardSource() {
   let HazardPoint = []
   //添加隐患点
   DebrisFlow.features.forEach(hazard_source => {
-    HazardPoint.push(hazard_source.geometry)
+    HazardPoint.push(hazard_source)
   })
   HazardPoint.forEach(hazard_point => {
-    let lon = hazard_point.coordinates[0]
-    let lat = hazard_point.coordinates[1]
+    let lon = hazard_point.geometry.coordinates[0]
+    let lat = hazard_point.geometry.coordinates[1]
     window.viewer.entities.add({
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
@@ -663,6 +669,9 @@ function AddHazardSource() {
         depthTest: false, // 禁止深度测试
         disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
         show: true
+      },
+      properties:{
+        data:hazard_point
       }
     });
   })
@@ -671,15 +680,16 @@ function AddHazardSource() {
 // 添加风险区
 function AddDangerAreaDataSource(DangerAreaData) {
   let DangerAreaDataArr = []
-  let DangerAreaDataList = []
+  // let DangerAreaDataList = []
   //添加隐患点
   DangerAreaData.features.forEach(DangerAreaData_source => {
-    DangerAreaDataArr.push(DangerAreaData_source.geometry)
-    DangerAreaDataList.push(DangerAreaData_source)
+    DangerAreaDataArr.push(DangerAreaData_source)
+    // DangerAreaDataList.push(DangerAreaData_source)
   })
   DangerAreaDataArr.forEach(DangerAreaData_point => {
-    let lon = DangerAreaData_point.coordinates[0]
-    let lat = DangerAreaData_point.coordinates[1]
+    console.log(DangerAreaData_point)
+    let lon = DangerAreaData_point.geometry.coordinates[0]
+    let lat = DangerAreaData_point.geometry.coordinates[1]
     window.viewer.entities.add({
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
@@ -695,6 +705,9 @@ function AddDangerAreaDataSource(DangerAreaData) {
         depthTest: false, // 禁止深度测试
         disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
         show: true
+      },
+      properties:{
+        data:DangerAreaData_point
       }
     });
     if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
@@ -1015,12 +1028,9 @@ function loadAdminData(administrationData) {
         // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
         show: true // 使用统一的显示控制
       };
-      // this.addEntityClickEvent(entity);
     });
   }
 
-  // this.isLoading = true;
-  // console.log('开始加载行政区划数据...');
   // 重置数据源数组
   let adminDataSources = [];
   // 使用for循环同步加载所有数据源
@@ -1043,7 +1053,7 @@ function loadAdminData(administrationData) {
       districtColors[districtId] = color;
       // 添加到地图
       window.viewer.dataSources.add(dataSource);
-      // this.updateLegend();
+
     }).catch(error => {
       console.error(`加载行政区划数据失败 (${administrationData[i].name || "未知区域"}):`, error);
     });
@@ -1068,6 +1078,213 @@ function isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, m
   const result = (normX * normX + normY * normY) <= 1;
   // console.log(normX * normX + normY * normY)
   return result;
+}
+
+function setupEntityClickHandler() {
+  // 清除旧的事件处理程序
+  if (entityClickHandler.value) {
+    entityClickHandler.value.destroy();
+  }
+
+  // 添加新的事件处理程序
+  entityClickHandler = new Cesium.ScreenSpaceEventHandler(window.viewer.canvas);
+  entityClickHandler.setInputAction((click) => {
+    // 清除现有信息窗口
+    const existingWindows = document.querySelectorAll('.cesium-info-window');
+    existingWindows.forEach(win => win.remove());
+    // 获取点击位置的实体
+    const pickedObject = window.viewer.scene.pick(click.position);
+    console.log(pickedObject)
+    if (pickedObject && Cesium.defined(pickedObject.id)) {
+      const entity = pickedObject.id;
+      if (entity.properties && entity.properties.data._value.灾害类型 === '滑坡') {
+        console.log(entity.properties)
+
+        //屏幕坐标转世界坐标
+        let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
+        //世界坐标转经纬度
+        let ellipsoid=window.viewer.scene.globe.ellipsoid;
+        let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+        let lat=Cesium.Math.toDegrees(cartographic.latitude);
+        let lon=Cesium.Math.toDegrees(cartographic.longitude);
+        window.viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+          orientation: {
+            // 指向
+            heading: 6.283185307179581,
+            // 视角
+            pitch: -1.5688168484696687,
+            roll: 0.0
+          },
+          duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+          complete: () => {
+            // 飞行完成后显示信息窗口
+            showInfoList(entity.properties,entity,"滑坡");
+          }
+
+        });
+      }else if(entity.properties && entity.properties.data._value.properties.灾害类型 === "泥石流"){
+          console.log(entity.properties.data._value)
+          //屏幕坐标转世界坐标
+          let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
+          //世界坐标转经纬度
+          let ellipsoid=window.viewer.scene.globe.ellipsoid;
+          let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+          let lat=Cesium.Math.toDegrees(cartographic.latitude);
+          let lon=Cesium.Math.toDegrees(cartographic.longitude);
+          window.viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+            orientation: {
+              // 指向
+              heading: 6.283185307179581,
+              // 视角
+              pitch: -1.5688168484696687,
+              roll: 0.0
+            },
+            duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+            complete: () => {
+              // 飞行完成后显示信息窗口
+              showInfoList(entity.properties.data._value,entity,"泥石流");
+            }
+
+          });
+      }else {
+        console.log(entity.properties.data._value)
+        //屏幕坐标转世界坐标
+        let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
+        //世界坐标转经纬度
+        let ellipsoid=window.viewer.scene.globe.ellipsoid;
+        let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+        let lat=Cesium.Math.toDegrees(cartographic.latitude);
+        let lon=Cesium.Math.toDegrees(cartographic.longitude);
+        window.viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+          orientation: {
+            // 指向
+            heading: 6.283185307179581,
+            // 视角
+            pitch: -1.5688168484696687,
+            roll: 0.0
+          },
+          duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+          complete: () => {
+            // 飞行完成后显示信息窗口
+            showInfoList(entity.properties.data._value,entity,"风险区");
+          }
+
+        });
+      }
+    }else{
+
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+function showInfoList(info,entity,flag) {
+  // 清除现有信息窗口
+  const existingWindows = document.querySelectorAll('.cesium-info-window');
+  existingWindows.forEach(win => win.remove());
+
+  // 获取实体位置的屏幕坐标
+  const position = entity.position.getValue(window.viewer.clock.currentTime);
+  const canvasPosition = window.viewer.scene.cartesianToCanvasCoordinates(position);
+  if (!canvasPosition) return; // 位置不可见时返回
+
+  // 创建信息列表DOM（可替换为框架组件）
+  const container = document.createElement('div');
+  container.className = 'cesium-info-window';
+
+  // 计算窗口位置（基于屏幕坐标偏移）
+  const left = canvasPosition.x + 20; // 右侧显示
+  const top = canvasPosition.y - 100; // 垂直居中
+
+  container.style.cssText = `
+        position: fixed;
+        left: ${left}px;
+        top: ${top-10}px;
+        width: 350px;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        padding: 15px;
+        z-index: 1000;
+        max-height: 400px;
+        overflow-y: auto;
+      `;
+
+  console.log(info.properties,entity,11111)
+
+  // 构建信息列表内容
+  if (flag==="滑坡" && info.data._value["灾害类型"] === '滑坡'){
+    container.innerHTML = `
+          <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">灾害信息</div>
+          <div style="margin-bottom: 10px;"><span style="color: #666;">野外编号:</span> ${info.data._value["野外编号"]}</div>
+          <div style="margin-bottom: 10px;"><span style="color: #666;">灾害点名称:</span> ${info.data._value["灾害点名称"]}</div>
+          <div style="margin-bottom: 10px;"><span style="color: #666;">规模等级:</span> ${info.data._value["规模等级"]}</div>
+          <div style="margin-bottom: 10px;"><span style="color: #666;">险情等级:</span> ${info.data._value["险情等级"]}</div>
+          <div style="margin-bottom: 10px;"><span style="color: #666;">面积:</span> ${parseFloat(info.data._value["面积"]).toFixed(2)}平方米</div>
+          <div style="margin-bottom: 5px;"><span style="color: #666;">地理位置:</span> ${info.data._value["地理位置"]}</div>
+          <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
+        `;
+  }
+  else if (flag === "泥石流" && info.properties["灾害类型"] === '泥石流'){
+    container.innerHTML = `
+        <!--    <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>-->
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">灾害信息</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">野外编号:</span> ${info.properties["野外编号"]}</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">灾害点名称:</span> ${info.properties["灾害点名称"]}</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">规模等级:</span> ${info.properties["规模等级"]}</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">险情等级:</span> ${info.properties["险情等级"]}</div>
+            <div style="margin-bottom: 5px;"><span style="color: #666;">地理位置:</span> ${info.properties["地理位置"]}</div>
+            <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
+          `;
+  }else if (flag === "风险区" ){
+    container.innerHTML = `
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">风险区名称:</span> ${info.properties["disasterName"]}</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">住房（间）:</span> ${info.properties["housing"]}</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">常住人口（人）:</span> ${info.properties["permanentPopulation"]}</div>
+            <div style="margin-bottom: 5px;"><span style="color: #666;">居民户数（户）:</span> ${info.properties["residentCounts"]}</div>
+            <div style="margin-bottom: 5px;"><span style="color: #666;">威胁财产（万元）:</span> ${info.properties["riskProperty"]}</div>
+            <div style="margin-bottom: 5px;"><span style="color: #666;">巡查员姓名:</span> ${info.properties["username"]}</div>
+            <div style="margin-bottom: 5px;"><span style="color: #666;">巡查员手机号:</span> ${info.properties["phone"]}</div>
+            <div style="margin-bottom: 10px;"><span style="color: #666;">位置:</span> ${info.properties["position"]}</div>
+            <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
+          `;
+  }
+
+
+  // 添加到页面
+  document.body.appendChild(container);
+  // 检查是否超出视口边界并调整位置
+  adjustWindowPosition(container);
+  window.currentInfoWindow = {
+    element: container,
+    initialLeft: left,
+    initialTop: top,
+    entityId: entity.id
+  };
+}
+
+function adjustWindowPosition(container) {
+  const rect = container.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  // 右侧溢出时调整
+  if (rect.right > viewportWidth) {
+    container.style.left = `${parseInt(container.style.left) - (rect.right - viewportWidth + 20)}px`;
+  }
+
+  // 底部溢出时调整
+  if (rect.bottom > viewportHeight) {
+    container.style.top = `${parseInt(container.style.top) - (rect.bottom - viewportHeight + 20)}px`;
+  }
+
+  // 顶部溢出时调整
+  if (rect.top < 0) {
+    container.style.top = '20px';
+  }
 }
 
 </script>
