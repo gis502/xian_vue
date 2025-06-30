@@ -24,7 +24,7 @@
       <div class="panel-title">降雨信息</div>
       <div class="panel-content">
         <div>降雨强度: <input v-model.number="rainIntensity" type="number" min="0" max="1000" step="10" /> mm/h</div>
-        <div>持续时间: <input v-model.number="duration" type="number" min="1" max="72" step="1" /> 小时</div>
+        <div>持续时间: <input v-model.number="duration" type="number" min="1" max="72" step="1" /> h</div>
         <div>降雨半径: <input v-model.number="rainRadius" type="number" min="1" max="50" step="1" /> km</div>
         <button @click="confirmRain">确认添加</button>
         <button @click="cancelRain">取消</button>
@@ -195,6 +195,8 @@ export default {
       isRainEffectInitialized: false, // 标记降雨效果是否初始化
       // 存储光晕效果的数组
       haloEffects: [], // 存储降雨范围内的光晕效果
+      pixelSize: this.rainIntensity / 10,
+      confirmedRainIntensity: 100, // 新增，已确认的降雨强度，初始值与rainIntensity一致
     }
   },
   computed: {
@@ -206,6 +208,7 @@ export default {
       return `rotate(${-angle}deg) scale(${scale})`;
     }
   },
+ 
   async mounted() {
     try {
       this.load();
@@ -497,8 +500,6 @@ export default {
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 50000),
               show: this.showDisasterLayer // 控制显示/隐藏
             },
-            // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription(properties, '滑坡')
           });
 
           // 保存实体引用
@@ -541,8 +542,6 @@ export default {
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 50000),
               show: this.showDisasterLayer // 控制显示/隐藏
             },
-            // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription(properties, '泥石流')
           });
 
           // 保存实体引用
@@ -559,7 +558,7 @@ export default {
       }
     },
 
-    // 加载风险村庄数据（独立方法）
+    // 加载风险村庄数据
     loadRiskVillages() {
       // console.log('开始加载风险村庄数据...');
       this.riskVillageEntities = [];
@@ -628,21 +627,6 @@ export default {
         entity.point.show = this.showRiskVillageLayer;
         entity.label.show = this.showRiskVillageLayer;
       });
-    },
-
-    // 创建灾害点详情描述
-    createDisasterDescription(properties, disasterType) {
-      return `
-        <div style="font-family: Arial, sans-serif; padding: 10px;">
-          <h3 style="color: ${disasterType === '滑坡' ? 'red' : 'yellow'}; margin-top: 0;">
-            ${properties.disasterName || '未知灾害点'}
-          </h3>
-          <p><strong>灾害类型:</strong> ${disasterType}</p>
-          <p><strong>坐标:</strong> ${properties.longitude || '未知'}, ${properties.latitude || '未知'}</p>
-          <p><strong>灾害等级:</strong> ${properties.level || '未知'}</p>
-          <p><strong>影响范围:</strong> ${properties.impactRange || '未知'}</p>
-        </div>
-      `;
     },
 
     // 设置实体点击事件处理
@@ -912,6 +896,16 @@ export default {
       this.$nextTick(() => {
         this.checkEntitiesInRainRange();
       });
+
+      // 只有点击确认添加后，才更新全局降雨强度
+      this.confirmedRainIntensity = this.rainIntensity;
+      // 点击确认添加后才显示全局降雨效果，并刷新为最新强度
+      if (this.rainEffect) {
+        this.rainEffect.enabled = false;
+        this.$nextTick(() => {
+          this.rainEffect.enabled = true;
+        });
+      }
     },
 
     activateRainEffect(particleSystem) {
@@ -1238,6 +1232,9 @@ export default {
       uniform sampler2D colorTexture;
       in vec2 v_textureCoordinates;
       out vec4 fragColor;
+      uniform float uRainDensity; // 新增：雨密度
+      uniform float uRainWidth;   // 新增：雨丝宽度
+
       float hash(float x){
           return fract(sin(x*23.3)*13.13);
       }
@@ -1251,13 +1248,19 @@ export default {
           uv*=mat2(co,-si,si,co);
           uv*=length(uv+vec2(0,8.9))*.3+1.;
           float v=1.-sin(hash(floor(uv.x*100.))*2.);
-          float b=clamp(abs(sin(20.*time*v+uv.y*(5./(2.+v))))-.95,0.,1.)*20.;
-          c*=v*b;
+          // 用uRainDensity控制雨的密度
+          float b=clamp(abs(sin(20.*time*v+uv.y*(uRainDensity/(2.+v))))-.95,0.,1.)*40.;
+          // 用uRainWidth控制雨丝宽度
+          c*=v*b*uRainWidth;
           fragColor = mix(texture(colorTexture, v_textureCoordinates), vec4(c, 1), 0.5);
       }
     `;
       this.rainEffect = new Cesium.PostProcessStage({
-        fragmentShader: rainFragmentShader
+        fragmentShader: rainFragmentShader,
+        uniforms: {
+          uRainDensity: () => this.getRainDensity(),
+          uRainWidth: () => this.getRainWidth()
+        }
       });
       if (this.viewer && this.viewer.scene) {
         this.viewer.scene.postProcessStages.add(this.rainEffect);
@@ -1458,6 +1461,15 @@ export default {
         }
       });
       this.haloEffects = [];
+    },
+
+    getRainDensity() {
+      // 1mm/h = 0.02，100mm/h = 0.2，1000mm/h = 1
+      return Math.max(0.01, Math.min(1, this.confirmedRainIntensity / 500));
+    },
+    getRainWidth() {
+      // 1mm/h = 0.02，100mm/h = 0.2，1000mm/h = 2
+      return Math.max(0.01, Math.min(2, this.confirmedRainIntensity / 300));
     },
 
   }
