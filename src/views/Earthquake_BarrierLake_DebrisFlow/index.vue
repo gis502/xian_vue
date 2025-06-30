@@ -96,7 +96,7 @@ import "cesium/Source/Widgets/widgets.css";
 import lineData from "@/assets/西安断层数据.json";
 import DebrisFlow from "@/assets/static/disaster/Huapo.json"
 import landslideIcon from "@/assets/images/landslide.png"
-import riskArea from "@/assets/static/disaster/riskArea.json"
+import riskArea from "@/assets/static/disaster/xian_risk.json"
 import riskAreaIcon from "@/assets/images/riskArea.png"
 
 export default {

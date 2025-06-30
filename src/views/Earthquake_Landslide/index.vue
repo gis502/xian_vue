@@ -33,8 +33,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in paginatedTableData" :key="index">
-            <td v-for="(value, key) in item" :key="key">{{ value }}</td>
+          <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)">
+            <template v-for="(value, key) in item">
+              <td v-if="key!=='field5'&&key!=='field6'">{{ value }}</td>
+            </template>
           </tr>
         </tbody>
       </table>
@@ -59,7 +61,7 @@ import earthquakeline from '@/assets/images/earthquakeline.png'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import lineData from "@/assets/西安断层数据.json";
 import DebrisFlow from "@/assets/西安泥石流灾害点.json"
-import DangerAreaData from '@/assets/static/disaster/riskArea.json'
+import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 const tdtToken = "31f4628fd3dd7fa4d98dd14042665db1"
 // 引入西安行政区划数据
 import BaQiaoArea from '@/assets/static/area/BaQiao.json';
@@ -89,11 +91,11 @@ const tableHeaders = ref(['风险区名称','位置', '巡查员姓名', '联系
 const searchQuery = ref(''); // 新增搜索关键词
 
 const tableData = ref([
-  { field1: '师村六组1(B1)', field2: '陕西省西安市长安区鸣犊街道师村', field3: '赵战民', field4: '17392247317'},
-  { field1: '砲里村十组关家(B1)', field2: '陕西省西安市长安区砲里街道砲里村', field3: '王民利', field4: '13892847490' },
-  { field1: '白庙村七组北侧(B2)', field2: '陕西省西安市长安区魏寨街道白庙村', field3: '郝旭', field4: '15389237891' },
-  { field1: '郭村六组砖厂(C1)', field2: '陕西省西安市长安区鸣犊街道郭村', field3: '肖波', field4: '13002999944' },
-  { field1: '三友村七组三联村(B1)', field2: '陕西省西安市长安区大兆街道三友村', field3: '王利军', field4: '15319425419' },
+  { field1: '师村六组1(B1)', field2: '陕西省西安市长安区鸣犊街道师村', field3: '赵战民', field4: '17392247317',field5:109.090619,field6:34.164977},
+  { field1: '砲里村十组关家(B1)', field2: '陕西省西安市长安区砲里街道砲里村', field3: '王民利', field4: '13892847490',field5:109.142453,field6:34.166387},
+  { field1: '白庙村七组北侧(B2)', field2: '陕西省西安市长安区魏寨街道白庙村', field3: '郝旭', field4: '15389237891',field5:109.199251,field6:34.107647},
+  { field1: '郭村六组砖厂(C1)', field2: '陕西省西安市长安区鸣犊街道郭村', field3: '肖波', field4: '13002999944',field5:109.110843,field6:34.152221},
+  { field1: '三友村七组三联村(B1)', field2: '陕西省西安市长安区大兆街道三友村', field3: '王利军', field4: '15319425419',field5:109.085019,field6:34.144710},
   // 更多数据...
 ]);
 
@@ -102,17 +104,17 @@ const dataTypes = {
   type1: {
     headers: [ '风险区名称','位置', '巡查员姓名', '联系方式'],
     data: [
-      { field1: '师村六组1(B1)', field2: '陕西省西安市长安区鸣犊街道师村', field3: '赵战民', field4: '17392247317'},
-      { field1: '砲里村十组关家(B1)', field2: '陕西省西安市长安区砲里街道砲里村', field3: '王民利', field4: '13892847490' },
-      { field1: '白庙村七组北侧(B2)', field2: '陕西省西安市长安区魏寨街道白庙村', field3: '郝旭', field4: '15389237891' },
-      { field1: '郭村六组砖厂(C1)', field2: '陕西省西安市长安区鸣犊街道郭村', field3: '肖波', field4: '13002999944' },
-      { field1: '三友村七组三联村(B1)', field2: '陕西省西安市长安区大兆街道三友村', field3: '王利军', field4: '15319425419' },
+      { field1: '师村六组1(B1)', field2: '陕西省西安市长安区鸣犊街道师村', field3: '赵战民', field4: '17392247317',field5:109.090619,field6:34.164977},
+      { field1: '砲里村十组关家(B1)', field2: '陕西省西安市长安区砲里街道砲里村', field3: '王民利', field4: '13892847490',field5:109.142453,field6:34.166387},
+      { field1: '白庙村七组北侧(B2)', field2: '陕西省西安市长安区魏寨街道白庙村', field3: '郝旭', field4: '15389237891',field5:109.199251,field6:34.107647},
+      { field1: '郭村六组砖厂(C1)', field2: '陕西省西安市长安区鸣犊街道郭村', field3: '肖波', field4: '13002999944',field5:109.110843,field6:34.152221},
+      { field1: '三友村七组三联村(B1)', field2: '陕西省西安市长安区大兆街道三友村', field3: '王利军', field4: '15319425419',field5:109.085019,field6:34.144710},
     ]
   },
   type2: {
     headers: ['滑坡灾害名称','位置', '险情等级', '影响面积'],
     data: [
-      { field1: '向阳水库滑坡', field2: '西安市长安区炮里街道炮里村', field3: '小型', field4: '5742.99' },
+      { field1: '向阳水库滑坡', field2: '西安市长安区炮里街道炮里村', field3: '小型', field4: '5742.99',field5:"109.13667",field6: "34.17667"},
     ]
   },
   type3: {
@@ -168,6 +170,18 @@ function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
+}
+
+function handleTableClick(item){
+  console.log(item.field5,item)
+  window.viewer.camera.flyTo({
+    destination:Cesium.Cartesian3.fromDegrees(parseFloat(item.field5), parseFloat(item.field6),1000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0), // 水平偏角，默认正北 0
+      pitch: Cesium.Math.toRadians(-90), // 俯视角，默认-90，垂直向下
+      roll: 0, // 旋转角
+    },
+  })
 }
 
 const performSearch = () => {
