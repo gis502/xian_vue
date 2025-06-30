@@ -213,7 +213,6 @@ function load(){
   loadAdminData(administrationData)
   AddDangerAreaDataSource(DangerAreaData)
   viewer.cesiumWidget.creditContainer.style.display = "none";
-
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
     orientation: {
