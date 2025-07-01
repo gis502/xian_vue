@@ -61,6 +61,7 @@ import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import lineData from "@/assets/西安断层数据.json";
 import DebrisFlow from "@/assets/西安泥石流灾害点.json"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
+import CesiumNavigation from "cesium-navigation-es6";
 const tdtToken = "31f4628fd3dd7fa4d98dd14042665db1"
 // 引入西安行政区划数据
 import BaQiaoArea from '@/assets/static/area/BaQiao.json';
@@ -238,6 +239,8 @@ function load(){
     }
   });
 
+  AddCompass()
+
 }
 
 function weiNanEarthquake() {
@@ -307,6 +310,37 @@ function earthquakeLine(){
       // label
     });
   })
+}
+
+function AddCompass(){
+  //添加罗盘功能
+  const options = {};
+
+  options.defaultResetView = Cesium.Cartographic.fromDegrees(108.948024, 34.263161, 40000.0);
+  // 相机方向
+  // options.orientation = {
+  //   pitch: Cesium.Math.toRadians(-45)
+  // };
+  // 相机延时
+  // options.duration = 4; // 默认为3s
+
+  // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
+  options.enableCompass = true;
+  // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
+  options.enableZoomControls = true;
+  // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
+  options.enableDistanceLegend = true;
+  // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
+  options.enableCompassOuterRing = true;
+
+  // 修改重置视图的tooltip
+  options.resetTooltip = "重置视图";
+  // 修改放大按钮的tooltip
+  options.zoomInTooltip = "放大";
+  // 修改缩小按钮的tooltip
+  options.zoomOutTooltip = "缩小";
+
+  new CesiumNavigation(window.viewer, options);
 }
 
 function loadTDT(type) {
@@ -1514,4 +1548,15 @@ function adjustWindowPosition(container) {
 .data-table select {
   flex-shrink: 0; /* 防止下拉菜单被压缩 */
 }
+
+::v-deep .compass {
+  position: absolute;
+  top: 15px;
+}
+
+::v-deep .navigation-controls {
+  position: absolute;
+  top: 120px;
+}
+
 </style>

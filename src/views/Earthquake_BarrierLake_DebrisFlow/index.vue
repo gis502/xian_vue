@@ -98,6 +98,7 @@ import DebrisFlow from "@/assets/static/disaster/Huapo.json"
 import landslideIcon from "@/assets/images/landslide.png"
 import riskArea from "@/assets/static/disaster/xian_risk.json"
 import riskAreaIcon from "@/assets/images/riskArea.png"
+import CesiumNavigation from "cesium-navigation-es6";
 
 export default {
   name: "index",
@@ -149,6 +150,7 @@ export default {
   },
   mounted() {
     this.init();
+    this.AddCompass();
   },
   methods: {
     init() {
@@ -290,6 +292,37 @@ export default {
           orientation: {heading}
         }));
       });
+    },
+
+    AddCompass(){
+      //添加罗盘功能
+      const options = {};
+
+      options.defaultResetView = Cesium.Cartographic.fromDegrees(108.948024, 34.263161, 40000.0);
+      // 相机方向
+      // options.orientation = {
+      //   pitch: Cesium.Math.toRadians(-45)
+      // };
+      // 相机延时
+      // options.duration = 4; // 默认为3s
+
+      // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
+      options.enableCompass = true;
+      // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
+      options.enableZoomControls = true;
+      // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
+      options.enableDistanceLegend = true;
+      // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
+      options.enableCompassOuterRing = true;
+
+      // 修改重置视图的tooltip
+      options.resetTooltip = "重置视图";
+      // 修改放大按钮的tooltip
+      options.zoomInTooltip = "放大";
+      // 修改缩小按钮的tooltip
+      options.zoomOutTooltip = "缩小";
+
+      new CesiumNavigation(this.viewer, options);
     },
 
     toggleEarthquakeMode() {
@@ -568,7 +601,7 @@ export default {
       const top = canvasPosition.y - 100; // 垂直居中
 
       container.style.cssText = `
-        position: fixed;
+        position: absolute;
         left: ${left}px;
         top: ${top-10}px;
         width: 300px;
@@ -579,6 +612,7 @@ export default {
         z-index: 1000;
         max-height: 200px;
         overflow-y: auto;
+
       `;
 
       // 构建信息列表内容
@@ -596,7 +630,7 @@ export default {
 <!--    <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>-->
     <div style="margin-bottom: 5px;"><span style="color: #666;">风险区名称:</span> ${info.name}</div>
     <div style="margin-bottom: 5px;"><span style="color: #666;">风险区经度:</span> 北纬${info.lon}</div>
-    <div style="margin-bottom: 10px;"><span style="color: #666;">风险区纬度:</span> 东经${info.lat}</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区纬度:</span> 东经${info.lat}</div>
     <div style="margin-bottom: 5px;"><span style="color: #666;">风险区面积:</span> ${parseFloat(info.area_Km2).toFixed(3)}平方米</div>
     <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
   `;
@@ -607,12 +641,12 @@ export default {
       document.body.appendChild(container);
       // 检查是否超出视口边界并调整位置
       this.adjustWindowPosition(container);
-      this.currentInfoWindow = {
-        element: container,
-        initialLeft: left,
-        initialTop: top,
-        entityId: entity.id
-      };
+      // this.currentInfoWindow = {
+      //   element: container,
+      //   initialLeft: left,
+      //   initialTop: top,
+      //   entityId: entity.id
+      // };
     },
 
     adjustWindowPosition(container) {
@@ -1598,4 +1632,17 @@ button {
   min-height: 40px;
   padding: 8px 16px;
 }
+
+::v-deep .compass {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+::v-deep .navigation-controls {
+  position: absolute;
+  top: 120px;
+  left: 53px;
+}
+
 </style>
