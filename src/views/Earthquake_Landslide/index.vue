@@ -733,10 +733,15 @@ function AddChart() {
   let option;
 
   // 原始数据
+  // const rawData = [
+  //   [22, 21, 4, 130],
+  //   [4, 1, 0, 5],
+  //   [135, 0, 0, 0],
+  // ];
   const rawData = [
-    [22, 21, 4, 130, 155],
-    [4, 1, 0, 5, 1],
-    [135, 0, 0, 0, 5],
+    [ 21, 4, 130],
+    [1, 0, 5],
+    [ 0, 0, 0],
   ];
 
   // 计算各列总和
@@ -752,7 +757,7 @@ function AddChart() {
   // 网格配置
   const grid = {
     left: 50,
-    right: 50, // 增加右侧边距，为外部标签留出空间
+    right: 150, // 增加右侧边距，为外部标签留出空间
     top: 50,
     bottom: 50
   };
@@ -762,9 +767,7 @@ function AddChart() {
   const colors = ['#5793f3', '#d14a61', '#675bba']; // 自定义颜色
 
   [
-    'Direct',
-    'Mail Ad',
-    'Affiliate Ad',
+   '未受影响点占比','受影响点占比'
   ].forEach((name, sid) => {
     // 主系列 - 正常显示的柱子
     series.push({
@@ -864,15 +867,24 @@ function AddChart() {
       }
     },
     color: colors,
-    // legend: {
-    //   selectedMode: false,
-    //   // data: ['Direct', 'Mail Ad', 'Affiliate Ad']
-    // },
+    legend: {
+      selectedMode: false,
+      orient: "vertical",
+      right: 10,
+      top: "center",
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: {
+        color: "#fff",
+        fontSize: 14
+      },
+      data: [ '未受影响点占比','受影响点占比']
+    },
     grid,
     yAxis: {
       type: 'value',
       axisLabel: {
-        formatter: '{value}%',
+        formatter: '{value}',
         color: '#fff' // y轴标签保持白色
       },
       axisLine: {
@@ -888,7 +900,7 @@ function AddChart() {
     },
     xAxis: {
       type: 'category',
-      data: ['西安预警点分布', '滑坡受影响点占比', '泥石流受影响点占比', '风险区受影响点占比', '地震受影响点总占比'],
+      data: ['滑坡受影响点占比', '泥石流受影响点占比', '风险区受影响点占比'],
       axisLabel: {
         interval: 0,
         margin: 20,
@@ -1575,11 +1587,11 @@ function showInfoList(info,entity,flag) {
                     </tr>
                     <tr>
                       <td class="label">经度</td>
-                      <td>${info.data._value["lon"]}</td>
+                      <td>东经${info.data._value["lon"]}</td>
                     </tr>
                     <tr>
                       <td class="label">纬度</td>
-                      <td>${info.data._value["lat"]}</td>
+                      <td>北纬${info.data._value["lat"]}</td>
                     </tr>
                 </tbody>
             </table>

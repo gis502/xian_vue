@@ -137,11 +137,11 @@
           </tr>
           <tr>
             <th>经度</th>
-            <td>{{ selectedEntityData.properties.lon || '未知' }}</td>
+            <td>东经{{ selectedEntityData.properties.lon || '未知' }}</td>
           </tr>
           <tr>
             <th>纬度</th>
-            <td>{{ selectedEntityData.properties.lat || '未知' }}</td>
+            <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.residentCounts">
             <th>居民户数</th>
