@@ -111,7 +111,7 @@ const dataTypes = {
     ]
   },
   type2: {
-    headers: ['滑坡灾害名称','位置', '险情等级', '影响面积'],
+    headers: ['滑坡灾害名称','位置', '险情等级', '影响面积(km2)'],
     data: [
       { field1: '向阳水库滑坡', field2: '西安市长安区炮里街道炮里村', field3: '小型', field4: '5742.99',field5:"109.13667",field6: "34.17667"},
     ]
@@ -1222,7 +1222,7 @@ function showInfoList(info,entity,flag) {
           <div style="margin-bottom: 10px;"><span style="color: #666;">灾害点名称:</span> ${info.data._value["灾害点名称"]}</div>
           <div style="margin-bottom: 10px;"><span style="color: #666;">规模等级:</span> ${info.data._value["规模等级"]}</div>
           <div style="margin-bottom: 10px;"><span style="color: #666;">险情等级:</span> ${info.data._value["险情等级"]}</div>
-          <div style="margin-bottom: 10px;"><span style="color: #666;">面积:</span> ${parseFloat(info.data._value["面积"]).toFixed(2)}平方米</div>
+          <div style="margin-bottom: 10px;"><span style="color: #666;">受灾面积:</span> ${parseFloat(info.data._value["面积"]).toFixed(2)}平方米</div>
           <div style="margin-bottom: 5px;"><span style="color: #666;">地理位置:</span> ${info.data._value["地理位置"]}</div>
           <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
         `;

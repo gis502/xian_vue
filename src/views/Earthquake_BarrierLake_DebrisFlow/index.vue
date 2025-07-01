@@ -595,10 +595,9 @@ export default {
         container.innerHTML = `
 <!--    <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>-->
     <div style="margin-bottom: 5px;"><span style="color: #666;">风险区名称:</span> ${info.name}</div>
-    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区经度:</span> ${info.lon}</div>
-    <div style="margin-bottom: 10px;"><span style="color: #666;">风险区纬度:</span> ${info.lat}</div>
-    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区面积:</span> ${info.area_Km2}</div>
-    <div style="margin-bottom: 10px;"><span style="color: #666;">风险等级:</span> ${info.grade}</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区经度:</span> 北纬${info.lon}</div>
+    <div style="margin-bottom: 10px;"><span style="color: #666;">风险区纬度:</span> 东经${info.lat}</div>
+    <div style="margin-bottom: 5px;"><span style="color: #666;">风险区面积:</span> ${parseFloat(info.area_Km2).toFixed(3)}平方米</div>
     <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
   `;
       }
@@ -648,8 +647,8 @@ export default {
           name: hazard_source.properties.position || "风险区名称",
           lon: hazard_source.properties.lon || "经度",
           lat: hazard_source.properties.lat || "纬度",
-          area_Km2: hazard_source.properties.area_Km2 || "风险区面积",
-          grade: hazard_source.properties.grade || "风险等级",
+          area_Km2: hazard_source.properties.area || "风险区面积",
+          // grade: hazard_source.properties.grade || "风险等级",
           // description: hazard_source.properties.description || '无描述信息'
           // 可根据实际数据结构添加更多字段
         };
