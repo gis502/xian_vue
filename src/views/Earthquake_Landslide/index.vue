@@ -46,6 +46,16 @@
         <span class="total-items">共 {{ tableData.length }} 条</span>
       </div>
     </div>
+
+
+<!--    <div class="container">-->
+
+      <!-- 图表容器 -->
+      <div class="chart-container">
+
+        <div id="main" style="height: 100%"></div>
+      </div>
+<!--    </div>-->
   </div>
 </template>
 
@@ -79,7 +89,8 @@ import YanLiang from '@/assets/static/area/YanLiang.json';
 import YanTa from '@/assets/static/area/YanTa.json';
 import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 
-import {initCesium} from '@/cesium/initLayer.js'
+import {initCesium} from '@/cesium/initLayer.js';
+import * as echarts from 'echarts';
 
 let administrationData = reactive([BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi])
 let districtColors = ref(null)
@@ -234,6 +245,7 @@ function load(){
   AddDangerAreaDataSource(DangerAreaData)
   setupEntityClickHandler()
   AddCompass()
+  AddChart()
   viewer.cesiumWidget.creditContainer.style.display = "none";
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
@@ -265,19 +277,19 @@ function weiNanEarthquake() {
       depthTest: false, // 禁止深度测试
       disableDepthTestDistance: Number.POSITIVE_INFINITY // 不进行深度测试
     },
-    label: {
-      text: "陕西省渭南市华州区8.0级地震（模拟）",
-      font: '40px',
-      fillColor: Cesium.Color.BLACK,
-      backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-      padding: new Cesium.Cartesian2(5, 5),
-      showBackground: true,
-      verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
-      eyeOffset: new Cesium.Cartesian3(100, 500, 0), // 像素偏移量设置为0
-      // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
-      show: true, // 使用统一的显示控制
-      zIndex: 10000, // 调整z-index值
-    },
+    // label: {
+    //   text: "陕西省渭南市华州区8.0级地震（模拟）",
+    //   font: '40px',
+    //   fillColor: Cesium.Color.BLACK,
+    //   backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+    //   padding: new Cesium.Cartesian2(5, 5),
+    //   showBackground: true,
+    //   verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
+    //   eyeOffset: new Cesium.Cartesian3(100, 500, 0), // 像素偏移量设置为0
+    //   // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
+    //   show: true, // 使用统一的显示控制
+    //   zIndex: 10000, // 调整z-index值
+    // },
     properties: {
 
     }
@@ -680,6 +692,7 @@ function addPulseAnimation(haloEntity, baseColor){
   haloEntity.pulseInterval = pulseInterval;
 }
 
+// 添加泥石流隐患点
 function AddHazardSource() {
   let HazardPoint = []
   //添加隐患点
@@ -710,6 +723,207 @@ function AddHazardSource() {
       }
     });
   })
+}
+
+function AddChart() {
+  let chartDom = document.getElementById('main');
+  let myChart = echarts.init(chartDom);
+  let option;
+
+  // 原始数据
+  const rawData = [
+    [22, 21, 4, 130, 155],
+    [4, 1, 0, 5, 1],
+    [135, 0, 0, 0, 5],
+  ];
+
+  // 计算各列总和
+  const totalData = [];
+  for (let i = 0; i < rawData[0].length; ++i) {
+    let sum = 0;
+    for (let j = 0; j < rawData.length; ++j) {
+      sum += rawData[j][i];
+    }
+    totalData.push(sum);
+  }
+
+  // 网格配置
+  const grid = {
+    left: 50,
+    right: 50, // 增加右侧边距，为外部标签留出空间
+    top: 50,
+    bottom: 50
+  };
+
+  // 系列数据配置
+  const series = [];
+  const colors = ['#5793f3', '#d14a61', '#675bba']; // 自定义颜色
+
+  [
+    'Direct',
+    'Mail Ad',
+    'Affiliate Ad',
+  ].forEach((name, sid) => {
+    // 主系列 - 正常显示的柱子
+    series.push({
+      name,
+      type: 'bar',
+      stack: 'total',
+      barWidth: '60%',
+      itemStyle: {
+        color: colors[sid]
+      },
+      label: {
+        show: true,
+        position: 'inside',
+        color: '#fff', // 内部标签保持白色
+        // 只在值大于等于5%时显示内部标签，并为原始数值添加单位"个"
+        formatter: (params) => {
+          const percent = params.value * 100;
+          return percent >= 5 ? `${percent.toFixed(1)}% (${rawData[sid][params.dataIndex]}个)` : '';
+        }
+      },
+      data: rawData[sid].map((d, did) => {
+        const percent = totalData[did] <= 0 ? 0 : d / totalData[did];
+        // 当原始值为0或总和为0时，返回null使柱状图不显示
+        return d === 0 || totalData[did] <= 0 ? null : percent;
+      })
+    });
+
+    // 辅助系列 - 用于显示小于5%的外部标签
+    series.push({
+      name: `${name}_outside`,
+      type: 'scatter',
+      xAxisIndex: 0,
+      yAxisIndex: 0,
+      symbolSize: 0, // 不显示散点
+      label: {
+        show: true,
+        position: 'right', // 标签显示在右侧
+        distance: 5,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderColor: colors[sid],
+        borderWidth: 1,
+        borderRadius: 4,
+        padding: [3, 5],
+        rich: {
+          arrow: {
+            color: colors[sid],
+            fontSize: 14
+          },
+          text: {
+            color: '#000' // 外部标签文本改为黑色
+          }
+        },
+        // 为外部标签的原始数值添加单位"个"
+        formatter: (params) => {
+          const dataIndex = params.data[2];
+          const value = rawData[sid][dataIndex];
+          const percent = totalData[dataIndex] <= 0 ? 0 : value / totalData[dataIndex];
+          if (percent > 0 && percent < 0.05) {
+            return `{arrow|➔} ${(percent * 100).toFixed(1)}% (${value}个)`;
+          }
+          return '';
+        }
+      },
+      data: rawData[sid].map((d, did) => {
+        const percent = totalData[did] <= 0 ? 0 : d / totalData[did];
+        // 为每个数据点计算累积高度，用于确定外部标签的位置
+        let cumulativeHeight = 0;
+        for (let i = 0; i < sid; i++) {
+          const prevPercent = totalData[did] <= 0 ? 0 : rawData[i][did] / totalData[did];
+          cumulativeHeight += prevPercent;
+        }
+
+        // 只对占比小于5%且大于0的数据创建外部标签
+        return percent > 0 && percent < 0.05
+            ? [did, cumulativeHeight + percent/2, did] // x坐标, y坐标, 数据索引
+            : [null, null, did];
+      })
+    });
+  });
+
+  // 完整图表配置项
+  option = {
+    // 添加标题配置
+    title: {
+      // text: '滑坡预警数据分析',
+      subtext: '西安地区预警点分布与地震影响点占比统计',
+      left: 'center',
+      top: 0,
+      textStyle: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold'
+      },
+      subtextStyle: {
+        color: '#ddd',
+        fontSize: 16
+      }
+    },
+    color: colors,
+    // legend: {
+    //   selectedMode: false,
+    //   // data: ['Direct', 'Mail Ad', 'Affiliate Ad']
+    // },
+    grid,
+    yAxis: {
+      type: 'value',
+      axisLabel: {
+        formatter: '{value}%',
+        color: '#fff' // y轴标签保持白色
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#888'
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: 'rgba(255,255,255,0.1)'
+        }
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: ['西安预警点分布', '滑坡受影响点占比', '泥石流受影响点占比', '风险区受影响点占比', '地震受影响点总占比'],
+      axisLabel: {
+        interval: 0,
+        margin: 20,
+        color: '#fff', // x轴标签保持白色
+        rich: {
+          wrap: {
+            lineHeight: 18,
+            align: 'center'
+          }
+        },
+        formatter: function(params) {
+          const textMap = {
+            '西安预警点分布': '西安预警点\n分布',
+            '滑坡受影响点占比': '滑坡受影响\n点占比',
+            '泥石流受影响点占比': '泥石流受影响\n点占比',
+            '风险区受影响点占比': '风险区受影响\n点占比',
+            '地震受影响点总占比': '地震受影响\n点总占比',
+          };
+          return textMap[params] || params;
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#888'
+        }
+      }
+    },
+    series
+  };
+
+  // 渲染图表
+  option && myChart.setOption(option);
+
+  // 窗口大小变化时自适应图表
+  window.addEventListener('resize', () => {
+    myChart.resize();
+  });
 }
 
 // 添加风险区
@@ -948,29 +1162,101 @@ function DrawCircle(point, bearing, magnitude) {
   // 根据震级计算椭圆参数
   const ellipseParams = calculateEllipseParams(magnitude);
 
+  // 创建一个更大的半透明遮罩区域
+  const maskParams = {
+    semiMinorAxis: ellipseParams[0].semiMinorAxis * 1.5,
+    semiMajorAxis: ellipseParams[0].semiMajorAxis * 1.5,
+    alpha: 0.1 // 遮罩透明度
+  };
+
+  // 先添加遮罩层，确保它在最底层
+  const rotation = Cesium.Math.toRadians(strikeDirection - 90);
+  let mask = new Cesium.Entity({
+    position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
+    name: "地震影响区域遮罩",
+    ellipse: {
+      semiMinorAxis: maskParams.semiMinorAxis * 50,
+      semiMajorAxis: maskParams.semiMajorAxis * 70,
+      material: new Cesium.ImageMaterialProperty({
+        image: createGradientTexture(256, 256),
+        transparent: true
+      }),
+      height: 1, // 稍微高于椭圆，确保显示在上方
+      rotation: rotation,
+      zIndex: 998 // 遮罩的z-index低于椭圆
+    }
+  });
+  window.viewer.entities.add(mask);
+
   // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
   ellipseParams.forEach(params => {
-    // 将角度转换为弧度（Cesium使用弧度）
-    const rotation = Cesium.Math.toRadians(strikeDirection-90);
-
     let ellipse = new Cesium.Entity({
       position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-      name: "面几何对象",
+      name: "地震影响区域",
       ellipse: {
-        semiMinorAxis: params.semiMinorAxis*50,
-        semiMajorAxis: params.semiMajorAxis*70,
-        //extrudedHeight: params.extrudedHeight,
+        semiMinorAxis: params.semiMinorAxis * 50,
+        semiMajorAxis: params.semiMajorAxis * 70,
         material: Cesium.Color.RED.withAlpha(params.alpha),
         height: 0,
         outline: true,
         outlineColor: Cesium.Color.RED,
-        outlineWidth: 5,
+        outlineWidth: 3,
         rotation: rotation, // 设置椭圆旋转角度
-        zIndex: 999,
+        zIndex: 999 // 椭圆的z-index高于遮罩
       }
     });
     window.viewer.entities.add(ellipse);
   });
+
+  // 创建标签实体，确保它显示在最上方
+  let labelEntity = new Cesium.Entity({
+    position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
+    label: {
+      text: "陕西省渭南市华州区8.0级地震（模拟）",
+      font: '40px',
+      fillColor: Cesium.Color.BLACK,
+      backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+      padding: new Cesium.Cartesian2(5, 5),
+      showBackground: true,
+      verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
+      eyeOffset: new Cesium.Cartesian3(100, 500, 0), // 像素偏移量
+      show: true, // 使用统一的显示控制
+      zIndex: 10000, // 设置为最高z-index，确保显示在最上方
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      depthTest: false, // 禁止深度测试
+      // scale: 0.8,
+      scaleByDistance: new Cesium.NearFarScalar(50000, 3, 5e5, 0.4),
+      // 添加贴地所需的额外属性
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 400000),
+      pixelOffset:new Cesium.Cartesian2(0,-30)
+    }
+  });
+  window.viewer.entities.add(labelEntity);
+}
+
+function createGradientTexture(width, height) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  // 创建径向渐变
+  const gradient = ctx.createRadialGradient(
+      width / 2, height / 2, 0,
+      width / 2, height / 2, width / 2
+  );
+
+  // 设置渐变颜色 - 从中心的红色到边缘的透明
+  gradient.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
+  gradient.addColorStop(0.7, 'rgba(255, 0, 0, 0.05)');
+  gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+  // 填充渐变
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  return canvas;
 }
 
 function DrawEllipse(longitude,latitude) {
@@ -1561,5 +1847,28 @@ function adjustWindowPosition(container) {
   position: absolute;
   top: 120px;
 }
+
+.container {
+
+}
+
+.chart-container {
+  position: absolute;
+  bottom: 10px; /* 距离顶部20px */
+  left: 20px; /* 距离左侧20px */
+  /*background-color: white; !* 与图例背景色一致 *!*/
+  background-color: rgba(40, 40, 40, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 4px;
+  z-index: 1000;
+  height: 367px;
+  width: 550px; /* 限制表格宽度 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
+  font-size: 14px; /* 调整字体大小 */
+  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+}
+
+
 
 </style>
