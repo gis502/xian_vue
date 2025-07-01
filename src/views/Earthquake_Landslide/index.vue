@@ -229,6 +229,7 @@ function load(){
   loadAdminData(administrationData)
   AddDangerAreaDataSource(DangerAreaData)
   setupEntityClickHandler()
+  AddCompass()
   viewer.cesiumWidget.creditContainer.style.display = "none";
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
@@ -239,7 +240,7 @@ function load(){
     }
   });
 
-  AddCompass()
+
 
 }
 
@@ -318,9 +319,10 @@ function AddCompass(){
 
   options.defaultResetView = Cesium.Cartographic.fromDegrees(108.948024, 34.263161, 40000.0);
   // 相机方向
-  // options.orientation = {
-  //   pitch: Cesium.Math.toRadians(-45)
-  // };
+  options.orientation = {
+    heading: Cesium.Math.toRadians(0),   // 朝向正北（0度）
+    roll: 0 // 翻滚角为0
+  };
   // 相机延时
   // options.duration = 4; // 默认为3s
 

@@ -300,9 +300,10 @@ export default {
 
       options.defaultResetView = Cesium.Cartographic.fromDegrees(108.948024, 34.263161, 40000.0);
       // 相机方向
-      // options.orientation = {
-      //   pitch: Cesium.Math.toRadians(-45)
-      // };
+      options.orientation = {
+        heading: Cesium.Math.toRadians(0),   // 朝向正北（0度）
+        roll: 0 // 翻滚角为0
+      };
       // 相机延时
       // options.duration = 4; // 默认为3s
 
@@ -612,7 +613,6 @@ export default {
         z-index: 1000;
         max-height: 200px;
         overflow-y: auto;
-
       `;
 
       // 构建信息列表内容
