@@ -64,15 +64,35 @@
       </div>
     </div>
     <!-- 暴雨信息面板 -->
+<!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+<!--      <div class="panel-title">暴雨信息</div>-->
+<!--      <div class="panel-content">-->
+<!--        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> 毫米每小时</div>-->
+<!--        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>-->
+<!--        <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
+<!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+<!--      </div>-->
+<!--    </div>-->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">暴雨信息</div>
       <div class="panel-content">
-        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> mm</div>
-        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>
-        <button @click="confirmRainPoint" :disabled="!rainfall || !duration">确认添加</button>
-        <button @click="cancelRainPoint">取消</button>
+        <div class="form-item">
+          <label class="jiangyuliang">降雨量:</label>
+          <input v-model.number="rainfall" type="number" min="0" max="500" step="1" />
+          <span>毫米</span>
+        </div>
+        <div class="form-item">
+          <label>持续时间:</label>
+          <input v-model.number="duration" type="number" min="0" max="72" step="1" />
+          <span>小时</span>
+        </div>
+        <div class="button-group">
+          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>
+          <button @click="cancelRainPoint" style="width: 80px">取消</button>
+        </div>
       </div>
     </div>
+
     <!-- 自定义弹出面板 -->
     <div
         v-if="selectedEntityData"
@@ -1163,7 +1183,7 @@ export default {
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
         },
         label: {
-          text: `降雨量: ${this.rainfall}mm\n已持续: ${this.duration}小时`,
+          text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
           // text: `降雨量: ${this.rainfall}mm\n持续: ${this.duration}小时`,
           font: '14px sans-serif',
           fillColor: Cesium.Color.WHITE,
@@ -1178,7 +1198,7 @@ export default {
           <div style="font-family: Arial, sans-serif;">
             <h3>暴雨信息</h3>
             <p><strong>位置:</strong> ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</p>
-            <p><strong>降雨量:</strong> ${this.rainfall} mm</p>
+            <p><strong>降雨量:</strong> ${this.rainfall} 毫米每小时</p>
             <p><strong>持续时间:</strong> ${this.duration} 小时</p>
             <p><strong>降雨强度:</strong> ${intensity.toFixed(2)} mm/小时</p>
             <p><strong>标记时间:</strong> ${new Date().toLocaleString()}</p>
@@ -2121,7 +2141,6 @@ export default {
   }
 }
 
-
 /* 加载指示器 */
 .loading-indicator {
   position: absolute;
@@ -2145,6 +2164,7 @@ export default {
   padding: 15px;
   border-radius: 6px;
   width: 240px;
+  height: 190px;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -2160,33 +2180,57 @@ export default {
 .panel-content div {
   margin-bottom: 12px;
   display: flex;
-  align-items: center;
+
 }
 
 .panel-content label {
-  min-width: 80px;
+  width: 70px;
+  /* text-align: right; 标签文本右对齐 */
+  font-weight: 500;
+  flex-shrink: 0; /* 防止标签宽度被压缩 */
+  display: inline-block; /* 确保宽度生效 */
 }
-
+.jiangyuliang{
+  text-align-last: justify;
+}
 .panel-content input {
   width: 60px;
-  margin-left: 10px;
-  padding: 5px;
+  padding: 6px 8px;
   border: none;
-  border-radius: 3px;
-  text-align: right;
+  border-radius: 4px;
+  text-align: center;
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
+  height: 30px; /* 固定高度确保垂直居中 */
+  box-sizing: border-box; /* 包含内边距 */
+}
+
+/* 优化单位文本样式，确保与输入框垂直对齐 */
+.panel-content span {
+  width: auto; /* 固定单位宽度，实现对齐 */
+  text-align: left; /* 单位文本左对齐 */
+  display: inline-block; /* 转为行内块元素便于设置宽度 */
+  height: 30px; /* 与输入框等高，确保垂直对齐 */
+  line-height: 30px; /* 垂直居中 */
+}
+
+/* 按钮组样式优化，确保按钮对齐 */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .panel-content button {
-  margin-top: 10px;
   padding: 6px 12px;
   background-color: #386641;
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  height: 32px; /* 固定按钮高度，确保对齐 */
+  line-height: normal; /* 重置行高 */
 }
 
 .panel-content button:last-child {
@@ -2291,7 +2335,7 @@ export default {
 .disaster-popup {
   position: absolute;
   z-index: 1000;
-  width: 320px; /* 减小宽度 */
+  width: 330px; /* 减小宽度 */
   background-color: white;
   border-radius: 6px; /* 减小圆角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
@@ -2332,7 +2376,7 @@ export default {
 .popup-header button {
   background: none;
   border: none;
-  font-size: 16px; /* 减小关闭按钮大小 */
+  font-size: 14px; /* 减小关闭按钮大小 */
   cursor: pointer;
   color: #6c757d;
   transition: color 0.2s;
@@ -2420,6 +2464,13 @@ export default {
   display: flex;
   justify-content: flex-end;
   transition: display 0.3s ease;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px; /* 统一元素间距 */
 }
 
 </style>
