@@ -98,6 +98,7 @@ import DebrisFlow from "@/assets/static/disaster/Huapo.json"
 import landslideIcon from "@/assets/images/landslide.png"
 import riskArea from "@/assets/static/disaster/xian_risk.json"
 import riskAreaIcon from "@/assets/images/riskArea.png"
+import {initCesium} from '@/cesium/initLayer.js'
 
 export default {
   name: "index",
@@ -152,25 +153,27 @@ export default {
   },
   methods: {
     init() {
-      this.viewer = new Cesium.Viewer("cesiumContainer", {
-        homeButton: false,
-        sceneModePicker: false,
-        baseLayerPicker: false, // 影像切换
-        animation: false, // 是否显示动画控件
-        infoBox: false, // 是否显示点击要素之后显示的信息
-        selectionIndicator: false, // 要素选中框
-        geocoder: false, // 是否显示地名查找控件
-        timeline: false, // 是否显示时间线控件
-        fullscreenButton: false,
-        shouldAnimate: false,
-        navigationHelpButton: false, // 是否显示帮助信息控件
-      });
-      this.mapViewer = this.viewer
+      // this.viewer = new Cesium.Viewer("cesiumContainer", {
+      //   homeButton: false,
+      //   sceneModePicker: false,
+      //   baseLayerPicker: false, // 影像切换
+      //   animation: false, // 是否显示动画控件
+      //   infoBox: false, // 是否显示点击要素之后显示的信息
+      //   selectionIndicator: false, // 要素选中框
+      //   geocoder: false, // 是否显示地名查找控件
+      //   timeline: false, // 是否显示时间线控件
+      //   fullscreenButton: false,
+      //   shouldAnimate: false,
+      //   navigationHelpButton: false, // 是否显示帮助信息控件
+      // });
+      // this.mapViewer = this.viewer
+
+      this.viewer = initCesium("cesiumContainer")
 
       //天地图导入
-      const imageLayers = this.viewer.scene.imageryLayers;
-      imageLayers.remove(imageLayers.get(0)); //移除默认影像图层
-      this.addTianDiTuLayers(0);
+      // const imageLayers = this.viewer.scene.imageryLayers;
+      // imageLayers.remove(imageLayers.get(0)); //移除默认影像图层
+      // this.addTianDiTuLayers(0);
       // 注释版权信息
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
 

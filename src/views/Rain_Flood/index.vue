@@ -201,6 +201,7 @@ import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
+import {initCesium} from '@/cesium/initLayer.js'
 
 export default {
   name: 'CesiumRainMap',
@@ -332,25 +333,28 @@ export default {
   methods: {
 
     load() {
-      Cesium.Ion.defaultAccessToken = '';
+      // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
-      this.viewer = new Cesium.Viewer(container, {
-        imageryProvider: false,
-        animation: false,
-        homeButton: false,
-        navigationHelpButton: false,
-        timeline: false,
-        selectionIndicator: false,
-        sceneModePicker: false,
-        infoBox: false,
-        geocoder: false,
-        vrButton: false,
-        fullscreenButton: false,
-        baseLayerPicker: false,
-      });
+      // this.viewer = new Cesium.Viewer(container, {
+      //   imageryProvider: false,
+      //   animation: false,
+      //   homeButton: false,
+      //   navigationHelpButton: false,
+      //   timeline: false,
+      //   selectionIndicator: false,
+      //   sceneModePicker: false,
+      //   infoBox: false,
+      //   geocoder: false,
+      //   vrButton: false,
+      //   fullscreenButton: false,
+      //   baseLayerPicker: false,
+      // });
+      //
+      // this.viewer.cesiumWidget.creditContainer.style.display = "none";
+      // this.loadTDT(0);
 
-      this.viewer.cesiumWidget.creditContainer.style.display = "none";
-      this.loadTDT(0);
+      this.viewer = initCesium(container)
+
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
         orientation: {

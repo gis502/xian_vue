@@ -62,6 +62,7 @@ import lineData from "@/assets/西安断层数据.json";
 import DebrisFlow from "@/assets/西安泥石流灾害点.json"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 const tdtToken = "31f4628fd3dd7fa4d98dd14042665db1"
+
 // 引入西安行政区划数据
 import BaQiaoArea from '@/assets/static/area/BaQiao.json';
 import BeiLin from '@/assets/static/area/BeiLin.json';
@@ -77,6 +78,7 @@ import YanLiang from '@/assets/static/area/YanLiang.json';
 import YanTa from '@/assets/static/area/YanTa.json';
 import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 
+import {initCesium} from '@/cesium/initLayer.js'
 
 let administrationData = reactive([BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi])
 let districtColors = ref(null)
@@ -172,7 +174,7 @@ function prevPage() {
 }
 
 function handleTableClick(item){
-  console.log(item.field5,item)
+  // console.log(item.field5,item)
   window.viewer.camera.flyTo({
     destination:Cesium.Cartesian3.fromDegrees(parseFloat(item.field5), parseFloat(item.field6),1000),
     orientation: {
@@ -202,23 +204,25 @@ onMounted(() => {
 let entityClickHandler = ref(null)
 
 function load(){
-  const viewer = new Cesium.Viewer("cesium-container", {
-    imageryProvider: false,
-    animation: false,
-    homeButton: false,
-    navigationHelpButton: false,
-    timeline: false,
-    selectionIndicator: false,
-    sceneModePicker: false,
-    infoBox: false,
-    geocoder: false,
-    vrButton: false,
-    fullscreenButton: false,
-    baseLayerPicker: false,
-  });
-  window.viewer = viewer
+  // const viewer = new Cesium.Viewer("cesium-container", {
+  //   imageryProvider: false,
+  //   animation: false,
+  //   homeButton: false,
+  //   navigationHelpButton: false,
+  //   timeline: false,
+  //   selectionIndicator: false,
+  //   sceneModePicker: false,
+  //   infoBox: false,
+  //   geocoder: false,
+  //   vrButton: false,
+  //   fullscreenButton: false,
+  //   baseLayerPicker: false,
+  // });
+  // window.viewer = viewer
 
-  loadTDT(0)
+  window.viewer = initCesium("cesium-container")
+
+  // loadTDT(0)
   DrawEllipse(weinan.longitude, weinan.latitude)
   loadLandSlide(landslide)
   weiNanEarthquake()
@@ -364,11 +368,9 @@ function loadTDT(type) {
 
 function loadLandSlide(landslide) {
   for(let i=0;i<landslide.length;i++){
-    console.log(landslide[i])
     let lon = landslide[i].lon
     let lat =landslide[i].lat
     if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
-      console.log(landslide[i])
       window.viewer.entities.add({
         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
@@ -451,12 +453,10 @@ function loadLandSlide(landslide) {
               type: 'landslide_route'
             }
           });
-          console.log(window.viewer.entities,8989)
         }
 
         // 绘制影响范围多边形（缓冲区）
         if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
-          console.log(3333)
           // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
           const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
             const interpolatedPoints = [];
@@ -550,7 +550,6 @@ function loadLandSlide(landslide) {
 
           // 如果成功创建了多边形顶点，则添加实体
           if (polygonHierarchy.positions.length > 0) {
-            console.log(4444)
             window.viewer.entities.add({
               polygon: {
                 hierarchy: polygonHierarchy,
@@ -687,7 +686,6 @@ function AddDangerAreaDataSource(DangerAreaData) {
     // DangerAreaDataList.push(DangerAreaData_source)
   })
   DangerAreaDataArr.forEach(DangerAreaData_point => {
-    console.log(DangerAreaData_point)
     let lon = DangerAreaData_point.geometry.coordinates[0]
     let lat = DangerAreaData_point.geometry.coordinates[1]
     window.viewer.entities.add({
@@ -1094,11 +1092,11 @@ function setupEntityClickHandler() {
     existingWindows.forEach(win => win.remove());
     // 获取点击位置的实体
     const pickedObject = window.viewer.scene.pick(click.position);
-    console.log(pickedObject)
+    // console.log(pickedObject)
     if (pickedObject && Cesium.defined(pickedObject.id)) {
       const entity = pickedObject.id;
       if (entity.properties && entity.properties.data._value.灾害类型 === '滑坡') {
-        console.log(entity.properties)
+        // console.log(entity.properties)
 
         //屏幕坐标转世界坐标
         let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
@@ -1124,7 +1122,7 @@ function setupEntityClickHandler() {
 
         });
       }else if(entity.properties && entity.properties.data._value.properties.灾害类型 === "泥石流"){
-          console.log(entity.properties.data._value)
+          // console.log(entity.properties.data._value)
           //屏幕坐标转世界坐标
           let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
           //世界坐标转经纬度
@@ -1149,7 +1147,7 @@ function setupEntityClickHandler() {
 
           });
       }else {
-        console.log(entity.properties.data._value)
+        // console.log(entity.properties.data._value)
         //屏幕坐标转世界坐标
         let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
         //世界坐标转经纬度
@@ -1212,7 +1210,7 @@ function showInfoList(info,entity,flag) {
         overflow-y: auto;
       `;
 
-  console.log(info.properties,entity,11111)
+  // console.log(info.properties,entity,11111)
 
   // 构建信息列表内容
   if (flag==="滑坡" && info.data._value["灾害类型"] === '滑坡'){
