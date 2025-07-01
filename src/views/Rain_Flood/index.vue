@@ -64,15 +64,35 @@
       </div>
     </div>
     <!-- 暴雨信息面板 -->
+    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+    <!--      <div class="panel-title">暴雨信息</div>-->
+    <!--      <div class="panel-content">-->
+    <!--        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> 毫米每小时</div>-->
+    <!--        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>-->
+    <!--        <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
+    <!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">暴雨信息</div>
       <div class="panel-content">
-        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> mm</div>
-        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>
-        <button @click="confirmRainPoint" :disabled="!rainfall || !duration">确认添加</button>
-        <button @click="cancelRainPoint">取消</button>
+        <div class="form-item">
+          <label class="jiangyuliang">降雨量:</label>
+          <input v-model.number="rainfall" type="number" min="0" max="500" step="1" />
+          <span>毫米每小时</span>
+        </div>
+        <div class="form-item">
+          <label>已持续时间:</label>
+          <input v-model.number="duration" type="number" min="0" max="72" step="1" />
+          <span>小时</span>
+        </div>
+        <div class="button-group">
+          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>
+          <button @click="cancelRainPoint" style="width: 80px">取消</button>
+        </div>
       </div>
     </div>
+
     <!-- 自定义弹出面板 -->
     <div
         v-if="selectedEntityData"
@@ -354,6 +374,8 @@ export default {
       // this.loadTDT(0);
 
       this.viewer = initCesium(container)
+      this.viewer._cesiumWidget._creditContainer.style.display = "none";
+
 
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
@@ -1161,7 +1183,7 @@ export default {
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
         },
         label: {
-          text: `降雨量: ${this.rainfall}mm\n已持续: ${this.duration}小时`,
+          text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
           // text: `降雨量: ${this.rainfall}mm\n持续: ${this.duration}小时`,
           font: '14px sans-serif',
           fillColor: Cesium.Color.WHITE,
@@ -1176,7 +1198,7 @@ export default {
           <div style="font-family: Arial, sans-serif;">
             <h3>暴雨信息</h3>
             <p><strong>位置:</strong> ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</p>
-            <p><strong>降雨量:</strong> ${this.rainfall} mm</p>
+            <p><strong>降雨量:</strong> ${this.rainfall} 毫米每小时</p>
             <p><strong>持续时间:</strong> ${this.duration} 小时</p>
             <p><strong>降雨强度:</strong> ${intensity.toFixed(2)} mm/小时</p>
             <p><strong>标记时间:</strong> ${new Date().toLocaleString()}</p>
@@ -1791,7 +1813,7 @@ export default {
       item.style.display = 'flex';
       item.style.alignItems = 'center';
       item.style.marginBottom = '15px';
-      item.style.fontWeight = 'bold'; // 加粗标题
+      //item.style.fontWeight = 'bold'; // 加粗标题
 
       const colorDiv = document.createElement('div');
       colorDiv.className = 'legend-color';
@@ -1806,7 +1828,7 @@ export default {
       const textDiv = document.createElement('div');
       textDiv.className = 'legend-text';
       textDiv.textContent = '降雨影响范围';
-      textDiv.style.fontSize = '15px';
+      textDiv.style.fontSize = '14px';
       textDiv.style.lineHeight = '20px';
       textDiv.style.flex = '1';
 
@@ -2142,7 +2164,8 @@ export default {
   color: white;
   padding: 15px;
   border-radius: 6px;
-  width: 240px;
+  width: 300px;
+  height: 190px;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -2153,6 +2176,7 @@ export default {
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #444;
+  text-align: center;
 }
 
 .panel-content div {
@@ -2162,29 +2186,57 @@ export default {
 }
 
 .panel-content label {
-  min-width: 80px;
+  min-width: 85px;
+  text-align: right; /* 标签文本右对齐 */
+  font-weight: 500;
+  flex-shrink: 0; /* 防止标签宽度被压缩 */
 }
 
 .panel-content input {
   width: 60px;
-  margin-left: 10px;
-  padding: 5px;
+  padding: 6px 8px;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   text-align: right;
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
+  height: 30px; /* 固定高度确保垂直居中 */
+  box-sizing: border-box; /* 包含内边距 */
+}
+/*
+.jiangyuliang{
+  letter-spacing: 11px;
+}
+ */
+/* 优化单位文本样式，确保与输入框垂直对齐 */
+.panel-content span {
+  margin-left: 5px;
+  min-width: 60px; /* 固定单位宽度，实现对齐 */
+  text-align: left; /* 单位文本左对齐 */
+  display: inline-block; /* 转为行内块元素便于设置宽度 */
+  height: 30px; /* 与输入框等高，确保垂直对齐 */
+  line-height: 30px; /* 垂直居中 */
+}
+
+/* 按钮组样式优化，确保按钮对齐 */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  position: absolute;
+  left: 50px;
 }
 
 .panel-content button {
-  margin-top: 10px;
   padding: 6px 12px;
   background-color: #386641;
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  height: 32px; /* 固定按钮高度，确保对齐 */
+  line-height: normal; /* 重置行高 */
 }
 
 .panel-content button:last-child {
@@ -2418,6 +2470,13 @@ export default {
   display: flex;
   justify-content: flex-end;
   transition: display 0.3s ease;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px; /* 统一元素间距 */
 }
 
 </style>
