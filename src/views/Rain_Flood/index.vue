@@ -301,7 +301,7 @@ export default {
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
     this.loadDisasterData(); // 加载灾害点数据
-    this.loadLandSlide(landslide); // 加载滑坡点区域
+    // this.loadLandSlide(landslide); // 加载滑坡点区域
     this.createLegend(); // 创建图例
     this.total = this.tableData.length;
     this.loadData();
@@ -736,9 +736,10 @@ export default {
       }
     },
     // 加入滑坡区域
-    loadLandSlide(landslide) {
+    loadLandSlide(landslide, target) {
       for (let i = 0; i < landslide.length; i++) {
-        // console.log(landslide[i])
+        if(target.includes(i)){
+        console.log("所有符合:", landslide[i])
         let lon = landslide[i].lon
         let lat = landslide[i].lat
         this.viewer.entities.add({
@@ -936,6 +937,7 @@ export default {
           }
         } else {
           // ... existing code ...
+        }
         }
       }
     },
@@ -1492,12 +1494,19 @@ export default {
       const landslidePointsInside = [];
       const debrisFlowPointsInside = [];
       const secondaryRiskPointsInside = [];
+      let target = [];
+      let flag = 0;
       // 检查所有滑坡点
       this.landslidePoints.forEach(point => {
         if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
           landslidePointsInside.push(point);
+          target.push(flag);
         }
+        flag++;
       });
+
+      // console.log("所有符合条件的点的索引:", target);
+
       // 检查所有泥石流点
       this.debrisFlowPoints.forEach(point => {
         if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
@@ -1516,6 +1525,9 @@ export default {
         ...debrisFlowPointsInside,
         ...secondaryRiskPointsInside
       ];
+
+      this.loadLandSlide(landslide, target);
+
       // 闪烁在椭圆内的灾害点
       if (allPointsInside.length > 0) {
         // 直接传递坐标数组到闪烁函数
