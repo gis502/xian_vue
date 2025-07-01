@@ -551,6 +551,8 @@ export default {
         // this.loadAnnotationLayer();
 
         this.viewer = initCesium(container)
+        this.viewer._cesiumWidget._creditContainer.style.display = "none";
+
 
         // 设置初始视角
         this.viewer.camera.flyTo({

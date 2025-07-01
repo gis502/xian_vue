@@ -104,7 +104,7 @@ const tableData = ref([
 // 不同类型的数据
 const dataTypes = {
   type1: {
-    headers: [ '风险区名称','位置', '巡查员', '联系方式'],
+    headers: [ '风险区名称','位置', '巡查员姓名', '联系方式'],
     data: [
       { field1: '师村六组1(B1)', field2: '陕西省西安市长安区鸣犊街道师村', field3: '赵战民', field4: '17392247317',field5:109.090619,field6:34.164977},
       { field1: '砲里村十组关家(B1)', field2: '陕西省西安市长安区砲里街道砲里村', field3: '王民利', field4: '13892847490',field5:109.142453,field6:34.166387},
@@ -1182,31 +1182,34 @@ function setupEntityClickHandler() {
             }
 
           });
-      }else {
-        // console.log(entity.properties.data._value)
-        //屏幕坐标转世界坐标
-        let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
-        //世界坐标转经纬度
-        let ellipsoid=window.viewer.scene.globe.ellipsoid;
-        let cartographic=ellipsoid.cartesianToCartographic(cartesian);
-        let lat=Cesium.Math.toDegrees(cartographic.latitude);
-        let lon=Cesium.Math.toDegrees(cartographic.longitude);
-        window.viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-          orientation: {
-            // 指向
-            heading: 6.283185307179581,
-            // 视角
-            pitch: -1.5688168484696687,
-            roll: 0.0
-          },
-          duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-          complete: () => {
-            // 飞行完成后显示信息窗口
-            showInfoList(entity.properties.data._value,entity,"风险区");
-          }
-
-        });
+      }else if(entity.properties){
+        try {
+          // console.log(entity.properties.data._value)
+          //屏幕坐标转世界坐标
+          let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
+          //世界坐标转经纬度
+          let ellipsoid=window.viewer.scene.globe.ellipsoid;
+          let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+          let lat=Cesium.Math.toDegrees(cartographic.latitude);
+          let lon=Cesium.Math.toDegrees(cartographic.longitude);
+          window.viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+            orientation: {
+              // 指向
+              heading: 6.283185307179581,
+              // 视角
+              pitch: -1.5688168484696687,
+              roll: 0.0
+            },
+            duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+            complete: () => {
+              // 飞行完成后显示信息窗口
+              showInfoList(entity.properties.data._value,entity,"风险区");
+            }
+          });
+        }catch (e) {
+          console.log(e)
+        }
       }
     }else{
 

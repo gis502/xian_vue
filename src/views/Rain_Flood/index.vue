@@ -354,6 +354,8 @@ export default {
       // this.loadTDT(0);
 
       this.viewer = initCesium(container)
+      this.viewer._cesiumWidget._creditContainer.style.display = "none";
+
 
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
