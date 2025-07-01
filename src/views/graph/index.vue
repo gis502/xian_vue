@@ -185,7 +185,7 @@ const echartsOption = ref({
     symbolSize: 70,
     nodeScaleRatio: 1,
     roam: true,
-    zoom: 1,
+    zoom: 0.4,
     draggable: true,
     focusNodeAdjacency: false,
     edgeSymbol: ['circle', 'arrow'],
@@ -806,20 +806,59 @@ const focusNode = (nodeName) => {
   }
 
   for (const index of indexes) {
+    const nodeData = echartsOption.value.series[0].data[index];
+
+    // 获取节点的屏幕坐标
+    const pixelCoords = echartsInstance.value.convertToPixel({seriesIndex: 0}, [nodeData.x, nodeData.y]);
+    
+    // 获取图表容器的尺寸
+    const containerWidth = echartsInstance.value.getWidth();
+    const containerHeight = echartsInstance.value.getHeight();
+    
+    // 计算需要移动的距离（将节点移动到屏幕中心）
+    const dx = containerWidth / 2 - pixelCoords[0];
+    const dy = containerHeight / 2 - pixelCoords[1];
+    // 重置视图位置和缩放
+    echartsInstance.value.dispatchAction({
+      type: 'restore'
+    });
+
+    // 高亮目标节点
     echartsInstance.value.dispatchAction({
       type: 'highlight',
       name: echartsOption.value.series[0].data[index].name
     });
 
+    // 聚焦目标节点及其关联节点
     echartsInstance.value.dispatchAction({
       type: 'focusNodeAdjacency',
       seriesIndex: 0,
       dataIndex: index
     });
+
+    // 移动视图使节点居中
+    echartsInstance.value.dispatchAction({
+      type: 'graphRoam',
+      dx: dx,
+      dy: dy
+    });
+
+    // 设置缩放和中心点
+    // echartsInstance.value.setOption({
+    //   series: [{
+    //     zoom: 2,  // 设置合适的缩放级别
+    //     center: [echartsOption.value.series[0].data[index].x, echartsOption.value.series[0].data[index].y]
+    //   }]
+    // });
+
+    // 显示节点的提示框
+    // echartsInstance.value.dispatchAction({
+    //   type: 'showTip',
+    //   seriesIndex: 0,
+    //   dataIndex: index
+    // });
   }
-
-
-
+  
   inputValue.value = '';
 };
 

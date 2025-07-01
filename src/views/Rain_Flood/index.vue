@@ -27,52 +27,75 @@
       <div class="table-header">
         <span class="title-text">地质灾害风险区域</span>
       </div>
-      <!-- 添加行点击事件 -->
-      <el-table
-          :data="displayData"
-          border
-          style="width: 100%; transition: width 0.3s ease;"
-          height="350"
-          v-loading="loading"
-          element-loading-text="数据加载中..."
-          element-loading-spinner="el-icon-loading"
-          element-loading-background="rgba(0, 0, 0, 0.7)"
-          highlight-current-row
-          @row-click="handleRowClick">
-        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>
-        <el-table-column prop="disasterName" label="风险区名称" width="170" align="center"></el-table-column>
-        <!-- 仅在扩展状态显示的列 -->
-        <el-table-column prop="position" label="地理位置" width="150" align="center"></el-table-column>
-        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>
-        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>
-        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>
-        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>
-        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>
-        <el-table-column prop="username" label="巡查员" width="70" align="center"></el-table-column>
-        <el-table-column prop="phone" label="巡查人手机号" width="115" align="center"></el-table-column>
-      </el-table>
-      <div class="table-pagination">
-        <el-pagination
-            v-model:current-page="currentPage"
-            v-model:page-size="pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="total"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-        />
+      <div class="rf_table">
+        <el-table
+            :data="displayData"
+            border
+            style="width: 100%; transition: width 0.3s ease;"
+            height="350"
+            v-loading="loading"
+            element-loading-text="数据加载中..."
+            element-loading-spinner="el-icon-loading"
+            element-loading-background="rgba(0, 0, 0, 0.7)"
+            highlight-current-row
+            @row-click="handleRowClick">
+          <!--        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>-->
+          <el-table-column prop="disasterName" label="风险区名称" align="center" show-overflow-tooltip></el-table-column>
+          <!-- 仅在扩展状态显示的列 -->
+          <el-table-column prop="position" label="地理位置" width="150" align="center" show-overflow-tooltip></el-table-column>
+          <!--        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>-->
+          <el-table-column prop="username" label="巡查员" width="70" align="center"></el-table-column>
+          <el-table-column prop="phone" label="巡查人手机号" width="115" align="center"></el-table-column>
+        </el-table>
+        <div class="table-pagination">
+          <el-pagination
+              v-model:current-page="currentPage"
+              v-model:page-size="pageSize"
+              :page-sizes="[ 10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+          />
+        </div>
       </div>
+      <!-- 添加行点击事件 -->
+
     </div>
     <!-- 暴雨信息面板 -->
+<!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+<!--      <div class="panel-title">暴雨信息</div>-->
+<!--      <div class="panel-content">-->
+<!--        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> 毫米每小时</div>-->
+<!--        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>-->
+<!--        <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
+<!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+<!--      </div>-->
+<!--    </div>-->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">暴雨信息</div>
       <div class="panel-content">
-        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> mm</div>
-        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>
-        <button @click="confirmRainPoint" :disabled="!rainfall || !duration">确认添加</button>
-        <button @click="cancelRainPoint">取消</button>
+        <div class="form-item">
+          <label class="jiangyuliang">降雨量:</label>
+          <input v-model.number="rainfall" type="number" min="0" max="500" step="1" />
+          <span>毫米</span>
+        </div>
+        <div class="form-item">
+          <label>持续时间:</label>
+          <input v-model.number="duration" type="number" min="0" max="72" step="1" />
+          <span>小时</span>
+        </div>
+        <div class="button-group">
+          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>
+          <button @click="cancelRainPoint" style="width: 80px">取消</button>
+        </div>
       </div>
     </div>
+
     <!-- 自定义弹出面板 -->
     <div
         v-if="selectedEntityData"
@@ -301,7 +324,7 @@ export default {
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
     this.loadDisasterData(); // 加载灾害点数据
-    this.loadLandSlide(landslide); // 加载滑坡点区域
+    // this.loadLandSlide(landslide); // 加载滑坡点区域
     this.createLegend(); // 创建图例
     this.total = this.tableData.length;
     this.loadData();
@@ -736,9 +759,10 @@ export default {
       }
     },
     // 加入滑坡区域
-    loadLandSlide(landslide) {
+    loadLandSlide(landslide, target) {
       for (let i = 0; i < landslide.length; i++) {
-        // console.log(landslide[i])
+        if(target.includes(i)){
+        console.log("所有符合:", landslide[i])
         let lon = landslide[i].lon
         let lat = landslide[i].lat
         this.viewer.entities.add({
@@ -936,6 +960,7 @@ export default {
           }
         } else {
           // ... existing code ...
+        }
         }
       }
     },
@@ -1163,7 +1188,7 @@ export default {
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
         },
         label: {
-          text: `降雨量: ${this.rainfall}mm\n已持续: ${this.duration}小时`,
+          text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
           // text: `降雨量: ${this.rainfall}mm\n持续: ${this.duration}小时`,
           font: '14px sans-serif',
           fillColor: Cesium.Color.WHITE,
@@ -1178,7 +1203,7 @@ export default {
           <div style="font-family: Arial, sans-serif;">
             <h3>暴雨信息</h3>
             <p><strong>位置:</strong> ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</p>
-            <p><strong>降雨量:</strong> ${this.rainfall} mm</p>
+            <p><strong>降雨量:</strong> ${this.rainfall} 毫米每小时</p>
             <p><strong>持续时间:</strong> ${this.duration} 小时</p>
             <p><strong>降雨强度:</strong> ${intensity.toFixed(2)} mm/小时</p>
             <p><strong>标记时间:</strong> ${new Date().toLocaleString()}</p>
@@ -1492,12 +1517,19 @@ export default {
       const landslidePointsInside = [];
       const debrisFlowPointsInside = [];
       const secondaryRiskPointsInside = [];
+      let target = [];
+      let flag = 0;
       // 检查所有滑坡点
       this.landslidePoints.forEach(point => {
         if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
           landslidePointsInside.push(point);
+          target.push(flag);
         }
+        flag++;
       });
+
+      // console.log("所有符合条件的点的索引:", target);
+
       // 检查所有泥石流点
       this.debrisFlowPoints.forEach(point => {
         if (this.isPointInEllipse(point, centerCartesian, majorRadius, minorRadius, this.rainEllipseRotation)) {
@@ -1516,6 +1548,9 @@ export default {
         ...debrisFlowPointsInside,
         ...secondaryRiskPointsInside
       ];
+
+      this.loadLandSlide(landslide, target);
+
       // 闪烁在椭圆内的灾害点
       if (allPointsInside.length > 0) {
         // 直接传递坐标数组到闪烁函数
@@ -2121,7 +2156,6 @@ export default {
   }
 }
 
-
 /* 加载指示器 */
 .loading-indicator {
   position: absolute;
@@ -2145,6 +2179,7 @@ export default {
   padding: 15px;
   border-radius: 6px;
   width: 240px;
+  height: 190px;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -2160,33 +2195,57 @@ export default {
 .panel-content div {
   margin-bottom: 12px;
   display: flex;
-  align-items: center;
+
 }
 
 .panel-content label {
-  min-width: 80px;
+  width: 70px;
+  /* text-align: right; 标签文本右对齐 */
+  font-weight: 500;
+  flex-shrink: 0; /* 防止标签宽度被压缩 */
+  display: inline-block; /* 确保宽度生效 */
 }
-
+.jiangyuliang{
+  text-align-last: justify;
+}
 .panel-content input {
   width: 60px;
-  margin-left: 10px;
-  padding: 5px;
+  padding: 6px 8px;
   border: none;
-  border-radius: 3px;
-  text-align: right;
+  border-radius: 4px;
+  text-align: center;
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
+  height: 30px; /* 固定高度确保垂直居中 */
+  box-sizing: border-box; /* 包含内边距 */
+}
+
+/* 优化单位文本样式，确保与输入框垂直对齐 */
+.panel-content span {
+  width: auto; /* 固定单位宽度，实现对齐 */
+  text-align: left; /* 单位文本左对齐 */
+  display: inline-block; /* 转为行内块元素便于设置宽度 */
+  height: 30px; /* 与输入框等高，确保垂直对齐 */
+  line-height: 30px; /* 垂直居中 */
+}
+
+/* 按钮组样式优化，确保按钮对齐 */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .panel-content button {
-  margin-top: 10px;
   padding: 6px 12px;
   background-color: #386641;
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  height: 32px; /* 固定按钮高度，确保对齐 */
+  line-height: normal; /* 重置行高 */
 }
 
 .panel-content button:last-child {
@@ -2291,7 +2350,7 @@ export default {
 .disaster-popup {
   position: absolute;
   z-index: 1000;
-  width: 320px; /* 减小宽度 */
+  width: 330px; /* 减小宽度 */
   background-color: white;
   border-radius: 6px; /* 减小圆角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
@@ -2332,7 +2391,7 @@ export default {
 .popup-header button {
   background: none;
   border: none;
-  font-size: 16px; /* 减小关闭按钮大小 */
+  font-size: 14px; /* 减小关闭按钮大小 */
   cursor: pointer;
   color: #6c757d;
   transition: color 0.2s;
@@ -2393,15 +2452,15 @@ export default {
 .risk-table-container {
   position: fixed;
   top: 12%;
-  left: 11%;
+  left: 13%;
   width: 550px;
   max-height: 700px;
   overflow: hidden;
   z-index: 900;
   transition: all 0.3s ease;
-  background-color: #fff;
+  background-color: rgba(52, 152, 219, 0.1);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .table-header {
@@ -2409,17 +2468,119 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  background-color: #f5f7fa;
+  background-color: rgba(43,47,51,0.6);
+}
+
+:deep(.el-table tr){
+  background-color: rgba(43, 47, 51, 0.6);
+  height: 55px;
+}
+
+.title-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* 修改 el-table 的样式 */
+:deep(.el-table) {
+  background-color: transparent;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+:deep(.el-table th) {
+  background-color: rgba(52, 73, 94, 0.2);
+  border-top: 1px solid #ebeef5;
   border-bottom: 1px solid #ebeef5;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+:deep(.el-table td) {
+  background-color: rgba(43, 47, 51, 0.6);
+  border-top: 1px solid #ebeef5;
+  border-bottom: 1px solid #ebeef5;
+  color: white;
+}
+
+:deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
+  background-color: rgba(43, 47, 51, 0.6);
+}
+
+:deep(.el-table__body tr.current-row > td) {
+  background-color: rgba(52, 152, 219, 0.1);
 }
 
 .table-pagination {
-  padding: 10px 15px;
-  background-color: #f5f7fa;
+  color: white;
+  padding: 15px 10px;
+  background-color: rgba(43,47,51,0);
   border-top: 1px solid #ebeef5;
   display: flex;
-  justify-content: flex-end;
-  transition: display 0.3s ease;
+  justify-content: center;
+}
+
+/* 修改分页器样式 */
+:deep(.el-pagination) {
+  background-color: transparent;
+}
+
+:deep(.el-pagination button) {
+  background-color: transparent;
+  border: 1px solid #ebeef5;
+}
+
+:deep(.el-pagination .el-select .el-input) {
+  background-color: transparent;
+}
+
+:deep(.el-pagination .el-input__inner) {
+  background-color: transparent;
+  border: 1px solid #ebeef5;
+}
+:deep(.el-table .el-table__header-wrapper th, .el-table .el-table__fixed-header-wrapper th) {
+  background-color: rgba(43,47,51,0.6) !important;
+}
+.rf_table{
+  background-color: rgba(43, 47, 51, 0.6);
+  padding:15px 20px;
+}
+:deep(.el-pagination>.is-first) {
+  margin-left: 0 !important;
+  color: white!important  ;
+}
+:deep(.el-pagination__goto){
+  color: white;
+}
+:deep(.el-pagination__classifier){
+  color: white;
+}
+:deep(.el-table__row){
+  border: 1px solid #ebeef5;
+}
+.el-table__body-wrapper .cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.el-table__body-wrapper .cell:hover {
+  overflow: visible;
+  white-space: normal;
+}
+:deep(.el-table thead){
+  height: 55px!important;
+}
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px; /* 统一元素间距 */
 }
 
 </style>

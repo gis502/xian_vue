@@ -25,19 +25,21 @@
         </select>
       </div>
 
-      <table v-if="isTableVisible">
+      <table v-if="isTableVisible" style="table-layout: fixed;">
         <thead >
           <tr >
             <th style="text-align: center" v-for="(header, index) in tableHeaders" :key="index">{{ header }}</th>
           </tr>
         </thead>
+
         <tbody>
-          <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)">
+          <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)" >
             <template v-for="(value, key) in item">
-              <td v-if="key!=='field5'&&key!=='field6'">{{ value }}</td>
+              <td v-if="key!=='field5'&&key!=='field6'" style= "white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="value">{{ value }}</td>
             </template>
           </tr>
         </tbody>
+
       </table>
       <div class="pagination-controls" v-if="isTableVisible">
         <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
@@ -1518,64 +1520,229 @@ function showInfoList(info,entity,flag) {
   container.className = 'cesium-info-window';
 
   // 计算窗口位置（基于屏幕坐标偏移）
-  const left = canvasPosition.x + 20; // 右侧显示
-  const top = canvasPosition.y - 100; // 垂直居中
+  const left = canvasPosition.x + 240; // 右侧显示
+  const top = canvasPosition.y + 60; // 垂直居中
 
   container.style.cssText = `
         position: fixed;
         left: ${left}px;
         top: ${top-10}px;
-        width: 350px;
+
         background: white;
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        padding: 15px;
+        padding: 0px;
         z-index: 1000;
-        max-height: 400px;
+        max-height: 450px;
         overflow-y: auto;
       `;
 
   // console.log(info.properties,entity,11111)
 
   // 构建信息列表内容
-  if (flag==="滑坡" && info.data._value["灾害类型"] === '滑坡'){
+  if (flag === "滑坡" && info.data._value["灾害类型"] === '滑坡') {
     container.innerHTML = `
-          <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">灾害信息</div>
-          <div style="margin-bottom: 10px;"><span style="color: #666;">野外编号:</span> ${info.data._value["野外编号"]}</div>
-          <div style="margin-bottom: 10px;"><span style="color: #666;">灾害点名称:</span> ${info.data._value["灾害点名称"]}</div>
-          <div style="margin-bottom: 10px;"><span style="color: #666;">规模等级:</span> ${info.data._value["规模等级"]}</div>
-          <div style="margin-bottom: 10px;"><span style="color: #666;">险情等级:</span> ${info.data._value["险情等级"]}</div>
-          <div style="margin-bottom: 10px;"><span style="color: #666;">受灾面积:</span> ${parseFloat(info.data._value["面积"]).toFixed(2)}平方米</div>
-          <div style="margin-bottom: 5px;"><span style="color: #666;">地理位置:</span> ${info.data._value["地理位置"]}</div>
-          <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
-        `;
-  }
-  else if (flag === "泥石流" && info.properties["灾害类型"] === '泥石流'){
+        <div class="disaster-popup">
+            <div class="popup-header">
+                <h3>灾害信息</h3>
+                <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
+            </div>
+            <table class="disaster-info-table">
+                <tbody>
+                    <tr>
+                        <td class="label">野外编号</td>
+                        <td>${info.data._value["野外编号"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">灾害点名称</td>
+                        <td>${info.data._value["灾害点名称"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">规模等级</td>
+                        <td>${info.data._value["规模等级"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">险情等级</td>
+                        <td>${info.data._value["险情等级"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">受灾面积</td>
+                        <td>${parseFloat(info.data._value["面积"]).toFixed(2)}平方米</td>
+                    </tr>
+                    <tr>
+                        <td class="label">地理位置</td>
+                        <td>${info.data._value["地理位置"]}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">经度</td>
+                      <td>${info.data._value["lon"]}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">纬度</td>
+                      <td>${info.data._value["lat"]}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+  } else if (flag === "泥石流" && info.properties["灾害类型"] === '泥石流') {
     container.innerHTML = `
-        <!--    <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>-->
-            <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">灾害信息</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">野外编号:</span> ${info.properties["野外编号"]}</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">灾害点名称:</span> ${info.properties["灾害点名称"]}</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">规模等级:</span> ${info.properties["规模等级"]}</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">险情等级:</span> ${info.properties["险情等级"]}</div>
-            <div style="margin-bottom: 5px;"><span style="color: #666;">地理位置:</span> ${info.properties["地理位置"]}</div>
-            <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
-          `;
-  }else if (flag === "风险区" ){
+        <div class="disaster-popup">
+            <div class="popup-header">
+                <h3>灾害信息</h3>
+                <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
+            </div>
+            <table class="disaster-info-table">
+                <tbody>
+                    <tr>
+                        <td class="label">灾害点名称</td>
+                        <td>${info.properties["灾害点名称"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">野外编号</td>
+                        <td>${info.properties["野外编号"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">规模等级</td>
+                        <td>${info.properties["规模等级"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">险情等级</td>
+                        <td>${info.properties["险情等级"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">地理位置</td>
+                        <td>${info.properties["地理位置"]}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">经度</td>
+                      <td>${info.properties["lon"]}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">纬度</td>
+                      <td>${info.properties["lat"]}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+  } else if (flag === "风险区") {
     container.innerHTML = `
-            <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">风险区信息</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">风险区名称:</span> ${info.properties["disasterName"]}</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">住房（间）:</span> ${info.properties["housing"]}</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">常住人口（人）:</span> ${info.properties["permanentPopulation"]}</div>
-            <div style="margin-bottom: 5px;"><span style="color: #666;">居民户数（户）:</span> ${info.properties["residentCounts"]}</div>
-            <div style="margin-bottom: 5px;"><span style="color: #666;">威胁财产（万元）:</span> ${info.properties["riskProperty"]}</div>
-            <div style="margin-bottom: 5px;"><span style="color: #666;">巡查员姓名:</span> ${info.properties["username"]}</div>
-            <div style="margin-bottom: 5px;"><span style="color: #666;">巡查员手机号:</span> ${info.properties["phone"]}</div>
-            <div style="margin-bottom: 10px;"><span style="color: #666;">位置:</span> ${info.properties["position"]}</div>
-            <button onclick="this.parentNode.remove()" style="background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">关闭</button>
-          `;
+        <div class="disaster-popup">
+            <div class="popup-header">
+                <h3>风险区信息</h3>
+                <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
+            </div>
+            <table class="disaster-info-table">
+                <tbody>
+                    <tr>
+                        <td class="label">风险区名称</td>
+                        <td>${info.properties["disasterName"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">统一编号</td>
+                        <td>${info.properties["unitCode"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">住房</td>
+                        <td>${info.properties["housing"]} 间</td>
+                    </tr>
+                    <tr>
+                        <td class="label">常住人口</td>
+                        <td>${info.properties["permanentPopulation"]} 人</td>
+                    </tr>
+                    <tr>
+                        <td class="label">居民户数</td>
+                        <td>${info.properties["residentCounts"]} 户</td>
+                    </tr>
+                    <tr>
+                        <td class="label">威胁财产</td>
+                        <td>${info.properties["riskProperty"]} 万元</td>
+                    </tr>
+                    <tr>
+                        <td class="label">巡查员姓名</td>
+                        <td>${info.properties["username"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">巡查员手机号</td>
+                        <td>${info.properties["phone"]}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">位置</td>
+                        <td>${info.properties["position"]}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">经度</td>
+                      <td>${info.properties["lon"]}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">纬度</td>
+                      <td>${info.properties["lat"]}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
   }
 
+// 添加以下 CSS 样式，让表格更美观
+  const style = document.createElement('style');
+  style.textContent = `
+    .disaster-popup {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0px;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
+
+    }
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 2px 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .popup-header h3 {
+        font-size: 14px;
+        font-weight: bold;
+        font-family: 'Source Han Sans CN';
+    }
+    .disaster-info-table {
+        width: 100%;
+        border-collapse: collapse;
+
+    }
+    .disaster-info-table th, .disaster-info-table td {
+        padding: 8px;
+        border-top: 1px solid #ddd;  /* 保留上边框 */
+        border-bottom: 1px solid #ddd;  /* 保留底边框 */
+        border-left: none;  /* 去除左边框 */
+        border-right: none;  /* 去除右边框 */
+        text-align: left;
+        font-family: 'Source Han Sans CN';
+        font-size: 13px;
+    }
+    .disaster-info-table .label {
+        color: #333;
+        width: 30%;
+        font-size: 13px;
+    }
+    .close-btn {
+        font-weight: nom;
+        background:none;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 14px; /* 减小标题字体大小 */
+        color: #6c757d;
+        transition: color 0.2s;
+    }
+
+`;
+  document.head.appendChild(style);
 
   // 添加到页面
   document.body.appendChild(container);
@@ -1721,6 +1888,9 @@ function adjustWindowPosition(container) {
   padding-top: 20px; /* 增加内边距，为按钮留出空间 */
 }
 
+
+
+
 .data-table table {
   width: 100%;
   border-collapse: collapse; /* 合并边框 */
@@ -1728,9 +1898,10 @@ function adjustWindowPosition(container) {
 
 .data-table th,
 .data-table td {
+  height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
   padding: 8px 12px;
-  text-align: left;
+  text-align: center;
   font-size: 14px;
 }
 
