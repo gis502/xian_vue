@@ -1612,6 +1612,7 @@ function adjustWindowPosition(container) {
 
 .data-table th,
 .data-table td {
+  height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
   padding: 8px 12px;
   text-align: center;
