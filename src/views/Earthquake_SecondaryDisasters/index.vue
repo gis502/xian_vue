@@ -69,6 +69,7 @@ import NishiliuData from '@/assets/disaster/Nishiliu.json';
 import FaultZoneData from '@/assets/disaster/faultZone.json';
 import RiskAreaData from '@/assets/static/disaster/xian_risk.json';
 import CesiumNavigation from 'cesium-navigation-es6';
+import {initCesium} from "@/cesium/initLayer.js";
 
 export default {
   name: 'CesiumMap',
@@ -531,23 +532,25 @@ export default {
         }
 
         // 初始化Viewer，使用影像底图
-        this.viewer = new Cesium.Viewer(container, {
-          imageryProvider: new Cesium.UrlTemplateImageryProvider({
-            url: 'http://t0.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk='+this.tdtToken,
-            subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
-            minimumLevel: 1,
-            maximumLevel: 18,
-            credit: "天地图",
-            layer: "img",
-          }),
-          baseLayerPicker: false,
-          animation: false,
-          timeline: false,
-          shouldAnimate: true
-        });
+        // this.viewer = new Cesium.Viewer(container, {
+        //   imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        //     url: 'http://t0.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&TILEMATRIXSET=w&FORMAT=tiles&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}&tk='+this.tdtToken,
+        //     subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'],
+        //     minimumLevel: 1,
+        //     maximumLevel: 18,
+        //     credit: "天地图",
+        //     layer: "img",
+        //   }),
+        //   baseLayerPicker: false,
+        //   animation: false,
+        //   timeline: false,
+        //   shouldAnimate: true
+        // });
 
         // 加载影像注记层
-        this.loadAnnotationLayer();
+        // this.loadAnnotationLayer();
+
+        this.viewer = initCesium(container)
 
         // 设置初始视角
         this.viewer.camera.flyTo({
@@ -584,8 +587,6 @@ export default {
     },
 
     loadInitialData() {
-      this.loadFaultLines();
-      this.loadHuapoPoints(); // 加载滑坡点
       this.loadDangerPoints();
     },
 

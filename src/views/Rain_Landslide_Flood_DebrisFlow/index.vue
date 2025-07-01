@@ -131,6 +131,8 @@ import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
 //引入村庄数据
 import RiskArea from '@/assets/static/disaster/xian_risk.json'
 
+import {initCesium} from '@/cesium/initLayer.js'
+
 export default {
   name: 'CesiumMap',
   data() {
@@ -313,24 +315,26 @@ export default {
 
     load() {
       try {
-        Cesium.Ion.defaultAccessToken = '';
+        // Cesium.Ion.defaultAccessToken = '';
         const container = this.$refs.cesiumContainer;
-        this.viewer = new Cesium.Viewer(container, {
-          imageryProvider: false,
-          animation: false,
-          homeButton: false,
-          navigationHelpButton: false,
-          timeline: false,
-          selectionIndicator: false,
-          sceneModePicker: false,
-          infoBox: false,
-          geocoder: false,
-          vrButton: false,
-          fullscreenButton: false,
-          baseLayerPicker: false,
-        });
-        this.viewer.cesiumWidget.creditContainer.style.display = "none";
-        this.loadTDT(0);
+        // this.viewer = new Cesium.Viewer(container, {
+        //   imageryProvider: false,
+        //   animation: false,
+        //   homeButton: false,
+        //   navigationHelpButton: false,
+        //   timeline: false,
+        //   selectionIndicator: false,
+        //   sceneModePicker: false,
+        //   infoBox: false,
+        //   geocoder: false,
+        //   vrButton: false,
+        //   fullscreenButton: false,
+        //   baseLayerPicker: false,
+        // });
+        // this.viewer.cesiumWidget.creditContainer.style.display = "none";
+        // this.loadTDT(0);
+
+        this.viewer = initCesium(container)
         // 设置初始正射视角
         this.viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
