@@ -67,7 +67,7 @@ import * as Cesium from 'cesium';
 import HuapoData from '@/assets/disaster/Huapo.json';
 import NishiliuData from '@/assets/disaster/Nishiliu.json';
 import FaultZoneData from '@/assets/disaster/faultZone.json';
-import RiskAreaData from '@/assets/disaster/riskArea.json';
+import RiskAreaData from '@/assets/static/disaster/xian_risk.json';
 import CesiumNavigation from 'cesium-navigation-es6';
 
 export default {
@@ -783,7 +783,7 @@ export default {
         this.viewer.entities.remove(circle);
       });
       this.intensityCircles = [];
-      
+
       // 清除光晕效果
       this.clearHaloEffect();
     },
@@ -843,10 +843,10 @@ export default {
         this.viewer.entities.remove(entity);
       });
       this.earthquakeEntities = [];
-      
+
       // 清除烈度圈和光晕效果
       this.clearIntensityCircles();
-      
+
       console.log("地震已清除");
     },
 
@@ -978,16 +978,16 @@ export default {
     // 添加脉冲动画效果
     addPulseAnimation(haloEntity, baseColor) {
       let pulsePhase = 0;
-      
+
       // 使用定时器创建脉冲效果
       const pulseInterval = setInterval(() => {
         pulsePhase += 0.2; // 稍微加快动画速度
         const alpha = 0.2 + 0.5 * Math.sin(pulsePhase); // 提高透明度范围
         const size = 35 + 20 * Math.sin(pulsePhase); // 增大尺寸变化范围
-        
+
         haloEntity.point.color = baseColor.withAlpha(alpha);
         haloEntity.point.pixelSize = size;
-        
+
         // 如果光晕被清除，停止动画
         if (!this.isHaloActive) {
           clearInterval(pulseInterval);
@@ -1020,7 +1020,7 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 50px);
   margin: 0;
   padding: 0;
   /* overflow: hidden; */

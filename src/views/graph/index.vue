@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <div class="toggle-button open" @click="updateChartData" v-show="ifShowCatalog"><p style="color: #FFFFFF">多灾种信息列表</p></div>
+    <div class="toggle-button open" @click="updateChartData" v-show="ifShowCatalog"><p style="color: black">多灾种信息列表</p></div>
 
     <div class="chat-panel" v-if="showChat">
       <div class="chat-title">灾害信息列表</div>
@@ -192,12 +192,12 @@ const echartsOption = ref({
     label: {
       show: true,
       position: 'bottom',
-      color: 'white'
+      color: '#000'
     },
     edgeLabel: {
       show: true,
       fontSize: 12,
-      color: '#fff',
+      color: '#000',
       formatter: "{c}"
     },
     categories: [
@@ -237,14 +237,14 @@ const echartsOption = ref({
 const tableData = ref([
   {
     // eqid: 'T2025062222234112888',
-    eqid: 'T2025062222234112222',
-    eqAddr: '2023年8月11日陕西省西安市喂子坪村山洪泥石流',
+    eqid: 'T2025062222234112333',
+    eqAddr: '2023年8月11日陕西省西安市长安区喂子坪村鸡窝子组山洪泥石流',
     time: '2023-08-11 18:00:00'
   },
   {
     // eqid: 'T2025062222234112777',
     eqid: 'T2025062222234112111',
-    eqAddr: '2018年9月12日陕西汉中5.3级地震',
+    eqAddr: '2018年9月12日陕西汉中宁强县5.3级地震',
     magnitude: 5.3,
     depth: 8,
     time: '2018-09-12 18:00:00'
@@ -290,6 +290,7 @@ const getData = async (eqid) => {
           { name: '影响范围' },
           { name: '气象信息' },
           { name: '水文信息' },
+          { name: '应急响应信息' },
           { name: '人员伤亡信息' },
           { name: '转移安置信息' },
           { name: '房屋破坏信息' },
@@ -396,7 +397,7 @@ const getData = async (eqid) => {
         { name: '地震灾情信息' },
         { name: '应急指挥协调信息' },
         { name: '应急决策信息' },
-        { name: '态势标绘信息' },
+        { name: '态势标绘' },
         { name: '社会反应动态信息' },
         { name: '灾害现场动态信息' },
         { name: '应急处置信息' }
@@ -520,39 +521,24 @@ const getData = async (eqid) => {
 
     console.log("res的图谱结果",res)
 
+    // 构建 links
     chartLinks.value = res.map(item => ({
       source: item.source.name,
       target: item.target.name,
       value: item.value.type
     }));
 
-    const nodeSet = new Set();
-    chartLinks.value.forEach(item => {
-      nodeSet.add(item.source);
-      nodeSet.add(item.target);
+    // 构建节点（去重+保留结构）
+    const nodeMap = new Map();
+    res.forEach(item => {
+      nodeMap.set(item.source.name, item.source);
+      nodeMap.set(item.target.name, item.target);
     });
-    chartData.value = Array.from(nodeSet).map(name => ({name}));
 
-    allDataLinks = chartLinks.value
+    chartData.value = Array.from(nodeMap.values());
+    console.log("chartData111",chartData.value)
 
-    StartData.value= chartData.value
-    StartLinks.value = chartLinks.value
-
-    chartDataCount.value = chartData.value.length + 1;
-
-    // 处理 一开始展示 数据（这里的顺序不要更换否则会出问题）
-    const validValues = new Set(list.value.map(item => item.value));
-    chartStartData.value = chartData.value.filter(item => validValues.has(item.name))
-    chartStartLinks.value = chartStartData.value.map(item => (
-            {
-              source: lastEqData.value.eqAddr,
-              target: item.name,
-              value: "包含"
-            }
-        )
-    )
-
-    chartStartData.value.push({ name: lastEqData.value.eqAddr });
+    allDataLinks = chartLinks.value;
 
     // 给每个子项计算 sonCount
     list.value.forEach(item => {
@@ -561,145 +547,159 @@ const getData = async (eqid) => {
         child.sonCount = sonCount;
       });
     });
-    console.log(list.value,"跟新后的数据")
+
+    // 给节点分配图标样式
+    chartStartData.value = chartData.value.map(item => {
+      if (item.name === lastEqData.value.eqAddr) {
+        item.symbol = `image:///images/eqentity1.png`;
+        item.itemStyle = {
+          borderColor: '#f20404',
+          borderWidth: 2,
+          shadowBlur: 10,
+          shadowColor: '#f20404',
+          color: 'rgba(242, 4, 4, 0.7)',
+        };
+      } else if (firstData.value.some(i => i.name === item.name)) {
+        item.symbol = `image:///images/eqentity2.png`;
+        item.itemStyle = {
+          borderColor: '#e2f204',
+          borderWidth: 2,
+          shadowBlur: 10,
+          shadowColor: '#e2f204',
+          color: 'rgba(226, 242, 4, 0.6)',
+        };
+      } else if (secondData.value.some(i => i.name === item.name)) {
+        item.symbol = `image:///images/eqentity3.png`;
+        item.itemStyle = {
+          borderColor: '#04f2c6',
+          borderWidth: 2,
+          shadowBlur: 10,
+          shadowColor: '#04f2c6',
+          color: 'rgba(4, 242, 198, 0.7)',
+        };
+      } else {
+        item.symbol = `image:///images/eqentity4.png`;
+        item.itemStyle = {
+          borderColor: '#04f218',
+          borderWidth: 2,
+          shadowBlur: 10,
+          shadowColor: '#04f218',
+          color: 'rgba(4, 242, 24, 0.7)',
+        };
+      }
+      return item;
+    });
+
+    chartStartLinks.value = chartLinks.value;
 
     StartData.value = chartStartData.value;
-    StartLinks.value =  chartStartLinks.value;
+    StartLinks.value = chartStartLinks.value;
+    chartDataCount.value = StartData.value.length;
 
-    console.log(StartData.value,"开始数据")
-    console.log("newList",newList.value)
-    console.log("chartData",chartStartData.value)
-    console.log("chartLinks",chartStartLinks.value)
-
-    initChart();
+    initChart(); // 渲染图表
   } catch (error) {
     console.error('获取图表数据失败:', error);
   }
 };
+
 // 初始化图表
 const initChart = () => {
-
   if (!chart.value) return;
   if (echartsInstance.value !== null) {
     echartsInstance.value.dispose();
   }
 
-  // 特殊节点样式
-  echartsOption.value.series[0].data = chartStartData.value.map(item => {
-    if (item.name === lastEqData.value.eqAddr) {
-      item.symbol= `image:///images/eqentity1.png`
-      item.itemStyle = {
-        borderColor: '#f20404',
-        borderWidth: 2,
-        shadowBlur: 10,
-        shadowColor: '#f20404',
-        color:'rgba(242, 4, 4, 0.7)',
-      };
-    } else if (firstData.value.some(dataItem => dataItem.name === item.name)) {
-      item.symbol= `image:///images/eqentity2.png`
-      item.itemStyle = {
-        borderColor: '#e2f204',
-        borderWidth: 2,
-        shadowBlur: 10,
-        shadowColor: '#e2f204',
-        color:'rgba(226, 242, 4, 0.6)',
-      };
-    } else if (secondData.value.some(dataItem => dataItem.name === item.name)) {
-      item.symbol= `image:///images/eqentity3.png`
-      item.itemStyle = {
-        borderColor: '#04f2c6',
-        borderWidth: 2,
-        shadowBlur: 10,
-        shadowColor: '#04f2c6',
-        color:'rgba(4, 242, 198, 0.7)'
-      };
-    }else{
-      item.symbol= `image:///images/eqentity4.png`
-      item.itemStyle = {
-        borderColor: '#04f218',
-        borderWidth: 2,
-        shadowBlur: 10,
-        shadowColor: '#04f218',
-        color:'rgba(4, 242, 24, 0.7)'
-      };
-    }
-
-    return item;
-  });
-
+  echartsOption.value.series[0].data = chartStartData.value;
   echartsOption.value.series[0].links = chartStartLinks.value;
 
   echartsInstance.value = echarts.init(chart.value);
-
   echartsInstance.value.setOption(echartsOption.value);
-
-  // 强制调整大小，确保初始渲染时的大小正确
   echartsInstance.value.resize();
 
-  // 监听 click 事件
   echartsInstance.value.on('click', function (params) {
-    // 判断点击的是节点还是边
     if (params.componentType === 'series' && params.seriesType === 'graph') {
       if (params.dataType === 'node') {
-        // 处理节点点击
         handleNodeClick(params.data);
-      } else if (params.dataType === 'edge') {
-        // 处理边点击
       }
     }
   });
 
-  // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize);
-
 };
+
 
 // 点击节点触发函数
+// 用于记录已展开的节点名
+const expandedNodes = new Set();
+
+// 点击节点处理展开或收起
 const handleNodeClick = (value) => {
-  // value:{name:"地震灾情信息",symbolSize:60}
-
-  // 打印被点击的节点信息
-  console.log(value, "这个节点被点击了");
-
-  // 获取节点的名称 (name)
   const nodeName = value.name;
 
-  // 从 chartLinks 中查找所有 source 等于 nodeName 的对象
-  const relatedLinks = chartLinks.value.filter(link => link.source === nodeName);
+  if (expandedNodes.has(nodeName)) {
+    // 如果已展开，则收起子孙
+    removeDescendantsSafely(nodeName);
+    expandedNodes.delete(nodeName);
+  } else {
+    // 如果未展开，则展开当前节点的下一级
+    const relatedLinks = chartLinks.value.filter(link => link.source === nodeName);
 
-  // 将相关的链接对象添加到 chartStartLinks 中
-  relatedLinks.forEach(link => {
-    // 如果 chartStartLinks 中没有该链接对象，则添加
-    if (!chartStartLinks.value.some(item => item.source === link.source && item.target === link.target)) {
-      chartStartLinks.value.push(link);
-    }
-  });
+    relatedLinks.forEach(link => {
+      if (!chartStartLinks.value.some(item => item.source === link.source && item.target === link.target)) {
+        chartStartLinks.value.push(link);
+      }
+    });
 
-  // 将更新后的 chartStartLinks 存入 chartChangeLinks
-  chartChangeLinks.value = [...chartStartLinks.value];
+    relatedLinks.map(link => link.target).forEach(target => {
+      if (!chartStartData.value.some(item => item.name === target)) {
+        chartStartData.value.push({ name: target });
+      }
+    });
 
-  // 打印更新后的 chartChangeLinks
-  console.log("更新后的 chartChangeLinks:", chartChangeLinks.value);
+    chartChangeLinks.value = [...chartStartLinks.value];
+    chartChangeData.value = [...chartStartData.value];
 
-  // 提取所有 target 值
-  const newTargets = relatedLinks.map(link => link.target);
+    expandedNodes.add(nodeName);
+  }
 
-  // 把这些 target 值添加到 chartStartData 中
-  newTargets.forEach(target => {
-    // 如果 chartStartData 中没有这个 target 名称的节点，则添加
-    if (!chartStartData.value.some(item => item.name === target)) {
-      chartStartData.value.push({ name: target });
-    }
-  });
-
-  // 将 chartStartData 存入 chartChangeData
-  chartChangeData.value = [...chartStartData.value];
-
-  // 打印更新后的 chartChangeData
-  console.log("更新后的 chartChangeData:", chartChangeData.value);
-
-  updateEchart(chartChangeData.value,chartChangeLinks.value)
+  updateEchart(chartChangeData.value, chartChangeLinks.value);
 };
+
+
+
+// 递归移除节点及其所有后代节点和连线
+const removeDescendantsSafely = (nodeName) => {
+  const directLinks = chartStartLinks.value.filter(link => link.source === nodeName);
+
+  directLinks.forEach(link => {
+    const target = link.target;
+
+    // 先递归处理子节点
+    removeDescendantsSafely(target);
+
+    // 移除当前连接
+    chartStartLinks.value = chartStartLinks.value.filter(
+        l => !(l.source === nodeName && l.target === target)
+    );
+
+    // 检查 target 是否还有其他连接（有就说明不能删）
+    const stillLinked = chartStartLinks.value.some(
+        l => l.source === target || l.target === target
+    );
+
+    if (!stillLinked) {
+      chartStartData.value = chartStartData.value.filter(node => node.name !== target);
+      expandedNodes.delete(target);
+    }
+  });
+
+  // 更新图谱
+  chartChangeLinks.value = [...chartStartLinks.value];
+  chartChangeData.value = [...chartStartData.value];
+};
+
+
+
 
 const updateEchart = (data,link) =>{
   if (echartsInstance.value !== null) {
@@ -887,14 +887,16 @@ onBeforeUnmount(() => {
 
 .content-body {
   width: 100%;
-  height: 100%;
-  position: absolute;
+  height: calc(100vh - 50px);
+  position: relative;
   display: flex;
   flex-direction: row; /* 使元素横向排列 */
   // 确保 flex 容器允许子元素增长和收缩
   z-index: 2;
   //background: linear-gradient(270deg, rgba(4, 20, 34, 1) 0%, rgba(14, 37, 61, 0.9) 41%, rgba(26, 54, 77, 0.75) 66%, rgba(42, 89, 135, 0.9) 88%, rgba(47, 82, 117, 0.9) 95%, rgba(44, 69, 94, 0.9) 100%);
-  background-image: url("../../assets/蓝色银河星空带鱼屏.png");
+  //background-image: url("../../assets/蓝色银河星空带鱼屏.png");
+  background-color: #f5f7fa;
+  color: #2c3e50;
   background-size: cover;
   .closeAll {
     button {
@@ -910,7 +912,7 @@ onBeforeUnmount(() => {
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 5px;
       padding: 5px 12px;
-      color: white;
+      color: black;
       cursor: pointer;
       height: 30px;
       font-size: 14px;
@@ -931,10 +933,7 @@ onBeforeUnmount(() => {
           bottom: -2px;
           border-radius: 6px;
           padding: 1px; // 边框厚度
-          background: linear-gradient(90deg,
-          #0453fc,
-          #00f7ff,
-          #0453fc,);
+          background: linear-gradient(90deg, rgba(4, 83, 252, 0.8), rgba(0, 247, 255, 0.8), rgba(4, 83, 252, 0.8));
           background-size: 200% auto;
           -webkit-mask: linear-gradient(#fff 0 0) content-box,
           linear-gradient(#fff 0 0);
@@ -968,16 +967,18 @@ onBeforeUnmount(() => {
         align-items: center;
         justify-content: center;
         background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        left: 10px;
         font-size: 14px;
         font-weight: 500;
-        color: white;
+        color: black;
         border-radius: 5px;
         padding: 5px 12px;
         cursor: pointer;
         height: 30px;
         transition: all 0.3s ease;
         user-select: none;
+
 
         // 悬停时的流动边框
         &:hover {
@@ -1018,10 +1019,11 @@ onBeforeUnmount(() => {
         align-items: center;
         justify-content: center;
         background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        left: 10px;
         border-radius: 5px;
         padding: 5px 12px;
-        color: white;
+        color: black;
         cursor: pointer;
         height: 30px;
         font-size: 14px;
@@ -1072,7 +1074,7 @@ onBeforeUnmount(() => {
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 5px;
         padding: 5px 12px;
-        color: white;
+        color: black;
         cursor: pointer;
         height: 30px;
         font-size: 14px;
@@ -1113,13 +1115,17 @@ onBeforeUnmount(() => {
       position: absolute;
       bottom: 0px;
       z-index:1;
-      left:0vw;
+      left:1vw;
       // 基础样式
-      background-color: rgba(59, 80, 149, .1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      //background-color: rgba(59, 80, 149, .1);
+      //border: 1px solid rgba(255, 255, 255, 0.1);
+      //background-color: ;
+      //border: 1px solid ;
+      background-color: rgba(52, 152, 219, 0.1); // 更蓝些
+      border: 1px solid rgba(52, 73, 94, 0.3); // 柔和边框
       border-radius: 5px;
       padding: 5px 12px;
-      color: white;
+      color: black;
       font-size: 14px;
       font-weight: 500;
       user-select: none;
@@ -1157,8 +1163,8 @@ onBeforeUnmount(() => {
     padding: 16px;
     max-height: 80vh;
     overflow-y: auto;
-    color: white;
-    background-color: rgba(59, 80, 149, .1);
+    color: black;
+    background-color: rgba(52, 73, 94, 0.05); // 柔和科技蓝灰
     height: 100%;
     border-top-right-radius: 20px; /* 右上角圆角 */
     border-bottom-right-radius: 20px; /* 左下角圆角 */
@@ -1172,7 +1178,6 @@ onBeforeUnmount(() => {
 
   .toggle-button {
     cursor: pointer;
-    color: #409eff;
     float: right;
     margin-top: -28px;
   }
@@ -1184,7 +1189,7 @@ onBeforeUnmount(() => {
   .disaster-item {
     padding: 10px;
     margin-bottom: 8px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid black;
     line-height: 1.6;
   }
 
@@ -1207,7 +1212,8 @@ onBeforeUnmount(() => {
       height: 100px;
       text-align: center;
       line-height: 100px;
-      color: white;
+      //color: white;
+      color: black;
       font-size: 30px;
       user-select: none; /* 禁用文本选择 */
     }
@@ -1217,9 +1223,10 @@ onBeforeUnmount(() => {
       margin-bottom: 10px;
 
       .search-button, .search-input {
-        background-color: rgba(0, 0, 0, 0);
-        box-shadow: inset 0 -1px 1px 0 #0453fc;
-        border-color: #FFFFFF00;
+        background-color: rgba(255,255,255,0.8);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+        box-shadow: inset 0 -1px 1px 0 rgba(52, 152, 219, 0.3);
+        color: #34495e;
         height: 44px;
       }
 
@@ -1229,7 +1236,8 @@ onBeforeUnmount(() => {
 
       .search-input {
         border-radius: 0 12px 12px 0;
-        color: whitesmoke;
+        //color: whitesmoke;
+        color: black;
         width: 200px;
       }
     }
@@ -1245,7 +1253,8 @@ onBeforeUnmount(() => {
         font-size: 16px;
         //height: 60px;
         line-height: 60px;
-        color: #fff;
+        //color: #fff;
+        color: black;
         user-select: none; /* 禁用文本选择 */
 
         ul{
@@ -1269,7 +1278,8 @@ onBeforeUnmount(() => {
             width: 8px; /* 圆点的宽度 */
             height: 8px; /* 圆点的高度 */
             border-radius: 50%; /* 使其变成圆形 */
-            background-color: #fff; /* 圆点颜色 */
+            //background-color: #fff; /* 圆点颜色 */
+            background-color: black; /* 圆点颜色 */
             user-select: none; /* 禁用文本选择 */
           }
 
@@ -1290,7 +1300,8 @@ onBeforeUnmount(() => {
         width: 8px; /* 圆点的宽度 */
         height: 8px; /* 圆点的高度 */
         border-radius: 50%; /* 使其变成圆形 */
-        background-color: #fff; /* 圆点颜色 */
+        //background-color: #fff; /* 圆点颜色 */
+        background-color: black; /* 圆点颜色 */
         user-select: none; /* 禁用文本选择 */
       }
 
@@ -1316,10 +1327,10 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid darkgray;
   border-radius: 5px;
   padding: 5px 12px;
-  color: white;
+  color: black;
   cursor: pointer;
   width: 200px;
   height: 30px;
