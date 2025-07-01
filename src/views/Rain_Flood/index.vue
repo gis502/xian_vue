@@ -27,41 +27,44 @@
       <div class="table-header">
         <span class="title-text">地质灾害风险区域</span>
       </div>
-      <!-- 添加行点击事件 -->
-      <el-table
-          :data="displayData"
-          border
-          style="width: 100%; transition: width 0.3s ease;"
-          height="350"
-          v-loading="loading"
-          element-loading-text="数据加载中..."
-          element-loading-spinner="el-icon-loading"
-          element-loading-background="rgba(0, 0, 0, 0.7)"
-          highlight-current-row
-          @row-click="handleRowClick">
-        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>
-        <el-table-column prop="disasterName" label="风险区名称" width="170" align="center"></el-table-column>
-        <!-- 仅在扩展状态显示的列 -->
-        <el-table-column prop="position" label="地理位置" width="150" align="center"></el-table-column>
-        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>
-        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>
-        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>
-        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>
-        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>
-        <el-table-column prop="username" label="巡查员" width="70" align="center"></el-table-column>
-        <el-table-column prop="phone" label="巡查人手机号" width="115" align="center"></el-table-column>
-      </el-table>
-      <div class="table-pagination">
-        <el-pagination
-            v-model:current-page="currentPage"
-            v-model:page-size="pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="total"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-        />
+      <div class="rf_table">
+        <el-table
+            :data="displayData"
+            border
+            style="width: 100%; transition: width 0.3s ease;"
+            height="350"
+            v-loading="loading"
+            element-loading-text="数据加载中..."
+            element-loading-spinner="el-icon-loading"
+            element-loading-background="rgba(0, 0, 0, 0.7)"
+            highlight-current-row
+            @row-click="handleRowClick">
+          <!--        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>-->
+          <el-table-column prop="disasterName" label="风险区名称" align="center" show-overflow-tooltip></el-table-column>
+          <!-- 仅在扩展状态显示的列 -->
+          <el-table-column prop="position" label="地理位置" width="150" align="center" show-overflow-tooltip></el-table-column>
+          <!--        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>-->
+          <!--        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>-->
+          <el-table-column prop="username" label="巡查员" width="70" align="center"></el-table-column>
+          <el-table-column prop="phone" label="巡查人手机号" width="115" align="center"></el-table-column>
+        </el-table>
+        <div class="table-pagination">
+          <el-pagination
+              v-model:current-page="currentPage"
+              v-model:page-size="pageSize"
+              :page-sizes="[ 10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+          />
+        </div>
       </div>
+      <!-- 添加行点击事件 -->
+
     </div>
     <!-- 暴雨信息面板 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
@@ -2393,15 +2396,15 @@ export default {
 .risk-table-container {
   position: fixed;
   top: 12%;
-  left: 11%;
+  left: 13%;
   width: 550px;
   max-height: 700px;
   overflow: hidden;
   z-index: 900;
   transition: all 0.3s ease;
-  background-color: #fff;
+  background-color: rgba(52, 152, 219, 0.1);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .table-header {
@@ -2409,17 +2412,112 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  background-color: #f5f7fa;
+  background-color: rgba(43,47,51,0.6);
+}
+
+:deep(.el-table tr){
+  background-color: rgba(43, 47, 51, 0.6);
+  height: 55px;
+}
+
+.title-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* 修改 el-table 的样式 */
+:deep(.el-table) {
+  background-color: transparent;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+:deep(.el-table th) {
+  background-color: rgba(52, 73, 94, 0.2);
+  border-top: 1px solid #ebeef5;
   border-bottom: 1px solid #ebeef5;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+:deep(.el-table td) {
+  background-color: rgba(43, 47, 51, 0.6);
+  border-top: 1px solid #ebeef5;
+  border-bottom: 1px solid #ebeef5;
+  color: white;
+}
+
+:deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
+  background-color: rgba(43, 47, 51, 0.6);
+}
+
+:deep(.el-table__body tr.current-row > td) {
+  background-color: rgba(52, 152, 219, 0.1);
 }
 
 .table-pagination {
-  padding: 10px 15px;
-  background-color: #f5f7fa;
+  color: white;
+  padding: 15px 10px;
+  background-color: rgba(43,47,51,0);
   border-top: 1px solid #ebeef5;
   display: flex;
-  justify-content: flex-end;
-  transition: display 0.3s ease;
+  justify-content: center;
 }
 
+/* 修改分页器样式 */
+:deep(.el-pagination) {
+  background-color: transparent;
+}
+
+:deep(.el-pagination button) {
+  background-color: transparent;
+  border: 1px solid #ebeef5;
+}
+
+:deep(.el-pagination .el-select .el-input) {
+  background-color: transparent;
+}
+
+:deep(.el-pagination .el-input__inner) {
+  background-color: transparent;
+  border: 1px solid #ebeef5;
+}
+:deep(.el-table .el-table__header-wrapper th, .el-table .el-table__fixed-header-wrapper th) {
+  background-color: rgba(43,47,51,0.6) !important;
+}
+.rf_table{
+  background-color: rgba(43, 47, 51, 0.6);
+  padding:15px 20px;
+}
+:deep(.el-pagination>.is-first) {
+  margin-left: 0 !important;
+  color: white!important  ;
+}
+:deep(.el-pagination__goto){
+  color: white;
+}
+:deep(.el-pagination__classifier){
+  color: white;
+}
+:deep(.el-table__row){
+  border: 1px solid #ebeef5;
+}
+.el-table__body-wrapper .cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.el-table__body-wrapper .cell:hover {
+  overflow: visible;
+  white-space: normal;
+}
+:deep(.el-table thead){
+  height: 55px!important;
+}
 </style>

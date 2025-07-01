@@ -25,16 +25,16 @@
         </select>
       </div>
 
-      <table v-if="isTableVisible">
+      <table v-if="isTableVisible" style="table-layout: fixed;">
         <thead >
           <tr >
             <th style="text-align: center" v-for="(header, index) in tableHeaders" :key="index">{{ header }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)">
+          <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)" >
             <template v-for="(value, key) in item">
-              <td v-if="key!=='field5'&&key!=='field6'">{{ value }}</td>
+              <td v-if="key!=='field5'&&key!=='field6'" style= "white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="value">{{ value }}</td>
             </template>
           </tr>
         </tbody>
@@ -1435,6 +1435,9 @@ function adjustWindowPosition(container) {
   padding-top: 20px; /* 增加内边距，为按钮留出空间 */
 }
 
+
+
+
 .data-table table {
   width: 100%;
   border-collapse: collapse; /* 合并边框 */
@@ -1444,7 +1447,7 @@ function adjustWindowPosition(container) {
 .data-table td {
   border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
   padding: 8px 12px;
-  text-align: left;
+  text-align: center;
   font-size: 14px;
 }
 
