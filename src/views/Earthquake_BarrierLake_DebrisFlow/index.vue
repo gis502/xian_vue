@@ -1521,7 +1521,7 @@ button {
   display: flex;
   align-items: center;
   margin: 4px 0; /* 减小行间距 */
-  font-size: 12px; /* 缩小字体 */
+  font-size: 14px; /* 缩小字体 */
 }
 
 .legend-color {
@@ -1567,7 +1567,7 @@ button {
 .panel-title {
   font-weight: bold;
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .panel-content {

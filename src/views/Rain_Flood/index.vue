@@ -76,6 +76,15 @@
 <!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
 <!--      </div>-->
 <!--    </div>-->
+    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+    <!--      <div class="panel-title">暴雨信息</div>-->
+    <!--      <div class="panel-content">-->
+    <!--        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> 毫米每小时</div>-->
+    <!--        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>-->
+    <!--        <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
+    <!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">暴雨信息</div>
       <div class="panel-content">
@@ -1828,7 +1837,7 @@ export default {
       item.style.display = 'flex';
       item.style.alignItems = 'center';
       item.style.marginBottom = '15px';
-      item.style.fontWeight = 'bold'; // 加粗标题
+      //item.style.fontWeight = 'bold'; // 加粗标题
 
       const colorDiv = document.createElement('div');
       colorDiv.className = 'legend-color';
@@ -1843,7 +1852,7 @@ export default {
       const textDiv = document.createElement('div');
       textDiv.className = 'legend-text';
       textDiv.textContent = '降雨影响范围';
-      textDiv.style.fontSize = '15px';
+      textDiv.style.fontSize = '14px';
       textDiv.style.lineHeight = '20px';
       textDiv.style.flex = '1';
 
@@ -2190,6 +2199,7 @@ export default {
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #444;
+  text-align: center;
 }
 
 .panel-content div {
@@ -2576,6 +2586,13 @@ export default {
 :deep(.el-table thead){
   height: 55px!important;
 }
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px; /* 统一元素间距 */
+}
+
 .form-item {
   display: flex;
   align-items: center;

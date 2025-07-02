@@ -453,7 +453,7 @@ function loadLandSlide(landslide) {
           pixelSize: 40, // 增大光晕大小，使其更明显
           color: Cesium.Color.RED.withAlpha(0.4), // 提高透明度，使其更明显
           outlineColor: Cesium.Color.RED.withAlpha(1.0), // 完全不透明的边框
-          outlineWidth: 3, // 适中的边框宽度
+          outlineWidth: 1, // 适中的边框宽度
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY // 确保不被地形遮挡
         }
@@ -943,11 +943,9 @@ function AddChart() {
 // 添加风险区
 function AddDangerAreaDataSource(DangerAreaData) {
   let DangerAreaDataArr = []
-  // let DangerAreaDataList = []
-  //添加隐患点
+  let haloEntities = [] // 新增：用于批量高亮
   DangerAreaData.features.forEach(DangerAreaData_source => {
     DangerAreaDataArr.push(DangerAreaData_source)
-    // DangerAreaDataList.push(DangerAreaData_source)
   })
   DangerAreaDataArr.forEach(DangerAreaData_point => {
     let lon = DangerAreaData_point.geometry.coordinates[0]
@@ -955,17 +953,16 @@ function AddDangerAreaDataSource(DangerAreaData) {
     window.viewer.entities.add({
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
-        // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
         image: riskArea,
-        width: 50, // 图片宽度,单位px
-        height: 50, // 图片高度，单位px
-        eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-        color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-        scale: 0.8, // 缩放比例
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+        width: 50,
+        height: 50,
+        eyeOffset: new Cesium.Cartesian3(0, 0, 0),
+        color: Cesium.Color.WHITE.withAlpha(1),
+        scale: 0.8,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-        depthTest: false, // 禁止深度测试
-        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+        depthTest: false,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
         show: true
       },
       properties:{
@@ -973,31 +970,15 @@ function AddDangerAreaDataSource(DangerAreaData) {
       }
     });
     if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
-      // 创建光晕实体
-      const haloEntity = window.viewer.entities.add({
+      // 统一收集高亮点
+      haloEntities.push({
         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-        point: {
-          pixelSize: 40, // 增大光晕大小，使其更明显
-          color: Cesium.Color.RED.withAlpha(0.4), // 提高透明度，使其更明显
-          outlineColor: Cesium.Color.RED.withAlpha(1.0), // 完全不透明的边框
-          outlineWidth: 3, // 适中的边框宽度
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY // 确保不被地形遮挡
-        }
+        color: Cesium.Color.RED
       });
-      addPulseAnimation(haloEntity,Cesium.Color.RED)
     }
   })
-
-  // DangerAreaDataList.forEach(DangerAreaData_point => {
-  //   let lon = DangerAreaData_point.geometry.coordinates[0]
-  //   let lat = DangerAreaData_point.geometry.coordinates[1]
-  //   let arr = []
-  //   if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
-  //     arr.push(DangerAreaData_point)
-  //     // console.log(DangerAreaData_point)
-  //   }
-  // })
+  // 批量调用统一光晕动画
+  addHaloEffect(haloEntities);
 }
 
 function pointToLineDistance_getMinLine(position,lineData) {
@@ -1125,10 +1106,10 @@ function calculateEllipseParams(magnitude) {
   ];
 
   const calculateRa = (M, Ia)=>{
-      const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) * 27;
-      // console.log(a, "=============================")
-      return a;
-    }
+    const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) * 27;
+    // console.log(a, "=============================")
+    return a;
+  }
 
   const  calculateRb = (M, Ib) =>{
     const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5) * 27;
@@ -1291,30 +1272,30 @@ function DrawEllipse(longitude,latitude) {
 function loadAdminData(administrationData) {
 
   const generateRandomColor = (i)=>{
-      // 定义13种不同的颜色
-      const colors = [
-        new Cesium.Color(255 / 255, 153 / 255, 0 / 255, 0.3),    // 活力橙
-        new Cesium.Color(255 / 255, 51 / 255, 102 / 255, 0.3),   // 亮粉红
-        new Cesium.Color(0 / 255, 178 / 255, 255 / 255, 0.3),    // 天蓝色
-        new Cesium.Color(102 / 255, 255 / 255, 102 / 255, 0.3),  // 浅绿色
-        new Cesium.Color(204 / 255, 102 / 255, 255 / 255, 0.3),  // 淡紫色
-        new Cesium.Color(255 / 255, 204 / 255, 0 / 255, 0.3),    // 金黄色
-        new Cesium.Color(0 / 255, 204 / 255, 153 / 255, 0.3),    // 青绿色
-        new Cesium.Color(255 / 255, 102 / 255, 102 / 255, 0.3),  // 浅红色
-        new Cesium.Color(102 / 255, 153 / 255, 255 / 255, 0.3),  // 淡蓝色
-        new Cesium.Color(255 / 255, 178 / 255, 102 / 255, 0.3),  // 浅橙色
-        new Cesium.Color(153 / 255, 255 / 255, 204 / 255, 0.3),  // 淡青色
-        new Cesium.Color(255 / 255, 153 / 255, 204 / 255, 0.3),  // 浅粉色
-        new Cesium.Color(190 / 255, 255 / 255, 232 / 255, 0.3),  // 淡靛紫
-      ];
+    // 定义13种不同的颜色
+    const colors = [
+      new Cesium.Color(255 / 255, 153 / 255, 0 / 255, 0.3),    // 活力橙
+      new Cesium.Color(255 / 255, 51 / 255, 102 / 255, 0.3),   // 亮粉红
+      new Cesium.Color(0 / 255, 178 / 255, 255 / 255, 0.3),    // 天蓝色
+      new Cesium.Color(102 / 255, 255 / 255, 102 / 255, 0.3),  // 浅绿色
+      new Cesium.Color(204 / 255, 102 / 255, 255 / 255, 0.3),  // 淡紫色
+      new Cesium.Color(255 / 255, 204 / 255, 0 / 255, 0.3),    // 金黄色
+      new Cesium.Color(0 / 255, 204 / 255, 153 / 255, 0.3),    // 青绿色
+      new Cesium.Color(255 / 255, 102 / 255, 102 / 255, 0.3),  // 浅红色
+      new Cesium.Color(102 / 255, 153 / 255, 255 / 255, 0.3),  // 淡蓝色
+      new Cesium.Color(255 / 255, 178 / 255, 102 / 255, 0.3),  // 浅橙色
+      new Cesium.Color(153 / 255, 255 / 255, 204 / 255, 0.3),  // 淡青色
+      new Cesium.Color(255 / 255, 153 / 255, 204 / 255, 0.3),  // 浅粉色
+      new Cesium.Color(190 / 255, 255 / 255, 232 / 255, 0.3),  // 淡靛紫
+    ];
 
-      // 确保索引在有效范围内
-      if (i >= 0 && i < colors.length) {
-        return colors[i];
-      } else {
-        // 如果索引超出范围，使用默认颜色或循环使用已有颜色
-        return colors[i % colors.length];
-      }
+    // 确保索引在有效范围内
+    if (i >= 0 && i < colors.length) {
+      return colors[i];
+    } else {
+      // 如果索引超出范围，使用默认颜色或循环使用已有颜色
+      return colors[i % colors.length];
+    }
   }
 
   function configureAdminStyles(dataSource, color) {
@@ -1458,28 +1439,28 @@ function setupEntityClickHandler() {
 
         });
       }else if(entity.properties && entity.properties.data._value.properties.灾害类型 === "泥石流"){
-          // console.log(entity.properties.data._value)
-          //屏幕坐标转世界坐标
-          let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
-          //世界坐标转经纬度
-          let ellipsoid=window.viewer.scene.globe.ellipsoid;
-          let cartographic=ellipsoid.cartesianToCartographic(cartesian);
-          let lat=Cesium.Math.toDegrees(cartographic.latitude);
-          let lon=Cesium.Math.toDegrees(cartographic.longitude);
-          window.viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-            orientation: {
-              // 指向
-              heading: 6.283185307179581,
-              // 视角
-              pitch: -1.5688168484696687,
-              roll: 0.0
-            },
-            duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-            complete: () => {
-              // 飞行完成后显示信息窗口
-              showInfoList(entity.properties.data._value,entity,"泥石流");
-            }
+        // console.log(entity.properties.data._value)
+        //屏幕坐标转世界坐标
+        let cartesian = window.viewer.scene.globe.pick(window.viewer.camera.getPickRay(click.position),window.viewer.scene);
+        //世界坐标转经纬度
+        let ellipsoid=window.viewer.scene.globe.ellipsoid;
+        let cartographic=ellipsoid.cartesianToCartographic(cartesian);
+        let lat=Cesium.Math.toDegrees(cartographic.latitude);
+        let lon=Cesium.Math.toDegrees(cartographic.longitude);
+        window.viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+          orientation: {
+            // 指向
+            heading: 6.283185307179581,
+            // 视角
+            pitch: -1.5688168484696687,
+            roll: 0.0
+          },
+          duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
+          complete: () => {
+            // 飞行完成后显示信息窗口
+            showInfoList(entity.properties.data._value,entity,"泥石流");
+          }
 
           });
       }else if(entity.properties){
@@ -1787,6 +1768,100 @@ function adjustWindowPosition(container) {
   if (rect.top < 0) {
     container.style.top = '20px';
   }
+}
+
+// 1. 在 <script setup> 顶部添加统一响应式变量
+const haloCollection = ref(null); // 光晕点集合
+const flashInterval = ref(null);  // 动画定时器
+const isHaloActive = ref(false);  // 光晕激活状态
+
+// 2. 添加统一的 addHaloEffect 和 clearHaloEffect 方法
+function addHaloEffect(entities) {
+  clearHaloEffect();
+  if (!entities || entities.length === 0) return;
+  // 创建光晕点集合
+  if (haloCollection.value) {
+    window.viewer.scene.primitives.remove(haloCollection.value);
+  }
+  haloCollection.value = new Cesium.PointPrimitiveCollection();
+  window.viewer.scene.primitives.add(haloCollection.value);
+  // 记录需要动画的点
+  const entitiesToFlash = [];
+  entities.forEach(({ position, color }) => {
+    if (!position) return;
+    const colorVal = color;
+    haloCollection.value.add({
+      position: position,
+      pixelSize: 15,
+      color: colorVal,
+      outlineColor: Cesium.Color.RED,
+      outlineWidth: 1,
+      show: true,
+      material: new Cesium.Material({
+        fabric: {
+          type: 'Halo',
+          uniforms: {
+            color: colorVal,
+            glowPower: 0.5,
+            innerRadius: 0.5,
+            outerRadius: 1.0
+          },
+          source: `
+            uniform vec4 color;
+            uniform float glowPower;
+            uniform float innerRadius;
+            uniform float outerRadius;
+            czm_material czm_getMaterial(czm_materialInput materialInput) {
+              czm_material material = czm_getDefaultMaterial(materialInput);
+              vec2 st = materialInput.st;
+              float dist = distance(st, vec2(0.5, 0.5));
+              float alpha = smoothstep(outerRadius, innerRadius, dist);
+              alpha = pow(alpha, glowPower);
+              material.diffuse = color.rgb;
+              material.alpha = alpha * color.a;
+              return material;
+            }
+          `
+        }
+      })
+    });
+    entitiesToFlash.push({ position, color: colorVal });
+  });
+  // 动画循环
+  let animationTime = 0;
+  const animationDuration = 2000;
+  flashInterval.value = setInterval(() => {
+    animationTime = (animationTime + 50) % animationDuration;
+    const normalizedTime = animationTime / animationDuration;
+    for (let i = 0; i < haloCollection.value.length; i++) {
+      const halo = haloCollection.value.get(i);
+      const baseSize = 15;
+      const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
+      halo.pixelSize = baseSize * sizeFactor;
+      // 透明度随扩散变化
+      const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
+      const originalColor = entitiesToFlash[i].color;
+      halo.color = new Cesium.Color(
+          originalColor.red,
+          originalColor.green,
+          originalColor.blue,
+          alphaFactor * 0.8
+      );
+    }
+  }, 50);
+  isHaloActive.value = true;
+}
+
+function clearHaloEffect() {
+  if (flashInterval.value) {
+    clearInterval(flashInterval.value);
+    flashInterval.value = null;
+  }
+  if (haloCollection.value) {
+    window.viewer.scene.primitives.remove(haloCollection.value);
+    haloCollection.value = null;
+  }
+  isHaloActive.value = false;
 }
 
 </script>

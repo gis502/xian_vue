@@ -1480,7 +1480,7 @@ export default {
 }
 
 .legend-name {
-  font-size: 13px;
+  font-size: 14px;
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
