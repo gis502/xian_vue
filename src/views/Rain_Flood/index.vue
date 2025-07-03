@@ -1190,7 +1190,7 @@ export default {
         position: cartesian,
         point: {
           // 根据降雨量调整点大小
-          pixelSize: this.rainfall / 5,
+          pixelSize: 15,
           color: Cesium.Color.DARKRED,
           outlineColor: Cesium.Color.WHITE,
           outlineWidth: 1,
