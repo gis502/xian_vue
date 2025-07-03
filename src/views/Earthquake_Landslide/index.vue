@@ -735,10 +735,17 @@ function AddChart() {
   // 网格配置
   const grid = {
     left: 50,
-    right: 150, // 增加右侧边距，为外部标签留出空间
+    right: 50, // 增加右侧边距，为外部标签留出空间
     top: 50,
-    bottom: 50
+    bottom: 50,
   };
+
+  // 准备数据（每个柱子可以有自己的信息）
+  const Data = [
+    { name: '风险区受影响点', value: 5, info: '高风险区域受影响情况' },
+    { name: '滑坡受影响点', value: 1, info: '滑坡灾害影响统计' },
+    { name: '泥石流受影响点', value: 0, info: '泥石流灾害影响统计' }
+  ];
 
   // 为每个柱子定义不同的颜色
   const colors = [
@@ -751,12 +758,29 @@ function AddChart() {
   ];
 
   // 准备带颜色的柱子数据
-  const barData = [5, 1, 0].map((value, index) => ({
-    value,
-    itemStyle: {
-      color: colors[index]
-    }
+  const barData = Data.map(item => ({
+    value: item.value,
+    name: item.name  // 添加name属性
   }));
+
+  // ============== 新增代码：注册斜角柱状图形状 ==============
+  const InclinedBarShape = echarts.graphic.extendShape({
+    shape: { x: 0, y: 0, xAxisPoint: [0, 0], width: 30 },
+    buildPath: function(ctx, shape) {
+      const xAxisPoint = shape.xAxisPoint;
+      const c0 = [shape.x, shape.y - 6];  // 左上角（控制斜角）
+      const c1 = [shape.x - 10, shape.y]; // 左下角
+      const c2 = [xAxisPoint[0] - 10, xAxisPoint[1]]; // 右下角
+      const c3 = [xAxisPoint[0], xAxisPoint[1]];      // 右上角
+      ctx.moveTo(c0[0], c0[1])
+          .lineTo(c1[0], c1[1])
+          .lineTo(c2[0], c2[1])
+          .lineTo(c3[0], c3[1])
+          .closePath();
+    }
+  });
+  echarts.graphic.registerShape('InclinedBar', InclinedBarShape);
+  // ============== 新增代码结束 ==============
 
   option = {
     // 添加标题配置
@@ -775,6 +799,24 @@ function AddChart() {
       }
     },
     // grid,
+    tooltip: {  // 鼠标悬停弹窗配置
+      trigger: 'item',  // 触发方式：'item'-单个柱子 'axis'-整个轴
+      formatter: params => {
+        // 自定义弹窗内容
+        return `
+          <div style="margin-bottom:5px;font-weight:bold">${params.name}</div>
+          <div>数量：<span style="color:${params.color}">${params.value}</span></div>
+        `;
+      },
+      backgroundColor: 'rgba(0,0,0,0.8)',  // 半透明黑色背景
+      borderColor: '#555',
+      borderWidth: 1,
+      textStyle: {
+        color: '#fff',
+        fontSize: 14
+      },
+      extraCssText: 'box-shadow: 0 0 10px rgba(0,0,0,0.5);'  // 添加阴影效果
+    },
     xAxis: {
       type: 'category',
       data: ['风险区受影响点','滑坡受影响点','泥石流受影响点',],
@@ -789,23 +831,18 @@ function AddChart() {
             fontSize: 15
           }
         },
-        // formatter: function(params) {
-        //   const textMap = {
-        //     '滑坡受影响点': '滑坡受\n影响点',
-        //     '滑坡未受影响点': '滑坡未受\n影响点',
-        //     '泥石流受影响点': '泥石流\n受影响点',
-        //     '泥石流未受影响点': '泥石流未受\n影响点',
-        //     '风险区受影响点': '风险区\n受影响点',
-        //     '风险区未受影响点': '风险区未受\n影响点',
-        //   };
-        //   return textMap[params] || params;
-        // },
       },
       axisLine: {
         lineStyle: {
           color: '#888'
         }
       }
+    },
+    grid: {
+      left: '10%',
+      right: '10%',
+      top: '20%',
+      bottom: '15%'
     },
     yAxis: {
       type: 'value',
@@ -826,19 +863,62 @@ function AddChart() {
     },
     series: [
       {
-        data: barData, // 使用带颜色的柱子数据
-        type: 'bar',
-        // 添加标签显示具体数值
+        data: barData,
+        type: 'custom',
+        renderItem: (params, api) => {
+          const value = api.value(1);
+          const location = api.coord([api.value(0), value]);
+          const point = api.coord([api.value(0), 0]);
+
+          // 值为0时只返回标签元素
+          if (value === 0) {
+            return {
+              type: 'text',
+              style: {
+                text: '0',
+                x: point[0] + 12,
+                y: point[1] - 10, // 调整标签位置
+                fill: '#fff',
+                fontSize: 12,
+                textAlign: 'center'
+              }
+            };
+          }
+
+          return {
+            type: 'group',
+            children: [{
+              type: 'InclinedBar',
+              shape: {
+                x: location[0] + 12,
+                y: location[1],
+                xAxisPoint: [point[0] + 12, point[1]]
+              },
+              style: api.style()
+            }]
+          };
+        },
+        barWidth: 30,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#438BFD' },
+            { offset: 0.5, color: '#13B0D7' },
+            { offset: 1, color: '#13B0D7' }
+          ]),
+          shadowColor: 'rgba(0, 0, 0, 0.5)',
+          shadowBlur: 5
+        },
         label: {
           show: true,
           position: 'top',
           color: '#fff',
           fontSize: 12,
-          // 格式化标签显示内容
           formatter: function(params) {
-            return params.value;
+            // 非零值显示标签
+            return params.value !== 0 ? params.value : '';
           }
-        }
+
+          }
       }
     ]
   };
@@ -2031,7 +2111,7 @@ function clearHaloEffect() {
   border-radius: 4px;
   z-index: 1000;
   height: 367px;
-  width: 550px; /* 限制表格宽度 */
+  width: 400px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
   /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
