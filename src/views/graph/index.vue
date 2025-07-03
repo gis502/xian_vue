@@ -105,28 +105,33 @@ import {MdPreview} from "md-editor-v3";
 import {ElMessage} from "element-plus";
 // import {getEqList} from "@/api/system/damageassessment.js";
 import {useRouter} from "vue-router";
+import eqentity1 from '@/assets/images/eqentity1.png'
+import eqentity2 from '@/assets/images/eqentity2.png'
+import eqentity3 from '@/assets/images/eqentity3.png'
+import eqentity4 from '@/assets/images/eqentity4.png'
+
 // 该数据不准二次赋值，用于全局调用，保存初始数据 ！！！
 let allDataLinks = [];
 // 存放图例的信息
 const legend = [
   {
     id:0,
-    img:"../../../public/images/eqentity1.png",
+    img:eqentity1,
     description:"一级实体"
   },
   {
     id:1,
-    img:"../../../public/images/eqentity2.png",
+    img:eqentity2,
     description:"二级实体"
   },
   {
     id:2,
-    img:"../../../public/images/eqentity3.png",
+    img:eqentity3,
     description:"三级实体"
   },
   {
     id:3,
-    img:"../../../public/images/eqentity4.png",
+    img:eqentity4,
     description:"四级实体"
   },
 ]
@@ -810,11 +815,11 @@ const focusNode = (nodeName) => {
 
     // 获取节点的屏幕坐标
     const pixelCoords = echartsInstance.value.convertToPixel({seriesIndex: 0}, [nodeData.x, nodeData.y]);
-    
+
     // 获取图表容器的尺寸
     const containerWidth = echartsInstance.value.getWidth();
     const containerHeight = echartsInstance.value.getHeight();
-    
+
     // 计算需要移动的距离（将节点移动到屏幕中心）
     const dx = containerWidth / 2 - pixelCoords[0];
     const dy = containerHeight / 2 - pixelCoords[1];
@@ -858,7 +863,7 @@ const focusNode = (nodeName) => {
     //   dataIndex: index
     // });
   }
-  
+
   inputValue.value = '';
 };
 
