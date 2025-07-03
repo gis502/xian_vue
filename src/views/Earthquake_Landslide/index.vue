@@ -732,28 +732,6 @@ function AddChart() {
   let myChart = echarts.init(chartDom);
   let option;
 
-  // 原始数据
-  // const rawData = [
-  //   [22, 21, 4, 130],
-  //   [4, 1, 0, 5],
-  //   [135, 0, 0, 0],
-  // ];
-  const rawData = [
-    [ 21, 4, 130],
-    [1, 0, 5],
-    [ 0, 0, 0],
-  ];
-
-  // 计算各列总和
-  const totalData = [];
-  for (let i = 0; i < rawData[0].length; ++i) {
-    let sum = 0;
-    for (let j = 0; j < rawData.length; ++j) {
-      sum += rawData[j][i];
-    }
-    totalData.push(sum);
-  }
-
   // 网格配置
   const grid = {
     left: 50,
@@ -762,125 +740,73 @@ function AddChart() {
     bottom: 50
   };
 
-  // 系列数据配置
-  const series = [];
-  const colors = ['#5793f3', '#d14a61', '#675bba']; // 自定义颜色
+  // 为每个柱子定义不同的颜色
+  const colors = [
+    '#e2ac07', // 泥石流受影响点 - 浅绿色
+    '#fff700', // 滑坡受影响点 - 蓝色
+    '#66c2a5', // 滑坡未受影响点 - 青绿色
+    '#e6f598', // 泥石流未受影响点 - 黄绿色
+    '#fee08b', // 风险区受影响点 - 浅黄色
+    '#fdae61', // 风险区未受影响点 - 橙色
+  ];
 
-  [
-   '未受影响点占比','受影响点占比'
-  ].forEach((name, sid) => {
-    // 主系列 - 正常显示的柱子
-    series.push({
-      name,
-      type: 'bar',
-      stack: 'total',
-      barWidth: '60%',
-      itemStyle: {
-        color: colors[sid]
-      },
-      label: {
-        show: true,
-        position: 'inside',
-        color: '#fff', // 内部标签保持白色
-        // 只在值大于等于5%时显示内部标签，并为原始数值添加单位"个"
-        formatter: (params) => {
-          const percent = params.value * 100;
-          return percent >= 5 ? `${percent.toFixed(1)}% (${rawData[sid][params.dataIndex]}个)` : '';
-        }
-      },
-      data: rawData[sid].map((d, did) => {
-        const percent = totalData[did] <= 0 ? 0 : d / totalData[did];
-        // 当原始值为0或总和为0时，返回null使柱状图不显示
-        return d === 0 || totalData[did] <= 0 ? null : percent;
-      })
-    });
+  // 准备带颜色的柱子数据
+  const barData = [5, 1, 0].map((value, index) => ({
+    value,
+    itemStyle: {
+      color: colors[index]
+    }
+  }));
 
-    // 辅助系列 - 用于显示小于5%的外部标签
-    series.push({
-      name: `${name}_outside`,
-      type: 'scatter',
-      xAxisIndex: 0,
-      yAxisIndex: 0,
-      symbolSize: 0, // 不显示散点
-      label: {
-        show: true,
-        position: 'right', // 标签显示在右侧
-        distance: 5,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        borderColor: colors[sid],
-        borderWidth: 1,
-        borderRadius: 4,
-        padding: [3, 5],
-        rich: {
-          arrow: {
-            color: colors[sid],
-            fontSize: 14
-          },
-          text: {
-            color: '#000' // 外部标签文本改为黑色
-          }
-        },
-        // 为外部标签的原始数值添加单位"个"
-        formatter: (params) => {
-          const dataIndex = params.data[2];
-          const value = rawData[sid][dataIndex];
-          const percent = totalData[dataIndex] <= 0 ? 0 : value / totalData[dataIndex];
-          if (percent > 0 && percent < 0.05) {
-            return `{arrow|➔} ${(percent * 100).toFixed(1)}% (${value}个)`;
-          }
-          return '';
-        }
-      },
-      data: rawData[sid].map((d, did) => {
-        const percent = totalData[did] <= 0 ? 0 : d / totalData[did];
-        // 为每个数据点计算累积高度，用于确定外部标签的位置
-        let cumulativeHeight = 0;
-        for (let i = 0; i < sid; i++) {
-          const prevPercent = totalData[did] <= 0 ? 0 : rawData[i][did] / totalData[did];
-          cumulativeHeight += prevPercent;
-        }
-
-        // 只对占比小于5%且大于0的数据创建外部标签
-        return percent > 0 && percent < 0.05
-            ? [did, cumulativeHeight + percent/2, did] // x坐标, y坐标, 数据索引
-            : [null, null, did];
-      })
-    });
-  });
-
-  // 完整图表配置项
   option = {
     // 添加标题配置
     title: {
-      // text: '滑坡预警数据分析',
-      subtext: '西安地区预警点分布与地震影响点占比统计',
+      subtext: '长安区地震影响点统计',
       left: 'center',
       top: 0,
-      textStyle: {
+      subtextStyle: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold'
-      },
-      subtextStyle: {
-        color: '#ddd',
-        fontSize: 16
+        fontWeight: 'bold', // 加粗字体
+        marginBottom: 10, // 底部边距
+        textAlign: 'center', // 文本居中
+        marginTop: 0, // 顶部边距
+        paddingTop: 20, // 顶部内边距
       }
     },
-    color: colors,
-    legend: {
-      selectedMode: false,
-      orient: "vertical",
-      right: 10,
-      top: "center",
-      itemWidth: 10,
-      itemHeight: 10,
-      textStyle: {
-        color: "#fff",
-        fontSize: 14
+    // grid,
+    xAxis: {
+      type: 'category',
+      data: ['风险区受影响点','滑坡受影响点','泥石流受影响点',],
+      axisLabel: {
+        interval: 0,
+        margin: 20,
+        color: '#fff', // x轴标签保持白色
+        rich: {
+          wrap: {
+            lineHeight: 18,
+            align: 'center',
+            fontSize: 15
+          }
+        },
+        // formatter: function(params) {
+        //   const textMap = {
+        //     '滑坡受影响点': '滑坡受\n影响点',
+        //     '滑坡未受影响点': '滑坡未受\n影响点',
+        //     '泥石流受影响点': '泥石流\n受影响点',
+        //     '泥石流未受影响点': '泥石流未受\n影响点',
+        //     '风险区受影响点': '风险区\n受影响点',
+        //     '风险区未受影响点': '风险区未受\n影响点',
+        //   };
+        //   return textMap[params] || params;
+        // },
       },
-      data: [ '未受影响点占比','受影响点占比']
+      axisLine: {
+        lineStyle: {
+          color: '#888'
+        }
+      }
     },
-    grid,
     yAxis: {
       type: 'value',
       axisLabel: {
@@ -898,42 +824,26 @@ function AddChart() {
         }
       }
     },
-    xAxis: {
-      type: 'category',
-      data: ['滑坡受影响点占比', '泥石流受影响点占比', '风险区受影响点占比'],
-      axisLabel: {
-        interval: 0,
-        margin: 20,
-        color: '#fff', // x轴标签保持白色
-        rich: {
-          wrap: {
-            lineHeight: 18,
-            align: 'center'
+    series: [
+      {
+        data: barData, // 使用带颜色的柱子数据
+        type: 'bar',
+        // 添加标签显示具体数值
+        label: {
+          show: true,
+          position: 'top',
+          color: '#fff',
+          fontSize: 12,
+          // 格式化标签显示内容
+          formatter: function(params) {
+            return params.value;
           }
-        },
-        formatter: function(params) {
-          const textMap = {
-            '西安预警点分布': '西安预警点\n分布',
-            '滑坡受影响点占比': '滑坡受影响\n点占比',
-            '泥石流受影响点占比': '泥石流受影响\n点占比',
-            '风险区受影响点占比': '风险区受影响\n点占比',
-            '地震受影响点总占比': '地震受影响\n点总占比',
-          };
-          return textMap[params] || params;
-        }
-      },
-      axisLine: {
-        lineStyle: {
-          color: '#888'
         }
       }
-    },
-    series
+    ]
   };
 
-  // 渲染图表
   option && myChart.setOption(option);
-
   // 窗口大小变化时自适应图表
   window.addEventListener('resize', () => {
     myChart.resize();
