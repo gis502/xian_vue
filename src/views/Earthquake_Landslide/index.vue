@@ -732,10 +732,51 @@ function AddChart() {
   let myChart = echarts.init(chartDom);
   let option;
 
+
+  // 定义柱状图形状基础配置
+  const myShape = {
+    x: 0,
+    y: 0,
+    width: 10 // 柱体宽度
+  };
+
+// 注册自定义图形（斜角设计）
+  const InclinedRoofColumn = echarts.graphic.extendShape({
+    shape: myShape,
+    buildPath: function(ctx, shape) {
+      const xAxisPoint = shape.xAxisPoint;
+      const c0 = [shape.x, shape.y - 6]; // 控制斜角倾斜度（-6 表示向左倾斜）
+      const c1 = [shape.x - 10, shape.y];
+      const c2 = [xAxisPoint[0] - 10, xAxisPoint[1]];
+      const c3 = [xAxisPoint[0], xAxisPoint[1]];
+      ctx.moveTo(c0[0], c0[1])
+          .lineTo(c1[0], c1[1])
+          .lineTo(c2[0], c2[1])
+          .lineTo(c3[0], c3[1])
+          .closePath();
+    }
+  });
+  echarts.graphic.registerShape('InclinedRoofColumn', InclinedRoofColumn);
+
+  const gradient = echarts.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color: '#438BFD' }, // 顶部颜色
+    { offset: 0.5, color: '#13B0D7' }, // 中间颜色
+    { offset: 1, color: '#13B0D7' }  // 底部颜色
+  ]);
+
+
+
+
+
+
+
+
+
+
   // 网格配置
   const grid = {
     left: 50,
-    right: 150, // 增加右侧边距，为外部标签留出空间
+    right: 50, // 增加右侧边距，为外部标签留出空间
     top: 50,
     bottom: 50
   };
@@ -827,18 +868,48 @@ function AddChart() {
     series: [
       {
         data: barData, // 使用带颜色的柱子数据
-        type: 'bar',
-        // 添加标签显示具体数值
-        label: {
-          show: true,
-          position: 'top',
-          color: '#fff',
-          fontSize: 12,
-          // 格式化标签显示内容
-          formatter: function(params) {
-            return params.value;
+        type: 'custom',
+        renderItem: (params, api) => {
+
+          const value = api.value(1);
+          const location = api.coord([api.value(0), api.value(1)]); // 柱顶坐标
+          const point = api.coord([api.value(0), 0]); // 柱底坐标
+          const children = [];
+          if (value !== 0) {
+            // 只有值不为0时绘制自定义柱状图形
+            children.push({
+              type: 'InclinedRoofColumn', // 使用自定义图形
+              shape: {
+                x: location[0] + 5,  // 水平居中微调
+                y: location[1],
+                xAxisPoint: [point[0] + 5, point[1]] // 底部对齐
+              },
+              style: {
+                fill: gradient,      // 应用渐变色
+                shadowColor: 'rgba(0, 0, 0, 0.3)',
+                shadowBlur: 10,
+                shadowOffsetX: 3,
+                shadowOffsetY: 3
+              }
+            },)
           }
-        }
+          children.push({
+            type: 'text',
+            style: {
+              text: api.value(1),
+              x: location[0],
+              y: location[1] - 10,
+              fill: '#fff',
+              font: '12px sans-serif',
+              textAlign: 'center',
+              textVerticalAlign: 'bottom'
+            }
+          })
+          return {
+            type: 'group',
+            children
+          };
+        },
       }
     ]
   };
@@ -2031,7 +2102,7 @@ function clearHaloEffect() {
   border-radius: 4px;
   z-index: 1000;
   height: 367px;
-  width: 550px; /* 限制表格宽度 */
+  width: 350px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
   /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
