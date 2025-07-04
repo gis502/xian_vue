@@ -820,6 +820,9 @@ function AddChart() {
       type: 'category',
       data: ['风险区受影响点','滑坡受影响点','泥石流受影响点',],
       axisLabel: {
+        textStyle: {
+          fontSize: 12 // 设置字体大小为25
+        },
         interval: 0,
         margin: 20,
         color: '#fff', // x轴标签保持白色
