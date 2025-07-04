@@ -877,7 +877,7 @@ function AddChart() {
               style: {
                 text: '0',
                 x: point[0] + 12,
-                y: point[1] - 10, // 调整标签位置
+                y: point[1] - 25, // 调整标签位置
                 fill: '#fff',
                 fontSize: 12,
                 textAlign: 'center'
@@ -912,7 +912,7 @@ function AddChart() {
           show: true,
           position: 'top',
           color: '#fff',
-          fontSize: 12,
+          fontSize: 12, // 调整标签字体大小
           formatter: function(params) {
             // 非零值显示标签
             return params.value !== 0 ? params.value : '';
