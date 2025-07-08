@@ -1,6 +1,6 @@
 import * as Cesium from "cesium";
 const CesiumIonDefaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDBjZjAxOS0wMDhhLTRmZjEtYjNmOC1iNmM2ZmY2ZmQ1N2IiLCJpZCI6MjAxMDI1LCJpYXQiOjE3MTAxNTgxNjJ9.mdbJYEzXQkBnHNqpozz7MvZjJ_X9a3JZRGPA-ytGhLI'
-const tdtToken = "31f4628fd3dd7fa4d98dd14042665db1"
+const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
 
 export function initCesium(container) {
     // 使用Cesium官方示例中的Token

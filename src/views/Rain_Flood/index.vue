@@ -13,7 +13,7 @@
           {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
         </div>
         <div class="table-btn" @click="toggleTablePanel" >
-          {{ showRiskTable ? '收起表格' : '展开表格' }}
+          {{ showRiskTable ? '信息隐藏' : '信息展示' }}
         </div>
       </div>
     </div>
@@ -56,7 +56,7 @@
               v-model:current-page="currentPage"
               v-model:page-size="pageSize"
               :page-sizes="[ 10, 20, 50]"
-              layout="total, sizes, prev, pager, next, jumper"
+              layout="total, sizes, prev, pager, next"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -245,7 +245,7 @@ export default {
       rainMode: false,
       showInfoPanel: false,
       selectedPosition: null,
-      rainfall: 50,
+      rainfall: 150,
       duration: 2,
       rainPoints: [],
       weatherActive: false,

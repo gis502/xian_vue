@@ -127,7 +127,7 @@ const dataTypes = {
     ]
   },
   type2: {
-    headers: ['滑坡灾害名称','位置', '险情等级', '影响面积(km2)'],
+    headers: ['滑坡灾害名称','位置', '险情等级', '影响面积(m2)'],
     data: [
       { field1: '向阳水库滑坡', field2: '西安市长安区炮里街道炮里村', field3: '小型', field4: '5742.99',field5:"109.13667",field6: "34.17667"},
     ]
@@ -745,7 +745,7 @@ function AddChart() {
     shape: myShape,
     buildPath: function(ctx, shape) {
       const xAxisPoint = shape.xAxisPoint;
-      const c0 = [shape.x, shape.y - 6]; // 控制斜角倾斜度（-6 表示向左倾斜）
+      const c0 = [shape.x, shape.y - 0]; // 控制斜角倾斜度（-6 表示向左倾斜）
       const c1 = [shape.x - 10, shape.y];
       const c2 = [xAxisPoint[0] - 10, xAxisPoint[1]];
       const c3 = [xAxisPoint[0], xAxisPoint[1]];
@@ -1188,7 +1188,7 @@ function DrawCircle(point, bearing, magnitude) {
   let labelEntity = new Cesium.Entity({
     position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
     label: {
-      text: "陕西省渭南市华州区8.0级地震（模拟）",
+      text: "陕西省渭南市华州区7.0级地震（模拟）",
       font: '40px',
       fillColor: Cesium.Color.BLACK,
       backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
