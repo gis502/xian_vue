@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import * as Cesium from 'cesium';
+import * as Cesium from 'cesium'
 import landslide from '@/assets/landslide/landslide.json'
 import landslideIcon from '@/assets/images/landslide.png'
 import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
@@ -758,7 +758,7 @@ function AddChart() {
   });
   echarts.graphic.registerShape('InclinedRoofColumn', InclinedRoofColumn);
 
-  const gradient = echarts.graphic.LinearGradient(0, 0, 0, 1, [
+  const gradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
     { offset: 0, color: '#438BFD' }, // 顶部颜色
     { offset: 0.5, color: '#13B0D7' }, // 中间颜色
     { offset: 1, color: '#13B0D7' }  // 底部颜色

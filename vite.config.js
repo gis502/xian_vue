@@ -2,7 +2,6 @@ import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
 import createVitePlugins from './vite/plugins'
 
-
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd())
@@ -26,13 +25,14 @@ export default defineConfig(({ mode, command }) => {
     },
     // vite 相关配置
     server: {
-      port: 3000,
+      port: 80,
       host: true,
       open: true,
       cors: true,
       proxy: {
         // https://cn.vitejs.dev/config/#server-proxy
         '/dev-api': {
+          // target: 'http://10.22.245.246:8080',
           target: 'http://localhost:8080',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, '')
@@ -44,8 +44,9 @@ export default defineConfig(({ mode, command }) => {
         },
         '/prod-api': {
           target: 'http://localhost:8080',
+          // target: 'http://10.22.245.246:8080',
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/dev-api/, '')
+          rewrite: (p) => p.replace(/^\/prod-api/, '')
         }
       }
     },
