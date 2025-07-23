@@ -3,77 +3,90 @@
     <div class="navbar">
       <h2 class="zhts-title">
         <div class="logo">
-          <span class="text">地震-堰塞湖-泥石流</span>
+          <span class="text">西安今日天气</span>
         </div>
       </h2>
-      <el-row type="flex" :gutter="24">
-        <el-col :span="36">
-          <div class="grid-content bg-purple">
-            <el-button type="primary" @click="toggleFaultZone()">
-              {{ showFaultZone ? '隐藏断裂带' : '显示断裂带' }}
-            </el-button>
 
-            <el-button class="earthquake-btn" @click="toggleEarthquakeMode()">
-              {{ earthquakeMode ? '取消地震模拟' : '地震模拟' }}
-            </el-button>
+      <!-- 天气数据区域-->
+      <div class="weather-container">
+        <!-- 加载状态 -->
+        <div v-if="weatherLoading" class="text-center py-4">
+          <i class="fa fa-spinner fa-spin mr-2"></i>加载中...
+        </div>
 
-            <el-button type="primary" @click="toggleHiddenDangerPoints()">
-              {{ showHiddenDangerPoints ? '隐藏隐患点' : '显示隐患点' }}
-            </el-button>
-<!--            <el-button type="primary" @click="draw('point')">添加危险源</el-button>-->
-            <el-button type="primary" @click="toggleRiskArea()">
-              {{ showriskArea ? '隐藏风险区' : '显示风险区' }}
-            </el-button>
-            <!--          <el-button type="primary" @click="draw('polygon')">绘制面</el-button>-->
-            <el-button type="primary" @click="clearDrawEntities">清空</el-button>
-<!--            <div class="SearchEarth">-->
-              <el-select
-                  v-model="eqlistName"
-                  placeholder="请选择地震信息"
-                  size="large"
-                  style="width: 350px"
-                  filterable
-              >
-<!--                <el-option-->
-<!--                    v-for="item in tableNameOptions"-->
-<!--                    :key="item.value"-->
-<!--                    :label="item.label"-->
-<!--                    :value="item.value"-->
-<!--                    @click="handleEqListChange"-->
-<!--                />-->
-              </el-select>
-<!--            </div>-->
+        <!-- 错误状态 -->
+        <div v-else-if="weatherError" class="text-center py-4 text-red-500">
+          <i class="fa fa-exclamation-circle mr-2"></i>{{ weatherError }}
+        </div>
+        <!-- 天气数据 -->
+        <div v-else-if="weatherData" class="weather-info">
+
+          <!-- 天气图标 -->
+          <div class="weather-item icon-item">
+            <span class="text-3xl mr-2" v-text="getWeatherIcon(weatherData?.weather)"></span>
           </div>
-        </el-col>
-      </el-row>
-    </div>
 
-    <div v-if="showInfoPanel" class="earthquake-info-panel">
-      <div class="panel-title">地震信息</div>
-      <div class="panel-content">
-        <div>震级: <input v-model.number="this.magnitude" type="number" min="0" max="10" step="0.1" /> ms</div>
-        <div>深度: <input v-model.number="depth" type="number" min="0" max="1000" step="1" /> km</div>
-        <div>震中位置:</div>
-        <div> {{ selectedPosition ? `北纬:${selectedPosition.latitude.toFixed(4)}, 东经:${selectedPosition.longitude.toFixed(4)}` : '' }}</div>
-        <el-row type="flex" :gutter="36">
-          <el-col :span="24">
-          <button @click="confirm_Earthquake">确认添加</button>
-          <button @click="cancel_Earthquake">取消</button>
-          </el-col>
-        </el-row>
+          <!-- 天气状况 -->
+          <div class="weather-item">
+            <div class="font-medium">{{ weatherData?.weather || '-' }}</div>
+          </div>
+
+          <!-- 温度 -->
+          <div class="weather-item temperature-item">
+            <span class="text-xl font-bold">温度： {{ weatherData?.temperature || '-' }}°C</span>
+          </div>
+
+          <!-- 湿度 -->
+          <div class="weather-item">
+            <span class="text-sm">湿度： {{ weatherData?.humidity || '-' }}%</span>
+          </div>
+
+          <!-- 降雨量 -->
+          <div class="weather-item rainfall-item" v-if="shouldShowRainfall(weatherData?.weather)">
+            <span class="text-sm flex items-center">
+              <i class="fa fa-cloud-rain text-blue-500 mr-1"></i>
+              降雨量：{{ weatherData?.precipitation === '0' ? '无降雨' : `${weatherData.precipitation}mm` }}
+            </span>
+          </div>
+
+          <!-- 风向 -->
+          <div class="weather-item wind-item">
+            <span class="text-sm flex items-center">
+              <i class="fa fa-location-arrow text-gray-600 mr-1"></i>
+              <!-- 使用 || 确保始终有显示内容 -->
+              风向：{{ weatherData?.winddirection || '无风向数据' }}风
+            </span>
+          </div>
+
+          <!-- 获取时间 -->
+          <div class="weather-item time-item">
+            <span class="text-xs text-gray-500">
+              更新时间：{{ formatTime(weatherData?.reporttime) }}
+            </span>
+          </div>
+
+        </div>
       </div>
-    </div>
 
+      <el-button type="primary" @click="refreshWeather">
+        {{'刷新'}}
+      </el-button>
+
+      <el-select
+          v-model="eqlistName"
+          placeholder="请选择灾害信息"
+          size="large"
+          style="width: 350px"
+          filterable
+      >
+      </el-select>
+    </div>
 
     <div class="legend">
       <div class="legend-title">图例</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>
       <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(255, 215, 0, 0.3);"></span>Ⅸ度</div>-->
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 128, 0, 0.25);"></span>Ⅷ度</div>-->
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(0, 0, 255, 0.2);"></span> Ⅶ度</div>-->
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(75, 0, 130, 0.15);"></span>Ⅵ度</div>-->
       <div class="legend-item"><span class="legend-circle" style="background: yellow;"></span> 震源</div>
       <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span>断裂带</div>
       <div class="legend-item"><span class="legend-circle" style="background: #ff0000;"></span> 危险源</div>
@@ -86,7 +99,6 @@
         风险区
       </div>
     </div>
-
   </div>
 </template>
 
@@ -100,6 +112,7 @@ import riskArea from "@/assets/static/disaster/xian_risk.json"
 import riskAreaIcon from "@/assets/images/riskArea.png"
 import CesiumNavigation from "cesium-navigation-es6";
 import {initCesium} from '@/cesium/initLayer.js'
+import axios from 'axios';
 
 export default {
   name: "index",
@@ -109,6 +122,7 @@ export default {
       viewer: null,
       handler: null, // 创建共享的 handler
       tdtToken: "07f071d2d20098468ee7697112e8fc58",//天地图密钥
+      weather: "c8e118cd71b1ab650c73d86a6eaa7cba",//高德密钥
       mapViewer: undefined,
       isDebrisFlowActive: false,
       debrisFlowPrimitive: null,
@@ -146,7 +160,36 @@ export default {
       bearing: 0,//烈度圈偏转角度
       earthPoint:null,//地震点
       eqlistName: '',
-
+      //天气相关数据
+      weatherData: null,
+      weatherLoading: false,
+      weatherError: null,
+      weatherIconMap: {
+        '晴': '☀️',
+        '多云': '🌤️',
+        '少云': '⛅',
+        '阴': '☁️',
+        '小雨': '🌧️',
+        '中雨': '🌧️',
+        '大雨': '🌧️',
+        '暴雨': '🌧️',
+        '雷阵雨': '⛈️',
+        '小雪': '🌨️',
+        '中雪': '🌨️',
+        '大雪': '🌨️',
+        '雾': '🌫️',
+        '霾': '🌫️',
+        '扬沙': '🌫️',
+        '浮尘': '🌫️',
+        '沙尘暴': '🌫️',
+        '强沙尘暴': '🌪️',
+        '龙卷风': '🌪️',
+        '雨夹雪': '🌨️',
+        '冻雨': '🌨️',
+        '热': '🌡️',
+        '冷': '❄️',
+        '未知': '❓'
+      }
     };
   },
   mounted() {
@@ -155,115 +198,121 @@ export default {
   },
   methods: {
     init() {
-      // this.viewer = new Cesium.Viewer("cesiumContainer", {
-      //   homeButton: false,
-      //   sceneModePicker: false,
-      //   baseLayerPicker: false, // 影像切换
-      //   animation: false, // 是否显示动画控件
-      //   infoBox: false, // 是否显示点击要素之后显示的信息
-      //   selectionIndicator: false, // 要素选中框
-      //   geocoder: false, // 是否显示地名查找控件
-      //   timeline: false, // 是否显示时间线控件
-      //   fullscreenButton: false,
-      //   shouldAnimate: false,
-      //   navigationHelpButton: false, // 是否显示帮助信息控件
-      // });
-      // this.mapViewer = this.viewer
 
       this.viewer = initCesium("cesiumContainer")
 
-      //天地图导入
-      // const imageLayers = this.viewer.scene.imageryLayers;
-      // imageLayers.remove(imageLayers.get(0)); //移除默认影像图层
-      // this.addTianDiTuLayers(0);
       // 注释版权信息
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
 
       //定位到西安
       this.locatedXiAn();
+
+      //获取天气数据
+      this.fetchWeatherData();
+
+      //添加隐患点
+      this.AddHiddenDangerPoints();
+
+      //添加风险区
+      this.Addriskzone();
     },
 
-    addTianDiTuLayers(type) {
-      this.viewer.imageryLayers.removeAll();
+    // 获取高德天气数据
+    fetchWeatherData() {
+      this.weatherLoading = true;
+      this.weatherError = null;
 
-      const option = {
-        tileMatrixSetID: "w",
-        format: "tiles",
-        style: "default",
-        minimumLevel: 0,
-        maximumLevel: 18,
-        credit: "Tianditu",
-        subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"]
-      };
+      // 使用 extensions=all 获取更详细的天气数据（可能包含降雨量）
+      const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=${this.weather}&city=610100&extensions=all`;
 
-      if (type === 0) {
-        const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/img_w/wmts?tk=${this.tdtToken}`,
-          layer: "img",
-          ...option
-        });
+      axios.get(url)
+          .then(response => {
+            console.log('完整API响应:', response.data);
 
-        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/cia_w/wmts?tk=${this.tdtToken}`,
-          layer: "cia",
-          ...option
-        });
+            if (response.data.status !== '1') {
+              throw new Error(`API错误: ${response.data.info}`);
+            }
 
-        this.viewer.imageryLayers.addImageryProvider(imageryProvider);
-        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
-      } else {
-        const vectorProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/vec_w/wmts?tk=${this.tdtToken}`,
-          layer: "vec",
-          ...option
-        });
+            // 提取实时天气数据（如果有）
+            const liveData = response.data.lives && response.data.lives.length > 0
+                ? response.data.lives[0]
+                : {};
 
-        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/cva_w/wmts?tk=${this.tdtToken}`,
-          layer: "cva",
-          ...option
-        });
+            // 提取预报天气数据（可能包含降雨量）
+            const forecastData = response.data.forecasts && response.data.forecasts.length > 0 &&
+            response.data.forecasts[0].casts && response.data.forecasts[0].casts.length > 0
+                ? response.data.forecasts[0].casts[0] // 今天的预报
+                : {};
 
-        this.viewer.imageryLayers.addImageryProvider(vectorProvider);
-        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+            // 整合数据，优先使用实时数据，缺少的字段用预报数据补充
+            this.weatherData = {
+              weather: liveData.weather || forecastData.dayweather || '-', // 天气状况
+              temperature: liveData.temperature || forecastData.daytemp || '-', // 温度
+              humidity: liveData.humidity || '-', // 湿度
+              precipitation: liveData.precipitation || forecastData.dayrain || forecastData.rainfall || '0', // 降雨量
+              winddirection: liveData.winddirection ||
+                  forecastData.daywind ||  // 预报中的风向
+                  forecastData.winddirection ||  // 备选字段
+                  '无风向数据',  // 最终默认值
+              reporttime: liveData.reporttime || new Date().toLocaleString(), // 报告时间
+            };
+
+            console.log('整合后的天气数据:', this.weatherData);
+          })
+          .catch(error => {
+            this.weatherError = error.message;
+            console.error('获取天气数据出错:', error);
+          })
+          .finally(() => {
+            this.weatherLoading = false;
+          });
+    },
+
+    // 刷新天气数据
+    refreshWeather() {
+      this.fetchWeatherData();
+    },
+
+    getWeatherIcon(code) {
+      // 打印实际获取的天气代码，方便调试
+      console.log('Weather code:', code);
+
+      // 处理可能的 null/undefined 情况
+      if (!code) {
+        return this.weatherIconMap.default || '🌍';
       }
 
-      this.currentMapType = type;
+      // 统一转换为字符串，避免类型不匹配
+      const codeStr = code.toString();
 
-      // 添加图层请求间隔
-      // setTimeout(() => {
-      //   this.viewer.imageryLayers.addImageryProvider(tdtLayer);
-      // }, 1000);
-      //
-      // setTimeout(() => {
-      //   this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
-      // }, 1000);
-      // const subdomains = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'];
-      // const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
-      // // 天地图影像
-      // const tdtLayer = new Cesium.WebMapTileServiceImageryProvider({
-      //   url: `http://${randomSubdomain}.tianditu.com/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
-      //   layer: "tdt",
-      //   style: "default",
-      //   format: "image/jpeg",
-      //   tileMatrixSetID: "w",
-      //   maximumLevel: 18,
-      //   show: false,
-      // });
-      // // 天地图注记
-      // const tdtAnnotionLayer = new Cesium.WebMapTileServiceImageryProvider({
-      //   url: `http://${randomSubdomain}.tianditu.com/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={TileMatrix}&TILEROW={TileRow}&TILECOL={TileCol}&tk=${this.tiandituKey}`,
-      //   layer: "tdtAnno",
-      //   style: "default",
-      //   format: "image/jpeg",
-      //   tileMatrixSetID: "w",
-      //   maximumLevel: 18,
-      //   show: false,
-      // });
-      // // 将图层添加到地图
-      // this.viewer.imageryLayers.addImageryProvider(tdtLayer);
-      // this.viewer.imageryLayers.addImageryProvider(tdtAnnotionLayer);
 
+      // 如果映射表中有对应项，返回对应图标
+      if (this.weatherIconMap[codeStr]) {
+        return this.weatherIconMap[codeStr];
+      }
+
+      // 否则返回默认图标
+      return this.weatherIconMap.default || '🌍';
+    },
+
+    shouldShowRainfall(weatherText) {
+      if (!weatherText) return false;
+
+      // 包含雨、雪、雷等关键字的天气状况显示降雨量
+      const rainfallKeywords = ['雨', '雪', '雷', '雹', '冻'];
+      return rainfallKeywords.some(keyword => weatherText.includes(keyword));
+    },
+
+    formatTime(timeStr) {
+      if (!timeStr) return '-';
+
+      // 如果是 ISO 格式的时间字符串
+      if (timeStr.includes('T')) {
+        return new Date(timeStr).toLocaleString();
+      }
+
+      // 处理高德 API 返回的格式（如 "2025-07-23 16:38:23"）
+      return timeStr.replace(' ', ' '); // 简单处理，可根据需要优化
     },
 
     locatedXiAn() {
@@ -329,164 +378,6 @@ export default {
       new CesiumNavigation(this.viewer, options);
     },
 
-    toggleEarthquakeMode() {
-      this.earthquakeMode = !this.earthquakeMode;
-
-      if (this.earthquakeMode) {
-        // 进入地震模式
-        this.setup_ClickHandler();
-        // document.body.style.cursor = 'crosshair';//改变鼠标样式
-        console.log("地震模式已激活");
-      } else {
-        // 退出地震模式
-        this.remove_ClickHandler();
-        // document.body.style.cursor = '';
-        this.showInfoPanel = false;
-        // this.showInfoPanel = !this.showInfoPanel;
-        console.log("地震模式已取消");
-      }
-    },
-
-    setup_ClickHandler() {
-      if (this.handler) {
-        this.handler.destroy();
-      }
-      this.handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
-      this.handler.setInputAction((movement) => {
-        this.earthPoint = this.get_ClickedPosition(movement.position);
-        if (this.earthPoint) {
-          this.selectedPosition = this.earthPoint;
-          this.showInfoPanel = true;
-          console.log("位置已选择:", this.earthPoint);
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    },
-
-    get_ClickedPosition(screenPosition) {
-      const ray = this.viewer.camera.getPickRay(screenPosition);
-      if (!ray) return null;
-
-      const cartesian = this.viewer.scene.globe.pick(ray, this.viewer.scene);
-      if (!cartesian) return null;
-      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-      return {
-        longitude: Cesium.Math.toDegrees(cartographic.longitude),
-        latitude: Cesium.Math.toDegrees(cartographic.latitude),
-        cartesian: cartesian
-      };
-    },
-
-    cancel_Earthquake() {
-      this.showInfoPanel = false;
-      this.earthquakeMode = false;
-      this.remove_ClickHandler();
-      document.body.style.cursor = '';
-    },
-
-    confirm_Earthquake() {
-      let position = this.earthPoint;
-      // console.log(this.earthPoint,"==============================")
-      // if (!this.selectedPosition) return;
-      // 清除现有烈度圈
-      // this.clearIntensityCircles();
-      this.drawHypocenter(position);
-      this.pointToLineDistance(position);
-
-      // 创建地震点
-      // const entity = this.createEarthquakeEntity();
-      // this.earthquakeEntities.push(entity);
-      // // 绘制烈度圈
-      // this.drawIntensityCircles();
-      // 重置状态
-      this.showInfoPanel = false;
-      this.earthquakeMode = false;
-      this.remove_ClickHandler();
-      // document.body.style.cursor = '';
-      // 飞行到震中
-      // this.flyToEarthquake(entity);
-    },
-
-    remove_ClickHandler() {
-      if (this.handler) {
-        this.handler.destroy();
-        this.handler = null;
-      }
-    },
-
-    toggleFaultZone() {
-      this.showFaultZone = !this.showFaultZone;
-      // 根据状态显示或隐藏断裂带
-      if (this.showFaultZone) {
-        // 显示断裂带的逻辑
-        this.AddFaultZone();
-      } else {
-        // 隐藏断裂带的逻辑
-
-          this.HideFaultZone();
-
-      }
-    },
-
-    toggleHiddenDangerPoints() {
-      this.showHiddenDangerPoints = !this.showHiddenDangerPoints;
-
-      // 根据状态显示或隐藏隐患点
-      if (this.showHiddenDangerPoints) {
-        // 显示隐患点的逻辑
-        this.AddHiddenDangerPoints();
-      } else {
-        // 隐藏隐患点的逻辑
-
-          this.HideHiddenDangerPoints();
-      }
-    },
-
-    toggleRiskArea(){
-      this.showriskArea = !this.showriskArea;
-      // 根据状态显示或隐藏风险区
-      if (this.showriskArea) {
-        // 显示风险区的逻辑
-        this.Addriskzone();
-      } else {
-        // 隐藏风险区的逻辑
-
-        this.Hideriskzone();
-      }
-    },
-
-    AddFaultZone() {
-      // console.log('显示断裂带');
-      this.lineData.features.forEach(line => {
-        this.line_data.push(line.geometry)
-      })
-      this.line_data.forEach(Lon_Lat => {
-        this.FaultZone = []
-        Lon_Lat.coordinates.forEach(LonLat => {
-          LonLat.forEach(point => {
-            this.FaultZone.push(Number(point))
-          })
-        })
-        let f = this.viewer.entities.add({
-          polyline: {
-            // fromDegrees返回给定的经度和纬度值数组（以度为单位），该数组由Cartesian3位置组成。
-            // Cesium.Cartesian3.fromDegreesArray([经度1, 纬度1, 经度2, 纬度2,])
-            // Cesium.Cartesian3.fromDegreesArrayHeights([经度1, 纬度1, 高度1, 经度2, 纬度2, 高度2])
-            positions: Cesium.Cartesian3.fromDegreesArray(this.FaultZone),
-            // 宽度
-            width: 2,
-            // 线的颜色
-            material: Cesium.Color.RED,
-            // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
-            zIndex: 10,
-            // 显示在距相机的距离处的属性，多少区间内是可以显示的
-            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0),
-            // 是否显示
-            show: true,
-          }
-        });
-        this.FaultZone_entities.push(f);
-      })
-    },
 
     AddHiddenDangerPoints() {
       //添加隐患点
@@ -774,47 +665,6 @@ export default {
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
 
-    HideFaultZone() {
-      // console.log('隐藏断裂带');
-
-      // 清空数据数组
-      this.line_data = [];
-      this.FaultZone = [];
-
-
-      // 移除所有断裂带实体
-      // const entities = this.viewer.entities.values;
-      for (let i = 0; i <this.FaultZone_entities.length; i++) {
-        // const entity = entities[i];
-        // if (entity.polyline && entity.polyline.material instanceof Cesium.Color &&
-        //     entity.polyline.material.color.equals(Cesium.Color.RED)) {
-        this.viewer.entities.remove(this.FaultZone_entities[i]);
-        // }
-      }
-    },
-
-    HideHiddenDangerPoints() {
-      // 清空数据数组
-      this.HazardPoint = [];
-      // 移除所有断裂带实体
-
-      for (let i = 0; i < this.HiddenDangerPoints_entities.length; i++) {
-
-        this.viewer.entities.remove(this.HiddenDangerPoints_entities[i]);
-         }
-
-    },
-
-    Hideriskzone(){
-      //隐藏风险区
-      this.riskZone=[];
-
-      // 移除所有断裂带实体
-      for (let i = 0; i < this.riskArea_entities.length; i++) {
-        this.viewer.entities.remove(this.riskArea_entities[i]);
-      }
-    },
-
     draw(type) {
       let that = this;
       let viewer = this.mapViewer;
@@ -828,38 +678,38 @@ export default {
       }
       this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       switch (type) {
-        // case "AddHypocenter":
-        //     // 监听鼠标左键
-        //   this.handler.setInputAction(movement => {
-        //     // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
-        //     let ray = viewer.camera.getPickRay(movement.position);
-        //     // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
-        //     position = viewer.scene.globe.pick(ray, viewer.scene);
-        //     if (position) {
-        //       this.selectedPosition = position;
-        //       this.showInfoPanel = true;
-        //       // console.log(this.showInfoPanel)
-        //       that.pointToLineDistance(position);
-        //       // console.log("位置已选择:", position);
-        //     }
-        //     let Hypo = that.drawHypocenter(position);
-        //     tempEntities.push(Hypo);
-        //     // 绘制完成后立即停止监听
-        //     this.handler.destroy();
-        //     this.handler = null;
-        //   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-        //
-        //     // 双击或右键点击仍可停止绘制
-        //   this.handler.setInputAction(function () {
-        //     this.handler.destroy();
-        //     this. handler = null;
-        //     }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-        //
-        //   this. handler.setInputAction(function () {
-        //     this.handler.destroy();
-        //     this.handler = null;
-        //     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-        //   break;
+          // case "AddHypocenter":
+          //     // 监听鼠标左键
+          //   this.handler.setInputAction(movement => {
+          //     // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
+          //     let ray = viewer.camera.getPickRay(movement.position);
+          //     // 查找射线与渲染的地球表面之间的交点。射线必须以世界坐标给出。返回Cartesian3对象
+          //     position = viewer.scene.globe.pick(ray, viewer.scene);
+          //     if (position) {
+          //       this.selectedPosition = position;
+          //       this.showInfoPanel = true;
+          //       // console.log(this.showInfoPanel)
+          //       that.pointToLineDistance(position);
+          //       // console.log("位置已选择:", position);
+          //     }
+          //     let Hypo = that.drawHypocenter(position);
+          //     tempEntities.push(Hypo);
+          //     // 绘制完成后立即停止监听
+          //     this.handler.destroy();
+          //     this.handler = null;
+          //   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+          //
+          //     // 双击或右键点击仍可停止绘制
+          //   this.handler.setInputAction(function () {
+          //     this.handler.destroy();
+          //     this. handler = null;
+          //     }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+          //
+          //   this. handler.setInputAction(function () {
+          //     this.handler.destroy();
+          //     this.handler = null;
+          //     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+          //   break;
         case "point":
           // 监听鼠标左键
           this.handler.setInputAction(function (movement) {
@@ -1190,111 +1040,6 @@ export default {
       return bearing;
     },
 
-    // drawCircle(point, bearing) {
-    //   //绘制椭圆
-    //   let position = point;//地震源位置
-    //   let strikeDirection = bearing;//根据断裂带计算的角度
-    //   const ellipseParams = [
-    //     {semiMinorAxis: 11873, semiMajorAxis: 21968, extrudedHeight: 952, alpha: 0.3},
-    //     {semiMinorAxis: 34567, semiMajorAxis: 45678, extrudedHeight: 4000, alpha: 0.2},
-    //     {semiMinorAxis: 40568, semiMajorAxis: 95666, extrudedHeight: 6000, alpha: 0.1}
-    //   ];
-    //   // 存储所有创建的椭圆实体
-    //   const entities = [];
-    //   // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
-    //   ellipseParams.forEach(params => {
-    //     // 将角度转换为弧度（Cesium使用弧度）
-    //     // const rotation = Cesium.Math.toRadians(strikeDirection);
-    //     console.log(rotation)
-    //     console.log(position)
-    //     let ellipse = new Cesium.Entity({
-    //       position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-    //       name: "面几何对象",
-    //       ellipse: {
-    //         semiMinorAxis: params.semiMinorAxis,
-    //         semiMajorAxis: params.semiMajorAxis,
-    //         extrudedHeight: params.extrudedHeight,
-    //         material: Cesium.Color.RED.withAlpha(params.alpha),
-    //         outline: false,
-    //         outlineColor: Cesium.Color.BLUE,
-    //         rotation: rotation // 设置椭圆旋转角度
-    //       }
-    //     });
-    //     this.viewer.entities.add(ellipse)
-    //     // console.log(ellipse)
-    //   });
-    // },
-    // draw_Circle(point, bearing, magnitude) {
-    //   // 地震源位置
-    //   let position = point;
-    //   // 根据断裂带计算的角度
-    //   let strikeDirection = bearing;
-    //
-    //   // 根据震级计算椭圆参数的函数
-    //   function calculateEllipseParams(magnitude) {
-    //     // 基础大小参数，可根据实际需求调整
-    //     const baseMinor = 5000;
-    //     const baseMajor = 10000;
-    //     const baseHeight = 1000;
-    //
-    //     // 使用指数函数让椭圆大小随震级增长
-    //     const scaleFactor = Math.pow(2, magnitude - 4);
-    //
-    //     // 创建三组不同透明度的椭圆参数
-    //     return [
-    //       {
-    //         semiMinorAxis: baseMinor * scaleFactor,
-    //         semiMajorAxis: baseMajor * scaleFactor,
-    //         extrudedHeight: baseHeight * scaleFactor,
-    //         alpha: 0.3
-    //       },
-    //       {
-    //         semiMinorAxis: baseMinor * scaleFactor * 1.5,
-    //         semiMajorAxis: baseMajor * scaleFactor * 1.5,
-    //         extrudedHeight: baseHeight * scaleFactor * 2,
-    //         alpha: 0.2
-    //       },
-    //       {
-    //         semiMinorAxis: baseMinor * scaleFactor * 2,
-    //         semiMajorAxis: baseMajor * scaleFactor * 3,
-    //         extrudedHeight: baseHeight * scaleFactor * 3,
-    //         alpha: 0.1
-    //       }
-    //     ];
-    //   }
-    //
-    //   // 根据震级计算椭圆参数
-    //   const ellipseParams = calculateEllipseParams(magnitude);
-    //
-    //   // 存储所有创建的椭圆实体
-    //   const entities = [];
-    //
-    //   // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
-    //   ellipseParams.forEach(params => {
-    //     // 将角度转换为弧度（Cesium使用弧度）
-    //     const rotation = Cesium.Math.toRadians(strikeDirection);
-    //
-    //     let ellipse = new Cesium.Entity({
-    //       position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-    //       name: "面几何对象",
-    //       ellipse: {
-    //         semiMinorAxis: params.semiMinorAxis,
-    //         semiMajorAxis: params.semiMajorAxis,
-    //         extrudedHeight: params.extrudedHeight,
-    //         material: Cesium.Color.RED.withAlpha(params.alpha),
-    //         outline: false,
-    //         outlineColor: Cesium.Color.BLUE,
-    //         rotation: rotation // 设置椭圆旋转角度
-    //       }
-    //     });
-    //
-    //     this.viewer.entities.add(ellipse);
-    //     entities.push(ellipse); // 将实体添加到返回数组
-    //   });
-    //
-    //   return entities; // 返回创建的所有椭圆实体
-    // },
-
     DrawCircle(point, bearing, magnitude) {
       // console.log("88888888888888888")
       // 地震源位置
@@ -1447,13 +1192,17 @@ export default {
 }
 
 .navbar {
-  background-color: #283b4d;
+  background-color:rgba(40, 59, 77, 0.8);
   height: 8%;
   display: flex;
   align-items: center;
   padding: 0 20px;
   background-size: 30% 100%;
   z-index: 100;
+}
+
+.text-3xl mr-2{
+  left: auto;
 }
 
 .zhts-title {
@@ -1472,6 +1221,37 @@ export default {
 .text {
   font-size: 20px;
   margin: auto;
+}
+
+.weather-container {
+  display: flex;
+  align-items: center;
+  flex: 1; /* 占据中间可用空间 */
+  margin: 0 20px;
+}
+
+.weather-info {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 元素之间的间距 */
+}
+
+.weather-item {
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+}
+
+.weather-item:last-child {
+  border-right: none;
+}
+
+.icon-item {
+  margin-right: 5px;
+}
+
+.time-item {
+  margin-left: 10px;
 }
 
 .controls {
