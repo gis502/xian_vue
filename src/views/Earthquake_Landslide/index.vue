@@ -2090,9 +2090,7 @@ function clearHaloEffect() {
   top: 120px;
 }
 
-.container {
 
-}
 
 .chart-container {
   position: absolute;

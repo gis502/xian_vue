@@ -11,3 +11,10 @@ export function getChartDataBy(eqid) {
         url: '/graph/getGraphBy', method: 'get', params: {eqid: eqid}
     });
 }
+export function getNewsPage(pageNum, pageSize) {
+    return request({
+        url: '/xian_news/list',
+        method: 'get',
+        params: { pageNum, pageSize }
+    });
+}

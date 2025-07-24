@@ -2,7 +2,7 @@
   <div class="content-body">
 
     <div class="closeAll">
-      <button @click="handleClick">×</button>
+      <button @click="handleClick"></button>
     </div>
 
     <div class="catalog" v-show="ifShowCatalog">
@@ -22,6 +22,7 @@
             @keydown.enter="focusNode(inputValue)"
         />
       </div>
+      <div class="container">
       <div class="list">
         <li
             v-for="item in list"
@@ -42,12 +43,62 @@
           </ul>
         </li>
       </div>
-    </div>
+      </div>
+      <!-- 按钮区域 -->
+      <div class="button themes"
+           :class="{ active: isPanelShow.NewsInfo }"
+           style="height: 40px; margin-top: -15px; margin-bottom: 10px;text-align: center;"
+           @click="handleNewsPanel">
+        新闻信息展示
+      </div>
+      <!-- 新闻展示悬浮框 - 列表表格样式 -->
+      <div v-if="isNewsBoxVisible" class="news-float-box">
+        <div class="news-box-title">新闻信息列表</div>
+        <div class="news-scroll-area">
+          <table class="news-table">
+            <thead>
+            <tr>
+              <th style="width: 50px">序号</th>
+              <th style="width: 80px">来源</th>
+              <th>标题</th>
+              <th>时间</th>
+              <th style="width: 70px">发布者</th>
+              <th>内容</th>
+              <th style="width: 80px">实体分类</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(news, index) in newsDataList" :key="news.newId">
+              <td>{{ (pageNum - 1) * pageSize + index + 1 }}</td>
+              <td>{{ news.sourceName }}</td>
+              <td>{{ news.title }}</td>
+              <td>{{ formatDate(news.publishTime) }}</td>
+              <td>{{ news.publishName }}</td>
+              <td class="truncate-content" :title="news.content">{{ news.content }}</td>
+              <td>{{ news.newEntity }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display: flex; justify-content: center;">
+        <el-pagination
+            style="text-align: center; margin-top: 10px;"
+            background
+            layout="prev, pager, next"
+            :current-page="pageNum"
+            :page-size="pageSize"
+            :total="total"
+            :page-sizes="[5]"
+            @current-change="handlePageChange"
+        />
+        </div>
+      </div>
+      </div>
+
 
     <div class="knowledgeGraph">
       <div class="chartContainer" ref="chart"></div>
       <div class="restart">
-
         <button @click="getData(lastEqqueueId)">一键复原</button>
       </div>
       <div class="chartCount">
@@ -83,7 +134,6 @@
           <div
               v-for="(item, index) in tableData"
               :key="index"
-              class="disaster-item"
           >
             <p class="clickable" @click="getData(item.eqid)">{{ item.eqAddr }}</p>
           </div>
@@ -100,7 +150,7 @@
 import {Position, Search} from "@element-plus/icons-vue";
 import * as echarts from 'echarts';
 import {ref, onMounted, onBeforeUnmount, nextTick} from 'vue';
-import {getChartDataBy, getGraphData} from "@/api/system/knowledgeGraph.js";
+import {getChartDataBy, getGraphData, getNewsPage} from "@/api/system/knowledgeGraph.js";
 import {MdPreview} from "md-editor-v3";
 import {ElMessage} from "element-plus";
 // import {getEqList} from "@/api/system/damageassessment.js";
@@ -141,7 +191,6 @@ const emit = defineEmits(['bigGraphShow'])
 const inputValue = ref('');
 const currentIndex = ref(null);
 const showChat = ref(false);
-const messageList = ref([]);
 const loading = ref(false);
 const chart = ref(null);
 // 永远不会改变的初始值（这里有BUG，不知道为什么变化了）
@@ -158,13 +207,52 @@ const chartChangeLinks = ref([]);
 // 所有的数据信息
 const chartData = ref([]);
 const chartLinks = ref([]);
-// 用于检查随着时间轴变化是否更新
-const lastChartData = ref([]);
 const echartsInstance = ref(null);
 // 控制左侧列表是否隐藏
 const ifShowCatalog = ref(true);
 const list = ref([]);
-const newList = ref([]);
+
+//新闻模块
+const isNewsBoxVisible = ref(true)
+const newsDataList = ref([])
+const pageNum = ref(1)
+const pageSize = ref(5)
+const total = ref(0)
+// 控制面板和新闻框显示
+const isPanelShow = ref({ NewsInfo: false })
+// 按钮点击处理
+const handleNewsPanel = () => {
+  isPanelShow.value.NewsInfo = !isPanelShow.value.NewsInfo
+  isNewsBoxVisible.value = isPanelShow.value.NewsInfo
+}
+//新闻数据处理逻辑
+const fetchNewsData = async () => {
+  try {
+    const res = await getNewsPage(pageNum.value, pageSize.value)
+    console.log(res)
+    if (res.code === 200) {
+      newsDataList.value = res.data.records
+      total.value = res.data.total
+    } else {
+      ElMessage.error('获取新闻失败')
+    }
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求异常')
+  }
+}
+
+const handlePageChange = (newPage) => {
+  pageNum.value = newPage
+  fetchNewsData()
+}
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleString()
+}
+
+
+
 // ECharts 配置
 const echartsOption = ref({
   backgroundColor: 'rgba(0,0,0,0)',
@@ -633,8 +721,7 @@ const initChart = () => {
 };
 
 
-// 点击节点触发函数
-// 用于记录已展开的节点名
+// 点击节点触发函数,用于记录已展开的节点名
 const expandedNodes = new Set();
 
 // 点击节点处理展开或收起
@@ -906,7 +993,6 @@ const handleClick = () => {
 };
 
 const handleChildClick = (child) => {
-  // child:{id: 12, value: '强震检测信息'}
   console.log(child,"我看看怎么个事")
   const newChild = { name: child.value }; // 转换成 {name: "强震检测信息"}
   handleNodeClick(newChild);
@@ -916,6 +1002,7 @@ const handleChildClick = (child) => {
 // 生命周期钩子
 onMounted(() => {
   getData()
+  fetchNewsData()
 });
 
 onBeforeUnmount(() => {
@@ -1011,7 +1098,7 @@ onBeforeUnmount(() => {
         align-items: center;
         justify-content: center;
         background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.9);
+        border: 1px solid #48D1CC;
         left: 10px;
         font-size: 14px;
         font-weight: 500;
@@ -1063,7 +1150,7 @@ onBeforeUnmount(() => {
         align-items: center;
         justify-content: center;
         background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.9);
+        border: 1px solid #48D1CC;
         left: 10px;
         border-radius: 5px;
         padding: 5px 12px;
@@ -1263,9 +1350,9 @@ onBeforeUnmount(() => {
     }
 
     .search {
+      width: 15vw;
       text-align: center;
       margin-bottom: 10px;
-
       .search-button, .search-input {
         background-color: rgba(255,255,255,0.8);
         border: 1px solid rgba(52, 152, 219, 0.3);
@@ -1288,7 +1375,8 @@ onBeforeUnmount(() => {
 
     .list {
       flex: 1;
-      overflow-y: scroll; /* 使内容可以垂直滚动 */
+      overflow-y: auto;
+      min-height: 0; /* 防止撑开容器（必须） */
 
       li {
         list-style-type: none; /* 先去掉默认的小圆点 */
@@ -1433,6 +1521,101 @@ onBeforeUnmount(() => {
   right: 10px;
   bottom: 10px;
 }
+
+/* 外层容器给固定高度，例如你整个区域高度为400px */
+.container {
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 50px; /* 确保与按钮有间隔 */
+}
+
+.button.themes {
+  flex-shrink: 0;
+  height: 40px;
+  margin-left: 10px;
+  margin-right: 10px;
+  border: 1px solid #409EFF; /* 设置边框颜色 */
+  border-radius: 6px;
+  color: #409EFF;
+  background-color: white; /* 按钮白底 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* 添加轻微阴影 */
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button.themes:hover {
+  background-color: #ecf5ff; /* hover 状态颜色 */
+}
+
+.button.themes.active {
+  background-color: #409EFF;
+  color: white;
+  border: 1px solid #409EFF;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+}
+
+//新闻列表
+.news-float-box {
+  position: absolute;
+  top: 40px;
+  right: 20px;
+  bottom: 60px;
+  width: 500px;
+  max-height: 400px;
+  border: 1px solid #ddd;
+  background: rgba(0, 0, 0, 0.4); /* 半透明黑色背景 */
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  z-index: 999;
+  font-family: "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+  text-align: center;
+}
+
+.news-box-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #FFFFFF;
+}
+
+.news-scroll-area {
+  /* 限制最大高度，超出滚动 */
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.news-table {
+  min-width: 800px; /* ✅ 设置表格整体宽度，触发横向滚动 */
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+
+.news-table th,
+.news-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  color: #FFFFFF;
+}
+
+.news-table th {
+  background-color: #909399;
+  font-weight: 600;
+}
+
+.truncate-content {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 </style>
 
