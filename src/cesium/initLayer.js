@@ -131,19 +131,25 @@ export function init_cesium_navigation(longitude, latitude, viewer) {
 }
 
 //显示鼠标位置坐标
-// export function setupMouseCoordinateDisplay() {
-//     var canvas = this.viewer.scene.canvas;
-//     var ellipsoid = this.viewer.scene.globe.ellipsoid;
-//     var handler = new Cesium.ScreenSpaceEventHandler(canvas);
-//     let that=this
-//     handler.setInputAction(function (movement) {
-//         var cartesian = that.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
-//         // console.log(cartesian,"cartesian")
-//         if (cartesian) {
-//             var cartographic = that.viewer.scene.globe.ellipsoid.cartesianToCartographic(cartesian);
-//             // console.log(cartographic,"cartographic")
-//             that.coordinateBoxData.latitude = Number(Cesium.Math.toDegrees(cartographic.latitude)).toFixed(6); // 纬度
-//             that.coordinateBoxData.longitude = Number(Cesium.Math.toDegrees(cartographic.longitude)).toFixed(6); // 经度
-//         }
-//     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-// },
+export function setupMouseCoordinateDisplay(viewer, coordinateBoxData) {
+    if (!viewer || !coordinateBoxData) {
+        console.error('viewer 和 coordinateBoxData 不能为空')
+        return
+    }
+
+    const canvas = viewer.scene.canvas
+    const ellipsoid = viewer.scene.globe.ellipsoid
+    const handler = new Cesium.ScreenSpaceEventHandler(canvas)
+
+    handler.setInputAction(function (movement) {
+        const cartesian = viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid)
+        if (cartesian) {
+            const cartographic = ellipsoid.cartesianToCartographic(cartesian)
+            coordinateBoxData.latitude = Number(Cesium.Math.toDegrees(cartographic.latitude)).toFixed(6)
+            coordinateBoxData.longitude = Number(Cesium.Math.toDegrees(cartographic.longitude)).toFixed(6)
+        }
+    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+
+    // 可选：返回 handler，方便销毁
+    return handler
+}

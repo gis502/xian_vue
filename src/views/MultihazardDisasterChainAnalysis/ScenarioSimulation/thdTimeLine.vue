@@ -34,7 +34,7 @@
 <script>
 import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
-import {init_cesium_navigation, initCesium} from '@/cesium/initLayer.js'
+import {initCesium,init_cesium_navigation, setupMouseCoordinateDisplay} from '@/cesium/initLayer.js'
 import {getEarthquakeEventById, getDisasterRainById} from '@/api/system/disasterEvents'
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
@@ -78,6 +78,9 @@ export default {
     if (this.viewer) {
       this.viewer.destroy();
       this.viewer = null;
+    }
+    if (this.MouseCoordinateHandler) {
+      this.MouseCoordinateHandler.destroy()
     }
   },
   mounted() {
@@ -186,65 +189,14 @@ export default {
 
       window.viewer = viewer
       this.viewer = viewer
+      this.MouseCoordinateHandler = setupMouseCoordinateDisplay(this.viewer, this.coordinateBoxData)
 
 
-      this.setupMouseCoordinateDisplay()
       this.centerpoint = timeLine.addCenterPoint(this.disaterEvent)
       this.locatedCenter()
       this.entitiesClickPonpHandler()
+    },
 
-    },
-// //
-//     init() {
-//       let clock;
-//
-//
-//       const startTime = Cesium.JulianDate.fromDate(new Date('2023-01-01T00:00:00Z'));
-//       const stopTime = Cesium.JulianDate.fromDate(new Date('2023-01-02T00:00:00Z'));
-//
-//
-//
-//         clock = new Cesium.Clock({
-//           startTime: Cesium.JulianDate.fromDate(new Date("2024-06-12 14:49:00")),
-//           stopTime: Cesium.JulianDate.fromDate(new Date("2024-06-15 14:49:00")),
-//           currentTime: Cesium.JulianDate.fromDate(new Date("2024-06-12 14:49:00")),
-//           clockRange: Cesium.ClockRange.CLAMPED,
-//         })
-//         let viewer = initCesium( "cesiumContainer", clock)
-//
-//         viewer.clock.multiplier = 3600
-//
-//
-//       viewer.clock.startTime = startTime.clone();
-//       viewer.clock.stopTime = stopTime.clone();
-//       viewer.clock.currentTime = startTime.clone();
-//
-//       // 同步更新时间轴
-//       viewer.timeline.zoomTo(startTime, stopTime);
-//
-//       // 配置动画属性
-//
-//
-//         // viewer.clock.shouldAnimate = f;
-//
-//       },
-    //显示鼠标位置坐标
-    setupMouseCoordinateDisplay() {
-      var canvas = this.viewer.scene.canvas;
-      var ellipsoid = this.viewer.scene.globe.ellipsoid;
-      var handler = new Cesium.ScreenSpaceEventHandler(canvas);
-      let that=this
-      handler.setInputAction(function (movement) {
-        var cartesian = that.viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
-        // console.log(cartesian,"cartesian")
-        if (cartesian) {
-          var cartographic = that.viewer.scene.globe.ellipsoid.cartesianToCartographic(cartesian);
-          // console.log(cartographic,"cartographic")
-          that.coordinateBoxData.latitude = Number(Cesium.Math.toDegrees(cartographic.latitude)).toFixed(6); // 纬度
-          that.coordinateBoxData.longitude = Number(Cesium.Math.toDegrees(cartographic.longitude)).toFixed(6); // 经度
-        }
-      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-    },
 
     async locatedCenter() {
       await timeLine.fly(this.disaterEvent.longitude, this.disaterEvent.latitude, 6000)
