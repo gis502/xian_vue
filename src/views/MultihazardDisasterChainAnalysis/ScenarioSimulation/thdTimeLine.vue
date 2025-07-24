@@ -88,7 +88,6 @@ export default {
   methods: {
     async init() {
       let that = this
-      // console.log("this.id,this.trigger", this.id, this.trigger)
       if (this.trigger == "地震") {
         this.disaterEvent = await getEarthquakeEventById({id: this.id})
         this.disaterEvent.disasterName = this.disaterEvent.earthquakeName
@@ -102,24 +101,32 @@ export default {
       this.disaterEvent.longitude = longitude
       this.disaterEvent.latitude = latitude
 
+      if (!this.disaterEvent.occurrenceTime) {
+        console.error("Invalid occurrenceTime:", this.disaterEvent.occurrenceTime);
+        return;
+      }
 
-
-      let startTime = new Date(this.disaterEvent.occurrenceTime);
-      let stopTime = new Date(startTime.getTime() + 10 * 24 * 3600 * 1000);
-      console.log( Cesium.JulianDate.fromDate(startTime)," Cesium.JulianDate.fromDate(startTime),")
+      let startTimetmp = new Date(this.disaterEvent.occurrenceTime);
+      let startTime = Cesium.JulianDate.fromDate(startTimetmp);
+      let stopTimetmp = new Date(startTimetmp.getTime() + 10 * 24 * 3600 * 1000);
+      let stopTime = Cesium.JulianDate.fromDate(stopTimetmp);
       let clock = new Cesium.Clock({
-        startTime: Cesium.JulianDate.fromDate(startTime),
-        stopTime: Cesium.JulianDate.fromDate(stopTime),
-        currentTime: Cesium.JulianDate.fromDate(startTime),
+        startTime:startTime,
+        stopTime: stopTime,
+        currentTime: startTime,
         clockRange: Cesium.ClockRange.CLAMPED,
       });
 
-//
 
       let viewer = initCesium("cesiumContainer", clock)
+
+      viewer.clock.startTime = startTime.clone();
+      viewer.clock.stopTime = stopTime.clone();
+      viewer.clock.currentTime = startTime.clone();
+
       // 同步更新时间轴
-      viewer.timeline.zoomTo(clock.startTime, clock.stopTime);
-      viewer.clock.shouldAnimate = false;
+      viewer.timeline.zoomTo(startTime, stopTime);
+      // 同步更新时间轴
       viewer._cesiumWidget._creditContainer.style.display = 'none' // 隐藏版权信息
       init_cesium_navigation(this.disaterEvent.longitude, this.disaterEvent.latitude, viewer)
       //取消双击视角定位
@@ -140,7 +147,7 @@ export default {
         }
       });
 
-
+      viewer.clock.shouldAnimate = false;
       viewer.clock.multiplier = 3600
       viewer.clock.onTick.addEventListener(function (clock) {
         if (clock.currentTime) {
@@ -187,6 +194,40 @@ export default {
       this.entitiesClickPonpHandler()
 
     },
+// //
+//     init() {
+//       let clock;
+//
+//
+//       const startTime = Cesium.JulianDate.fromDate(new Date('2023-01-01T00:00:00Z'));
+//       const stopTime = Cesium.JulianDate.fromDate(new Date('2023-01-02T00:00:00Z'));
+//
+//
+//
+//         clock = new Cesium.Clock({
+//           startTime: Cesium.JulianDate.fromDate(new Date("2024-06-12 14:49:00")),
+//           stopTime: Cesium.JulianDate.fromDate(new Date("2024-06-15 14:49:00")),
+//           currentTime: Cesium.JulianDate.fromDate(new Date("2024-06-12 14:49:00")),
+//           clockRange: Cesium.ClockRange.CLAMPED,
+//         })
+//         let viewer = initCesium( "cesiumContainer", clock)
+//
+//         viewer.clock.multiplier = 3600
+//
+//
+//       viewer.clock.startTime = startTime.clone();
+//       viewer.clock.stopTime = stopTime.clone();
+//       viewer.clock.currentTime = startTime.clone();
+//
+//       // 同步更新时间轴
+//       viewer.timeline.zoomTo(startTime, stopTime);
+//
+//       // 配置动画属性
+//
+//
+//         // viewer.clock.shouldAnimate = f;
+//
+//       },
     //显示鼠标位置坐标
     setupMouseCoordinateDisplay() {
       var canvas = this.viewer.scene.canvas;
@@ -238,7 +279,7 @@ export default {
       setTimeout(() => {
         this.eqCenterPanelVisible = false;
         this.rainCenterPanelVisible = false;
-        viewer.clock.shouldAnimate = true;
+        viewer.clockViewModel.shouldAnimate = true;
       }, 3000);
     },
 
