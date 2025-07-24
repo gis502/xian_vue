@@ -28,6 +28,14 @@
     <div class="coordinate-box">
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}
     </div>
+    <timeLinePlay
+        :viewer="viewer"
+        :disaterEvent="disaterEvent"
+        :currentTime="currentTimeString"
+        :stopTimePlay="stopTimePlay"
+        :isMarkingLayer="isMarkingLayerLocal"
+        @startTimePlay="handleStartTimePlay"
+    />
   </div>
 </template>
 
@@ -44,14 +52,15 @@ import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import plotInfoOnlyShowPanel from "@/components/Panel/plotInfoOnlyShowPanel";
 import dataSourcePanel from "@/components/Panel/dataSourcePanel.vue";
-
+//时间轴组件
+import timeLinePlay from "@/components/ScenarioSimulation/timeLinePlay.vue";
 export default {
   name: "thdTimeLine",
   props: ['id', 'trigger'],
   data() {
     return {
       viewer: null,
-      isTimeRunning: false,
+
       disaterEvent: null,
       centerpoint: null,
       //---信息弹框---
@@ -65,14 +74,31 @@ export default {
       plotShowOnlyPanelVisible: false,
       dataSourcePopupVisible: false,
       //鼠标位置经纬度
-      coordinateBoxData: {longitude: 0, latitude: 0},
+      coordinateBoxData: {longitude: 108, latitude: 34},
+
+      stopTimePlay: false,
+      isTimeRunning: false,
+      isMarkingLayerLocal: true,
+      currentTime:new Date()
     };
+  },
+  computed: {
+    // 在父组件中，将 JulianDate 转换为字符串
+    currentTimeString() {
+      if (this.currentTime) {
+        // 使用 Cesium 的函数将 JulianDate 转换为 ISO 字符串
+        return Cesium.JulianDate.toIso8601(this.currentTime);
+      }
+      return '';
+    }
   },
   components: {
     eqCenterPanel,
     rainCenterPanel,
     plotInfoOnlyShowPanel,
-    dataSourcePanel
+    dataSourcePanel,
+
+    timeLinePlay
   },
   beforeDestroy() {
     if (this.viewer) {
@@ -93,7 +119,6 @@ export default {
       let that = this
       if (this.trigger == "地震") {
         this.disaterEvent = await getEarthquakeEventById({id: this.id})
-        this.disaterEvent.disasterName = this.disaterEvent.earthquakeName
         this.disaterEvent.trigger = "地震"
       } else if (this.trigger == "暴雨") {
         this.disaterEvent = await getDisasterRainById({id: this.id})
@@ -131,7 +156,7 @@ export default {
       viewer.timeline.zoomTo(startTime, stopTime);
       // 同步更新时间轴
       viewer._cesiumWidget._creditContainer.style.display = 'none' // 隐藏版权信息
-      init_cesium_navigation(this.disaterEvent.longitude, this.disaterEvent.latitude, viewer)
+
       //取消双击视角定位
       viewer.trackedEntity = undefined;
       viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(
@@ -189,9 +214,9 @@ export default {
 
       window.viewer = viewer
       this.viewer = viewer
+
+      init_cesium_navigation(this.disaterEvent.longitude, this.disaterEvent.latitude, viewer)
       this.MouseCoordinateHandler = setupMouseCoordinateDisplay(this.viewer, this.coordinateBoxData)
-
-
       this.centerpoint = timeLine.addCenterPoint(this.disaterEvent)
       this.locatedCenter()
       this.entitiesClickPonpHandler()
@@ -396,8 +421,16 @@ export default {
       });
       return properties;
     },
-  }
+  },
 
+  //子-父-子，控制时间轴暂停与播放
+  handleStopTimePlay() {
+    this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
+    console.log(this.stopTimePlay, "this.stopTimePlay")
+  },
+  handleStartTimePlay() {
+    this.stopTimePlay = false;
+  },
 }
 </script>
 
@@ -419,7 +452,7 @@ export default {
   font-size: 12px;
   pointer-events: none;
   right: 0;
-  bottom: 25px;
+  bottom: 26px;
   height: 25px;
   width: 205px;
   z-index: 5;

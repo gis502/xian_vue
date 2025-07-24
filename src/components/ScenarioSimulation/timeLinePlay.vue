@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div class="timeLinePlay">
     <div class="topLastRecordTimeLabel">
       {{ this.lastRecordTimeLocal }}
     </div>
 
 
     <div class="start-time-info">
-      <span class="timelabel">开始时间：{{ this.timestampToTimeChina(this.centerPoint.startTime) }}</span>
+      <span class="timelabel">开始时间：{{ this.timestampToTimeChina(this.startTime) }}</span>
     </div>
 
     <div class="jump_realTime" v-if="ifNewEq">
@@ -48,24 +48,25 @@
 
     <div class="speed-label">
       <span class="timelabel">当前播放速度：</span>
-    </div>
-    <div class="speed-selector" @click="this.showSpeedOptions = !this.showSpeedOptions">
-      <div v-if="showSpeedOptions">
-        <option class="timelabel"
-                v-for="option in speedOptions"
-                :key="option"
-                @click.stop="selectSpeed(option)"
-        >
-          {{ option }}
-        </option>
+      <div class="speed-selector" @click="this.showSpeedOptions = !this.showSpeedOptions">
+        <div v-if="showSpeedOptions">
+          <option class="timelabel"
+                  v-for="option in speedOptions"
+                  :key="option"
+                  @click.stop="selectSpeed(option)"
+          >
+            {{ option }}
+          </option>
+        </div>
+        <span class="timelabel">{{ speedOption }}</span>
       </div>
-      <span class="timelabel">{{ speedOption }}</span>
     </div>
+
     <div class="current-time-info">
-      <span class="timelabel">{{ this.currentTimeLocal }}</span>
+      <span class="timelabel">当前时间：{{ this.currentTimeLocal }}</span>
     </div>
     <div class="end-time-info">
-      <span class="timelabel">结束时间：{{ this.timestampToTimeChina(this.centerPoint.endTime) }}</span>
+      <span class="timelabel">结束时间：{{ this.timestampToTimeChina(this.endTime) }}</span>
     </div>
   </div>
 </template>
@@ -73,8 +74,9 @@
 
 import * as Cesium from 'cesium'
 // import {getPlotInfos, getPlotwithStartandEndTime} from '@/api/system/plot.js'
-// import timeTransfer from "@/cesium/tool/timeTransfer.js";
+import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
+import {getDisasterRainById, getEarthquakeEventById} from "@/api/system/disasterEvents.js";
 
 export default {
   name: "timeLinePlay",
@@ -95,9 +97,12 @@ export default {
       currentTimeLocal: this.timestampToTimeChina(new Date()),
       lastRecordTimeLocal: this.timestampToTimeChina(new Date()),
       lastRecordContent: '',
+
+      startTime:new Date(),
+      endTime:new Date()
     }
   },
-  props: ['centerPoint', 'currentTime', 'eqid', 'viewer', 'stopTimePlay', 'isMarkingLayer'],
+  props: ['viewer','disaterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
   watch: {
     currentTime(newVal, oldVal) {
       if (newVal && oldVal && newVal !== oldVal) {
@@ -109,21 +114,26 @@ export default {
         this.ifstopandflash(newVal, oldVal);
       }
     },
-    centerPoint(newVal) {
+    disaterEvent(newVal) {
+
+      // this.getPlotwithStartandEndTime(this.eqid)
+      this.startTime=new Date(this.disaterEvent.occurrenceTime);
+      this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
+      console.log(this.disaterEvent,"this.startTime,this.endTime,")
+      console.log(this.startTime,"this.startTime,this.endTime,")
+      console.log(this.endTime,"this.startTime,this.endTime,")
       let realTime = new Date()
-      if (realTime >= this.centerPoint.startTime && realTime <= this.centerPoint.endTime) {
+      if (realTime >= this.startTime && realTime <= this.endTime) {
         this.ifNewEq = true
       }
-      let lastRecordTimeLocaltmp = this.timestampToTimeChina(this.centerPoint.startTime)
+      let lastRecordTimeLocaltmp = this.timestampToTimeChina(this.startTime)
       if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
         this.lastRecordTimeLocal = lastRecordTimeLocaltmp
       }
     },
-    eqid(newVal) {
-      this.getPlotwithStartandEndTime(this.eqid)
-    },
+
     viewer(newVal) {
-      this.getPlotwithStartandEndTime(this.eqid)
+      // this.getPlotwithStartandEndTime(this.eqid)
       window.viewer.timeline.container.onmouseup = (e) => {
         this.findLastRecordTimeAndContent()
         if(this.isMarkingLayer===false){
@@ -165,13 +175,13 @@ export default {
         console.log(res, "res")
         this.plots = res
         this.plots.forEach(item => {
-          if (!item.endTime || new Date(item.endTime) < new Date(this.centerPoint.startTime) || new Date(item.endTime) <= new Date(item.startTime)) {
+          if (!item.endTime || new Date(item.endTime) < new Date(this.startTime) || new Date(item.endTime) <= new Date(item.startTime)) {
             // 为没有结束时间的点设置默认结束时间
-            item.endTime = this.centerPoint.endTime  //20天 错误时间设置结束时间地震发生20天以后
+            item.endTime = this.endTime  //20天 错误时间设置结束时间地震发生20天以后
           }
           if (!item.startTime) {
             // 为没有开始时间的点设置默认开始时间
-            item.startTime = this.centerPoint.startTime;
+            item.startTime = this.startTime;
           }
           // this.timeRecoard.push(new Date(item.startTime).getTime())
         })
@@ -228,11 +238,11 @@ export default {
     },
     backToStart() {
       window.viewer.clockViewModel.shouldAnimate = false;
-      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.centerPoint.startTime));
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disaterEvent.occurrenceTime));
       window.viewer.clock.multiplier = this.currentSpeed
       this.flyflag = true
       this.endflag = true;
-      this.lastRecordTimeLocal = this.timestampToTimeChina(this.centerPoint.startTime)
+      this.lastRecordTimeLocal = this.timestampToTimeChina(this.startTime)
       this.lastRecordContent = ''
     },
     playBack() {
@@ -384,7 +394,7 @@ export default {
         return new Date(plot.startTime).getTime() <= new Date(this.currentTime).getTime();
       });
       let latestPlot = null;
-      let latestTime = new Date(this.centerPoint.startTime);
+      let latestTime = new Date(this.startTime);
       filteredPlots.forEach(plot => {
         const plotStartTime = new Date(plot.startTime).getTime();
         if (plotStartTime > latestTime) {
@@ -414,7 +424,15 @@ export default {
 
 </script>
 <style scoped>
-
+.timeLinePlay {
+  position: fixed;
+  bottom: 25px;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  /*background-color: #00f7ff;*/
+  z-index: 5;
+}
 
 .start-time-info {
   position: absolute;
@@ -426,51 +444,51 @@ export default {
 .current-time-info {
   position: absolute;
   bottom: 3%;
-  width: 10%;
-  left: 50%;
+  width: 11%;
+  left: 34%;
 }
 
 .end-time-info {
   position: absolute;
   bottom: 3%;
   width: 12%;
-  right: 15%;
+  right: 12%;
 }
 
 .speed-label {
   position: absolute;
   bottom: 3%;
-  left: 60%;
+  left: 63%;
 }
 
 .jump_realTime {
   position: absolute;
   bottom: 3%;
-  left: 39%;
+  left: 46%;
 }
 
 .back_start {
   position: absolute;
   bottom: 3%;
-  left: 40.5%;
+  left: 48%;
 }
 
 .play_back {
   position: absolute;
   bottom: 3%;
-  left: 42%;
+  left: 50%;
 }
 
 .play_end {
   position: absolute;
   bottom: 3%;
-  left: 43.5%;
+  left: 52%;
 }
 
 .play_start {
   position: absolute;
   bottom: 3%;
-  left: 45%;
+  left: 54%;
 }
 
 .tooltip {
@@ -509,7 +527,7 @@ export default {
   position: absolute;
   bottom: 3%;
   width: 10%;
-  left: 65%;
+  left:94%;
 }
 
 .timelabel {
@@ -518,21 +536,19 @@ export default {
 }
 
 .topLastRecordTimeLabel {
+  position: fixed;
+  top: 80px; /* 距离顶部 10px，可调 */
+  left: 58%;
+  transform: translateX(-50%); /* 水平居中 */
   background-color: rgba(32, 99, 150, 0.8);
+  color: #ffffff;
+  font-size: 14px;
+  padding: 6px 12px;
   border-radius: 20px;
-  height: 6%;
-  width: 15%;
-  top: 12%;
-  position: absolute;
-  z-index: 512;
-  color: #FFFFFF;
-  font-size: 16px;
-  left: 45%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  z-index: 9999; /* 确保在最上层 */
+  white-space: nowrap; /* 防止换行 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); /* 可选：加一点阴影更立体 */
 }
-
 
 .topLastRecordContentLabel {
   background-color: rgba(32, 99, 150, 0.8);

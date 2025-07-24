@@ -138,8 +138,8 @@ export default {
         console.log(item, "earthquakeListforEach")
         let {longitude, latitude} = parsePointString(item.geom)
         this.eventList.push({
-          id:item.eqid,
-          name: item.earthquakeName,
+          id:item.disasterId,
+          name: item.disasterName,
           trigger: '地震',
           occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
           location: item.position,
@@ -216,7 +216,6 @@ export default {
     go(row, column, cell, event) {
       console.log(row,"row")
       this.$router.push({name: 'thdTimeLine', params: {id: row.id,trigger:row.trigger}})
-      // this.$router.push({name: 'thdTimeLine'})
     },
   }
 }
