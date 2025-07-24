@@ -228,13 +228,12 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import riverData from '@/assets/static/json/river.json';
 import lakeData from '@/assets/static/json/lake.json';
 // 引入滑坡，泥石流灾害点数据
-import HuapoData from '@/assets/static/disaster/Huapo.json';
-import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
-import {getHide} from "@/api/system/aroundanalysis.js";
+import {getRisk, getSlide, getFlow} from "@/api/system/aroundanalysis.js";
+import {get} from "@vueuse/core";
 
 export default {
   name: 'CesiumRainMap',
@@ -266,9 +265,9 @@ export default {
       riverData: riverData,
       lakeData: lakeData,
       // 灾害点数据
-      HuapoData: HuapoData,
-      NishiliuData: NishiliuData,
       // faultZone: faultZone,
+      HuapoData: [],
+      NishiliuData: [],
       DangerAreaData: DangerAreaData,
       isLoading: false,
       loadingText: '加载数据中...',
@@ -330,10 +329,10 @@ export default {
   },
   mounted() {
     this.load();
+    this.getNum();
     this.loadAdminData(); // 加载行政区划数据
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    this.loadDisasterData(); // 加载灾害点数据
     // this.loadLandSlide(landslide); // 加载滑坡点区域
     this.createLegend(); // 创建图例
     this.total = this.tableData.length;
@@ -364,6 +363,33 @@ export default {
     document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
+
+    getNum(){
+
+      getSlide().then((res) =>{
+        const flag = [];
+        res.data.features.forEach((item)=>{
+          flag.push(item)
+        })
+        // flag.push(res.data.features);
+        this.HuapoData.push(flag);
+        this.loadDisasterData();
+      });
+      getFlow().then((res) =>{
+        const flag = [];
+        res.data.features.forEach((item)=>{
+          flag.push(item)
+        })
+        this.NishiliuData.push(flag);
+        this.loadDisasterData();
+      });
+
+      // getRisk().then((res) =>{
+      //   this.DangerAreaData = res.data;
+      //   console.log("333", res.data);
+      // });
+      // this.loadDisasterData(); // 加载灾害点数据
+    },
 
     load() {
       // Cesium.Ion.defaultAccessToken = '';
@@ -591,9 +617,10 @@ export default {
 
       try {
         // 确保数据存在且格式正确
-        const huapoFeatures = this.HuapoData?.features || [];
-        const nishiliuFeatures = this.NishiliuData?.features || [];
+        const huapoFeatures = JSON.parse(JSON.stringify(this.HuapoData))[0] || [];
+        const nishiliuFeatures = JSON.parse(JSON.stringify(this.NishiliuData))[0] || [];
         const dangerAreaFeatures = this.DangerAreaData?.features || [];
+
         // 存储所有添加的实体，用于事件处理
         this.disasterEntities = [];
         // 分别存储不同类型灾害点的实体引用
@@ -703,7 +730,6 @@ export default {
         });
         // 添加风险区点
         dangerAreaFeatures.forEach(point => {
-          const SmId = point.properties.SmUserID; // id
           const disasterName = point.properties.disasterName; //  风险区名称
           const unitCode = point.properties.unitCode; // 单位代码
           const position = point.properties.position; // 位置
