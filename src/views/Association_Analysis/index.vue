@@ -129,14 +129,14 @@
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.name">
             {{ item.name }}
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.winddirection">
-            {{ item.winddirection }}
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.rainfall">
+            {{ item.rainfall }}mm
           </td>
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.temperature">
             {{ item.temperature }}°C  <!-- 补充温度单位 -->
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.rainfall">
-            {{ item.rainfall }}mm
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.humidity">
+            {{ item.humidity }}%
           </td>
         </tr>
         </tbody>
@@ -266,10 +266,10 @@ export default {
       isTableVisible: true, // 控制表格显示/隐藏的状态
       searchQuery: '搜索',
       currentPage: 1,
-      tableHeaders: ['区县名称','风向', '温度', '降水量'],
-      slide: [], // 村村滑坡隐患点信息
-      disasterEntities: [],//存储所有添加的实体，用于事件处理
-      disas: []
+      tableHeaders: ['区县名称','降水量', '温度', '湿度'],
+      slide: [], // 滑坡隐患点信息
+      flow: [],
+      riskzone: [],
     };
   },
   mounted() {
@@ -358,14 +358,13 @@ export default {
             this.weatherLoading = false;
           });
     },
-
     //获取各区县天气数据
     async fetchDistrictWeather() {
       // 清空原有数据
       this.weather_data = [];
       this.districtWeather = [];
 
-      // 1. 先请求所有区县数据
+
       const requests = this.districts.map(async (district) => {
         try {
           const res = await axios.get(
@@ -412,15 +411,14 @@ export default {
         }
       });
 
-      // 2. 等待所有请求完成，处理数据
       const allResults = await Promise.all(requests);
       this.districtWeather = allResults;
 
-      // 3. 筛选出有效数据，取第一个作为基准
+
       const validDataList = allResults.filter(item => item.is_valid);
       const baseData = validDataList.length > 0 ? validDataList[0] : null;
 
-      // 4. 填充weather_data：无数据的条目复用第一个有效数据的字段（除了降雨量）
+
       let p = allResults.map(item => {
         if (item.is_valid) {
           // 有效数据：直接保留
@@ -453,6 +451,8 @@ export default {
           }
         }
       });
+
+      p.sort((a, b) => b.rainfall - a.rainfall);
 
       this.weather_data.push(...p)
       this.flashPoints();
@@ -648,7 +648,8 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: true,
+              zIndex:99999999,
             },
             // 绑定自定义数据，用于点击时获取信息
             userData: {
@@ -657,7 +658,6 @@ export default {
               originalPosition: { lon, lat } // 保存原始经纬度
             }
           });
-          this.disasterEntities.push(entity);
         });
       });
       // 设置点击事件处理
@@ -670,6 +670,7 @@ export default {
         // console.log(params)
         let data = params.data
         data.forEach(point => {
+          this.slide.push(point)
           let lon = point.lon;
           let lat = point.lat;
           //存储点的详细信息
@@ -697,7 +698,8 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: true,
+              zIndex:99999999,
             },
             // 绑定自定义数据，用于点击时获取信息
             userData: {
@@ -715,6 +717,9 @@ export default {
       getRisk().then(risk => {
         let data = risk.data.features;
         data.forEach(point => {
+          // this.riskzone.push(point.properties)
+          // locat = this.extractDistrictName(point.properties.position);
+          // console.log(44444,locat);
           let lon = point.geometry.coordinates[0];
           let lat = point.geometry.coordinates[1];
           // 存储点的详细信息（从原始数据中提取）
@@ -743,7 +748,8 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: true,
+              zIndex:99999999,
             },
             userData: {
               type: 'riskArea',
@@ -756,6 +762,21 @@ export default {
       // 设置点击事件处理
       this.setupEntityClickHandler();
     },
+
+    // 提取区县名称的工具函数
+    // extractDistrictName(address) {
+    //   // 地址格式："陕西省西安市XX区/县XX街道..."
+    //   // 匹配 "西安市" 后的第一个 "区" 或 "县" 名称
+    //   const regex = /西安市([^区]+[区|县])/;
+    //   const match = address.match(regex);
+    //   if (match && match[1]) {
+    //     return match[1].trim(); // 提取并去除空格（如 "灞桥区"）
+    //   }
+    //   // 兼容其他格式（如无"西安市"直接匹配区县）
+    //   const backupRegex = /([^省]+[区|县])/;
+    //   const backupMatch = address.match(backupRegex);
+    //   return backupMatch?.[1]?.trim() || '未知区县';
+    // },
 
     setupEntityClickHandler() {
       // 清除旧的事件处理程序
@@ -1226,145 +1247,64 @@ export default {
     },
 
     flashPoints(){
-      // console.log(7897897,this.disasterEntities)
-      // const warningCounties = this.weather_data
-      //     .filter(item => item.rainfall !== undefined && item.rainfall >= 50)
-      //     .map(item => item.name); // 提取区县名称（如"周至县"）
-      // console.log(11111,warningCounties)
-
-      const flag = this.weather_data;
-      console.log(1, flag);
-      flag.forEach(i => {
-        console.log(2252,i.name)
+      console.log(99999,this.riskzone)
+      const flag = [];
+      this.weather_data.forEach(i => {
         if (i.rainfall > 50){
-          console.log(2252,i.name)
+          flag.push(i.name);
         }
       });
-      // console.log(11111,warningCounties)
+      console.log(7897897987,flag)
+      // 2. 若没有符合条件的区县，停止动画并清空
+      if (flag.length === 0) {
+        if (this.flashInterval) {
+          clearInterval(this.flashInterval);
+          this.flashInterval = null;
+        }
+        if (this.haloCollection) {
+          this.haloCollection.removeAll();
+        }
+        return;
+      }
 
-      // 若没有符合条件的区县，停止之前的动画并返回
-      // if (warningCounties.length === 0) {
-      //   if (this.flashInterval) {
-      //     clearInterval(this.flashInterval);
-      //     this.flashInterval = null;
-      //   }
-      //   if (this.haloCollection) {
-      //     this.haloCollection.removeAll();
-      //   }
-      //   return;
-      // }
-      // const warningPoints = this.slide
-      //     .filter(item => warningCounties.includes(item.county)) // 匹配区县名称
-      //     .map(item => {
-      //       // 假设 slide 中的点包含经纬度字段（longitude/latitude），若字段名不同需修改
-      //       return [item.lon, item.lat]; // 转换为 [经度, 纬度] 格式
-      //     });
-      //
-      // // 3. 停止之前的闪烁动画
-      // if (this.flashInterval) {
-      //   clearInterval(this.flashInterval);
-      // }
-      // if (this.haloCollection) {
-      //   this.haloCollection.removeAll();
-      // }
-      //
-      // // 4. 创建光晕点集合
-      // this.haloCollection = new Cesium.PointPrimitiveCollection();
-      // this.viewer.scene.primitives.add(this.haloCollection);
-      //
-      // // 5. 从所有灾害实体中查找匹配的点（使用筛选出的 warningPoints）
-      // const entitiesToFlash = [];
-      // this.disasterEntities.forEach(entity => {
-      //   const position = entity.position.getValue(Cesium.JulianDate.now());
-      //   const cartographic = Cesium.Cartographic.fromCartesian(position);
-      //   const entityPoint = [
-      //     Cesium.Math.toDegrees(cartographic.longitude), // 实体经度（度）
-      //     Cesium.Math.toDegrees(cartographic.latitude)   // 实体纬度（度）
-      //   ];
-      //
-      //
-      //   // 检查该实体是否在预警点列表中
-      //   for (const point of warningPoints) {
-      //     // 经纬度误差在 0.00001 度内视为匹配（约1米精度）
-      //     if (Math.abs(point[0] - entityPoint[0]) < 0.00001 &&
-      //         Math.abs(point[1] - entityPoint[1]) < 0.00001) {
-      //       entitiesToFlash.push(entity);
-      //
-      //       // 创建光晕点
-      //       this.haloCollection.add({
-      //         position: position,
-      //         pixelSize: 15,
-      //         color: entity.point.color.getValue(),
-      //         outlineColor: Cesium.Color.RED,
-      //         outlineWidth: 1,
-      //         show: true,
-      //         // 自定义光晕材质
-      //         material: new Cesium.Material({
-      //           fabric: {
-      //             type: 'Halo',
-      //             uniforms: {
-      //               color: entity.point.color.getValue(),
-      //               glowPower: 0.5,
-      //               innerRadius: 0.5,
-      //               outerRadius: 1.0
-      //             },
-      //             source: `
-      //           uniform vec4 color;
-      //           uniform float glowPower;
-      //           uniform float innerRadius;
-      //           uniform float outerRadius;
-      //
-      //           czm_material czm_getMaterial(czm_materialInput materialInput) {
-      //             czm_material material = czm_getDefaultMaterial(materialInput);
-      //             vec2 st = materialInput.st;
-      //             float dist = distance(st, vec2(0.5, 0.5));
-      //             float alpha = smoothstep(outerRadius, innerRadius, dist);
-      //             alpha = pow(alpha, glowPower);
-      //             material.diffuse = color.rgb;
-      //             material.alpha = alpha * color.a;
-      //             return material;
-      //           }
-      //         `
-      //           }
-      //         })
-      //       });
-      //
-      //       break;
-      //     }
-      //   }
-      // });
-      //
-      // // 6. 启动动画循环（若有匹配的实体）
-      // if (entitiesToFlash.length > 0) {
-      //   let animationTime = 0;
-      //   const animationDuration = 2000; // 动画周期（毫秒）
-      //
-      //   this.flashInterval = setInterval(() => {
-      //     animationTime = (animationTime + 50) % animationDuration;
-      //     const normalizedTime = animationTime / animationDuration;
-      //
-      //     // 更新所有光晕点的大小和透明度
-      //     for (let i = 0; i < this.haloCollection.length; i++) {
-      //       const halo = this.haloCollection.get(i);
-      //
-      //       // 计算光晕大小（1.0-3.0倍原始大小波动）
-      //       const baseSize = 15;
-      //       const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
-      //       halo.pixelSize = baseSize * sizeFactor;
-      //
-      //       // 计算光晕透明度（大小最大时透明度最低）
-      //       const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
-      //       const originalColor = entitiesToFlash[i].point.color.getValue();
-      //       halo.color = new Cesium.Color(
-      //           originalColor.red,
-      //           originalColor.green,
-      //           originalColor.blue,
-      //           alphaFactor * 0.8
-      //       );
-      //     }
-      //   }, 50); // 每50ms更新一次动画
-      // }
+
+      this.slide.forEach(item => {
+        if (flag.includes(item.county)) { // 匹配区县名称
+          // warningPoints.push([item.lon, item.lat]); // 添加经纬度
+          // console.log(888,item.lon)
+          const haloEntity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
+            point: {
+              pixelSize: 40, // 增大光晕大小，使其更明显
+              color: Cesium.Color.RED.withAlpha(0.4), // 提高透明度，使其更明显
+              outlineColor: Cesium.Color.RED.withAlpha(1.0), // 完全不透明的边框
+              outlineWidth: 1, // 适中的边框宽度
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY // 确保不被地形遮挡
+            }
+          });
+          this.addPulseAnimation(haloEntity,Cesium.Color.RED)
+        }
+      });
+
     },
+
+    addPulseAnimation(haloEntity, baseColor){
+        let pulsePhase = 0;
+        // 使用定时器创建脉冲效果
+        const pulseInterval = setInterval(() => {
+          pulsePhase += 0.2; // 稍微加快动画速度
+          const alpha = 0.2 + 0.5 * Math.sin(pulsePhase); // 提高透明度范围
+          const size = 30 + 20 * Math.sin(pulsePhase); // 增大尺寸变化范围
+
+          haloEntity.point.color = baseColor.withAlpha(alpha);
+          haloEntity.point.pixelSize = size;
+
+        }, 100); // 适中的更新频率
+
+        // 存储定时器引用以便清理
+        haloEntity.pulseInterval = pulseInterval;
+      },
 
     draw(type) {
       let that = this;
@@ -2226,13 +2166,11 @@ export default {
 ::v-deep .compass {
   position: absolute;
   top: 20px;
-  left: 20px;
 }
 
 ::v-deep .navigation-controls {
   position: absolute;
   top: 120px;
-  left: 53px;
 }
 
 </style>
