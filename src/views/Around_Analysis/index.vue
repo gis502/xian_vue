@@ -22,7 +22,7 @@
     <div v-if="isLoading" class="loading-indicator">
       {{ loadingText }}
     </div>
-    <!-- 风险区表格 - 固定在左下角 -->
+    <!-- 风险区表格 - 固定在左上 -->
     <div v-if="showRiskTable" class="risk-table-container">
       <div class="table-header">
         <span class="title-text">地质灾害风险区域</span>
@@ -332,11 +332,10 @@ export default {
   },
   mounted() {
     this.load();
-    this.getNum();
+    this.getNum();//从后端读取数据，异步
     this.loadAdminData(); // 加载行政区划数据
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    // this.loadLandSlide(landslide); // 加载滑坡点区域
     this.createLegend(); // 创建图例
     this.total = this.tableData.length;
     this.loadData();
@@ -366,33 +365,18 @@ export default {
     document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
-
     getNum(){
-
       getSlide().then((res) =>{
-        // const flag = [];
-        // res.data.features.forEach((item)=>{
-        //   flag.push(item)
-        // })
-        // // flag.push(res.data.features);
-        // this.HuapoData.push(flag);
         this.HuapoData = res.data;
       });
       getFlow().then((res) =>{
-        // const flag = [];
-        // res.data.features.forEach((item)=>{
-        //   flag.push(item)
-        // })
-        // this.NishiliuData.push(flag);
         this.NishiliuData = res.data;
       });
       getRisk().then((res) =>{
         this.DangerAreaData = res.data;
-        this.loadDisasterData();
+        this.loadDisasterData();//放在此处确保前面的所有数据都读取到了，再渲染点。
       });
-      // 加载灾害点数据
     },
-
     load() {
       // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
@@ -426,11 +410,9 @@ export default {
           roll: 0.0
         }
       });
-
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
-
     },
     // 加载天地图
     loadTDT(type) {
@@ -822,212 +804,209 @@ export default {
       }
     },
     // 加入滑坡区域
-    loadLandSlide(landslide, target) {
-      for (let i = 0; i < landslide.length; i++) {
-        if(target.includes(i)){
-          console.log("所有符合:", landslide[i])
-          let lon = landslide[i].lon
-          let lat = landslide[i].lat
-          this.viewer.entities.add({
-            // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-            position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-            properties: {
-              data: landslide[i]
-            }
-          })
-
-          // 根据点路线绘制多边形影响范围，如果没有点路线则绘制圆形
-          if (landslide[i].点路线 && landslide[i].点路线.length > 0) {
-            const routePoints = [];
-            const polylinePositions = []; // 用于存储折线点的数组
-            const bufferWidth = 20; // 缓冲区宽度（米），您可以根据需要调整此值
-
-            // 收集并验证所有有效的路线点
-            for (let j = 0; j < landslide[i].点路线.length; j++) {
-              const currentPointData = landslide[i].点路线[j];
-              if (!Array.isArray(currentPointData) || currentPointData.length === 0 || !Array.isArray(currentPointData[0]) || currentPointData[0].length < 2) {
-                console.warn(`无效的点数据结构，索引 ${i}，点路线索引 ${j}:`, currentPointData);
-                continue;
-              }
-
-              const point = currentPointData[0];
-              const lon = parseFloat(point[0]);
-              const lat = parseFloat(point[1]);
-
-              if (!isNaN(lon) && !isNaN(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
-                routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
-                polylinePositions.push(lon, lat); // 添加到折线点数组
-              } else {
-                console.warn(`无效的坐标值，索引 ${i}，点路线索引 ${j}: lon=${point[0]}, lat=${point[1]}`);
-              }
-            }
-            // 绘制原始点路线
-            if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
-              this.viewer.entities.add({
-                polyline: {
-                  positions: Cesium.Cartesian3.fromDegreesArray(polylinePositions),
-                  width: 20, // 线条宽度
-                  material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.YELLOW), // 使用箭头材质
-                  clampToGround: true // 贴地显示
-                },
-                properties: {
-                  data: landslide[i],
-                  type: 'landslide_route'
-                }
-              });
-            }
-
-            // 绘制影响范围多边形（缓冲区）
-            if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
-              // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
-              const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
-                const interpolatedPoints = [];
-                const segmentInterpolationCount = 50; // 每段插值点数
-
-                // 如果只有一个点，直接生成圆形（360度扇形）
-                if (routePoints.length === 1) {
-                  const centerPoint = routePoints[0];
-                  const radius = bufferWidth;
-                  const positions = [];
-                  const numSegments = 60; // 扇形分段数
-
-                  for (let k = 0; k <= numSegments; k++) {
-                    const angle = (k / numSegments) * 360; // 0到360度
-                    const radian = Cesium.Math.toRadians(angle);
-
-                    // 计算扇形边界点，使用更精确的地理坐标计算
-                    const cartographic = Cesium.Cartographic.fromCartesian(centerPoint);
-                    const longitude = cartographic.longitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(radian);
-                    const latitude = cartographic.latitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(radian);
-                    positions.push(Cesium.Cartesian3.fromRadians(longitude, latitude));
-                  }
-                  return new Cesium.PolygonHierarchy(positions);
-                }
-
-                // 处理多点路线的平滑缓冲区
-                const leftPoints = [];
-                const rightPoints = [];
-
-                // 遍历所有线段，生成平滑缓冲区
-                for (let j = 0; j < routePoints.length - 1; j++) { // 遍历到倒数第二个点
-                  const start = routePoints[j];
-                  const end = routePoints[j + 1];
-
-                  interpolatedPoints.push(start);
-
-                  for (let k = 1; k < segmentInterpolationCount; k++) {
-                    const ratio = k / segmentInterpolationCount;
-                    const interpolated = Cesium.Cartesian3.lerp(
-                        start,
-                        end,
-                        ratio,
-                        new Cesium.Cartesian3()
-                    );
-                    interpolatedPoints.push(interpolated);
-                  }
-                }
-                // 添加最后一个原始点
-                interpolatedPoints.push(routePoints[routePoints.length - 1]);
-
-                // 计算平滑的缓冲区边界点
-                for (let j = 0; j < interpolatedPoints.length; j++) {
-                  const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
-                  const next = j < interpolatedPoints.length - 1 ? interpolatedPoints[j + 1] : interpolatedPoints[j];
-
-                  const forwardVec = Cesium.Cartesian3.subtract(next, prev, new Cesium.Cartesian3());
-                  Cesium.Cartesian3.normalize(forwardVec, forwardVec);
-
-                  const normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(interpolatedPoints[j], new Cesium.Cartesian3());
-                  const perpendicular = Cesium.Cartesian3.normalize(Cesium.Cartesian3.cross(normal, forwardVec, new Cesium.Cartesian3()), new Cesium.Cartesian3());
-
-                  const scaledPerpendicular = Cesium.Cartesian3.multiplyByScalar(
-                      perpendicular,
-                      bufferWidth,
-                      new Cesium.Cartesian3()
-                  );
-
-                  const leftPoint = Cesium.Cartesian3.add(
-                      interpolatedPoints[j],
-                      scaledPerpendicular,
-                      new Cesium.Cartesian3()
-                  );
-                  const rightPoint = Cesium.Cartesian3.subtract(
-                      interpolatedPoints[j],
-                      scaledPerpendicular,
-                      new Cesium.Cartesian3()
-                  );
-
-                  leftPoints.push(leftPoint);
-                  rightPoints.push(rightPoint);
-                }
-
-                // 组合成闭合多边形：左侧点 + 右侧点（反向）
-                const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
-
-                return new Cesium.PolygonHierarchy(polygonPositions);
-              };
-
-              // 调用新的平滑缓冲区生成方法
-              const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);
-
-              // 如果成功创建了多边形顶点，则添加实体
-              if (polygonHierarchy.positions.length > 0) {
-                this.viewer.entities.add({
-                  polygon: {
-                    hierarchy: polygonHierarchy,
-                    // material: Cesium.Color.BLUE.withAlpha(0.3),
-                    material: new Cesium.ImageMaterialProperty({
-                      image: landslide_surface01,
-                      color: Cesium.Color.WHITE,
-                      repeat: new Cesium.Cartesian2(4, 4),
-                    }),
-                    outline: true,
-                    outlineColor: Cesium.Color.BLUE,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                  },
-                  properties: {
-                    data: landslide[i],
-                    type: 'influence_range_polygon'
-                  }
-                });
-              }
-
-              // 如果是多点路线，单独为最后一个点绘制圆形缓冲区
-              if (routePoints.length > 1) {
-                const lastPoint = routePoints[routePoints.length - 1];
-                const lastPointBufferRadius = bufferWidth; // 可以根据需要调整这个半径
-
-                this.viewer.entities.add({
-                  position: lastPoint,
-                  ellipse: {
-                    semiMinorAxis: lastPointBufferRadius,
-                    semiMajorAxis: lastPointBufferRadius,
-                    material: new Cesium.ImageMaterialProperty({
-                      image: landslide_surface01,
-                      color: Cesium.Color.WHITE,
-                      repeat: new Cesium.Cartesian2(4, 4),
-                    }),
-                    outline: true,
-                    outlineColor: Cesium.Color.BLUE,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                  },
-                  properties: {
-                    data: landslide[i],
-                    type: 'last_point_circular_buffer'
-                  }
-                });
-              }
-
-            } else {
-              console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
-            }
-          } else {
-            // ... existing code ...
-          }
-        }
-      }
-    },
-    // 创建灾害点详情描述
+    // loadLandSlide(landslide, target) {
+    //   for (let i = 0; i < landslide.length; i++) {
+    //     if(target.includes(i)){
+    //       console.log("所有符合:", landslide[i])
+    //       let lon = landslide[i].lon
+    //       let lat = landslide[i].lat
+    //       this.viewer.entities.add({
+    //         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
+    //         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
+    //         properties: {
+    //           data: landslide[i]
+    //         }
+    //       })
+    //
+    //       // 根据点路线绘制多边形影响范围，如果没有点路线则绘制圆形
+    //       if (landslide[i].点路线 && landslide[i].点路线.length > 0) {
+    //         const routePoints = [];
+    //         const polylinePositions = []; // 用于存储折线点的数组
+    //         const bufferWidth = 20; // 缓冲区宽度（米），您可以根据需要调整此值
+    //
+    //         // 收集并验证所有有效的路线点
+    //         for (let j = 0; j < landslide[i].点路线.length; j++) {
+    //           const currentPointData = landslide[i].点路线[j];
+    //           if (!Array.isArray(currentPointData) || currentPointData.length === 0 || !Array.isArray(currentPointData[0]) || currentPointData[0].length < 2) {
+    //             console.warn(`无效的点数据结构，索引 ${i}，点路线索引 ${j}:`, currentPointData);
+    //             continue;
+    //           }
+    //
+    //           const point = currentPointData[0];
+    //           const lon = parseFloat(point[0]);
+    //           const lat = parseFloat(point[1]);
+    //
+    //           if (!isNaN(lon) && !isNaN(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
+    //             routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
+    //             polylinePositions.push(lon, lat); // 添加到折线点数组
+    //           } else {
+    //             console.warn(`无效的坐标值，索引 ${i}，点路线索引 ${j}: lon=${point[0]}, lat=${point[1]}`);
+    //           }
+    //         }
+    //         // 绘制原始点路线
+    //         if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
+    //           this.viewer.entities.add({
+    //             polyline: {
+    //               positions: Cesium.Cartesian3.fromDegreesArray(polylinePositions),
+    //               width: 20, // 线条宽度
+    //               material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.YELLOW), // 使用箭头材质
+    //               clampToGround: true // 贴地显示
+    //             },
+    //             properties: {
+    //               data: landslide[i],
+    //               type: 'landslide_route'
+    //             }
+    //           });
+    //         }
+    //
+    //         // 绘制影响范围多边形（缓冲区）
+    //         if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
+    //           // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
+    //           const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
+    //             const interpolatedPoints = [];
+    //             const segmentInterpolationCount = 50; // 每段插值点数
+    //
+    //             // 如果只有一个点，直接生成圆形（360度扇形）
+    //             if (routePoints.length === 1) {
+    //               const centerPoint = routePoints[0];
+    //               const radius = bufferWidth;
+    //               const positions = [];
+    //               const numSegments = 60; // 扇形分段数
+    //
+    //               for (let k = 0; k <= numSegments; k++) {
+    //                 const angle = (k / numSegments) * 360; // 0到360度
+    //                 const radian = Cesium.Math.toRadians(angle);
+    //
+    //                 // 计算扇形边界点，使用更精确的地理坐标计算
+    //                 const cartographic = Cesium.Cartographic.fromCartesian(centerPoint);
+    //                 const longitude = cartographic.longitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(radian);
+    //                 const latitude = cartographic.latitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(radian);
+    //                 positions.push(Cesium.Cartesian3.fromRadians(longitude, latitude));
+    //               }
+    //               return new Cesium.PolygonHierarchy(positions);
+    //             }
+    //
+    //             // 处理多点路线的平滑缓冲区
+    //             const leftPoints = [];
+    //             const rightPoints = [];
+    //
+    //             // 遍历所有线段，生成平滑缓冲区
+    //             for (let j = 0; j < routePoints.length - 1; j++) { // 遍历到倒数第二个点
+    //               const start = routePoints[j];
+    //               const end = routePoints[j + 1];
+    //
+    //               interpolatedPoints.push(start);
+    //
+    //               for (let k = 1; k < segmentInterpolationCount; k++) {
+    //                 const ratio = k / segmentInterpolationCount;
+    //                 const interpolated = Cesium.Cartesian3.lerp(
+    //                     start,
+    //                     end,
+    //                     ratio,
+    //                     new Cesium.Cartesian3()
+    //                 );
+    //                 interpolatedPoints.push(interpolated);
+    //               }
+    //             }
+    //             // 添加最后一个原始点
+    //             interpolatedPoints.push(routePoints[routePoints.length - 1]);
+    //             // 计算平滑的缓冲区边界点
+    //             for (let j = 0; j < interpolatedPoints.length; j++) {
+    //               const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
+    //               const next = j < interpolatedPoints.length - 1 ? interpolatedPoints[j + 1] : interpolatedPoints[j];
+    //
+    //               const forwardVec = Cesium.Cartesian3.subtract(next, prev, new Cesium.Cartesian3());
+    //               Cesium.Cartesian3.normalize(forwardVec, forwardVec);
+    //
+    //               const normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(interpolatedPoints[j], new Cesium.Cartesian3());
+    //               const perpendicular = Cesium.Cartesian3.normalize(Cesium.Cartesian3.cross(normal, forwardVec, new Cesium.Cartesian3()), new Cesium.Cartesian3());
+    //
+    //               const scaledPerpendicular = Cesium.Cartesian3.multiplyByScalar(
+    //                   perpendicular,
+    //                   bufferWidth,
+    //                   new Cesium.Cartesian3()
+    //               );
+    //
+    //               const leftPoint = Cesium.Cartesian3.add(
+    //                   interpolatedPoints[j],
+    //                   scaledPerpendicular,
+    //                   new Cesium.Cartesian3()
+    //               );
+    //               const rightPoint = Cesium.Cartesian3.subtract(
+    //                   interpolatedPoints[j],
+    //                   scaledPerpendicular,
+    //                   new Cesium.Cartesian3()
+    //               );
+    //
+    //               leftPoints.push(leftPoint);
+    //               rightPoints.push(rightPoint);
+    //             }
+    //
+    //             // 组合成闭合多边形：左侧点 + 右侧点（反向）
+    //             const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
+    //
+    //             return new Cesium.PolygonHierarchy(polygonPositions);
+    //           };
+    //
+    //           // 调用新的平滑缓冲区生成方法
+    //           const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);
+    //
+    //           // 如果成功创建了多边形顶点，则添加实体
+    //           if (polygonHierarchy.positions.length > 0) {
+    //             this.viewer.entities.add({
+    //               polygon: {
+    //                 hierarchy: polygonHierarchy,
+    //                 // material: Cesium.Color.BLUE.withAlpha(0.3),
+    //                 material: new Cesium.ImageMaterialProperty({
+    //                   image: landslide_surface01,
+    //                   color: Cesium.Color.WHITE,
+    //                   repeat: new Cesium.Cartesian2(4, 4),
+    //                 }),
+    //                 outline: true,
+    //                 outlineColor: Cesium.Color.BLUE,
+    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+    //               },
+    //               properties: {
+    //                 data: landslide[i],
+    //                 type: 'influence_range_polygon'
+    //               }
+    //             });
+    //           }
+    //           // 如果是多点路线，单独为最后一个点绘制圆形缓冲区
+    //           if (routePoints.length > 1) {
+    //             const lastPoint = routePoints[routePoints.length - 1];
+    //             const lastPointBufferRadius = bufferWidth; // 可以根据需要调整这个半径
+    //             this.viewer.entities.add({
+    //               position: lastPoint,
+    //               ellipse: {
+    //                 semiMinorAxis: lastPointBufferRadius,
+    //                 semiMajorAxis: lastPointBufferRadius,
+    //                 material: new Cesium.ImageMaterialProperty({
+    //                   image: landslide_surface01,
+    //                   color: Cesium.Color.WHITE,
+    //                   repeat: new Cesium.Cartesian2(4, 4),
+    //                 }),
+    //                 outline: true,
+    //                 outlineColor: Cesium.Color.BLUE,
+    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+    //               },
+    //               properties: {
+    //                 data: landslide[i],
+    //                 type: 'last_point_circular_buffer'
+    //               }
+    //             });
+    //           }
+    //
+    //         } else {
+    //           console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
+    //         }
+    //       } else {
+    //         // ... existing code ...
+    //       }
+    //     }
+    //   }
+    // },
+    // // 创建灾害点详情描述
     createDisasterDescription(properties, type) {
 
       var disasterType = type.includes("滑坡") ? "滑坡" : "泥石流"
@@ -1186,7 +1165,7 @@ export default {
         return colors[i % colors.length];
       }
     },
-    // 开启下雨特效
+    // 准备开始点击
     toggleRainMode() {
       // 若不允许标记且当前为开启状态，则直接关闭
       if (!this.canMarkAgain && this.rainMode) {
@@ -1199,9 +1178,7 @@ export default {
         this.showInfoPanel = false;
         return;
       }
-
       this.rainMode = !this.rainMode;
-
       if (this.rainMode) {
         this.handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
         this.handler.setInputAction(this.onMapClick, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -1234,12 +1211,9 @@ export default {
     },
     confirmRainPoint() {
       if (!this.selectedPosition || !this.canMarkAgain) return;
-
       const {longitude, latitude, cartesian} = this.selectedPosition;
-
       // 计算降雨强度(mm/小时)
       const intensity = this.rainfall / (this.duration || 1);
-
       const entity = this.viewer.entities.add({
         position: cartesian,
         point: {
@@ -1250,18 +1224,18 @@ export default {
           outlineWidth: 1,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
         },
-        label: {
-          text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
-          // text: `降雨量: ${this.rainfall}mm\n持续: ${this.duration}小时`,
-          font: '14px sans-serif',
-          fillColor: Cesium.Color.WHITE,
-          backgroundColor: Cesium.Color.RED.withAlpha(0.7),
-          padding: new Cesium.Cartesian2(20, 20),
-          showBackground: true,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, -10),
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
-        },
+        // label: {
+        //   text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
+        //   // text: `降雨量: ${this.rainfall}mm\n持续: ${this.duration}小时`,
+        //   font: '14px sans-serif',
+        //   fillColor: Cesium.Color.WHITE,
+        //   backgroundColor: Cesium.Color.RED.withAlpha(0.7),
+        //   padding: new Cesium.Cartesian2(20, 20),
+        //   showBackground: true,
+        //   verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        //   pixelOffset: new Cesium.Cartesian2(0, -10),
+        //   heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        // },
         description: `
           <div style="font-family: Arial, sans-serif;">
             <h3>暴雨信息</h3>
@@ -1282,9 +1256,8 @@ export default {
       this.showInfoPanel = false;
 
       // 标记后自动开启下雨效果
-      this.weatherActive = true;
-      this.rainEffect.enabled = this.weatherActive;
-
+      // this.weatherActive = true;
+      // this.rainEffect.enabled = this.weatherActive;
       // 禁止连续标记
       this.canMarkAgain = false;
       this.rainMode = false;
@@ -1379,82 +1352,82 @@ export default {
       };
 
 
-      // 初始化雨控制面板
-      this.initRainControlUI();
+      // // 初始化雨控制面板
+      // this.initRainControlUI();
     },
     // 初始化雨控制UI
-    initRainControlUI() {
-      // 创建控制容器
-      const container = document.createElement('div');
-      container.id = 'rain-control-panel';
-      container.className = 'cesium-widget-credits'; // 使用Cesium风格
-      container.style.cssText = `
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(42, 42, 42, 0.8);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    width: 220px;
-    z-index: 100;
-  `;
-
-      // 创建雨开关按钮
-      const toggleBtn = document.createElement('button');
-      toggleBtn.id = 'toggle-rain-btn';
-      toggleBtn.className = 'cesium-button';
-      toggleBtn.innerHTML = '<i class="cesium-icon-raindrop"></i> 雨';
-      toggleBtn.style.cssText = `
-    width: 100%;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  `;
-      toggleBtn.onclick = () => this.toggleWeatherEffect();
-
-      // 创建滑块容器
-      const sliderContainer = document.createElement('div');
-      sliderContainer.style.cssText = 'display: flex; align-items: center;';
-
-      // 创建降雨量标签
-      const intensityLabel = document.createElement('span');
-      intensityLabel.id = 'rain-intensity-label';
-      intensityLabel.textContent = '降雨量: 50%';
-      intensityLabel.style.cssText = 'margin-right: 10px; min-width: 70px;';
-
-      // 创建降雨量滑块
-      const intensitySlider = document.createElement('input');
-      intensitySlider.id = 'rain-intensity-slider';
-      intensitySlider.type = 'range';
-      intensitySlider.min = '0';
-      intensitySlider.max = '100';
-      intensitySlider.value = '50';
-      intensitySlider.className = 'cesium-baseLayerPicker-itemIcon'; // 使用Cesium风格
-      intensitySlider.style.cssText = 'width: 100%;';
-      intensitySlider.oninput = (e) => {
-        const value = parseFloat(e.target.value) / 100;
-        this.setRainIntensity(value);
-      };
-
-      // 组装UI
-      sliderContainer.appendChild(intensityLabel);
-      sliderContainer.appendChild(intensitySlider);
-      container.appendChild(toggleBtn);
-      container.appendChild(sliderContainer);
-
-      // 添加到DOM
-      this.viewer.container.appendChild(container);
-
-      // 保存UI引用
-      this.rainControlUI = {
-        container,
-        toggleBtn,
-        intensitySlider,
-        intensityLabel
-      };
-    },
+  //   initRainControlUI() {
+  //     // 创建控制容器
+  //     const container = document.createElement('div');
+  //     container.id = 'rain-control-panel';
+  //     container.className = 'cesium-widget-credits'; // 使用Cesium风格
+  //     container.style.cssText = `
+  //   position: absolute;
+  //   bottom: 20px;
+  //   right: 20px;
+  //   background: rgba(42, 42, 42, 0.8);
+  //   color: white;
+  //   padding: 10px;
+  //   border-radius: 5px;
+  //   width: 220px;
+  //   z-index: 100;
+  // `;
+  //
+  //     // 创建雨开关按钮
+  //     const toggleBtn = document.createElement('button');
+  //     toggleBtn.id = 'toggle-rain-btn';
+  //     toggleBtn.className = 'cesium-button';
+  //     toggleBtn.innerHTML = '<i class="cesium-icon-raindrop"></i> 雨';
+  //     toggleBtn.style.cssText = `
+  //   width: 100%;
+  //   margin-bottom: 10px;
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: center;
+  // `;
+  //     toggleBtn.onclick = () => this.toggleWeatherEffect();
+  //
+  //     // 创建滑块容器
+  //     const sliderContainer = document.createElement('div');
+  //     sliderContainer.style.cssText = 'display: flex; align-items: center;';
+  //
+  //     // 创建降雨量标签
+  //     const intensityLabel = document.createElement('span');
+  //     intensityLabel.id = 'rain-intensity-label';
+  //     intensityLabel.textContent = '降雨量: 50%';
+  //     intensityLabel.style.cssText = 'margin-right: 10px; min-width: 70px;';
+  //
+  //     // 创建降雨量滑块
+  //     const intensitySlider = document.createElement('input');
+  //     intensitySlider.id = 'rain-intensity-slider';
+  //     intensitySlider.type = 'range';
+  //     intensitySlider.min = '0';
+  //     intensitySlider.max = '100';
+  //     intensitySlider.value = '50';
+  //     intensitySlider.className = 'cesium-baseLayerPicker-itemIcon'; // 使用Cesium风格
+  //     intensitySlider.style.cssText = 'width: 100%;';
+  //     intensitySlider.oninput = (e) => {
+  //       const value = parseFloat(e.target.value) / 100;
+  //       this.setRainIntensity(value);
+  //     };
+  //
+  //     // 组装UI
+  //     sliderContainer.appendChild(intensityLabel);
+  //     sliderContainer.appendChild(intensitySlider);
+  //     container.appendChild(toggleBtn);
+  //     container.appendChild(sliderContainer);
+  //
+  //     // 添加到DOM
+  //     this.viewer.container.appendChild(container);
+  //
+  //     // 保存UI引用
+  //     this.rainControlUI = {
+  //       container,
+  //       toggleBtn,
+  //       intensitySlider,
+  //       intensityLabel
+  //     };
+  //   },
     // 更新雨UI显示
     updateRainUI(intensity) {
       if (this.rainControlUI) {
@@ -1612,8 +1585,7 @@ export default {
         ...secondaryRiskPointsInside
       ];
 
-      this.loadLandSlide(landslide, target);
-
+      // this.loadLandSlide(landslide, target);
       // 闪烁在椭圆内的灾害点
       if (allPointsInside.length > 0) {
         // 直接传递坐标数组到闪烁函数
@@ -1731,7 +1703,7 @@ export default {
             this.haloCollection.add({
               position: position,
               pixelSize: 15,
-              color: entity.point.color.getValue(),
+              color: Cesium.Color.RED,
               outlineColor: Cesium.Color.RED,
               outlineWidth: 1,
               show: true,
@@ -1740,7 +1712,7 @@ export default {
                 fabric: {
                   type: 'Halo',
                   uniforms: {
-                    color: entity.point.color.getValue(),
+                    color: Cesium.Color.RED,
                     glowPower: 0.5,
                     innerRadius: 0.5,
                     outerRadius: 1.0
@@ -1770,19 +1742,15 @@ export default {
           }
         }
       });
-
       // 如果没有找到匹配的实体，直接返回
       if (entitiesToFlash.length === 0) return;
-
       // 动画控制变量
       let animationTime = 0;
       const animationDuration = 2000; // 动画周期，毫秒
-
       // 启动动画循环
       this.flashInterval = setInterval(() => {
         animationTime = (animationTime + 50) % animationDuration;
         const normalizedTime = animationTime / animationDuration;
-
         // 更新所有光晕点的大小和透明度
         for (let i = 0; i < this.haloCollection.length; i++) {
           const halo = this.haloCollection.get(i);
@@ -1794,7 +1762,7 @@ export default {
 
           // 计算光晕透明度（大小最大时透明度最低）
           const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
-          const originalColor = entitiesToFlash[i].point.color.getValue();
+          const originalColor = Cesium.Color.RED;
           halo.color = new Cesium.Color(
               originalColor.red,
               originalColor.green,
@@ -1804,7 +1772,7 @@ export default {
         }
       }, 50); // 每50ms更新一次
     },
-    // 创建图例（修改版，添加灾害点图例）
+    // 创建图例（再版，更改了图例图像和元素
     createLegend() {
       const legendContent = this.$refs.legendContent;
       if (!legendContent) return;
@@ -1814,7 +1782,7 @@ export default {
         legendContent.removeChild(legendContent.firstChild);
       }
       // 新增：添加降雨区域图例项
-      this.addRainAreaLegend(legendContent);
+      // this.addRainAreaLegend(legendContent);
 
       // 添加行政区划图例
       const addedDistricts = new Set();
@@ -1858,21 +1826,17 @@ export default {
           districtItems.push(item);
         }
       });
-
       // 创建两排两列的容器
       const gridContainer = document.createElement('div');
       gridContainer.style.display = 'flex';
       gridContainer.style.flexWrap = 'wrap';
       gridContainer.style.gap = '10px';
       gridContainer.style.marginTop = '10px';
-
       // 添加到容器中，实现两列布局
       districtItems.forEach((item, index) => {
         gridContainer.appendChild(item);
       });
-
       legendContent.appendChild(gridContainer);
-
       // 优化图例容器样式
       if (legendContent.style) {
         legendContent.style.padding = '10px';
@@ -1880,7 +1844,6 @@ export default {
         legendContent.style.backgroundColor = 'rgba(255,255,255,0.9)';
         legendContent.style.maxWidth = '300px'; // 限制最大宽度
       }
-
       // 新增：添加灾害点图例
       this.addDisasterLegend(legendContent);
     },
@@ -1916,21 +1879,20 @@ export default {
     },
     // 添加灾害点图例项
     addDisasterLegend(container) {
-      // 滑坡图例（红色圆形）
+      // 滑坡图例
       const landslideItem = document.createElement('div');
       landslideItem.className = 'legend-item';
       landslideItem.style.display = 'flex';
       landslideItem.style.alignItems = 'center';
       landslideItem.style.marginBottom = '10px';
 
-      const landslideColorDiv = document.createElement('div');
+      const landslideColorDiv = document.createElement('img');
       landslideColorDiv.className = 'legend-point';
-      landslideColorDiv.style.backgroundColor = 'rgba(255, 0, 0, 1)'; // 红色
+      landslideColorDiv.src = landslideIcon; // 红色
       landslideColorDiv.style.width = '16px';
       landslideColorDiv.style.height = '16px';
       landslideColorDiv.style.marginRight = '10px';
-      landslideColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
-      landslideColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
+
 
       const landslideTextDiv = document.createElement('div');
       landslideTextDiv.className = 'legend-text';
@@ -1949,15 +1911,12 @@ export default {
       debrisFlowItem.style.alignItems = 'center';
       debrisFlowItem.style.marginBottom = '10px';
 
-      const debrisFlowColorDiv = document.createElement('div');
+      const debrisFlowColorDiv = document.createElement('img');
       debrisFlowColorDiv.className = 'legend-point';
-      debrisFlowColorDiv.style.backgroundColor = 'rgba(255, 255, 0, 1)'; // 黄色
+      debrisFlowColorDiv.src = flowIcon; // 黄色
       debrisFlowColorDiv.style.width = '16px';
       debrisFlowColorDiv.style.height = '16px';
       debrisFlowColorDiv.style.marginRight = '10px';
-      debrisFlowColorDiv.style.border = '1px solid #333'; // 添加边框
-      debrisFlowColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
-      debrisFlowColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
 
       const debrisFlowTextDiv = document.createElement('div');
       debrisFlowTextDiv.className = 'legend-text';
@@ -1976,15 +1935,12 @@ export default {
       dangerItem.style.alignItems = 'center';
       dangerItem.style.marginBottom = '10px';
 
-      const dangerColorDiv = document.createElement('div');
+      const dangerColorDiv = document.createElement('img');
       dangerColorDiv.className = 'legend-point';
-      dangerColorDiv.style.backgroundColor = 'rgba(255,134,0,0.8)'; // 黄色
+      dangerColorDiv.src = riskAreaIcon;
       dangerColorDiv.style.width = '16px';
       dangerColorDiv.style.height = '16px';
       dangerColorDiv.style.marginRight = '10px';
-      dangerColorDiv.style.border = '1px solid #333'; // 添加边框
-      dangerColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
-      dangerColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
 
       const dangerTextDiv = document.createElement('div');
       dangerTextDiv.className = 'legend-text';
