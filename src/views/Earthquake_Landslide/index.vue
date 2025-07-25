@@ -132,24 +132,7 @@
 
 <script setup>
 import * as Cesium from "cesium";
-import lineData from "@/assets/西安断层数据.json";
-import CesiumNavigation from "cesium-navigation-es6";
 const tdtToken = "31f4628fd3dd7fa4d98dd14042665db1";
-
-// 引入西安行政区划数据
-import BaQiaoArea from "@/assets/static/area/BaQiao.json";
-import BeiLin from "@/assets/static/area/BeiLin.json";
-import ChangAn from "@/assets/static/area/ChangAn.json";
-import GaoLing from "@/assets/static/area/GaoLing.json";
-import HuYi from "@/assets/static/area/HuYi.json";
-import LanTIan from "@/assets/static/area/LanTIan.json";
-import LianHu from "@/assets/static/area/LianHu.json";
-import LinTong from "@/assets/static/area/LinTong.json";
-import WeiYang from "@/assets/static/area/WeiYang.json";
-import XinCheng from "@/assets/static/area/XinCheng.json";
-import YanLiang from "@/assets/static/area/YanLiang.json";
-import YanTa from "@/assets/static/area/YanTa.json";
-import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 
 import { initCesium } from "@/cesium/initLayer.js";
 import * as echarts from "echarts";
@@ -158,23 +141,8 @@ import { tableData, dataTypes } from "../../api/earthquake/datas";
 import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
-
-let administrationData = reactive([
-  BaQiaoArea,
-  BeiLin,
-  ChangAn,
-  GaoLing,
-  HuYi,
-  LanTIan,
-  LianHu,
-  LinTong,
-  WeiYang,
-  XinCheng,
-  YanLiang,
-  YanTa,
-  ZhouZhi,
-]);
-let districtColors = ref(null);
+import basicLayers from "../../cesium/basicLayers";
+import { init_cesium_navigation, setupMouseCoordinateDisplay } from "../../cesium/initLayer";
 
 // 弹窗信息
 let showBaseInfo = ref(false);
@@ -287,34 +255,22 @@ onMounted(() => {
 let entityClickHandler = ref(null);
 
 function load() {
-  // const viewer = new Cesium.Viewer("cesium-container", {
-  //   imageryProvider: false,
-  //   animation: false,
-  //   homeButton: false,
-  //   navigationHelpButton: false,
-  //   timeline: false,
-  //   selectionIndicator: false,
-  //   sceneModePicker: false,
-  //   infoBox: false,
-  //   geocoder: false,
-  //   vrButton: false,
-  //   fullscreenButton: false,
-  //   baseLayerPicker: false,
-  // });
-  // window.viewer = viewer
-
   window.viewer = initCesium("cesium-container");
 
-  // loadLandSlide(landslide);
-  weiNanEarthquake();
-  earthquakeLine();
-  earthquakeLine();
-  // AddHazardSource();
-  loadAdminData(administrationData);
-  // AddDangerAreaDataSource(DangerAreaData); // 地震模拟后添加
+  // 断裂带
+  basicLayers.addFaultZone();
+
+  // 行政区
+  basicLayers.loadAdminData();
+
+  // 点击隐患点触发
   setupEntityClickHandler();
-  AddCompass();
+
+  // 罗盘
+  init_cesium_navigation(108.948024, 34.263161, window.viewer);
+
   AddChart();
+
   window.viewer.cesiumWidget.creditContainer.style.display = "none";
   window.viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
@@ -324,110 +280,6 @@ function load() {
       roll: 0.0,
     },
   });
-}
-
-function weiNanEarthquake() {
-  // console.log(Cesium.Cartesian3.fromDegrees(109.7, 34.5),111)
-  // window.viewer.entities.add({
-  //   // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-  //   position: Cesium.Cartesian3.fromDegrees(109.7, 34.5),
-  //   billboard: {
-  //     image: earthquake,
-  //     width: 100, // 图片宽度,单位px
-  //     height: 100, // 图片高度，单位px
-  //     eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-  //     color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-  //     scale: 0.8, // 缩放比例
-  //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-  //     scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-  //     depthTest: false, // 禁止深度测试
-  //     disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-  //   },
-  // label: {
-  //   text: "陕西省渭南市华州区8.0级地震（模拟）",
-  //   font: '40px',
-  //   fillColor: Cesium.Color.BLACK,
-  //   backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-  //   padding: new Cesium.Cartesian2(5, 5),
-  //   showBackground: true,
-  //   verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
-  //   eyeOffset: new Cesium.Cartesian3(100, 500, 0), // 像素偏移量设置为0
-  //   // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
-  //   show: true, // 使用统一的显示控制
-  //   zIndex: 10000, // 调整z-index值
-  // },
-  //   properties: {},
-  // });
-}
-
-// 断裂带
-function earthquakeLine() {
-  let line_data = [];
-  lineData.features.forEach((line) => {
-    // console.log(line.geometry)
-    line_data.push(line.geometry);
-  });
-
-  line_data.forEach((Lon_Lat) => {
-    let FaultZone = [];
-    Lon_Lat.coordinates.forEach((LonLat) => {
-      LonLat.forEach((point) => {
-        FaultZone.push(Number(point));
-      });
-    });
-    window.viewer.entities.add({
-      polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(FaultZone),
-        // 宽度
-        width: 2,
-        // 线的颜色
-        material: Cesium.Color.RED,
-        // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
-        zIndex: 10,
-        // 显示在距相机的距离处的属性，多少区间内是可以显示的
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0),
-        // 是否显示
-        show: true,
-      },
-      // label
-    });
-  });
-}
-
-function AddCompass() {
-  //添加罗盘功能
-  const options = {};
-
-  options.defaultResetView = Cesium.Cartographic.fromDegrees(
-    108.948024,
-    34.263161,
-    40000.0
-  );
-  // 相机方向
-  options.orientation = {
-    heading: Cesium.Math.toRadians(0), // 朝向正北（0度）
-    roll: 0, // 翻滚角为0
-  };
-  // 相机延时
-  // options.duration = 4; // 默认为3s
-
-  // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
-  options.enableCompass = true;
-  // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
-  options.enableZoomControls = true;
-  // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
-  options.enableDistanceLegend = true;
-  // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
-  options.enableCompassOuterRing = true;
-
-  // 修改重置视图的tooltip
-  options.resetTooltip = "重置视图";
-  // 修改放大按钮的tooltip
-  options.zoomInTooltip = "放大";
-  // 修改缩小按钮的tooltip
-  options.zoomOutTooltip = "缩小";
-
-  new CesiumNavigation(window.viewer, options);
 }
 
 // 添加chart
@@ -616,135 +468,6 @@ function AddChart() {
   window.addEventListener("resize", () => {
     myChart.resize();
   });
-}
-
-// 加载行政区划数据
-function loadAdminData(administrationData) {
-  const generateRandomColor = (i) => {
-    // 定义13种不同的颜色
-    const colors = [
-      new Cesium.Color(255 / 255, 153 / 255, 0 / 255, 0.3), // 活力橙
-      new Cesium.Color(255 / 255, 51 / 255, 102 / 255, 0.3), // 亮粉红
-      new Cesium.Color(0 / 255, 178 / 255, 255 / 255, 0.3), // 天蓝色
-      new Cesium.Color(102 / 255, 255 / 255, 102 / 255, 0.3), // 浅绿色
-      new Cesium.Color(204 / 255, 102 / 255, 255 / 255, 0.3), // 淡紫色
-      new Cesium.Color(255 / 255, 204 / 255, 0 / 255, 0.3), // 金黄色
-      new Cesium.Color(0 / 255, 204 / 255, 153 / 255, 0.3), // 青绿色
-      new Cesium.Color(255 / 255, 102 / 255, 102 / 255, 0.3), // 浅红色
-      new Cesium.Color(102 / 255, 153 / 255, 255 / 255, 0.3), // 淡蓝色
-      new Cesium.Color(255 / 255, 178 / 255, 102 / 255, 0.3), // 浅橙色
-      new Cesium.Color(153 / 255, 255 / 255, 204 / 255, 0.3), // 淡青色
-      new Cesium.Color(255 / 255, 153 / 255, 204 / 255, 0.3), // 浅粉色
-      new Cesium.Color(190 / 255, 255 / 255, 232 / 255, 0.3), // 淡靛紫
-    ];
-
-    // 确保索引在有效范围内
-    if (i >= 0 && i < colors.length) {
-      return colors[i];
-    } else {
-      // 如果索引超出范围，使用默认颜色或循环使用已有颜色
-      return colors[i % colors.length];
-    }
-  };
-
-  function configureAdminStyles(dataSource, color) {
-    if (!dataSource) return;
-
-    const entities = dataSource.entities.values;
-
-    entities.forEach((entity) => {
-      const name = entity.properties.name._value || dataSource.name;
-      entity.polygon = {
-        hierarchy: entity.polygon.hierarchy,
-        material: color,
-        outline: true,
-        outlineColor: Cesium.Color.BLUE,
-        outlineWidth: 1,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        show: true, // 使用统一的显示控制
-        fill: true,
-        shadow: true,
-        depthFailMaterial: color.withAlpha(0.2),
-      };
-
-      if (name !== "新城区") {
-        // 计算多边形的中心点作为标签的位置
-        const positions = entity.polygon.hierarchy.getValue(
-          Cesium.JulianDate.now()
-        ).positions; // 输入一组坐标
-        const boundingSphere = Cesium.BoundingSphere.fromPoints(positions); // 自动计算中心位置和半径
-        entity.position = boundingSphere.center;
-      } else {
-        let point1 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now())
-          .positions[0];
-        let point2 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now())
-          .positions[
-          parseInt(
-            entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions
-              .length / 6
-          )
-        ];
-        let point3 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now())
-          .positions[
-          parseInt(
-            entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions
-              .length / 3
-          )
-        ];
-        entity.position = Cesium.BoundingSphere.fromPoints([
-          point1,
-          point2,
-          point3,
-        ]).center;
-      }
-
-      entity.label = {
-        text: name,
-        font: "40px",
-        fillColor: Cesium.Color.BLACK,
-        backgroundColor: color.withAlpha(0.7),
-        padding: new Cesium.Cartesian2(5, 5),
-        showBackground: true,
-        verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
-        pixelOffset: new Cesium.Cartesian2(0, 0), // 像素偏移量设置为0
-        // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
-        show: true, // 使用统一的显示控制
-      };
-    });
-  }
-
-  // 重置数据源数组
-  let adminDataSources = [];
-  // 使用for循环同步加载所有数据源
-  for (let i = 0; i < administrationData.length; i++) {
-    // 创建新的数据源
-    const dataSource = new Cesium.GeoJsonDataSource();
-    adminDataSources.push(dataSource);
-
-    // 配置加载选项并加载数据
-    dataSource
-      .load(administrationData[i], {
-        enableFeatureStyles: false,
-        clampToGround: true,
-        suppressPointLabels: true,
-      })
-      .then(() => {
-        // 配置当前数据源的样式
-        const color = generateRandomColor(i);
-        configureAdminStyles(dataSource, color);
-        // 存储区县颜色
-        const districtId = administrationData[i].name || `district${i}`;
-        districtColors[districtId] = color;
-        // 添加到地图
-        window.viewer.dataSources.add(dataSource);
-      })
-      .catch((error) => {
-        console.error(
-          `加载行政区划数据失败 (${administrationData[i].name || "未知区域"}):`,
-          error
-        );
-      });
-  }
 }
 
 function setupEntityClickHandler() {
