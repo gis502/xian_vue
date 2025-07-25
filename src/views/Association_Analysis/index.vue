@@ -269,6 +269,7 @@ export default {
       tableHeaders: ['区县名称','风向', '温度', '降水量'],
       slide: [], // 村村滑坡隐患点信息
       disasterEntities: [],//存储所有添加的实体，用于事件处理
+      disas: []
     };
   },
   mounted() {
