@@ -5,9 +5,9 @@ let layers = {
 
 
     //画烈度圈
-    DrawEllipse(longitude, latitude, magnitude, name) {
+    DrawEllipse(longitude, latitude, magnitude) {
         this.removeIsoseismalCircle()
-        console.log(longitude, latitude, magnitude, name, "longitude,latitude,magnitude,name")
+        // console.log(longitude, latitude, magnitude, name, "longitude,latitude,magnitude,name")
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
         // console.log(min_line,"==================")
         let first_point = min_line.coordinates[0]
@@ -17,7 +17,7 @@ let layers = {
         console.log(bearing, "==================")
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
         // // 绘制椭圆
-        this.DrawCircle({x: longitude, y: latitude}, bearing, magnitude, name);
+        this.DrawCircle({x: longitude, y: latitude}, bearing, magnitude);
     },
     pointToLineDistance_getMinLine(position, lineData) {
         /**
@@ -132,7 +132,7 @@ let layers = {
 
         return bearing;
     },
-    DrawCircle(point, bearing, magnitude, isoseismalCircleName) {
+    DrawCircle(point, bearing, magnitude) {
         // 地震源位置
         let position = point;
         // 根据断裂带计算的角度
@@ -140,33 +140,8 @@ let layers = {
 
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
-        console.log("ellipseParams",ellipseParams)
-        // 创建一个更大的半透明遮罩区域
-        // const maskParams = {
-        //     semiMinorAxis: ellipseParams[0].semiMinorAxis * 1.5,
-        //     semiMajorAxis: ellipseParams[0].semiMajorAxis * 1.5,
-        //     alpha: 0.1 // 遮罩透明度
-        // };
-
         // 先添加遮罩层，确保它在最底层
         const rotation = Cesium.Math.toRadians(strikeDirection - 90);
-        // let mask = new Cesium.Entity({
-        //     position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-        //     name: "地震影响区域遮罩",
-        //     ellipse: {
-        //         semiMinorAxis: maskParams.semiMinorAxis * 50,
-        //         semiMajorAxis: maskParams.semiMajorAxis * 70,
-        //         material: new Cesium.ImageMaterialProperty({
-        //             image: this.createGradientTexture(256, 256),
-        //             transparent: true
-        //         }),
-        //         height: 1, // 稍微高于椭圆，确保显示在上方
-        //         rotation: rotation,
-        //         zIndex: 998 // 遮罩的z-index低于椭圆
-        //     }
-        // });
-        // window.viewer.entities.add(mask);
-
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
         ellipseParams.forEach(params => {
             let ellipse = new Cesium.Entity({
@@ -198,6 +173,7 @@ let layers = {
                     position.x + offsetLon,
                     position.y + offsetLat
                 ),
+                name: "地震影响区域标签",
                 label: {
                     text: params.leveltext,                     // 你动态替换为 params.intensity
                     font: '16px sans-serif',
@@ -213,35 +189,7 @@ let layers = {
 
                 }
             });
-
         });
-
-        // 创建标签实体，确保它显示在最上方
-        // let labelEntity = new Cesium.Entity({
-        //     position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
-        //     name: "地震影响区名称",
-        //     label: {
-        //         text: isoseismalCircleName,
-        //         font: '40px',
-        //         fillColor: Cesium.Color.BLACK,
-        //         backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-        //         padding: new Cesium.Cartesian2(5, 5),
-        //         showBackground: true,
-        //         verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
-        //         eyeOffset: new Cesium.Cartesian3(100, 500, 0), // 像素偏移量
-        //         show: true, // 使用统一的显示控制
-        //         zIndex: 100, // 设置为最高z-index，确保显示在最上方
-        //         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        //         depthTest: false, // 禁止深度测试
-        //         // scale: 0.8,
-        //         scaleByDistance: new Cesium.NearFarScalar(50000, 3, 5e5, 0.4),
-        //         // 添加贴地所需的额外属性
-        //         disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        //         // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 400000),
-        //         pixelOffset:new Cesium.Cartesian2(0,-30)
-        //     }
-        // });
-        // window.viewer.entities.add(labelEntity);
     },
     calculateEllipseParams(magnitude) {
         let sum = Math.floor(Number(magnitude) + 2);
@@ -357,6 +305,17 @@ let layers = {
                 window.viewer.entities.remove(entity);
             });
         }
+        let toRemoveLabel = window.viewer.entities.values.filter(
+            e => e.name === '地震影响区域标签'
+        );
+        if(toRemoveLabel){
+            // 2. 逐个删除
+            toRemoveLabel.forEach(entity => {
+                window.viewer.entities.remove(entity);
+            });
+        }
+
+
     }
     //画烈度圈 end
 }

@@ -46,6 +46,7 @@ import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 //时间轴组件
 import timeLinePlay from "@/components/ScenarioSimulation/timeLinePlay.vue";
 import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
+import basicLayers from "@/cesium/basicLayers.js";
 export default {
   name: "thdTimeLine",
   props: ['id', 'trigger'],
@@ -205,7 +206,7 @@ export default {
 
       init_cesium_navigation(this.disaterEvent.longitude, this.disaterEvent.latitude, viewer)
       this.MouseCoordinateHandler = setupMouseCoordinateDisplay(this.viewer, this.coordinateBoxData)
-      this.centerpoint = timeLine.addCenterPoint(this.disaterEvent)
+      this.centerpoint = basicLayers.addCenterPoint(this.disaterEvent)
       this.locatedCenter()
       this.entitiesClickPonpHandler()
     },

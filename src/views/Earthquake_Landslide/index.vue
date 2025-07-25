@@ -91,13 +91,15 @@ import YanLiang from '@/assets/static/area/YanLiang.json';
 import YanTa from '@/assets/static/area/YanTa.json';
 import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 
+import * as echarts from 'echarts';
 import {initCesium,init_cesium_navigation, setupMouseCoordinateDisplay} from '@/cesium/initLayer.js';
 import layers from "@/cesium/layers.js";
-import * as echarts from 'echarts';
+import basicLayers from "@/cesium/basicLayers.js";
+
 
 let administrationData = reactive([BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi])
 let districtColors = ref(null)
-let weinan = {longitude: 109.7,latitude:34.5}
+let weinan = {id:1,disasterName:"陕西省渭南市华州区7.0级地震（模拟）",trigger:"地震",longitude: 109.7,latitude:34.5}
 let EllipseAxis = {a:null,b:null}
 
 // 表格数据和分页相关状态
@@ -240,13 +242,13 @@ function load(){
 
 
   // loadTDT(0)
-  layers.DrawEllipse(weinan.longitude, weinan.latitude,7,"陕西省渭南市华州区7.0级地震（模拟）")
+  layers.DrawEllipse(weinan.longitude, weinan.latitude,7)
   EllipseAxis.a  = layers.calculateEllipseParams(8)[0].semiMajorAxis
   EllipseAxis.b  = layers.calculateEllipseParams(8)[0].semiMajorAxis
 
 
   loadLandSlide(landslide)
-  weiNanEarthquake()
+  basicLayers.addCenterPoint(weinan)
   earthquakeLine()
   AddHazardSource()
   loadAdminData(administrationData)
@@ -262,46 +264,8 @@ function load(){
       roll: 0.0
     }
   });
-
-
-
 }
 
-function weiNanEarthquake() {
-  // console.log(Cesium.Cartesian3.fromDegrees(109.7, 34.5),111)
-  window.viewer.entities.add({
-    // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-    position: Cesium.Cartesian3.fromDegrees(109.7, 34.5),
-    billboard: {
-      image: earthquake,
-      width: 100, // 图片宽度,单位px
-      height: 100, // 图片高度，单位px
-      eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-      color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-      scale: 0.8, // 缩放比例
-      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-      scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-      depthTest: false, // 禁止深度测试
-      disableDepthTestDistance: Number.POSITIVE_INFINITY // 不进行深度测试
-    },
-    // label: {
-    //   text: "陕西省渭南市华州区8.0级地震（模拟）",
-    //   font: '40px',
-    //   fillColor: Cesium.Color.BLACK,
-    //   backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-    //   padding: new Cesium.Cartesian2(5, 5),
-    //   showBackground: true,
-    //   verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
-    //   eyeOffset: new Cesium.Cartesian3(100, 500, 0), // 像素偏移量设置为0
-    //   // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
-    //   show: true, // 使用统一的显示控制
-    //   zIndex: 10000, // 调整z-index值
-    // },
-    properties: {
-
-    }
-  })
-}
 
 function earthquakeLine(){
   let line_data = []
@@ -1083,7 +1047,10 @@ function setupEntityClickHandler() {
     // console.log(pickedObject)
     if (pickedObject && Cesium.defined(pickedObject.id)) {
       const entity = pickedObject.id;
-      if (entity.properties && entity.properties.data._value.灾害类型 === '滑坡') {
+      if (entity.name === "地震中心") {
+
+      }
+      else if (entity.properties && entity.properties.data._value.灾害类型 === '滑坡') {
         // console.log(entity.properties)
 
         //屏幕坐标转世界坐标
