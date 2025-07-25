@@ -164,7 +164,7 @@ let layers = {
             //    这里选椭圆“正上”方向（rotation=0 时即正北）
             const angleRad = Cesium.Math.toRadians(rotation); // 椭圆长轴方向
             // 长轴端点在地球表面上的位移（近似）
-            const offsetMeters = params.semiMajorAxis * 1000 * 0.5; // 1.1 倍半径
+            const offsetMeters = params.semiMajorAxis  * 0.5; // 1.1 倍半径
             const offsetLon = (offsetMeters / 111320) * Math.sin(angleRad);
             const offsetLat = (offsetMeters / 111320) * Math.cos(angleRad);
             // 3. 文字实体

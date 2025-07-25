@@ -90,6 +90,15 @@ export default {
     timeLineLayer
   },
   beforeDestroy() {
+    // 1. 清空所有图形（点、线、面、标签）
+    if (this.viewer && this.viewer.entities) {
+      this.viewer.entities.removeAll();
+    }
+
+    // 2. 清空所有 GeoJSON / CZML / KML 等数据源
+    if (this.viewer && this.viewer.dataSources) {
+      this.viewer.dataSources.removeAll(true);
+    }
     if (this.viewer) {
       this.viewer.destroy();
       this.viewer = null;
