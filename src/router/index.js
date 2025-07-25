@@ -69,6 +69,19 @@ export const constantRoutes = [
       }
     ]
   },
+  {
+    path: '',
+    component: Layout,
+    redirect: '/graph',
+    children: [
+      {
+        path: '/thdTimeLine/:id/:trigger',
+        // path: '/thdTimeLine',
+        component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
+        name: 'thdTimeLine',
+        props: true,
+      }]
+  },
 
   {
     path: '/user',
