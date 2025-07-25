@@ -647,13 +647,18 @@ export default {
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
             // 点
             billboard: {
-              image: landslideIcon, // 自定义图钉图标
-              width: 25,
-              height: 25,
-              scale: 1.0,
-              color: Cesium.Color.WHITE,
-              rotation: 0,
-              // verticalOrigin: Cesium.VerticalOrigin.BOTTOM // 锚点底部（图钉效果）
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: landslideIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: true
             },
             // 文字
             label: {
@@ -698,13 +703,18 @@ export default {
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
             billboard: {
-              image: flowIcon, // 自定义图钉图标
-              width: 25,
-              height: 25,
-              scale: 1.0,
-              color: Cesium.Color.WHITE,
-              rotation: 0,
-              // verticalOrigin: Cesium.VerticalOrigin.BOTTOM // 锚点底部（图钉效果）
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: flowIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: true
             },
             // 文字
             label: {
@@ -758,13 +768,18 @@ export default {
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
             billboard: {
-              image: riskAreaIcon, // 自定义图钉图标
-              width: 25,
-              height: 25,
-              scale: 1.0,
-              color: Cesium.Color.WHITE,
-              rotation: 0,
-              // verticalOrigin: Cesium.VerticalOrigin.BOTTOM // 锚点底部（图钉效果）
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: riskAreaIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: true
             },
             // 文字
             label: {
