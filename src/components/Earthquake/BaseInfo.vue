@@ -44,19 +44,19 @@
       <!-- 致灾因子信息 -->
       <Hazards
         v-if="displayDisasterCausingFactors"
-        :hazardsDatas="hazardsDatas"
+        :hazardsDatas="hazards"
       ></Hazards>
     </div>
   </div>
 </template>
 
 <script setup name="BaseInfo">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import DebrisFlow from "./DebrisFlow.vue";
 import Landslide from "./Landslide.vue";
 import RiskPoints from "./RiskPoints.vue";
 import Hazards from "./Hazards.vue";
-import { staticHazardsDatas } from "../../api/earthquake/datas";  // 静态致灾因子数据，后续删除
+import { staticHazardsDatas } from "../../api/earthquake/datas"; // 静态致灾因子数据，后续删除
 const emit = defineEmits(["removeBaseInfoBox"]);
 
 const parentDatas = defineProps([
@@ -67,43 +67,44 @@ const parentDatas = defineProps([
   "showdebrisFlowInformation",
   "debrisFlowInformation",
   "showRiskPointsInformation",
-  "riskPointsInformation"
+  "riskPointsInformation",
 ]);
 
 // 是否显示致灾因子
 const displayDisasterCausingFactors = ref(false);
 
 // 致灾因子数据
-let hazardsDatas = ref([])
+let hazards = computed(() => {
+  // 设置滑坡数据致灾因子数据
+  if (parentDatas.showDisasterInformation) {
+    parentDatas.disasterInformation.factorVoList.forEach((element) => {
+      element.type = element.unit == "" ? "select" : "input:number";
+      element.isModified = true;
+    });
+    return parentDatas.disasterInformation;
+  }
+  // 设置泥石流
+  else if (parentDatas.showdebrisFlowInformation) {
+    parentDatas.debrisFlowInformation.factorVoList = staticHazardsDatas;
+    return parentDatas.debrisFlowInformation;
+  }
+  // 风险点
+  else if (parentDatas.showRiskPointsInformation) {
+    parentDatas.riskPointsInformation.factorVoList = staticHazardsDatas;
+    return parentDatas.riskPointsInformation;
+  }
+});
 
 // 监控dom
 const cesiumInfoWindow = ref();
 
 onMounted(() => {
-  window.addEventListener('resize', resetWindowPosition())
+  window.addEventListener("resize", resetWindowPosition());
 });
 
 // 显示组件
 function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
-
-  // 设置滑坡数据致灾因子数据
-  if (parentDatas.showDisasterInformation) {
-    hazardsDatas.value = []
-    parentDatas.disasterInformation.factorVoList.forEach(element => {
-      element.type = element.unit == '' ? 'select' : 'input:number'
-      element.isModified = true
-      hazardsDatas.value.push(element)
-    });
-  }
-  // 设置泥石流
-  else if(parentDatas.showdebrisFlowInformation) {
-    hazardsDatas.value = staticHazardsDatas
-  }
-  // 风险点
-  else if(parentDatas.showRiskPointsInformation) {
-    hazardsDatas.value = staticHazardsDatas
-  }
 }
 
 // 重新设置弹窗位置

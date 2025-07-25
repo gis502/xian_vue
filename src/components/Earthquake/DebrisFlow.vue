@@ -4,31 +4,31 @@
     <tbody>
       <tr>
         <td class="label">灾害点名称</td>
-        <td>{{ info.disasterName }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.disasterName }}</td>
       </tr>
       <tr>
         <td class="label">野外编号</td>
-        <td>{{ info.fieldCode }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.fieldCode }}</td>
       </tr>
       <tr>
         <td class="label">规模等级</td>
-        <td>{{ info.scaleGrade }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.scaleGrade }}</td>
       </tr>
       <tr>
         <td class="label">险情等级</td>
-        <td>{{ info.riskGrade }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.riskGrade }}</td>
       </tr>
       <tr>
         <td class="label">地理位置</td>
-        <td>{{ info.position }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.position }}</td>
       </tr>
       <tr>
         <td class="label">经度</td>
-        <td>{{ info.lon }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.lon }}</td>
       </tr>
       <tr>
         <td class="label">纬度</td>
-        <td>{{ info.lat }}</td>
+        <td>{{ info.geologicalDisasterHideDTO.lat }}</td>
       </tr>
     </tbody>
   </table>

@@ -132,17 +132,16 @@
 
 <script setup>
 import * as Cesium from "cesium";
-const tdtToken = "31f4628fd3dd7fa4d98dd14042665db1";
 
 import { initCesium } from "@/cesium/initLayer.js";
 import * as echarts from "echarts";
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { tableData, dataTypes } from "../../api/earthquake/datas";
 import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
-import { init_cesium_navigation, setupMouseCoordinateDisplay } from "../../cesium/initLayer";
+import { init_cesium_navigation } from "../../cesium/initLayer";
 
 // 弹窗信息
 let showBaseInfo = ref(false);
@@ -495,10 +494,10 @@ function setupEntityClickHandler() {
         // 显示弹窗
         if (entity.properties) {
           if (
-            (entity.properties.data._value.geologicalDisasterHideDTO &&
-              entity.properties.data._value.geologicalDisasterHideDTO
-                .disasterType === "滑坡") ||
-            entity.properties.data._value.disasterType === "泥石流"
+            entity.properties.data._value.geologicalDisasterHideDTO
+              .disasterType === "滑坡" ||
+            entity.properties.data._value.geologicalDisasterHideDTO
+              .disasterType === "泥石流"
           ) {
             isRisk = false; // 不是风险区
           }
@@ -531,8 +530,8 @@ function setupEntityClickHandler() {
                 showInfoList(
                   entity.properties.data._value,
                   entity,
-                  entity.properties.data._value.disasterType || 
-                  entity.properties.data._value.geologicalDisasterHideDTO.disasterType 
+                  entity.properties.data._value.geologicalDisasterHideDTO
+                    .disasterType
                 );
               }
             },
@@ -542,7 +541,7 @@ function setupEntityClickHandler() {
     } catch (error) {}
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
-
+// 显示信息
 function showInfoList(info, entity, flag) {
   // 隐藏所有信息
   showDisasterInformation.value = false;
@@ -561,24 +560,18 @@ function showInfoList(info, entity, flag) {
   // console.log(info.properties,entity,11111)
   baseInfoPosition.top = top;
   baseInfoPosition.left = left;
+
   // 构建信息列表内容
-  if (
-    flag === "滑坡" &&
-    info.geologicalDisasterHideDTO &&
-    info.geologicalDisasterHideDTO.disasterType === "滑坡"
-  ) {
-    showBaseInfo.value = true;
+  showBaseInfo.value = true;
+  if (flag === "滑坡") {
     showDisasterInformation.value = true;
     disasterInformation.value = info;
     baseInfoTitle.value = "灾害信息";
-  } else if (flag === "泥石流" && info.disasterType === "泥石流") {
-    console.log("泥石流");
-    showBaseInfo.value = true;
+  } else if (flag === "泥石流") {
     showdebrisFlowInformation.value = true;
     debrisFlowInformation.value = info;
     baseInfoTitle.value = "灾害信息";
   } else if (flag === "风险区") {
-    showBaseInfo.value = true;
     showRiskPointsInformation.value = true;
     riskPointsInformation.value = info;
     baseInfoTitle.value = "风险区信息";

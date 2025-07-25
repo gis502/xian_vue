@@ -12,111 +12,56 @@ import {
   riskVillageData,
 } from "../../api/earthquake/datas";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
+import { onUnmounted } from "vue";
 
 // 清空pinia中存储的模拟点
-useSimulationPointStore().clearSimulationPoints()
+useSimulationPointStore().clearSimulationPoints();
 
 // 添加风险区
 riskVillageData().then((res) => {
-  AddDangerAreaDataSource(res.data.features);
+  // 修改数据结构，待后续接口同意后更改
+  const datas = [];
+
+  res.data.features.forEach((item) => {
+    datas.push({
+      factorVoList: null,
+      geologicalDisasterHideDTO: item.properties,
+    });
+  });
+  addHiddenDangerPoints(datas, riskArea);
 });
 
 // 添加滑坡
 landslideHazardPointData().then((res) => {
-  loadLandSlide(res.data);
+  addHiddenDangerPoints(res.data, landslideIcon);
 });
 
 // 添加泥石流
 dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
-  AddHazardSource(res.data);
+  addHiddenDangerPoints(res.data, debrisFlowIcon);
 });
 
-// 添加风险区
-function AddDangerAreaDataSource(DangerAreaData) {
-  DangerAreaData.forEach((DangerAreaData_point) => {
-    // 存储经纬度
-    useSimulationPointStore().simulationPoints.push({
-      type: "风险点",
-      lon: DangerAreaData_point.properties.lon,
-      lat: DangerAreaData_point.properties.lat,
-    });
+onUnmounted(() => {
+  useSimulationPointStore().clearSimulationPoints();
+});
 
-    let lon = DangerAreaData_point.properties.lon;
-    let lat = DangerAreaData_point.properties.lat;
+// 添加隐患点
+async function addHiddenDangerPoints(hiddenDangerPoints, imageEntity) {
+  
+  hiddenDangerPoints.forEach((hiddenDangerPoint) => {
+    let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
+    let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
+
+    // 生成唯一ID (使用隐患点ID或随机生成)
+    const entityId = `HIDDEN_DANGER_${Math.floor(Math.random() * 10000000)}`;
+    hiddenDangerPoint.entityId = entityId;
+
     window.viewer.entities.add({
-      position: Cesium.Cartesian3.fromDegrees(lon, lat),
-      billboard: {
-        image: riskArea,
-        width: 50,
-        height: 50,
-        eyeOffset: new Cesium.Cartesian3(0, 0, 0),
-        color: Cesium.Color.WHITE.withAlpha(1),
-        scale: 0.8,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-        depthTest: false,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        show: true,
-      },
-      properties: {
-        data: DangerAreaData_point.properties,
-      },
-    });
-  });
-}
-
-// 加载滑坡数据
-function loadLandSlide(landslide) {
-  for (let i = 0; i < landslide.length; i++) {
-    // 存储经纬度以及致灾因子
-    useSimulationPointStore().simulationPoints.push({
-      type: "滑坡点",
-      lon: landslide[i].geologicalDisasterHideDTO.lon,
-      lat: landslide[i].geologicalDisasterHideDTO.lat,
-      factorVoList: landslide[i].factorVoList,
-    });
-
-    let lon = landslide[i].geologicalDisasterHideDTO.lon;
-    let lat = landslide[i].geologicalDisasterHideDTO.lat;
-    window.viewer.entities.add({
-      // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-      position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-      billboard: {
-        image: landslideIcon,
-        width: 50, // 图片宽度,单位px
-        height: 50, // 图片高度，单位px
-        eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-        color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-        scale: 0.8, // 缩放比例
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-        scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-        depthTest: false, // 禁止深度测试
-        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-      },
-      properties: {
-        data: landslide[i],
-      },
-    });
-  }
-}
-
-// 添加泥石流隐患点
-function AddHazardSource(debrisFlow) {
-  debrisFlow.forEach((hazard_point) => {
-    // 存储经纬度
-    useSimulationPointStore().simulationPoints.push({
-      type: "泥石流点",
-      lon: hazard_point.lon,
-      lat: hazard_point.lat
-    });
-
-    let lon = hazard_point.lon;
-    let lat = hazard_point.lat;
-    window.viewer.entities.add({
+      id: entityId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-        image: debrisFlowIcon,
+        image: imageEntity,
         width: 50, // 图片宽度,单位px
         height: 50, // 图片高度，单位px
         eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
@@ -129,9 +74,10 @@ function AddHazardSource(debrisFlow) {
         show: true,
       },
       properties: {
-        data: hazard_point,
+        data: hiddenDangerPoint,
       },
     });
+    useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
   });
 }
 </script>

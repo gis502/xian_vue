@@ -237,7 +237,7 @@ export const landslideHazardPointData = () => {
   // });
 
   return request({
-    url: "/hide/slide",   // 包含致灾因子
+    url: "/hide/slide", // 包含致灾因子
     method: "get",
   });
 };
@@ -248,7 +248,7 @@ export const landslideHazardPointData = () => {
  */
 export const dataOnHiddenDangerPointsOfDebrisFlow = () => {
   return request({
-    url: "/hide/allflow",
+    url: "/hide/flow",
     method: "get",
   });
 };
@@ -262,17 +262,4 @@ export const riskVillageData = () => {
     url: "/risk/villages",
     method: "get",
   });
-}
-
-/**
- * 获取模拟点风险概率
- * @param {Array<Object>} points 
- * @returns 
- */
-export const obtainTheProbabilityOfSimulatedPointRisk = (points) => {
-  return request({
-    url: "/risk/probability",
-    method: "get",
-    params: points,
-  });
-}
+};

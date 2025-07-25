@@ -5,7 +5,7 @@
     <!-- 致灾因子信息 -->
     <el-form :model="form" label-width="auto" style="max-width: 100%">
       <el-form-item
-        v-for="item, index in hazardsDatas"
+        v-for="item, index in hazardsDatas.factorVoList"
         :key="item.attributeNameAlias"
         :label="item.attributeName"
       >
@@ -56,7 +56,7 @@ let probability = ref(0);
 
 onBeforeMount(() => {
   // 设置默认值
-  hazards.hazardsDatas.forEach(element => {
+  hazards.hazardsDatas.factorVoList.forEach(element => {
     form.push({
       hideId: element.hideId,
       attributeId: element.attributeId,
@@ -65,14 +65,17 @@ onBeforeMount(() => {
     })
   });
 
-  // 从后台获取一次概率
-  // modifyDatas();
+  // 设置预测值
+  if(hazards.hazardsDatas.predict && hazards.hazardsDatas.predict.probaility) {
+    probability.value = hazards.hazardsDatas.predict.probaility.toFixed(2);
+  }
 });
 
 async function modifyDatas() {
   // 从后台获取概率值
   const res = await getHazardProbability(form);
-  console.log(res);
+
+  // 修改概率值
 }
 </script>
 

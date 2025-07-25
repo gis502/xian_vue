@@ -44,7 +44,7 @@
 <script setup name="SimulatingEarthquake">
 import { reactive } from "vue";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
-import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/datas";
+import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 
 let form = reactive({
@@ -59,20 +59,23 @@ function confirmEarthquake() {
   layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
   emit("cancelEarthquake");
 
-  // 判断各个模拟点是否在椭圆内
+  // 处理各个模拟点
   let inEllipsePoints = [];
-  useSimulationPointStore()
-    .getAllSimulationPoints()
-    .forEach((item) => {
-      if (layers.isPointInEllipse([item.lon, item.lat])) {
-        inEllipsePoints.push(item);
-      }
-    });
-  // 获取各个点的风险概率
-  obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints).then(() => {
-    // 突出显示
-    console.log("显示");
+  useSimulationPointStore().simulationPoints.forEach((item) => {
+    // 将模拟点的预测值全部清空，重新获取
+    item.predict = null;
+    
+    if (
+      layers.isPointInEllipse([
+        item.geologicalDisasterHideDTO.lon,
+        item.geologicalDisasterHideDTO.lat,
+      ])
+    ) {
+      inEllipsePoints.push(item);
+    }
   });
+  // 获取各个点的风险概率
+  obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
 }
 </script>
 

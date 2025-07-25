@@ -14,3 +14,26 @@ export function getHazardProbability(disasterFactor) {
     },
   });
 }
+
+/**
+ * 获取模拟点风险概率
+ * @param {Array<Object>} points
+ * @returns
+ */
+export const obtainTheProbabilityOfSimulatedPointRisk = (points) => {
+  // return request({
+  //   url: "/risk/probability",
+  //   method: "get",
+  //   params: points,
+  // });
+  console.log(points);
+  // 用于测试
+  const levels = ["高", "中", "低"];
+  points.forEach((point) => {
+    point.predict = {
+      level: levels[Math.floor(Math.random() * 3)],
+      probaility: Math.random() * 100,
+    };
+  });
+  return points;
+};
