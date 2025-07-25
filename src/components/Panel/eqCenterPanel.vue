@@ -22,6 +22,12 @@
                 </td>
               </tr>
               <tr>
+                <th>震源深度</th>
+                <td>
+                  {{ earthquakeInfo.depth || "无数据" }} 千米
+                </td>
+              </tr>
+              <tr>
                 <th>震中经纬</th>
                 <td>经度: {{ earthquakeInfo.longitude || "无数据" }}°E，纬度: {{ earthquakeInfo.latitude || "无数据" }}°N</td>
               </tr>

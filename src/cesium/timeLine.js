@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium'
-import centerstar from "@/assets/icons/TimeLine/灾害中心.png";
+import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 // import cesiumPlot from "@/cesium/plot/cesiumPlot.js";
 // import plotCompute from "@/cesium/plot/plotCompute.js";
 // import {xp} from "@/cesium/drawArrow/algorithm.js";
@@ -32,21 +32,21 @@ let timeLine = {
                     color: Cesium.Color.WHITE.withAlpha(1),//颜色
                     clampToGround: true,
                 },
-                label: {
-                    text: labeltext,
-                    show: true,
-                    font: '14px sans-serif',
-                    fillColor: Cesium.Color.RED,        //字体颜色
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    outlineWidth: 2,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    pixelOffset: new Cesium.Cartesian2(0, -16),
-                },
+                // label: {
+                //     text: labeltext,
+                //     show: true,
+                //     font: '14px sans-serif',
+                //     fillColor: Cesium.Color.RED,        //字体颜色
+                //     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                //     outlineWidth: 2,
+                //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                //     disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                //     verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                //     pixelOffset: new Cesium.Cartesian2(0, -16),
+                // },
                 id: item.id,
                 plottype: item.trigger+"中心",
-                layer: item.trigger+"中心",
+                name: item.trigger+"中心",
                 properties: {...item}
             })
         }

@@ -11,19 +11,6 @@
         :position="PanelPosition"
         :popupData="PanelData"
     />
-    <!--态势标绘信息-->
-    <plotInfoOnlyShowPanel
-        v-show="plotShowOnlyPanelVisible"
-        :position="PanelPosition"
-        :popupData="PanelData"
-    />
-
-    <!--聚合标绘信息-->
-    <dataSourcePanel
-        v-show="dataSourcePopupVisible"
-        :position="PanelPosition"
-        :popupData="dataSourcePopupData"
-    />
     <!-- 鼠标悬停时显示的经纬度坐标 -->
     <div class="coordinate-box">
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}
@@ -32,10 +19,16 @@
         :viewer="viewer"
         :disaterEvent="disaterEvent"
         :currentTime="currentTimeString"
-        :stopTimePlay="stopTimePlay"
-        :isMarkingLayer="isMarkingLayerLocal"
-        @startTimePlay="handleStartTimePlay"
     />
+    <!--    :isMarkingLayer="isMarkingLayerLocal"-->
+    <!--    :stopTimePlay="stopTimePlay"-->
+    <!--    @startTimePlay="handleStartTimePlay"-->
+    <timeLineLayer
+        :viewer="viewer"
+        :disaterEvent="disaterEvent"
+        :currentTime="currentTimeString"
+    />
+
   </div>
 </template>
 
@@ -50,10 +43,9 @@ import timeLine from "@/cesium/timeLine.js";
 //面板
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
-import plotInfoOnlyShowPanel from "@/components/Panel/plotInfoOnlyShowPanel";
-import dataSourcePanel from "@/components/Panel/dataSourcePanel.vue";
 //时间轴组件
 import timeLinePlay from "@/components/ScenarioSimulation/timeLinePlay.vue";
+import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
 export default {
   name: "thdTimeLine",
   props: ['id', 'trigger'],
@@ -68,11 +60,8 @@ export default {
       selectedEntityPosition: '', //拾取的点的弹框位置
       PanelPosition: {x: 0, y: 0}, // TimeLinePanel弹窗的位置
       PanelData: {}, // TimeLinePanel弹窗的数据
-      dataSourcePopupData: {}, // TimeLinePanel弹窗的数据
       eqCenterPanelVisible: false,
       rainCenterPanelVisible: false,
-      plotShowOnlyPanelVisible: false,
-      dataSourcePopupVisible: false,
       //鼠标位置经纬度
       coordinateBoxData: {longitude: 108, latitude: 34},
 
@@ -95,10 +84,9 @@ export default {
   components: {
     eqCenterPanel,
     rainCenterPanel,
-    plotInfoOnlyShowPanel,
-    dataSourcePanel,
 
-    timeLinePlay
+    timeLinePlay,
+    timeLineLayer
   },
   beforeDestroy() {
     if (this.viewer) {
@@ -221,10 +209,8 @@ export default {
       this.locatedCenter()
       this.entitiesClickPonpHandler()
     },
-
-
     async locatedCenter() {
-      await timeLine.fly(this.disaterEvent.longitude, this.disaterEvent.latitude, 6000)
+      await timeLine.fly(this.disaterEvent.longitude, this.disaterEvent.latitude, 200000)
       //中心面板闪烁
       if (this.disaterEvent.trigger == "地震") {
         this.eqCenterPanelVisible = true;
@@ -279,89 +265,33 @@ export default {
 
 
           // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
-          if (!entity._layer && !pickedEntity.id._properties.sourceName) {
+          if (!entity.name) {
             this.eqCenterPanelVisible = false;
             this.rainCenterPanelVisible = false;
-            this.plotShowOnlyPanelVisible = false;
-            this.dataSourcePopupVisible = false
             return;
           }
-
           // 如果点击的是标绘点
-          else if (entity._layer === "地震中心") {
+          else if (entity.name === "地震中心") {
             this.eqCenterPanelVisible = true;
             this.rainCenterPanelVisible = false;
-            this.plotShowOnlyPanelVisible = false;
-            this.dataSourcePopupVisible = false
-
             this.PanelPosition = this.selectedEntityPosition; // 更新位置
             this.PanelData = {}
             this.PanelData = this.extractDataForRouter(entity)
-          } else if (entity._layer === "暴雨中心") {
+          } else if (entity.name === "暴雨中心") {
             this.eqCenterPanelVisible = false;
             this.rainCenterPanelVisible = true;
-            this.plotShowOnlyPanelVisible = false;
-            this.dataSourcePopupVisible = false
-
             this.PanelPosition = this.selectedEntityPosition; // 更新位置
             this.PanelData = {}
             this.PanelData = this.extractDataForRouter(entity)
-          } else if (entity._layer === "标绘点") {
-            this.eqCenterPanelVisible = false;
-            this.rainCenterPanelVisible = false;
-            this.plotShowOnlyPanelVisible = true;
-            this.dataSourcePopupVisible = false
-
-            this.PanelPosition = this.selectedEntityPosition; // 更新位置
-            this.PanelData = {}
-            // this.eqThemeData = {}
-            // this.tableName = ""
-            this.PanelData = this.extractDataForRouter(entity)
-          }
-
-          // //聚合图标
-          else if (Object.prototype.toString.call(entity) === '[object Array]') {
-            if (entity[0].entityCollection.owner.name === "label") {
-              this.eqCenterPanelVisible = false;
-              this.rainCenterPanelVisible = false;
-              this.plotShowOnlyPanelVisible = false;
-              this.dataSourcePopupVisible = false;
-            } else {
-              this.eqCenterPanelVisible = false;
-              this.rainCenterPanelVisible = false;
-              this.plotShowOnlyPanelVisible = false;
-              this.dataSourcePopupVisible = true
-
-              let popupPanelDatatmp = entity.filter(item => item.plottype !== undefined);
-              const drawTypes = popupPanelDatatmp.map(obj => obj.plottype);
-              console.log(drawTypes)
-              this.data = drawTypes.reduce((acc, type) => {
-                if (acc[type]) {
-                  acc[type] += 1;
-                } else {
-                  acc[type] = 1;
-                }
-                return acc;
-              }, {});
-
-              this.dataSourcePopupData = Object.entries(this.data).map(([key, value]) => ({
-                type: key,
-                count: value
-              }));
-
-            }
           } else {
+            this.rainCenterPanelVisible = false;
             this.eqCenterPanelVisible = false;
-            this.plotShowOnlyPanelVisible = false;
-            this.dataSourcePopupVisible = false
           }
         }
         //没有拾取到实体
         else {
           this.eqCenterPanelVisible = false;
           this.rainCenterPanelVisible = false;
-          this.plotShowOnlyPanelVisible = false;
-          this.dataSourcePopupVisible = false
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       // 在屏幕空间事件处理器中添加鼠标移动事件的处理逻辑
@@ -421,16 +351,18 @@ export default {
       });
       return properties;
     },
+
+
   },
 
-  //子-父-子，控制时间轴暂停与播放
-  handleStopTimePlay() {
-    this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
-    console.log(this.stopTimePlay, "this.stopTimePlay")
-  },
-  handleStartTimePlay() {
-    this.stopTimePlay = false;
-  },
+  // //子-父-子，控制时间轴暂停与播放
+  // handleStopTimePlay() {
+  //   this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
+  //   console.log(this.stopTimePlay, "this.stopTimePlay")
+  // },
+  // handleStartTimePlay() {
+  //   this.stopTimePlay = false;
+  // },
 }
 </script>
 
