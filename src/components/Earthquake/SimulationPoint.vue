@@ -12,7 +12,7 @@ import {
   riskVillageData,
 } from "../../api/earthquake/datas";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
-import { onUnmounted } from "vue";
+import { onUnmounted, watch } from "vue";
 
 // 清空pinia中存储的模拟点
 useSimulationPointStore().clearSimulationPoints();
@@ -47,7 +47,6 @@ onUnmounted(() => {
 
 // 添加隐患点
 async function addHiddenDangerPoints(hiddenDangerPoints, imageEntity) {
-  
   hiddenDangerPoints.forEach((hiddenDangerPoint) => {
     let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
     let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
@@ -77,6 +76,7 @@ async function addHiddenDangerPoints(hiddenDangerPoints, imageEntity) {
         data: hiddenDangerPoint,
       },
     });
+
     useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
   });
 }

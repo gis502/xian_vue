@@ -26,7 +26,6 @@ export const obtainTheProbabilityOfSimulatedPointRisk = (points) => {
   //   method: "get",
   //   params: points,
   // });
-  console.log(points);
   // 用于测试
   const levels = ["高", "中", "低"];
   points.forEach((point) => {
