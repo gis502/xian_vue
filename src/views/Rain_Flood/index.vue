@@ -12,7 +12,7 @@
         <div class="admin-btn" @click="toggleAdminLayer">
           {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
         </div>
-        <div class="table-btn" @click="toggleTablePanel" >
+        <div class="table-btn" @click="toggleTablePanel">
           {{ showRiskTable ? '信息隐藏' : '信息展示' }}
         </div>
       </div>
@@ -40,9 +40,11 @@
             highlight-current-row
             @row-click="handleRowClick">
           <!--        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>-->
-          <el-table-column prop="disasterName" label="风险区名称" align="center" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="disasterName" label="风险区名称" align="center"
+                           show-overflow-tooltip></el-table-column>
           <!-- 仅在扩展状态显示的列 -->
-          <el-table-column prop="position" label="地理位置" width="150" align="center" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="position" label="地理位置" width="150" align="center"
+                           show-overflow-tooltip></el-table-column>
           <!--        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>-->
           <!--        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>-->
           <!--        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>-->
@@ -67,15 +69,15 @@
 
     </div>
     <!-- 暴雨信息面板 -->
-<!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
-<!--      <div class="panel-title">暴雨信息</div>-->
-<!--      <div class="panel-content">-->
-<!--        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> 毫米每小时</div>-->
-<!--        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>-->
-<!--        <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
-<!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
-<!--      </div>-->
-<!--    </div>-->
+    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+    <!--      <div class="panel-title">暴雨信息</div>-->
+    <!--      <div class="panel-content">-->
+    <!--        <div>降雨量: <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/> 毫米每小时</div>-->
+    <!--        <div>已持续时间: <input v-model.number="duration" type="number" min="0" max="72" step="1"/> 小时</div>-->
+    <!--        <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
+    <!--        <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
     <!--      <div class="panel-title">暴雨信息</div>-->
     <!--      <div class="panel-content">-->
@@ -90,12 +92,12 @@
       <div class="panel-content">
         <div class="form-item">
           <label class="jiangyuliang">降雨量:</label>
-          <input v-model.number="rainfall" type="number" min="0" max="500" step="1" />
+          <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/>
           <span>毫米</span>
         </div>
         <div class="form-item">
           <label>持续时间:</label>
-          <input v-model.number="duration" type="number" min="0" max="72" step="1" />
+          <input v-model.number="duration" type="number" min="0" max="72" step="1"/>
           <span>小时</span>
         </div>
         <div class="button-group">
@@ -118,79 +120,309 @@
   }"
         @click.stop="stopPropagation">
       <div class="popup-header">
-        <h3 v-if="selectedEntityData.properties.disasterName">{{ selectedEntityData.properties.disasterName || '地质灾害风险区' }} </h3>
+        <h3 v-if="selectedEntityData.geologicalDisasterHideDTO.disasterName">
+          {{
+            (selectedEntityData.geologicalDisasterHideDTO.disasterName || '地质灾害风险区')
+          }}
+        </h3>
+        <button @click="toggleHazardFactorView" class="view-btn">
+          {{ isHazardFactorView ? '返回基本信息' : '查看致灾因子' }}
+        </button>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
+<!--        <el-form label-width="80px" :model="geologicalDisasterHideDTO">-->
+<!--          <template v-if="!isHazardFactorView">-->
+<!--          <el-form-item label="灾害类型" v-if="selectedEntityData.geologicalDisasterHideDTO.disasterType">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.disasterType"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="统一编号" v-if="selectedEntityData.geologicalDisasterHideDTO.unitCode">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.unitCode"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="野外编号" v-if="selectedEntityData.geologicalDisasterHideDTO.fieldCode">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.fieldCode"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="风险区名称" v-if="selectedEntityData.geologicalDisasterHideDTO.disasterName">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.disasterName"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="野外编号" v-if="selectedEntityData.geologicalDisasterHideDTO.fieldCode">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.fieldCode"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="地理位置" v-if="selectedEntityData.geologicalDisasterHideDTO.position">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.position"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="东经" v-if="selectedEntityData.geologicalDisasterHideDTO.lon">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.lon"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="北纬" v-if="selectedEntityData.geologicalDisasterHideDTO.lat">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.lat"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="居民户数" v-if="selectedEntityData.geologicalDisasterHideDTO.residentCounts">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.residentCounts"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="户籍人口" v-if="selectedEntityData.geologicalDisasterHideDTO.addressPopulation">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.addressPopulation"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="威胁财产" v-if="selectedEntityData.geologicalDisasterHideDTO.riskProperty">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.riskProperty"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="常住人口" v-if="selectedEntityData.geologicalDisasterHideDTO.permanentPopulation">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.permanentPopulation"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="住房" v-if="selectedEntityData.geologicalDisasterHideDTO.housing">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.housing"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="规模等级" v-if="selectedEntityData.geologicalDisasterHideDTO.scaleGrade">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.scaleGrade"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="风险等级" v-if="selectedEntityData.geologicalDisasterHideDTO.riskGrade">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.riskGrade"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="巡查员" v-if="selectedEntityData.geologicalDisasterHideDTO.username">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.username"></el-input>-->
+<!--          </el-form-item>-->
+
+<!--          <el-form-item label="手机号" v-if="selectedEntityData.geologicalDisasterHideDTO.phone">-->
+<!--            <el-input v-model="selectedEntityData.geologicalDisasterHideDTO.phone"></el-input>-->
+<!--          </el-form-item>-->
+<!--          </template>-->
+<!--        </el-form>-->
+
         <table class="disaster-table">
           <tbody>
-          <tr v-if="selectedEntityData.properties.disasterType">
-            <th>灾害类型</th>
-            <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.unitCode">
-            <th>统一编号</th>
-            <td>{{ selectedEntityData.properties.unitCode || '未知' }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.fieldCode">
-            <th>野外编号</th>
-            <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.disasterName">
-            <th>风险区名称</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.disasterName) }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.position">
-            <th>地理位置</th>
-            <td>{{ selectedEntityData.properties.position || '未知' }}</td>
-          </tr>
-          <tr>
-            <th>经度</th>
-            <td>东经{{ selectedEntityData.properties.lon || '未知' }}</td>
-          </tr>
-          <tr>
-            <th>纬度</th>
-            <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.residentCounts">
-            <th>居民户数</th>
-            <td>{{ selectedEntityData.properties.residentCounts || '未知' }} 户</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.addressPopulation">
-            <th>户籍人口</th>
-            <td>{{ selectedEntityData.properties.addressPopulation || '未知' }} 人</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.riskProperty">
-            <th>威胁财产</th>
-            <td>{{ selectedEntityData.properties.riskProperty || '未知' }} 万元</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.permanentPopulation">
-            <th>常住人口</th>
-            <td>{{ selectedEntityData.properties.permanentPopulation || '未知' }} 人</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.housing">
-            <th>住房</th>
-            <td>{{ selectedEntityData.properties.housing || '未知' }} 间</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.scaleGrade">
-            <th>规模等级</th>
-            <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.riskGrade">
-            <th>风险等级</th>
-            <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
-          </tr>
+          <!--隐患点基本信息-->
+          <template v-if="!isHazardFactorView">
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.disasterType">
+              <th>灾害类型</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.disasterType || '未知' }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.unitCode">
+              <th>统一编号</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.unitCode || '未知' }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.fieldCode">
+              <th>野外编号</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.fieldCode || '未知' }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.disasterName">
+              <th>风险区名称</th>
+              <td>{{ getDisasterTypeName(selectedEntityData.geologicalDisasterHideDTO.disasterName) }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.position">
+              <th>地理位置</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.position || '未知' }}</td>
+            </tr>
+            <tr>
+              <th>经度</th>
+              <td>东经{{ selectedEntityData.geologicalDisasterHideDTO.lon || '未知' }}</td>
+            </tr>
+            <tr>
+              <th>纬度</th>
+              <td>北纬{{ selectedEntityData.geologicalDisasterHideDTO.lat || '未知' }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.residentCounts">
+              <th>居民户数</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.residentCounts || '未知' }} 户</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.addressPopulation">
+              <th>户籍人口</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.addressPopulation || '未知' }} 人</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.riskProperty">
+              <th>威胁财产</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.riskProperty || '未知' }} 万元</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.permanentPopulation">
+              <th>常住人口</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.permanentPopulation || '未知' }} 人</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.housing">
+              <th>住房</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.housing || '未知' }} 间</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.scaleGrade">
+              <th>规模等级</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.scaleGrade || '未知' }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.riskGrade">
+              <th>风险等级</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.riskGrade || '未知' }}</td>
+            </tr>
 
-          <tr v-if="selectedEntityData.properties.username">
-            <th>巡查员</th>
-            <td>{{ selectedEntityData.properties.username || '未知' }}</td>
-          </tr>
-          <tr v-if="selectedEntityData.properties.phone">
-            <th>手机号</th>
-            <td>{{ selectedEntityData.properties.phone || '未知' }}</td>
-          </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.username">
+              <th>巡查员</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.username || '未知' }}</td>
+            </tr>
+            <tr v-if="selectedEntityData.geologicalDisasterHideDTO.phone">
+              <th>手机号</th>
+              <td>{{ selectedEntityData.geologicalDisasterHideDTO.phone || '未知' }}</td>
+            </tr>
+          </template>
+          <!--隐患点致灾因子信息-->
+          <template v-if="isHazardFactorView">
+            <!-- 高程 -->
+            <tr v-if="selectedEntityData.factorVoList.elevation">
+              <th>高程</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.elevation.factorValue"
+                    class="editable-input short-input"
+                /> {{ selectedEntityData.factorVoList.elevation.unit || '米' }}
+              </td>
+            </tr>
+
+            <!-- 坡度 -->
+            <tr v-if="selectedEntityData.factorVoList.slope">
+              <th>坡度</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.slope.factorValue"
+                    class="editable-input short-input"
+                /> {{ selectedEntityData.factorVoList.slope.unit || '度' }}
+              </td>
+            </tr>
+
+            <!-- 岩土类型 -->
+            <tr v-if="selectedEntityData.factorVoList.rockType">
+              <th>岩土类型</th>
+              <td>
+                <select
+                    v-model="selectedEntityData.factorVoList.rockType.factorValue"
+                    class="editable-select"
+                >
+                  <option value="">未知</option>
+                  <option value="粘性土">粘性土</option>
+                  <option value="砂质土">砂质土</option>
+                  <option value="砾石土">砾石土</option>
+                  <option value="岩石">岩石</option>
+                </select>
+              </td>
+            </tr>
+
+            <!-- 断层距离 -->
+            <tr v-if="selectedEntityData.factorVoList.breakDistance">
+              <th>断层距离</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.breakDistance.factorValue"
+                    class="editable-input short-input"
+                /> {{ hazardFactors.breakDistance.unit || '米' }}
+              </td>
+            </tr>
+
+            <!-- 土地利用类型 -->
+            <tr v-if="selectedEntityData.factorVoList.landUseType">
+              <th>土地利用类型</th>
+              <td>
+                <select
+                    v-model="selectedEntityData.factorVoList.landUseType.factorValue"
+                    class="editable-select"
+                >
+                  <option value="">未知</option>
+                  <option value="林地">林地</option>
+                  <option value="耕地">耕地</option>
+                  <option value="建设用地">建设用地</option>
+                  <option value="水域">水域</option>
+                </select>
+              </td>
+            </tr>
+
+            <!-- 水系距离 -->
+            <tr v-if="selectedEntityData.factorVoList.waterDistance">
+              <th>水系距离</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.waterDistance.factorValue"
+                    class="editable-input short-input"
+                /> {{ selectedEntityData.factorVoList.waterDistance.unit || '米' }}
+              </td>
+            </tr>
+
+            <!-- 降雨量 -->
+            <tr v-if="selectedEntityData.factorVoList.rainfall">
+              <th>降雨量</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.rainfall.factorValue"
+                    class="editable-input short-input"
+                /> {{ selectedEntityData.factorVoList.rainfall.unit || 'mm' }}
+              </td>
+            </tr>
+
+            <!-- 植被覆盖率 -->
+            <tr v-if="selectedEntityData.factorVoList.vegetationCoverage">
+              <th>植被覆盖率</th>
+              <td>
+                <select
+                    v-model="selectedEntityData.factorVoList.vegetationCoverage.factorValue"
+                    class="editable-select"
+                >
+                  <option value="">未知</option>
+                  <option value="低（<30%）">低（<30%）</option>
+                  <option value="中（30%-60%）">中（30%-60%）</option>
+                  <option value="高（>60%）">高（>60%）</option>
+                </select>
+              </td>
+            </tr>
+
+            <!-- 坡面曲率 -->
+            <tr v-if="selectedEntityData.factorVoList.slopeCurvature">
+              <th>坡面曲率</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.slopeCurvature.factorValue"
+                    class="editable-input short-input"
+                /> {{ hazardFactors.slopeCurvature.unit || '%' }}
+              </td>
+            </tr>
+
+            <!-- 土壤沙砾度 -->
+            <tr v-if="selectedEntityData.factorVoList.soilSandDegree">
+              <th>土壤沙砾度</th>
+              <td>
+                <input
+                    v-model="selectedEntityData.factorVoList.soilSandDegree.factorValue"
+                    class="editable-input short-input"
+                /> {{ selectedEntityData.factorVoList.soilSandDegree.unit || '%' }}
+              </td>
+            </tr>
+
+            <!-- 坡型 -->
+            <tr v-if="selectedEntityData.factorVoList.slopeType">
+              <th>坡型</th>
+              <td>
+                <select
+                    v-model="selectedEntityData.factorVoList.slopeType.factorValue"
+                    class="editable-select"
+                >
+                  <option value="">未知</option>
+                  <option value="凸型">凸型</option>
+                  <option value="凹型">凹型</option>
+                  <option value="直线型">直线型</option>
+                  <option value="复合型">复合型</option>
+                </select>
+              </td>
+            </tr>
+          </template>
           </tbody>
         </table>
+
+
       </div>
     </div>
     <!-- 图例面板 -->
@@ -228,12 +460,24 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import riverData from '@/assets/static/json/river.json';
 import lakeData from '@/assets/static/json/lake.json';
 // 引入滑坡，泥石流灾害点数据
-import HuapoData from '@/assets/static/disaster/Huapo.json';
-import NishiliuData from '@/assets/static/disaster/Nishiliu.json';
-import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
+// 图例
+import riskArea from '@/assets/images/riskArea.png'
+import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
+import landslideIcon from '@/assets/images/landslide.png'
+// 隐患点api
+import {
+  getGeologicalDisasterHideByLandSlideList,
+  getGeologicalDisasterHideByFlowList
+} from '@/api/system/disasterHide.js'
+
+// 风险区api
+import {
+  getGeologicalDisasterRiskList
+} from '@/api/system/disasterRisk.js'
+
 
 export default {
   name: 'CesiumRainMap',
@@ -265,10 +509,10 @@ export default {
       riverData: riverData,
       lakeData: lakeData,
       // 灾害点数据
-      HuapoData: HuapoData,
-      NishiliuData: NishiliuData,
+      HuapoData: [],
+      NishiliuData: [],
       // faultZone: faultZone,
-      DangerAreaData: DangerAreaData,
+      DangerAreaData: [],
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
@@ -318,6 +562,41 @@ export default {
       loading: false,
       tableData: [],
       isExpanded: false, // 表格扩展状态，true为扩展，false为收缩
+      isHazardFactorView: false,
+      editableData: {},
+      editableHazardFactors: {},
+      // 致灾因子数据，实际应用中可能从API获取
+      hazardFactors: {
+        elevation: null,        // 高程(米)
+        slope: null,            // 坡度（度）
+        breakDistance: null,    // 断层距离（米）
+        landUseType: null,      // 土地利用类型 （可选择）
+        waterDistance: null,    // 水系距离（米）
+        rainfall: null,       // 降雨量（mm）
+        vegetationCoverage: null,// 植被覆盖率（%）
+        slopeCurvature: null,  // 坡面曲率（%）
+        slopeType: null,      // 坡型（可选择）
+        rockType: null,      // 岩土类型（可选择）
+        soilSandDegree: null, // 土壤沙砾度（%）
+      },
+      geologicalDisasterHideDTO: {
+        disasterType: null,
+        unitCode: null,
+        fieldCode: null,
+        disasterName: null,
+        position: null,
+        lon: null,
+        lat: null,
+        residentCounts: null,
+        addressPopulation: null,
+        riskProperty: '',
+        permanentPopulation: null,
+        housing: null,
+        scaleGrade: null,
+        riskGrade: null,
+        username: null,
+        phone: null,
+      }
     }
   },
   computed: {
@@ -365,29 +644,10 @@ export default {
   methods: {
 
     load() {
-      // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
-      // this.viewer = new Cesium.Viewer(container, {
-      //   imageryProvider: false,
-      //   animation: false,
-      //   homeButton: false,
-      //   navigationHelpButton: false,
-      //   timeline: false,
-      //   selectionIndicator: false,
-      //   sceneModePicker: false,
-      //   infoBox: false,
-      //   geocoder: false,
-      //   vrButton: false,
-      //   fullscreenButton: false,
-      //   baseLayerPicker: false,
-      // });
-      //
-      // this.viewer.cesiumWidget.creditContainer.style.display = "none";
-      // this.loadTDT(0);
 
       this.viewer = initCesium(container)
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
-
 
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
@@ -589,175 +849,241 @@ export default {
       this.loadingText = '加载灾害点数据...';
 
       try {
-        // 确保数据存在且格式正确
-        const huapoFeatures = this.HuapoData?.features || [];
-        const nishiliuFeatures = this.NishiliuData?.features || [];
-        const dangerAreaFeatures = this.DangerAreaData?.features || [];
-        // 存储所有添加的实体，用于事件处理
-        this.disasterEntities = [];
         // 分别存储不同类型灾害点的实体引用
         this.landslideEntities = [];
         this.debrisFlowEntities = [];
         this.secondaryRiskEntities = [];
-        // 加载滑坡点
-        huapoFeatures.forEach(point => {
-          const properties = point.properties || {};
-          const disasterNAME = properties.disasterName || '未知灾害点';
-          const longitude = point.geometry.coordinates[0];
-          const latitude = point.geometry.coordinates[1];
+        // 滑坡数据
+        getGeologicalDisasterHideByLandSlideList().then(res => {
+          this.HuapoData = res.data
+          // 确保数据存在且格式正确
+          const huapoFeatures = this.HuapoData || [];
+          console.log(`滑坡数据点数: ${huapoFeatures.length}`);
+          // 加载滑坡点
+          huapoFeatures.forEach(point => {
+            const hideDTO = point.geologicalDisasterHideDTO || {};
+            const disasterNAME = hideDTO.disasterName || '未知灾害点';
+            const longitude = hideDTO.lon;
+            const latitude = hideDTO.lat;
+            point.factorVoList = point.factorVoList.map(item => {
+              return {
+                hideId: item.hideId,
+                attributeId: item.attributeId,
+                valueId: item.valueId,
+                attributeName: item.attributeName,
+                factorValue: item.factorValue,
+                unit: item.unit,
+                attributeNameAlias: item.attributeNameAlias
+              }
+            });
 
-          // 加入滑坡点到数组
-          this.landslidePoints.push([longitude, latitude])
+            // 加入滑坡点到数组
+            this.landslidePoints.push([longitude, latitude])
 
-          // 创建灾害点实体
-          const entity = this.viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-            // 点
-            point: {
-              color: Cesium.Color.RED, // 点位颜色
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 1,
-              pixelSize: 15 // 像素点大小
-            },
-            // 文字
-            label: {
-              text: `${disasterNAME}`,
-              font: '15pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, -35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
-            },
-            // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription(properties, '滑坡'),
-            // 保存原始样式，用于闪烁恢复
-            originalColor: Cesium.Color.RED,
-            originalPixelSize: 15,
-            // 标记灾害类型
-            disasterType: 'landslide',
-            disasterData: point,
+            // 创建灾害点实体
+            const entity = this.viewer.entities.add({
+              position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+              // 点
+              // point: {
+              //   color: Cesium.Color.RED, // 点位颜色
+              //   outlineColor: Cesium.Color.BLACK,
+              //   outlineWidth: 1,
+              //   pixelSize: 15 // 像素点大小
+              // },
+              billboard: {
+                // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                image: landslideIcon,
+                width: 100, // 图片宽度,单位px
+                height: 100, // 图片高度，单位px
+                eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                scale: 0.8, // 缩放比例
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                depthTest: false, // 禁止深度测试
+                disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                show: true
+              },
+              // 文字
+              label: {
+                text: `${disasterNAME}`,
+                font: '15pt Source Han Sans CN',
+                fillColor: Cesium.Color.WHITE,
+                backgroundColor: Cesium.Color.AQUA,
+                showBackground: false,
+                outline: true,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 10,
+                scale: 1.0,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+                pixelOffset: new Cesium.Cartesian2(-70, -35),
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+                show: true
+              },
+              // 添加灾害类型信息，用于弹窗显示
+              description: this.createDisasterDescription(point, '滑坡'),
+              // 保存原始样式，用于闪烁恢复
+              originalColor: Cesium.Color.RED,
+              originalPixelSize: 15,
+              // 标记灾害类型
+              disasterType: 'landslide',
+              disasterData: point,
+            });
+            // 保存实体引用
+            this.disasterEntities.push(entity);
+            this.landslideEntities.push(entity);
           });
-          // 保存实体引用
-          this.disasterEntities.push(entity);
-          this.landslideEntities.push(entity);
-        });
-        // 加载泥石流点
-        nishiliuFeatures.forEach(point => {
-          const properties = point.properties || {};
-          const disasterNAME = properties.disasterName || '未知灾害点';
-          const longitude = parseFloat(point.geometry.coordinates[0]);
-          const latitude = parseFloat(point.geometry.coordinates[1]);
-          // 加入泥石流点
-          this.debrisFlowPoints.push([longitude, latitude])
-          // 创建灾害点实体
-          const entity = this.viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-            // 点
-            point: {
-              color: Cesium.Color.YELLOW, // 点位颜色
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 1,
-              pixelSize: 15 // 像素点大小
-            },
-            // 文字
-            label: {
-              text: `${disasterNAME}`,
-              font: '15pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, 35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
-            },
-            // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription(properties, '泥石流'),
-            // 保存原始样式，用于闪烁恢复
-            originalColor: Cesium.Color.YELLOW,
-            originalPixelSize: 15,
-            // 标记灾害类型
-            disasterType: 'debrisFlow',
-            disasterData: point,
-          });
+        })
+        // 泥石流数据
+        getGeologicalDisasterHideByFlowList().then(res => {
+          this.NishiliuData = res.data
+          const nishiliuFeatures = this.NishiliuData || [];
+          // 加载泥石流点
+          nishiliuFeatures.forEach(point => {
+            const hideDTO = point.geologicalDisasterHideDTO || {};
+            const disasterNAME = hideDTO.disasterName || '未知灾害点';
+            const longitude = hideDTO.lon;
+            const latitude = hideDTO.lat;
+            // 加入泥石流点
+            this.debrisFlowPoints.push([longitude, latitude])
+            // 创建灾害点实体
+            const entity = this.viewer.entities.add({
+              position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+              // 点
+              // point: {
+              //   color: Cesium.Color.YELLOW, // 点位颜色
+              //   outlineColor: Cesium.Color.BLACK,
+              //   outlineWidth: 1,
+              //   pixelSize: 15 // 像素点大小
+              // },
+              billboard: {
+                // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                image: debrisFlowIcon,
+                width: 100, // 图片宽度,单位px
+                height: 100, // 图片高度，单位px
+                eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                scale: 0.8, // 缩放比例
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                depthTest: false, // 禁止深度测试
+                disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                show: true
+              },
+              // 文字
+              label: {
+                text: `${disasterNAME}`,
+                font: '15pt Source Han Sans CN',
+                fillColor: Cesium.Color.WHITE,
+                backgroundColor: Cesium.Color.AQUA,
+                showBackground: false,
+                outline: true,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 10,
+                scale: 1.0,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+                pixelOffset: new Cesium.Cartesian2(-70, 35),
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+                show: true
+              },
+              // 添加灾害类型信息，用于弹窗显示
+              description: this.createDisasterDescription(point, '泥石流'),
+              // 保存原始样式，用于闪烁恢复
+              originalColor: Cesium.Color.YELLOW,
+              originalPixelSize: 15,
+              // 标记灾害类型
+              disasterType: 'debrisFlow',
+              disasterData: point,
+            });
 
-          // 保存实体引用
-          this.disasterEntities.push(entity);
-          this.debrisFlowEntities.push(entity);
-        });
-        // 添加风险区点
-        dangerAreaFeatures.forEach(point => {
-          const SmId = point.properties.SmUserID; // id
-          const disasterName = point.properties.disasterName; //  风险区名称
-          const unitCode = point.properties.unitCode; // 单位代码
-          const position = point.properties.position; // 位置
-          const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
-          const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
-          const area = point.properties.area || {};   // 面积
-          const residentCounts = point.properties.residentCounts; // 居民户数（户）
-          const addressPopulation = point.properties.addressPopulation; // 户籍人口（人）
-          const riskProperty = point.properties.riskProperty; // 威胁财产（万元）
-          const permanentPopulation = point.properties.permanentPopulation; // 长居住人口（人）
-          const housing = point.properties.housing; // 住房（间）
-
-          // 加入次生灾害点
-          this.secondaryRiskPoints.push([longitude, latitude])
-          // 创建灾害点实体
-          const entity = this.viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-            // 点
-            point: {
-              color: Cesium.Color.ORANGE, // 点位颜色
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 1,
-              pixelSize: 15 // 像素点大小
-            },
-            // 文字
-            label: {
-              text: `${position}`,
-              font: '15pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, -35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
-            },
-            // 添加灾害类型信息，用于弹窗显示
-            description: this.createDisasterDescription({position}, '次生灾害风险区'),
-            // 保存原始样式，用于闪烁恢复
-            originalColor: Cesium.Color.ORANGE,
-            originalPixelSize: 15,
-            // 标记灾害类型
-            disasterType: 'secondaryRisk',
-            disasterData: point,
+            // 保存实体引用
+            this.disasterEntities.push(entity);
+            this.debrisFlowEntities.push(entity);
           });
-          // 保存实体引用
-          this.disasterEntities.push(entity);
-          this.secondaryRiskEntities.push(entity);
-        });
+        })
+        // 风险区数据
+        getGeologicalDisasterRiskList().then(res => {
+          this.DangerAreaData = res.data
+          const dangerAreaFeatures = this.DangerAreaData?.features || [];
+          // 添加风险区点
+          dangerAreaFeatures.forEach(point => {
+            const SmId = point.properties.SmUserID; // id
+            const disasterName = point.properties.disasterName; //  风险区名称
+            const unitCode = point.properties.unitCode; // 单位代码
+            const position = point.properties.position; // 位置
+            const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
+            const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
+            const area = point.properties.area || {};   // 面积
+            const residentCounts = point.properties.residentCounts; // 居民户数（户）
+            const addressPopulation = point.properties.addressPopulation; // 户籍人口（人）
+            const riskProperty = point.properties.riskProperty; // 威胁财产（万元）
+            const permanentPopulation = point.properties.permanentPopulation; // 长居住人口（人）
+            const housing = point.properties.housing; // 住房（间）
+
+            // 加入次生灾害点
+            this.secondaryRiskPoints.push([longitude, latitude])
+            // 创建灾害点实体
+            const entity = this.viewer.entities.add({
+              position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+              // 点
+              // point: {
+              //   color: Cesium.Color.ORANGE, // 点位颜色
+              //   outlineColor: Cesium.Color.BLACK,
+              //   outlineWidth: 1,
+              //   pixelSize: 15 // 像素点大小
+              // },
+              billboard: {
+                // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                image: riskArea,
+                width: 50, // 图片宽度,单位px
+                height: 50, // 图片高度，单位px
+                eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                scale: 0.8, // 缩放比例
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                depthTest: false, // 禁止深度测试
+                disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                show: true
+              },
+              // 文字
+              label: {
+                text: `${position}`,
+                font: '15pt Source Han Sans CN',
+                fillColor: Cesium.Color.WHITE,
+                backgroundColor: Cesium.Color.AQUA,
+                showBackground: false,
+                outline: true,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 10,
+                scale: 1.0,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+                pixelOffset: new Cesium.Cartesian2(-70, -35),
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+                show: true
+              },
+              // 添加灾害类型信息，用于弹窗显示
+              description: this.createDisasterDescription({position}, '次生灾害风险区'),
+              // 保存原始样式，用于闪烁恢复
+              originalColor: Cesium.Color.ORANGE,
+              originalPixelSize: 15,
+              // 标记灾害类型
+              disasterType: 'secondaryRisk',
+              disasterData: point,
+            });
+            // 保存实体引用
+            this.disasterEntities.push(entity);
+            this.secondaryRiskEntities.push(entity);
+          });
+        })
+        // 存储所有添加的实体，用于事件处理
+        this.disasterEntities = [];
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
@@ -770,206 +1096,206 @@ export default {
     // 加入滑坡区域
     loadLandSlide(landslide, target) {
       for (let i = 0; i < landslide.length; i++) {
-        if(target.includes(i)){
-        console.log("所有符合:", landslide[i])
-        let lon = landslide[i].lon
-        let lat = landslide[i].lat
-        this.viewer.entities.add({
-          // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-          position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-          properties: {
-            data: landslide[i]
-          }
-        })
-
-        // 根据点路线绘制多边形影响范围，如果没有点路线则绘制圆形
-        if (landslide[i].点路线 && landslide[i].点路线.length > 0) {
-          const routePoints = [];
-          const polylinePositions = []; // 用于存储折线点的数组
-          const bufferWidth = 20; // 缓冲区宽度（米），您可以根据需要调整此值
-
-          // 收集并验证所有有效的路线点
-          for (let j = 0; j < landslide[i].点路线.length; j++) {
-            const currentPointData = landslide[i].点路线[j];
-            if (!Array.isArray(currentPointData) || currentPointData.length === 0 || !Array.isArray(currentPointData[0]) || currentPointData[0].length < 2) {
-              console.warn(`无效的点数据结构，索引 ${i}，点路线索引 ${j}:`, currentPointData);
-              continue;
+        if (target.includes(i)) {
+          console.log("所有符合:", landslide[i])
+          let lon = landslide[i].lon
+          let lat = landslide[i].lat
+          this.viewer.entities.add({
+            // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
+            position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
+            properties: {
+              data: landslide[i]
             }
+          })
 
-            const point = currentPointData[0];
-            const lon = parseFloat(point[0]);
-            const lat = parseFloat(point[1]);
+          // 根据点路线绘制多边形影响范围，如果没有点路线则绘制圆形
+          if (landslide[i].点路线 && landslide[i].点路线.length > 0) {
+            const routePoints = [];
+            const polylinePositions = []; // 用于存储折线点的数组
+            const bufferWidth = 20; // 缓冲区宽度（米），您可以根据需要调整此值
 
-            if (!isNaN(lon) && !isNaN(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
-              routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
-              polylinePositions.push(lon, lat); // 添加到折线点数组
-            } else {
-              console.warn(`无效的坐标值，索引 ${i}，点路线索引 ${j}: lon=${point[0]}, lat=${point[1]}`);
-            }
-          }
-          // 绘制原始点路线
-          if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
-            this.viewer.entities.add({
-              polyline: {
-                positions: Cesium.Cartesian3.fromDegreesArray(polylinePositions),
-                width: 20, // 线条宽度
-                material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.YELLOW), // 使用箭头材质
-                clampToGround: true // 贴地显示
-              },
-              properties: {
-                data: landslide[i],
-                type: 'landslide_route'
+            // 收集并验证所有有效的路线点
+            for (let j = 0; j < landslide[i].点路线.length; j++) {
+              const currentPointData = landslide[i].点路线[j];
+              if (!Array.isArray(currentPointData) || currentPointData.length === 0 || !Array.isArray(currentPointData[0]) || currentPointData[0].length < 2) {
+                console.warn(`无效的点数据结构，索引 ${i}，点路线索引 ${j}:`, currentPointData);
+                continue;
               }
-            });
-          }
 
-          // 绘制影响范围多边形（缓冲区）
-          if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
-            // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
-            const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
-              const interpolatedPoints = [];
-              const segmentInterpolationCount = 50; // 每段插值点数
+              const point = currentPointData[0];
+              const lon = parseFloat(point[0]);
+              const lat = parseFloat(point[1]);
 
-              // 如果只有一个点，直接生成圆形（360度扇形）
-              if (routePoints.length === 1) {
-                const centerPoint = routePoints[0];
-                const radius = bufferWidth;
-                const positions = [];
-                const numSegments = 60; // 扇形分段数
-
-                for (let k = 0; k <= numSegments; k++) {
-                  const angle = (k / numSegments) * 360; // 0到360度
-                  const radian = Cesium.Math.toRadians(angle);
-
-                  // 计算扇形边界点，使用更精确的地理坐标计算
-                  const cartographic = Cesium.Cartographic.fromCartesian(centerPoint);
-                  const longitude = cartographic.longitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(radian);
-                  const latitude = cartographic.latitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(radian);
-                  positions.push(Cesium.Cartesian3.fromRadians(longitude, latitude));
+              if (!isNaN(lon) && !isNaN(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
+                routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
+                polylinePositions.push(lon, lat); // 添加到折线点数组
+              } else {
+                console.warn(`无效的坐标值，索引 ${i}，点路线索引 ${j}: lon=${point[0]}, lat=${point[1]}`);
+              }
+            }
+            // 绘制原始点路线
+            if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
+              this.viewer.entities.add({
+                polyline: {
+                  positions: Cesium.Cartesian3.fromDegreesArray(polylinePositions),
+                  width: 20, // 线条宽度
+                  material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.YELLOW), // 使用箭头材质
+                  clampToGround: true // 贴地显示
+                },
+                properties: {
+                  data: landslide[i],
+                  type: 'landslide_route'
                 }
-                return new Cesium.PolygonHierarchy(positions);
-              }
+              });
+            }
 
-              // 处理多点路线的平滑缓冲区
-              const leftPoints = [];
-              const rightPoints = [];
+            // 绘制影响范围多边形（缓冲区）
+            if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
+              // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
+              const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
+                const interpolatedPoints = [];
+                const segmentInterpolationCount = 50; // 每段插值点数
 
-              // 遍历所有线段，生成平滑缓冲区
-              for (let j = 0; j < routePoints.length - 1; j++) { // 遍历到倒数第二个点
-                const start = routePoints[j];
-                const end = routePoints[j + 1];
+                // 如果只有一个点，直接生成圆形（360度扇形）
+                if (routePoints.length === 1) {
+                  const centerPoint = routePoints[0];
+                  const radius = bufferWidth;
+                  const positions = [];
+                  const numSegments = 60; // 扇形分段数
 
-                interpolatedPoints.push(start);
+                  for (let k = 0; k <= numSegments; k++) {
+                    const angle = (k / numSegments) * 360; // 0到360度
+                    const radian = Cesium.Math.toRadians(angle);
 
-                for (let k = 1; k < segmentInterpolationCount; k++) {
-                  const ratio = k / segmentInterpolationCount;
-                  const interpolated = Cesium.Cartesian3.lerp(
-                      start,
-                      end,
-                      ratio,
+                    // 计算扇形边界点，使用更精确的地理坐标计算
+                    const cartographic = Cesium.Cartographic.fromCartesian(centerPoint);
+                    const longitude = cartographic.longitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(radian);
+                    const latitude = cartographic.latitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(radian);
+                    positions.push(Cesium.Cartesian3.fromRadians(longitude, latitude));
+                  }
+                  return new Cesium.PolygonHierarchy(positions);
+                }
+
+                // 处理多点路线的平滑缓冲区
+                const leftPoints = [];
+                const rightPoints = [];
+
+                // 遍历所有线段，生成平滑缓冲区
+                for (let j = 0; j < routePoints.length - 1; j++) { // 遍历到倒数第二个点
+                  const start = routePoints[j];
+                  const end = routePoints[j + 1];
+
+                  interpolatedPoints.push(start);
+
+                  for (let k = 1; k < segmentInterpolationCount; k++) {
+                    const ratio = k / segmentInterpolationCount;
+                    const interpolated = Cesium.Cartesian3.lerp(
+                        start,
+                        end,
+                        ratio,
+                        new Cesium.Cartesian3()
+                    );
+                    interpolatedPoints.push(interpolated);
+                  }
+                }
+                // 添加最后一个原始点
+                interpolatedPoints.push(routePoints[routePoints.length - 1]);
+
+                // 计算平滑的缓冲区边界点
+                for (let j = 0; j < interpolatedPoints.length; j++) {
+                  const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
+                  const next = j < interpolatedPoints.length - 1 ? interpolatedPoints[j + 1] : interpolatedPoints[j];
+
+                  const forwardVec = Cesium.Cartesian3.subtract(next, prev, new Cesium.Cartesian3());
+                  Cesium.Cartesian3.normalize(forwardVec, forwardVec);
+
+                  const normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(interpolatedPoints[j], new Cesium.Cartesian3());
+                  const perpendicular = Cesium.Cartesian3.normalize(Cesium.Cartesian3.cross(normal, forwardVec, new Cesium.Cartesian3()), new Cesium.Cartesian3());
+
+                  const scaledPerpendicular = Cesium.Cartesian3.multiplyByScalar(
+                      perpendicular,
+                      bufferWidth,
                       new Cesium.Cartesian3()
                   );
-                  interpolatedPoints.push(interpolated);
+
+                  const leftPoint = Cesium.Cartesian3.add(
+                      interpolatedPoints[j],
+                      scaledPerpendicular,
+                      new Cesium.Cartesian3()
+                  );
+                  const rightPoint = Cesium.Cartesian3.subtract(
+                      interpolatedPoints[j],
+                      scaledPerpendicular,
+                      new Cesium.Cartesian3()
+                  );
+
+                  leftPoints.push(leftPoint);
+                  rightPoints.push(rightPoint);
                 }
+
+                // 组合成闭合多边形：左侧点 + 右侧点（反向）
+                const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
+
+                return new Cesium.PolygonHierarchy(polygonPositions);
+              };
+
+              // 调用新的平滑缓冲区生成方法
+              const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);
+
+              // 如果成功创建了多边形顶点，则添加实体
+              if (polygonHierarchy.positions.length > 0) {
+                this.viewer.entities.add({
+                  polygon: {
+                    hierarchy: polygonHierarchy,
+                    // material: Cesium.Color.BLUE.withAlpha(0.3),
+                    material: new Cesium.ImageMaterialProperty({
+                      image: landslide_surface01,
+                      color: Cesium.Color.WHITE,
+                      repeat: new Cesium.Cartesian2(4, 4),
+                    }),
+                    outline: true,
+                    outlineColor: Cesium.Color.BLUE,
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                  },
+                  properties: {
+                    data: landslide[i],
+                    type: 'influence_range_polygon'
+                  }
+                });
               }
-              // 添加最后一个原始点
-              interpolatedPoints.push(routePoints[routePoints.length - 1]);
 
-              // 计算平滑的缓冲区边界点
-              for (let j = 0; j < interpolatedPoints.length; j++) {
-                const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
-                const next = j < interpolatedPoints.length - 1 ? interpolatedPoints[j + 1] : interpolatedPoints[j];
+              // 如果是多点路线，单独为最后一个点绘制圆形缓冲区
+              if (routePoints.length > 1) {
+                const lastPoint = routePoints[routePoints.length - 1];
+                const lastPointBufferRadius = bufferWidth; // 可以根据需要调整这个半径
 
-                const forwardVec = Cesium.Cartesian3.subtract(next, prev, new Cesium.Cartesian3());
-                Cesium.Cartesian3.normalize(forwardVec, forwardVec);
-
-                const normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(interpolatedPoints[j], new Cesium.Cartesian3());
-                const perpendicular = Cesium.Cartesian3.normalize(Cesium.Cartesian3.cross(normal, forwardVec, new Cesium.Cartesian3()), new Cesium.Cartesian3());
-
-                const scaledPerpendicular = Cesium.Cartesian3.multiplyByScalar(
-                    perpendicular,
-                    bufferWidth,
-                    new Cesium.Cartesian3()
-                );
-
-                const leftPoint = Cesium.Cartesian3.add(
-                    interpolatedPoints[j],
-                    scaledPerpendicular,
-                    new Cesium.Cartesian3()
-                );
-                const rightPoint = Cesium.Cartesian3.subtract(
-                    interpolatedPoints[j],
-                    scaledPerpendicular,
-                    new Cesium.Cartesian3()
-                );
-
-                leftPoints.push(leftPoint);
-                rightPoints.push(rightPoint);
+                this.viewer.entities.add({
+                  position: lastPoint,
+                  ellipse: {
+                    semiMinorAxis: lastPointBufferRadius,
+                    semiMajorAxis: lastPointBufferRadius,
+                    material: new Cesium.ImageMaterialProperty({
+                      image: landslide_surface01,
+                      color: Cesium.Color.WHITE,
+                      repeat: new Cesium.Cartesian2(4, 4),
+                    }),
+                    outline: true,
+                    outlineColor: Cesium.Color.BLUE,
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                  },
+                  properties: {
+                    data: landslide[i],
+                    type: 'last_point_circular_buffer'
+                  }
+                });
               }
 
-              // 组合成闭合多边形：左侧点 + 右侧点（反向）
-              const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
-
-              return new Cesium.PolygonHierarchy(polygonPositions);
-            };
-
-            // 调用新的平滑缓冲区生成方法
-            const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);
-
-            // 如果成功创建了多边形顶点，则添加实体
-            if (polygonHierarchy.positions.length > 0) {
-              this.viewer.entities.add({
-                polygon: {
-                  hierarchy: polygonHierarchy,
-                  // material: Cesium.Color.BLUE.withAlpha(0.3),
-                  material: new Cesium.ImageMaterialProperty({
-                    image: landslide_surface01,
-                    color: Cesium.Color.WHITE,
-                    repeat: new Cesium.Cartesian2(4, 4),
-                  }),
-                  outline: true,
-                  outlineColor: Cesium.Color.BLUE,
-                  heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                },
-                properties: {
-                  data: landslide[i],
-                  type: 'influence_range_polygon'
-                }
-              });
+            } else {
+              console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
             }
-
-            // 如果是多点路线，单独为最后一个点绘制圆形缓冲区
-            if (routePoints.length > 1) {
-              const lastPoint = routePoints[routePoints.length - 1];
-              const lastPointBufferRadius = bufferWidth; // 可以根据需要调整这个半径
-
-              this.viewer.entities.add({
-                position: lastPoint,
-                ellipse: {
-                  semiMinorAxis: lastPointBufferRadius,
-                  semiMajorAxis: lastPointBufferRadius,
-                  material: new Cesium.ImageMaterialProperty({
-                    image: landslide_surface01,
-                    color: Cesium.Color.WHITE,
-                    repeat: new Cesium.Cartesian2(4, 4),
-                  }),
-                  outline: true,
-                  outlineColor: Cesium.Color.BLUE,
-                  heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                },
-                properties: {
-                  data: landslide[i],
-                  type: 'last_point_circular_buffer'
-                }
-              });
-            }
-
           } else {
-            console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
+            // ... existing code ...
           }
-        } else {
-          // ... existing code ...
-        }
         }
       }
     },
@@ -1000,6 +1326,9 @@ export default {
       this.clickHandler.setInputAction((movement) => {
         // 检查点击是否在实体上
         const pickedObject = this.viewer.scene.pick(movement.position);
+
+        console.log(pickedObject.id._name)
+
         // 判断是否有disasterName属性
         if (pickedObject.id._disasterData === undefined) {
           return;
@@ -1012,6 +1341,8 @@ export default {
           const entity = pickedObject.id;
           // 获取实体的灾害数据
           this.selectedEntityData = entity._disasterData || {};
+          console.log(this.selectedEntityData, "------------------点击了----------------------")
+
           // 计算弹出框位置并显示面板
           this.calculateAndShowPopup(entity, movement.position);
 
@@ -1862,21 +2193,21 @@ export default {
     },
     // 添加灾害点图例项
     addDisasterLegend(container) {
-      // 滑坡图例（红色圆形）
+      // 滑坡图例（使用滑坡图标）
       const landslideItem = document.createElement('div');
       landslideItem.className = 'legend-item';
       landslideItem.style.display = 'flex';
       landslideItem.style.alignItems = 'center';
       landslideItem.style.marginBottom = '10px';
 
-      const landslideColorDiv = document.createElement('div');
-      landslideColorDiv.className = 'legend-point';
-      landslideColorDiv.style.backgroundColor = 'rgba(255, 0, 0, 1)'; // 红色
-      landslideColorDiv.style.width = '16px';
-      landslideColorDiv.style.height = '16px';
-      landslideColorDiv.style.marginRight = '10px';
-      landslideColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
-      landslideColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
+      const landslideImg = document.createElement('img');
+      landslideImg.className = 'legend-icon';
+      landslideImg.src = landslideIcon; // 滑坡图标
+      landslideImg.alt = '历史滑坡灾害点图标';
+      landslideImg.style.width = '20px';
+      landslideImg.style.height = '20px';
+      landslideImg.style.marginRight = '10px';
+      landslideImg.style.objectFit = 'contain'; // 保持图标比例
 
       const landslideTextDiv = document.createElement('div');
       landslideTextDiv.className = 'legend-text';
@@ -1884,26 +2215,25 @@ export default {
       landslideTextDiv.style.fontSize = '14px';
       landslideTextDiv.style.lineHeight = '20px';
 
-      landslideItem.appendChild(landslideColorDiv);
+      landslideItem.appendChild(landslideImg);
       landslideItem.appendChild(landslideTextDiv);
       container.appendChild(landslideItem);
 
-      // 泥石流图例（黄色圆形）
+      // 泥石流图例（使用泥石流图标）
       const debrisFlowItem = document.createElement('div');
       debrisFlowItem.className = 'legend-item';
       debrisFlowItem.style.display = 'flex';
       debrisFlowItem.style.alignItems = 'center';
       debrisFlowItem.style.marginBottom = '10px';
 
-      const debrisFlowColorDiv = document.createElement('div');
-      debrisFlowColorDiv.className = 'legend-point';
-      debrisFlowColorDiv.style.backgroundColor = 'rgba(255, 255, 0, 1)'; // 黄色
-      debrisFlowColorDiv.style.width = '16px';
-      debrisFlowColorDiv.style.height = '16px';
-      debrisFlowColorDiv.style.marginRight = '10px';
-      debrisFlowColorDiv.style.border = '1px solid #333'; // 添加边框
-      debrisFlowColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
-      debrisFlowColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
+      const debrisFlowImg = document.createElement('img');
+      debrisFlowImg.className = 'legend-icon';
+      debrisFlowImg.src = debrisFlowIcon; // 泥石流图标
+      debrisFlowImg.alt = '历史泥石流灾害点图标';
+      debrisFlowImg.style.width = '20px';
+      debrisFlowImg.style.height = '20px';
+      debrisFlowImg.style.marginRight = '10px';
+      debrisFlowImg.style.objectFit = 'contain'; // 保持图标比例
 
       const debrisFlowTextDiv = document.createElement('div');
       debrisFlowTextDiv.className = 'legend-text';
@@ -1911,26 +2241,25 @@ export default {
       debrisFlowTextDiv.style.fontSize = '14px';
       debrisFlowTextDiv.style.lineHeight = '20px';
 
-      debrisFlowItem.appendChild(debrisFlowColorDiv);
+      debrisFlowItem.appendChild(debrisFlowImg);
       debrisFlowItem.appendChild(debrisFlowTextDiv);
       container.appendChild(debrisFlowItem);
 
-      // 地质灾害风险区图例（黄色圆形）
+      // 地质灾害风险区图例（使用风险区图标）
       const dangerItem = document.createElement('div');
       dangerItem.className = 'legend-item';
       dangerItem.style.display = 'flex';
       dangerItem.style.alignItems = 'center';
       dangerItem.style.marginBottom = '10px';
 
-      const dangerColorDiv = document.createElement('div');
-      dangerColorDiv.className = 'legend-point';
-      dangerColorDiv.style.backgroundColor = 'rgba(255,134,0,0.8)'; // 黄色
-      dangerColorDiv.style.width = '16px';
-      dangerColorDiv.style.height = '16px';
-      dangerColorDiv.style.marginRight = '10px';
-      dangerColorDiv.style.border = '1px solid #333'; // 添加边框
-      dangerColorDiv.style.borderRadius = '50%'; // 关键：添加圆角实现圆形
-      dangerColorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
+      const dangerImg = document.createElement('img');
+      dangerImg.className = 'legend-icon';
+      dangerImg.src = riskArea; // 风险区图标
+      dangerImg.alt = '地质灾害风险点图标';
+      dangerImg.style.width = '20px';
+      dangerImg.style.height = '20px';
+      dangerImg.style.marginRight = '10px';
+      dangerImg.style.objectFit = 'contain'; // 保持图标比例
 
       const dangerTextDiv = document.createElement('div');
       dangerTextDiv.className = 'legend-text';
@@ -1938,7 +2267,7 @@ export default {
       dangerTextDiv.style.fontSize = '14px';
       dangerTextDiv.style.lineHeight = '20px';
 
-      dangerItem.appendChild(dangerColorDiv);
+      dangerItem.appendChild(dangerImg);
       dangerItem.appendChild(dangerTextDiv);
       container.appendChild(dangerItem);
     },
@@ -2097,9 +2426,40 @@ export default {
         this.currentPage = 1; // 重置到第一页
       }
     },
-    toggleTablePanel(){
+    toggleTablePanel() {
       this.showRiskTable = !this.showRiskTable;
-    }
+    },
+    // 切换致灾因子视图
+    toggleHazardFactorView() {
+      this.isHazardFactorView = !this.isHazardFactorView;
+      // 初始化编辑数据
+      this.initEditableData();
+    },
+    // 初始化可编辑数据
+    initEditableData() {
+      // 复制基本信息数据用于编辑
+      this.editableData = {...this.selectedEntityData.properties};
+
+      // 复制致灾因子数据用于编辑
+      this.editableHazardFactors = {...this.hazardFactors};
+    },
+
+    // 保存修改
+    saveChanges() {
+      if (!this.isHazardFactorView) {
+        // 保存基本信息
+        this.selectedEntityData.properties = {...this.editableData};
+      } else {
+        // 保存致灾因子
+        this.hazardFactors = {...this.editableHazardFactors};
+      }
+
+      // 这里可以添加API调用，将修改保存到服务器
+      console.log('保存成功', this.isHazardFactorView ? '致灾因子' : '基本信息');
+
+      // 可以添加提示信息
+      alert('修改已保存');
+    },
   }
 }
 </script>
@@ -2127,7 +2487,7 @@ export default {
   gap: 8px; /* 按钮间距 */
 }
 
-.rain-btn, .weather-btn, .admin-btn , .table-btn{
+.rain-btn, .weather-btn, .admin-btn, .table-btn {
   background-color: rgba(35, 158, 187, 1);
   color: white;
   padding: 6px 12px;
@@ -2215,9 +2575,11 @@ export default {
   flex-shrink: 0; /* 防止标签宽度被压缩 */
   display: inline-block; /* 确保宽度生效 */
 }
-.jiangyuliang{
+
+.jiangyuliang {
   text-align-last: justify;
 }
+
 .panel-content input {
   width: 60px;
   padding: 6px 8px;
@@ -2478,10 +2840,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  background-color: rgba(43,47,51,0.6);
+  background-color: rgba(43, 47, 51, 0.6);
 }
 
-:deep(.el-table tr){
+:deep(.el-table tr) {
   background-color: rgba(43, 47, 51, 0.6);
   height: 55px;
 }
@@ -2529,7 +2891,7 @@ export default {
 .table-pagination {
   color: white;
   padding: 15px 10px;
-  background-color: rgba(43,47,51,0);
+  background-color: rgba(43, 47, 51, 0);
   border-top: 1px solid #ebeef5;
   display: flex;
   justify-content: center;
@@ -2553,26 +2915,33 @@ export default {
   background-color: transparent;
   border: 1px solid #ebeef5;
 }
+
 :deep(.el-table .el-table__header-wrapper th, .el-table .el-table__fixed-header-wrapper th) {
-  background-color: rgba(43,47,51,0.6) !important;
+  background-color: rgba(43, 47, 51, 0.6) !important;
 }
-.rf_table{
+
+.rf_table {
   background-color: rgba(43, 47, 51, 0.6);
-  padding:15px 20px;
+  padding: 15px 20px;
 }
+
 :deep(.el-pagination>.is-first) {
   margin-left: 0 !important;
-  color: white!important  ;
+  color: white !important;
 }
-:deep(.el-pagination__goto){
+
+:deep(.el-pagination__goto) {
   color: white;
 }
-:deep(.el-pagination__classifier){
+
+:deep(.el-pagination__classifier) {
   color: white;
 }
-:deep(.el-table__row){
+
+:deep(.el-table__row) {
   border: 1px solid #ebeef5;
 }
+
 .el-table__body-wrapper .cell {
   white-space: nowrap;
   overflow: hidden;
@@ -2583,9 +2952,11 @@ export default {
   overflow: visible;
   white-space: normal;
 }
-:deep(.el-table thead){
-  height: 55px!important;
+
+:deep(.el-table thead) {
+  height: 55px !important;
 }
+
 .form-item {
   display: flex;
   align-items: center;

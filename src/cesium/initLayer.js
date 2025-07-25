@@ -1,6 +1,6 @@
 import * as Cesium from "cesium";
 const CesiumIonDefaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDBjZjAxOS0wMDhhLTRmZjEtYjNmOC1iNmM2ZmY2ZmQ1N2IiLCJpZCI6MjAxMDI1LCJpYXQiOjE3MTAxNTgxNjJ9.mdbJYEzXQkBnHNqpozz7MvZjJ_X9a3JZRGPA-ytGhLI'
-const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
+const tdtToken = "07f071d2d20098468ee7697112e8fc58"
 
 export function initCesium(container) {
     // 使用Cesium官方示例中的Token
@@ -14,7 +14,7 @@ export function initCesium(container) {
         fullscreenButton: false, // 是否显示全屏按钮
         homeButton: false, // 是否显示Home按钮
         infoBox: false, // 是否显示信息框
-        selectionIndicator: true, // 是否显示选取指示器组件
+        selectionIndicator: false, // 是否显示选取指示器组件
         timeline: false, // 是否显示时间轴
         navigationHelpButton: false, // 是否显示右上角的帮助按钮
         scene3DOnly: false, // 如果设置为true，则所有几何图形以3D模式绘制以节约GPU资源
