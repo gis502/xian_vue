@@ -263,3 +263,16 @@ export const riskVillageData = () => {
     method: "get",
   });
 }
+
+/**
+ * 获取模拟点风险概率
+ * @param {Array<Object>} points 
+ * @returns 
+ */
+export const obtainTheProbabilityOfSimulatedPointRisk = (points) => {
+  return request({
+    url: "/risk/probability",
+    method: "get",
+    params: points,
+  });
+}
