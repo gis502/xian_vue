@@ -6,14 +6,28 @@ export function getGraphData() {
     });
 }
 
-export function getChartDataBy(eqid) {
+export function getChartDataBy(eqid, disasterType) {
     return request({
-        url: '/graph/getGraphBy', method: 'get', params: {eqid: eqid}
+        url: '/graph/getGraphBy',
+        method: 'get',
+        params: {
+            eqid: eqid,
+            disasterType: disasterType
+        }
     });
 }
+
 export function getNewsPage(pageNum, pageSize) {
     return request({
         url: '/xian_news/list',
+        method: 'get',
+        params: { pageNum, pageSize }
+    });
+}
+
+export function getEarthquakeRainPage(pageNum, pageSize) {
+    return request({
+        url: '/earthquake-rain/list',
         method: 'get',
         params: { pageNum, pageSize }
     });

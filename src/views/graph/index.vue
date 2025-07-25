@@ -99,7 +99,7 @@
     <div class="knowledgeGraph">
       <div class="chartContainer" ref="chart"></div>
       <div class="restart">
-        <button @click="getData(lastEqqueueId)">一键复原</button>
+        <button @click="getData(lastDisasterData)">一键复原</button>
       </div>
       <div class="chartCount">
         <button>共{{chartDataCount}}个实体球</button>
@@ -124,21 +124,44 @@
     <div class="toggle-button open" @click="updateChartData" v-show="ifShowCatalog"><p style="color: black">多灾种信息列表</p></div>
     <div class="chat-panel" v-if="showChat">
       <div class="chat-title">灾害信息列表</div>
-      <div class="toggle-button close" @click="updateChartData">
-        关闭
-      </div>
+      <div class="toggle-button closed" @click="closePanel">关闭</div>
 
       <div class="disaster-list">
-        <div v-if="tableData && tableData.length">
-          <div
-              v-for="(item, index) in tableData"
-              :key="index"
-          >
-            <p class="clickable" @click="getData(item.eqid)">{{ item.eqAddr }}</p>
-          </div>
-        </div>
+        <table v-if="tableData.length" class="disaster-table">
+          <thead>
+          <tr>
+            <th style="width: 50px">序号</th>
+            <th>灾害名称</th>
+            <th>发生时间</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(item, index) in tableData" :key="item.eqid">
+            <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+            <td>
+             <span class="clickable"
+                   @click="getData(item)"
+                   :title="item.disasterName">{{ item.disasterName }}</span>
+            </td>
+            <td :title="formatDate(item.occurTime)">
+              {{ formatDate(item.occurTime) }}
+            </td>
+          </tr>
+          </tbody>
+        </table>
         <div v-else class="no-data">暂无灾害信息</div>
       </div>
+
+      <!-- 分页控件 -->
+      <el-pagination
+          style="margin-top: 10px; text-align: center;"
+          background
+          layout="prev, pager, next"
+          :total="total"
+          :page-size="pageSize"
+          :current-page="currentPage"
+          @current-change="handlePageChangeDisaster"
+      />
     </div>
 
   </div>
@@ -149,7 +172,7 @@
 import {Search} from "@element-plus/icons-vue";
 import * as echarts from 'echarts';
 import {ref, onMounted, onBeforeUnmount, nextTick} from 'vue';
-import {getChartDataBy,getNewsPage} from "@/api/system/knowledgeGraph.js";
+import {getChartDataBy, getEarthquakeRainPage, getNewsPage} from "@/api/system/knowledgeGraph.js";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import eqentity1 from '@/assets/images/eqentity1.png'
@@ -214,6 +237,7 @@ const isNewsBoxVisible = ref(true)
 const newsDataList = ref([])
 const pageNum = ref(1)
 const pageSize = ref(5)
+const currentPage = ref(1)
 const total = ref(0)
 // 控制面板和新闻框显示
 const isPanelShow = ref({ NewsInfo: false })
@@ -327,44 +351,73 @@ const echartsOption = ref({
 
 
 
-// 地震列表数据
-const tableData = ref([
-  {
-    eqid: 'T2025062222234112333',
-    eqAddr: '2023年8月11日陕西省西安市长安区喂子坪村鸡窝子组山洪泥石流',
-    time: '2023-08-11 18:00:00'
-  },
-  {
-    eqid: 'T2025062222234112111',
-    eqAddr: '2018年9月12日陕西汉中宁强县5.3级地震',
-    magnitude: 5.3,
-    depth: 8,
-    time: '2018-09-12 18:00:00'
-  },
-])
+// 多灾害列表数据***************
+const tableData = ref([])
+//默认最新灾害数据
+let lastItem = null;
+// 最新的灾害数据
+const lastDisasterData = ref([])
+// 最新的灾害的eqid
+const lastDiasterId = ref()
+const lastEqRainId = ref()
 
 
-// 最新的地震数据
-const lastEqData = ref([])
-// 最新的地震的eqid
-const lastEqid = ref()
-const lastEqqueueId = ref()
+const fetchData = async () => {
+  try {
+    const res = await getEarthquakeRainPage(currentPage.value, pageSize.value)
+    tableData.value = res.data.records
+    lastItem= tableData.value[0]
+    total.value = res.data.total
+
+    await getData(lastItem) // 放这里确保拿到的是最新数据
+  } catch (error) {
+    console.error('请求数据失败', error)
+    tableData.value = []
+    total.value = 0
+    lastItem.value = null
+  }
+}
+
+const handlePageChangeDisaster = (page) => {
+  currentPage.value = page
+  fetchData()
+}
+const closePanel = () => {
+  showChat.value = false
+}
+//多灾害列表结束***************
+
+
 
 const router = useRouter();
 // 计算一共有多少个实体球
 const chartDataCount = ref();
-
-
 // 获取数据并初始化图表
-const getData = async (eqid) => {
+const getData = async (item) => {
+  console.log("item", item)
   try {
-    let usedEqid;
-    lastEqqueueId.value=eqid;
+    if (!item || !item.disasterType) {
+      console.warn("无效灾害数据");
+      return;
+    }
 
-    // 判断是否传入 eqid 且不是默认的那个 ID
-    if (eqid && eqid !== 'T2025062222234112111') {
-      lastEqData.value = tableData.value[0];
-      usedEqid = lastEqData.value.eqid;
+    const isRain = item.disasterType === 'rain';
+    const eqid = isRain ? item.rainDisasterId : item.earthquakeDisasterId;
+    const disasterType = isRain ? 'rain' : 'earthquake';
+    console.log("eqid", eqid)
+
+    if (!eqid) {
+      console.warn("灾害 ID 缺失，无法获取图谱");
+      return;
+    }
+
+    // 更新记录
+    lastEqRainId.value = eqid;
+    lastDiasterId.value = eqid;
+    lastDisasterData.value = item;
+
+    // 设置不同的分类数据结构
+    if (isRain) {
       firstData.value = [
         { name: '灾害基本信息类' },
         { name: '气象与水文触发信息类' },
@@ -477,14 +530,7 @@ const getData = async (eqid) => {
             fatherCount: 1
           }
         ]
-
-
-
-
-    } else if (tableData.value && tableData.value[1]) {
-      // 默认使用 tableData.value[1]
-      lastEqData.value = tableData.value[1];
-      usedEqid = lastEqData.value.eqid;
+    } else  {
       firstData.value = [
         { name: '地震震情信息' },
         { name: '地震灾情信息' },
@@ -603,14 +649,10 @@ const getData = async (eqid) => {
           fatherCount: 1
         }
       ];
-    } else {
-      console.warn("数据为空，无法获取默认 eqid");
-      return;
     }
 
-    lastEqid.value = usedEqid;
-    console.log("实际使用的 eqid：", usedEqid);
-    const res = await getChartDataBy(usedEqid);
+    // 获取图谱数据
+    const res = await getChartDataBy(eqid,disasterType);
 
     console.log("res的图谱结果",res)
 
@@ -643,7 +685,8 @@ const getData = async (eqid) => {
 
     // 给节点分配图标样式
     chartStartData.value = chartData.value.map(item => {
-      if (item.name === lastEqData.value.eqAddr) {
+      console.log("itemTuBiao",item)
+      if (item.name === lastDisasterData.value.disasterName) {
         item.symbol = `image:///images/eqentity1.png`;
         item.itemStyle = {
           borderColor: '#f20404',
@@ -757,8 +800,6 @@ const handleNodeClick = (value) => {
   updateEchart(chartChangeData.value, chartChangeLinks.value);
 };
 
-
-
 // 递归移除节点及其所有后代节点和连线
 const removeDescendantsSafely = (nodeName) => {
   const directLinks = chartStartLinks.value.filter(link => link.source === nodeName);
@@ -804,7 +845,7 @@ const updateEchart = (data,link) =>{
 
   // 特殊节点样式
   echartsOption.value.series[0].data = chartStartData.value.map(item => {
-    if (item.name === lastEqData.value.eqAddr) {
+    if (item.name === lastDisasterData.value.disasterName) {
       item.symbol= `image:///images/eqentity1.png`
       item.itemStyle = {
         borderColor: '#f20404',
@@ -873,7 +914,7 @@ const handleResize = () => {
 // 关闭助手并调整图表大小
 const updateChartData = () => {
   showChat.value = !showChat.value;
-  ifShowCatalog.value = !ifShowCatalog.value;
+  // ifShowCatalog.value = !ifShowCatalog.value;
   nextTick(() => {
     handleResize();
   });
@@ -1000,9 +1041,9 @@ const handleChildClick = (child) => {
 };
 
 // 生命周期钩子
-onMounted(() => {
-  getData()
-  fetchNewsData()
+onMounted(async () => {
+  await fetchData()
+  await fetchNewsData()
 });
 
 onBeforeUnmount(() => {
@@ -1024,8 +1065,6 @@ onBeforeUnmount(() => {
   flex-direction: row; /* 使元素横向排列 */
   // 确保 flex 容器允许子元素增长和收缩
   z-index: 2;
-  //background: linear-gradient(270deg, rgba(4, 20, 34, 1) 0%, rgba(14, 37, 61, 0.9) 41%, rgba(26, 54, 77, 0.75) 66%, rgba(42, 89, 135, 0.9) 88%, rgba(47, 82, 117, 0.9) 95%, rgba(44, 69, 94, 0.9) 100%);
-  //background-image: url("../../assets/蓝色银河星空带鱼屏.png");
   background-color: #f5f7fa;
   color: #2c3e50;
   background-size: cover;
@@ -1290,45 +1329,90 @@ onBeforeUnmount(() => {
   }
 
 
+//多灾害列表***********
   .chat-panel {
-    padding: 16px;
-    max-height: 80vh;
-    overflow-y: auto;
-    color: black;
-    background-color: rgba(52, 73, 94, 0.05); // 柔和科技蓝灰
-    height: 100%;
-    border-top-right-radius: 20px; /* 右上角圆角 */
-    border-bottom-right-radius: 20px; /* 左下角圆角 */
+    position: absolute;
+    bottom: 90px;
+    right: 20px;
+    width: 600px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    font-family: "Microsoft YaHei", sans-serif;
+    z-index: 1000;
   }
 
   .chat-title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 12px;
+    color: #333;
   }
-
-  .toggle-button {
+  .toggle-button.closed {
+    position: absolute;
+    top: 10px;
+    right: 15px;
     cursor: pointer;
-    float: right;
-    margin-top: -28px;
+    color: #666;
+    font-size: 14px;
+    width: 150px;
   }
-
   .disaster-list {
-    margin-top: 10px;
+    max-height: 350px;
+    overflow-y: auto;
+    overflow-x: auto; /* 横向滚动条 */
   }
 
-  .disaster-item {
+  .disaster-table {
+    min-width: 600px; /* 超过容器就会横向滚动 */
+    border-collapse: collapse;
+    font-size: 14px;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .disaster-table th,
+  .disaster-table td {
     padding: 10px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid black;
-    line-height: 1.6;
+    text-align: center;
+    border-bottom: 1px solid #eaeaea;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    position: relative;
+  }
+
+  /* 鼠标悬停显示完整内容 */
+  .disaster-table td:hover::after {
+    content: attr(title);
+    position: absolute;
+    white-space: normal;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    z-index: 10;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+  }
+
+  .disaster-table th {
+    background-color: #f5f7fa;
+    font-weight: 600;
   }
 
   .no-data {
     color: #999;
     text-align: center;
-    padding: 20px 0;
+    margin-top: 20px;
   }
+  //多灾害列表结束****************************
+
 
   .catalog {
     background-color: rgba(59, 80, 149, .1);
