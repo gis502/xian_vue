@@ -11,6 +11,10 @@ import {
   landslideHazardPointData,
   riskVillageData,
 } from "../../api/earthquake/datas";
+import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
+
+// 清空pinia中存储的模拟点
+useSimulationPointStore().clearSimulationPoints()
 
 // 添加风险区
 riskVillageData().then((res) => {
@@ -29,8 +33,14 @@ dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
 
 // 添加风险区
 function AddDangerAreaDataSource(DangerAreaData) {
-  let haloEntities = []; // 新增：用于批量高亮
   DangerAreaData.forEach((DangerAreaData_point) => {
+    // 存储经纬度
+    useSimulationPointStore().simulationPoints.push({
+      type: "风险点",
+      lon: DangerAreaData_point.properties.lon,
+      lat: DangerAreaData_point.properties.lat,
+    });
+
     let lon = DangerAreaData_point.properties.lon;
     let lat = DangerAreaData_point.properties.lat;
     window.viewer.entities.add({
@@ -58,6 +68,14 @@ function AddDangerAreaDataSource(DangerAreaData) {
 // 加载滑坡数据
 function loadLandSlide(landslide) {
   for (let i = 0; i < landslide.length; i++) {
+    // 存储经纬度以及致灾因子
+    useSimulationPointStore().simulationPoints.push({
+      type: "滑坡点",
+      lon: landslide[i].geologicalDisasterHideDTO.lon,
+      lat: landslide[i].geologicalDisasterHideDTO.lat,
+      factorVoList: landslide[i].factorVoList,
+    });
+
     let lon = landslide[i].geologicalDisasterHideDTO.lon;
     let lat = landslide[i].geologicalDisasterHideDTO.lat;
     window.viewer.entities.add({
@@ -85,6 +103,13 @@ function loadLandSlide(landslide) {
 // 添加泥石流隐患点
 function AddHazardSource(debrisFlow) {
   debrisFlow.forEach((hazard_point) => {
+    // 存储经纬度
+    useSimulationPointStore().simulationPoints.push({
+      type: "泥石流点",
+      lon: hazard_point.lon,
+      lat: hazard_point.lat
+    });
+
     let lon = hazard_point.lon;
     let lat = hazard_point.lat;
     window.viewer.entities.add({
