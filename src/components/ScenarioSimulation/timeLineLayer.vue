@@ -18,6 +18,7 @@
 <script>
 import layers from "@/cesium/layers.js";
 import * as Cesium from "cesium";
+import basicLayers from "@/cesium/basicLayers.js";
 export default {
   data() {
     return {
@@ -25,9 +26,10 @@ export default {
       layeritems: [
         { id: '0', name: '行政区划'},
         { id: '1', name: '烈度圈'},
+        { id: '2', name: '断裂带'},
       ],
-      selectedlayers:['行政区划','烈度圈'],
-      prevSelectedLayers:['行政区划','烈度圈']
+      selectedlayers:['行政区划','烈度圈','断裂带'],
+      prevSelectedLayers:['行政区划','烈度圈','断裂带']
     }
   },
   name: "timeLineLayer",
@@ -36,17 +38,20 @@ export default {
     disaterEvent() {
       if (this.disaterEvent&&this.disaterEvent.trigger == "地震" ) {
            layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude, this.disaterEvent.disaterName)
+            basicLayers.addFaultZone()
       }
     },
     viewer() {
       if (this.disaterEvent&&this.disaterEvent.trigger == "地震") {
         layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude, this.disaterEvent.disaterName)
+        basicLayers.addFaultZone()
       }
     },
   },
   mounted(){
     if(this.disaterEvent&&this.disaterEvent.trigger=="地震" ){
       layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude,this.disaterEvent.disaterName)
+      basicLayers.addFaultZone()
     }
   },
   methods:{
@@ -86,6 +91,15 @@ export default {
               layers.removeIsoseismalCircle()
             }
           },
+          {
+            name: '断裂带',
+            add: () => {
+              basicLayers.addFaultZone()
+            },
+            remove: () => {
+              basicLayers.removeFaultZone()
+            }
+          }
         ];
 
         // 构建 map 提升查找效率

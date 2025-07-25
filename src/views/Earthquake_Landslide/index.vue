@@ -70,7 +70,7 @@ import earthquake from '@/assets/images/earthquake.png'
 import riskArea from '@/assets/images/riskArea.png'
 import earthquakeline from '@/assets/images/earthquakeline.png'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
-import lineData from "@/assets/西安断层数据.json";
+// import lineData from "@/assets/西安断层数据.json";
 import DebrisFlow from "@/assets/西安泥石流灾害点.json"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import CesiumNavigation from "cesium-navigation-es6";
@@ -249,7 +249,7 @@ function load(){
 
   loadLandSlide(landslide)
   basicLayers.addCenterPoint(weinan)
-  earthquakeLine()
+  basicLayers.addFaultZone()
   AddHazardSource()
   loadAdminData(administrationData)
   AddDangerAreaDataSource(DangerAreaData)
@@ -264,40 +264,6 @@ function load(){
       roll: 0.0
     }
   });
-}
-
-
-function earthquakeLine(){
-  let line_data = []
-  lineData.features.forEach(line => {
-    // console.log(line.geometry)
-    line_data.push(line.geometry)
-  })
-
-  line_data.forEach(Lon_Lat => {
-    let FaultZone = []
-    Lon_Lat.coordinates.forEach(LonLat => {
-      LonLat.forEach(point => {
-        FaultZone.push(Number(point))
-      })
-    })
-    window.viewer.entities.add({
-      polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(FaultZone),
-        // 宽度
-        width: 2,
-        // 线的颜色
-        material: Cesium.Color.RED,
-        // 线的顺序,仅当`clampToGround`为true并且支持地形上的折线时才有效。
-        zIndex: 10,
-        // 显示在距相机的距离处的属性，多少区间内是可以显示的
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0),
-        // 是否显示
-        show: true,
-      },
-      // label
-    });
-  })
 }
 
 
