@@ -122,7 +122,6 @@
     </div>
 
     <div class="toggle-button open" @click="updateChartData" v-show="ifShowCatalog"><p style="color: black">多灾种信息列表</p></div>
-
     <div class="chat-panel" v-if="showChat">
       <div class="chat-title">灾害信息列表</div>
       <div class="toggle-button close" @click="updateChartData">
@@ -140,20 +139,18 @@
         </div>
         <div v-else class="no-data">暂无灾害信息</div>
       </div>
-
     </div>
+
   </div>
 
 </template>
 
 <script setup>
-import {Position, Search} from "@element-plus/icons-vue";
+import {Search} from "@element-plus/icons-vue";
 import * as echarts from 'echarts';
 import {ref, onMounted, onBeforeUnmount, nextTick} from 'vue';
-import {getChartDataBy, getGraphData, getNewsPage} from "@/api/system/knowledgeGraph.js";
-import {MdPreview} from "md-editor-v3";
+import {getChartDataBy,getNewsPage} from "@/api/system/knowledgeGraph.js";
 import {ElMessage} from "element-plus";
-// import {getEqList} from "@/api/system/damageassessment.js";
 import {useRouter} from "vue-router";
 import eqentity1 from '@/assets/images/eqentity1.png'
 import eqentity2 from '@/assets/images/eqentity2.png'
@@ -212,7 +209,7 @@ const echartsInstance = ref(null);
 const ifShowCatalog = ref(true);
 const list = ref([]);
 
-//新闻模块
+//新闻模块************
 const isNewsBoxVisible = ref(true)
 const newsDataList = ref([])
 const pageNum = ref(1)
@@ -250,6 +247,7 @@ const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleString()
 }
+//新闻模块结束*********************
 
 
 
@@ -326,16 +324,17 @@ const echartsOption = ref({
     links: chartLinks.value
   }]
 });
+
+
+
 // 地震列表数据
 const tableData = ref([
   {
-    // eqid: 'T2025062222234112888',
     eqid: 'T2025062222234112333',
     eqAddr: '2023年8月11日陕西省西安市长安区喂子坪村鸡窝子组山洪泥石流',
     time: '2023-08-11 18:00:00'
   },
   {
-    // eqid: 'T2025062222234112777',
     eqid: 'T2025062222234112111',
     eqAddr: '2018年9月12日陕西汉中宁强县5.3级地震',
     magnitude: 5.3,
@@ -343,6 +342,8 @@ const tableData = ref([
     time: '2018-09-12 18:00:00'
   },
 ])
+
+
 // 最新的地震数据
 const lastEqData = ref([])
 // 最新的地震的eqid
@@ -361,7 +362,6 @@ const getData = async (eqid) => {
     lastEqqueueId.value=eqid;
 
     // 判断是否传入 eqid 且不是默认的那个 ID
-    // if (eqid && eqid !== 'T2025062222234112777') {
     if (eqid && eqid !== 'T2025062222234112111') {
       lastEqData.value = tableData.value[0];
       usedEqid = lastEqData.value.eqid;
