@@ -5,30 +5,30 @@
     <!-- 致灾因子信息 -->
     <el-form :model="form" label-width="auto" style="max-width: 100%">
       <el-form-item
-        v-for="item in hazardsDatas"
-        :key="item.name"
-        :label="item.label"
+        v-for="item, index in hazardsDatas"
+        :key="item.attributeNameAlias"
+        :label="item.attributeName"
       >
         <!-- input -->
         <el-input
           v-if="item.type.includes('input')"
-          v-model="form[item.name]"
+          v-model="form[index].factorValue"
           :disabled="!item.isModified"
           :type="item.type.split('.')[1]"
-          :value="item.value"
+          :value="item.factorValue"
         >
           <template v-if="item.unit" #append>{{ item.unit }}</template>
         </el-input>
 
         <!-- select -->
         <el-select
-          v-model="form[item.name]"
+          v-model="form[index].factorValue"
           :disabled="!item.isModified"
           v-if="item.type.includes('select')"
         >
           <el-option
-            v-for="(option, index) in item.options"
-            :key="index"
+            v-for="(option, optionIndex) in item.options"
+            :key="optionIndex"
             :value="option.value"
             :label="option.label"
           />
@@ -42,40 +42,31 @@
 </template>
 
 <script setup name="Hazards">
-import { onMounted, reactive, ref } from "vue";
-import axios from "axios";
+import { onBeforeMount, reactive, ref } from "vue";
 import { getHazardProbability } from "../../api/earthquake/hazards";
 
 // 接收父组件数据
 const hazards = defineProps(["hazardsDatas"]);
 
 // 表单数据
-let form = reactive({
-  elevation: 0,
-  slope: 0,
-  rockType: "",
-  breakDistance: 0,
-  landUseType: "",
-  waterDistance: 0,
-  rainfall: 0,
-  vegetationCoverage: 0,
-  slopeCurvature: 0,
-  soilSandDegree: 0,
-  slopeType: "",
-});
+let form = reactive([]);
 
 // 概率值
 let probability = ref(0);
 
-onMounted(() => {
+onBeforeMount(() => {
   // 设置默认值
-  for (let index in hazards.hazardsDatas) {
-    let item = hazards.hazardsDatas[index];
-    form[item.name] = item.value;
-  }
+  hazards.hazardsDatas.forEach(element => {
+    form.push({
+      hideId: element.hideId,
+      attributeId: element.attributeId,
+      valueId: element.valueId,
+      factorValue: element.factorValue
+    })
+  });
 
   // 从后台获取一次概率
-  modifyDatas();
+  // modifyDatas();
 });
 
 async function modifyDatas() {

@@ -56,6 +56,7 @@ import DebrisFlow from "./DebrisFlow.vue";
 import Landslide from "./Landslide.vue";
 import RiskPoints from "./RiskPoints.vue";
 import Hazards from "./Hazards.vue";
+import { staticHazardsDatas } from "../../api/earthquake/datas";  // 静态致灾因子数据，后续删除
 const emit = defineEmits(["removeBaseInfoBox"]);
 
 const parentDatas = defineProps([
@@ -66,11 +67,14 @@ const parentDatas = defineProps([
   "showdebrisFlowInformation",
   "debrisFlowInformation",
   "showRiskPointsInformation",
-  "riskPointsInformation",
-  "hazardsDatas",
+  "riskPointsInformation"
 ]);
 
+// 是否显示致灾因子
 const displayDisasterCausingFactors = ref(false);
+
+// 致灾因子数据
+let hazardsDatas = ref([])
 
 // 监控dom
 const cesiumInfoWindow = ref();
@@ -82,7 +86,23 @@ onMounted(() => {
 // 显示组件
 function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
-  if (displayDisasterCausingFactors.value) {
+
+  // 设置滑坡数据致灾因子数据
+  if (parentDatas.showDisasterInformation) {
+    hazardsDatas.value = []
+    parentDatas.disasterInformation.factorVoList.forEach(element => {
+      element.type = element.unit == '' ? 'select' : 'input:number'
+      element.isModified = true
+      hazardsDatas.value.push(element)
+    });
+  }
+  // 设置泥石流
+  else if(parentDatas.showdebrisFlowInformation) {
+    hazardsDatas.value = staticHazardsDatas
+  }
+  // 风险点
+  else if(parentDatas.showRiskPointsInformation) {
+    hazardsDatas.value = staticHazardsDatas
   }
 }
 

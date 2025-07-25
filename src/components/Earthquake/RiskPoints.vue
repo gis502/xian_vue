@@ -28,11 +28,11 @@
       </tr>
       <tr>
         <td class="label">巡查员姓名</td>
-        <td>{{ info["username"] }}</td>
+        <td>{{ info["inspectorName"] }}</td>
       </tr>
       <tr>
         <td class="label">巡查员手机号</td>
-        <td>{{ info["phone"] }}</td>
+        <td>{{ info["inspectorTele"] }}</td>
       </tr>
       <tr>
         <td class="label">位置</td>

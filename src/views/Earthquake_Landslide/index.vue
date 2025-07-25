@@ -108,7 +108,6 @@
       :debrisFlowInformation="debrisFlowInformation"
       :showRiskPointsInformation="showRiskPointsInformation"
       :riskPointsInformation="riskPointsInformation"
-      :hazardsDatas="hazardsDatas"
       @removeBaseInfoBox="removeBaseInfoBox"
     />
 
@@ -118,11 +117,16 @@
         >地震模拟</el-button
       >
     </div>
+
+    <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
       v-if="showEarthquakeSimulation"
       :position="earthquakeSimulationPosition"
       @cancelEarthquake="cancelEarthquake"
     ></SimulatingEarthquake>
+
+    <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
+    <SimulationPoint></SimulationPoint>
   </div>
 </template>
 
@@ -150,9 +154,10 @@ import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import { initCesium } from "@/cesium/initLayer.js";
 import * as echarts from "echarts";
 import { reactive, ref } from "vue";
-import { hazardsDatas, tableData, dataTypes } from "../../api/earthquake/datas";
+import { tableData, dataTypes } from "../../api/earthquake/datas";
 import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
+import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 
 let administrationData = reactive([
   BaQiaoArea,
@@ -756,14 +761,24 @@ function setupEntityClickHandler() {
     // 获取点击位置的实体
     const pickedObject = window.viewer.scene.pick(click.position);
     // console.log(pickedObject)
+
     try {
       if (pickedObject && Cesium.defined(pickedObject.id)) {
         const entity = pickedObject.id;
-        if (
-          entity.properties &&
-          entity.properties.data._value.灾害类型 === "滑坡"
-        ) {
-          // console.log(entity.properties)
+        // console.log(entity.properties);
+        // 判断是不是风险区
+        let isRisk = true;
+
+        // 显示弹窗
+        if (entity.properties) {
+          if (
+            (entity.properties.data._value.geologicalDisasterHideDTO &&
+              entity.properties.data._value.geologicalDisasterHideDTO
+                .disasterType === "滑坡") ||
+            entity.properties.data._value.disasterType === "泥石流"
+          ) {
+            isRisk = false; // 不是风险区
+          }
 
           //屏幕坐标转世界坐标
           let cartesian = window.viewer.scene.globe.pick(
@@ -787,79 +802,29 @@ function setupEntityClickHandler() {
             duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
             complete: () => {
               // 飞行完成后显示信息窗口
-              showInfoList(entity.properties, entity, "滑坡");
-            },
-          });
-        } else if (
-          entity.properties &&
-          entity.properties.data._value.properties.灾害类型 === "泥石流"
-        ) {
-          // console.log(entity.properties.data._value)
-          //屏幕坐标转世界坐标
-          let cartesian = window.viewer.scene.globe.pick(
-            window.viewer.camera.getPickRay(click.position),
-            window.viewer.scene
-          );
-          //世界坐标转经纬度
-          let ellipsoid = window.viewer.scene.globe.ellipsoid;
-          let cartographic = ellipsoid.cartesianToCartographic(cartesian);
-          let lat = Cesium.Math.toDegrees(cartographic.latitude);
-          let lon = Cesium.Math.toDegrees(cartographic.longitude);
-          window.viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-            orientation: {
-              // 指向
-              heading: 6.283185307179581,
-              // 视角
-              pitch: -1.5688168484696687,
-              roll: 0.0,
-            },
-            duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-            complete: () => {
-              // 飞行完成后显示信息窗口
-              showInfoList(entity.properties.data._value, entity, "泥石流");
-            },
-          });
-        } else if (entity.properties) {
-          try {
-            // console.log(entity.properties.data._value)
-            //屏幕坐标转世界坐标
-            let cartesian = window.viewer.scene.globe.pick(
-              window.viewer.camera.getPickRay(click.position),
-              window.viewer.scene
-            );
-            //世界坐标转经纬度
-            let ellipsoid = window.viewer.scene.globe.ellipsoid;
-            let cartographic = ellipsoid.cartesianToCartographic(cartesian);
-            let lat = Cesium.Math.toDegrees(cartographic.latitude);
-            let lon = Cesium.Math.toDegrees(cartographic.longitude);
-            window.viewer.camera.flyTo({
-              destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-              orientation: {
-                // 指向
-                heading: 6.283185307179581,
-                // 视角
-                pitch: -1.5688168484696687,
-                roll: 0.0,
-              },
-              duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-              complete: () => {
-                // 飞行完成后显示信息窗口
+              if (isRisk) {
                 showInfoList(entity.properties.data._value, entity, "风险区");
-              },
-            });
-          } catch (e) {
-            console.log(e);
-          }
+              } else {
+                showInfoList(
+                  entity.properties.data._value,
+                  entity,
+                  entity.properties.data._value.disasterType || 
+                  entity.properties.data._value.geologicalDisasterHideDTO.disasterType 
+                );
+              }
+            },
+          });
         }
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 function showInfoList(info, entity, flag) {
+  // 隐藏所有信息
+  showDisasterInformation.value = false;
+  showdebrisFlowInformation.value = false;
+  showRiskPointsInformation.value = false;
   // 获取实体位置的屏幕坐标
   const position = entity.position.getValue(window.viewer.clock.currentTime);
   const canvasPosition =
@@ -874,20 +839,25 @@ function showInfoList(info, entity, flag) {
   baseInfoPosition.top = top;
   baseInfoPosition.left = left;
   // 构建信息列表内容
-  if (flag === "滑坡" && info.data._value["灾害类型"] === "滑坡") {
+  if (
+    flag === "滑坡" &&
+    info.geologicalDisasterHideDTO &&
+    info.geologicalDisasterHideDTO.disasterType === "滑坡"
+  ) {
     showBaseInfo.value = true;
     showDisasterInformation.value = true;
-    disasterInformation.value = info.data._value;
+    disasterInformation.value = info;
     baseInfoTitle.value = "灾害信息";
-  } else if (flag === "泥石流" && info.properties["灾害类型"] === "泥石流") {
+  } else if (flag === "泥石流" && info.disasterType === "泥石流") {
+    console.log("泥石流");
     showBaseInfo.value = true;
     showdebrisFlowInformation.value = true;
-    debrisFlowInformation.value = info.properties;
+    debrisFlowInformation.value = info;
     baseInfoTitle.value = "灾害信息";
   } else if (flag === "风险区") {
     showBaseInfo.value = true;
     showRiskPointsInformation.value = true;
-    riskPointsInformation.value = info.properties;
+    riskPointsInformation.value = info;
     baseInfoTitle.value = "风险区信息";
   }
 }

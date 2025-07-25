@@ -1,29 +1,31 @@
+import request from "@/utils/request";
+
 /*
  * 地震加载中相关数据
  * 此处为静态数据，后续从后端获取相关数据
  */
 // 致灾因子数据
-export const hazardsDatas = [
+export const staticHazardsDatas = [
   {
-    label: "高程", // 标签
-    name: "elevation", // 表单名称，与后端字段名一致
-    value: 1000, // 默认值
+    attributeName: "高程", // 标签
+    attributeNameAlias: "elevation", // 表单名称，与后端字段名一致
+    factorValue: 1000, // 默认值
     unit: "米", // 单位
     type: "input.number", // 表单类型，input表示输入框，number表示数字输入框
     isModified: true, // 是否可以修改
   },
   {
-    label: "坡度",
-    name: "slope",
-    value: 10,
+    attributeName: "坡度",
+    attributeNameAlias: "slope",
+    factorValue: 10,
     unit: "度",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "岩土类型",
-    name: "rockType",
-    value: "沙岩",
+    attributeName: "岩土类型",
+    attributeNameAlias: "rockType",
+    factorValue: "沙岩",
     unit: "",
     type: "select",
     isModified: true,
@@ -34,17 +36,17 @@ export const hazardsDatas = [
     ],
   },
   {
-    label: "断层距离",
-    name: "breakDistance",
-    value: 10,
+    attributeName: "断层距离",
+    attributeNameAlias: "breakDistance",
+    factorValue: 10,
     unit: "米",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "土地利用类型",
-    name: "landUseType",
-    value: "人工地",
+    attributeName: "土地利用类型",
+    attributeNameAlias: "landUseType",
+    factorValue: "人工地",
     unit: "",
     type: "select",
     isModified: true,
@@ -55,49 +57,49 @@ export const hazardsDatas = [
     ],
   },
   {
-    label: "水系距离",
-    name: "waterDistance",
-    value: 10,
+    attributeName: "水系距离",
+    attributeNameAlias: "waterDistance",
+    factorValue: 10,
     unit: "米",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "降雨量",
-    name: "rainfall",
-    value: 10,
+    attributeName: "降雨量",
+    attributeNameAlias: "rainfall",
+    factorValue: 10,
     unit: "mm",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "植被覆盖率",
-    name: "vegetationCoverage",
-    value: 10,
+    attributeName: "植被覆盖率",
+    attributeNameAlias: "vegetationCoverage",
+    factorValue: 10,
     unit: "%",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "坡面曲率",
-    name: "slopeCurvature",
-    value: 10,
+    attributeName: "坡面曲率",
+    attributeNameAlias: "slopeCurvature",
+    factorValue: 10,
     unit: "%",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "土壤沙砾度",
-    name: "soilSandDegree",
-    value: 10,
+    attributeName: "土壤沙砾度",
+    attributeNameAlias: "soilSandDegree",
+    factorValue: 10,
     unit: "%",
     type: "input.number",
     isModified: true,
   },
   {
-    label: "坡型",
-    name: "slopeType",
-    value: "凹型",
+    attributeName: "坡型",
+    attributeNameAlias: "slopeType",
+    factorValue: "凹型",
     unit: "",
     type: "select",
     isModified: true,
@@ -223,3 +225,41 @@ export const dataTypes = {
     ],
   },
 };
+
+/**
+ * 滑坡隐患点数据
+ * @returns 滑坡数据
+ */
+export const landslideHazardPointData = () => {
+  // return request({
+  //   url: "/hide/allslide",
+  //   method: "get",
+  // });
+
+  return request({
+    url: "/hide/slide",   // 包含致灾因子
+    method: "get",
+  });
+};
+
+/**
+ * 泥石流隐患点数据
+ * @returns 泥石流数据
+ */
+export const dataOnHiddenDangerPointsOfDebrisFlow = () => {
+  return request({
+    url: "/hide/allflow",
+    method: "get",
+  });
+};
+
+/**
+ * 风险村庄数据
+ * @returns 危险点数据
+ */
+export const riskVillageData = () => {
+  return request({
+    url: "/risk/villages",
+    method: "get",
+  });
+}
