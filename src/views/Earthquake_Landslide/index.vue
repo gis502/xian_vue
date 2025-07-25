@@ -2,7 +2,7 @@
   <div id="cesium-container" ref="cesiumContainer">
     <div class="legend">
       <div class="legend-title">图例</div>
-      <div class="legend-item"><span class="legend-color" id="earthquake"></span>震中位置</div>
+      <div class="legend-item"><span class="legend-color" id="centerstar"></span>震中位置</div>
       <div class="legend-item"><div class="legend-color" id="landslide"></div>滑坡隐患点</div>
       <div class="legend-item"><div class="legend-color" id="debrisflow"></div>泥石流隐患点</div>
       <div class="legend-item"><div class="legend-color" id="riskArea"></div>风险区域</div>
@@ -66,7 +66,7 @@ import * as Cesium from 'cesium'
 import landslide from '@/assets/landslide/landslide.json'
 import landslideIcon from '@/assets/images/landslide.png'
 import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
-import earthquake from '@/assets/images/earthquake.png'
+import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 import riskArea from '@/assets/images/riskArea.png'
 import earthquakeline from '@/assets/images/earthquakeline.png'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
@@ -243,15 +243,14 @@ function load(){
 
   // loadTDT(0)
   layers.DrawEllipse(weinan.longitude, weinan.latitude,7)
-  EllipseAxis.a  = layers.calculateEllipseParams(8)[0].semiMajorAxis
-  EllipseAxis.b  = layers.calculateEllipseParams(8)[0].semiMajorAxis
+  EllipseAxis.a  = layers.calculateEllipseParams(7).at(-1).semiMinorAxis
+  EllipseAxis.b  = layers.calculateEllipseParams(7).at(-1).semiMajorAxis
 
-
-  loadLandSlide(landslide)
   basicLayers.addCenterPoint(weinan)
   basicLayers.addFaultZone()
+  basicLayers.loadAdminData()
+  loadLandSlide(landslide)
   AddHazardSource()
-  loadAdminData(administrationData)
   AddDangerAreaDataSource(DangerAreaData)
   setupEntityClickHandler()
   AddChart()
@@ -324,7 +323,11 @@ function loadLandSlide(landslide) {
   for(let i=0;i<landslide.length;i++){
     let lon = landslide[i].lon
     let lat =landslide[i].lat
+    // console.log("111111")
+    // console.log(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)
+    // console.log(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b),"isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)")
     if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
+      // console.log("2222222222222")
       window.viewer.entities.add({
         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
@@ -556,7 +559,8 @@ function loadLandSlide(landslide) {
       } else {
         // ... existing code ...
       }
-    }else{
+    }
+    else{
       window.viewer.entities.add({
         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
@@ -577,7 +581,6 @@ function loadLandSlide(landslide) {
         }
       })
     }
-
   }
 }
 
@@ -870,111 +873,6 @@ function AddDangerAreaDataSource(DangerAreaData) {
 }
 
 // 加载行政区划数据
-function loadAdminData(administrationData) {
-
-  const generateRandomColor = (i)=>{
-    // 定义13种不同的颜色
-    const colors = [
-      new Cesium.Color(255 / 255, 153 / 255, 0 / 255, 0.3),    // 活力橙
-      new Cesium.Color(255 / 255, 51 / 255, 102 / 255, 0.3),   // 亮粉红
-      new Cesium.Color(0 / 255, 178 / 255, 255 / 255, 0.3),    // 天蓝色
-      new Cesium.Color(102 / 255, 255 / 255, 102 / 255, 0.3),  // 浅绿色
-      new Cesium.Color(204 / 255, 102 / 255, 255 / 255, 0.3),  // 淡紫色
-      new Cesium.Color(255 / 255, 204 / 255, 0 / 255, 0.3),    // 金黄色
-      new Cesium.Color(0 / 255, 204 / 255, 153 / 255, 0.3),    // 青绿色
-      new Cesium.Color(255 / 255, 102 / 255, 102 / 255, 0.3),  // 浅红色
-      new Cesium.Color(102 / 255, 153 / 255, 255 / 255, 0.3),  // 淡蓝色
-      new Cesium.Color(255 / 255, 178 / 255, 102 / 255, 0.3),  // 浅橙色
-      new Cesium.Color(153 / 255, 255 / 255, 204 / 255, 0.3),  // 淡青色
-      new Cesium.Color(255 / 255, 153 / 255, 204 / 255, 0.3),  // 浅粉色
-      new Cesium.Color(190 / 255, 255 / 255, 232 / 255, 0.3),  // 淡靛紫
-    ];
-
-    // 确保索引在有效范围内
-    if (i >= 0 && i < colors.length) {
-      return colors[i];
-    } else {
-      // 如果索引超出范围，使用默认颜色或循环使用已有颜色
-      return colors[i % colors.length];
-    }
-  }
-
-  function configureAdminStyles(dataSource, color) {
-    if (!dataSource) return;
-
-    const entities = dataSource.entities.values;
-
-    entities.forEach(entity => {
-      const name = entity.properties.name._value || dataSource.name;
-      entity.polygon = {
-        hierarchy: entity.polygon.hierarchy,
-        material: color,
-        outline: true,
-        outlineColor: Cesium.Color.BLUE,
-        outlineWidth: 1,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        show: true, // 使用统一的显示控制
-        fill: true,
-        shadow: true,
-        depthFailMaterial: color.withAlpha(0.2)
-      };
-
-      if(name !=="新城区"){
-        // 计算多边形的中心点作为标签的位置
-        const positions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions; // 输入一组坐标
-        const boundingSphere = Cesium.BoundingSphere.fromPoints(positions); // 自动计算中心位置和半径
-        entity.position = boundingSphere.center;
-      }else{
-        let point1 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[0];
-        let point2 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length/6)];
-        let point3 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length/3)];
-        entity.position = Cesium.BoundingSphere.fromPoints([point1, point2, point3]).center;
-      }
-
-
-      entity.label = {
-        text: name,
-        font: '40px',
-        fillColor: Cesium.Color.BLACK,
-        backgroundColor: color.withAlpha(0.7),
-        padding: new Cesium.Cartesian2(5, 5),
-        showBackground: true,
-        verticalOrigin: Cesium.VerticalOrigin.CENTER, // 将垂直原点设置为中心
-        pixelOffset: new Cesium.Cartesian2(0, 0), // 像素偏移量设置为0
-        // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 移除此行，因为position已经确定了高度
-        show: true // 使用统一的显示控制
-      };
-    });
-  }
-
-  // 重置数据源数组
-  let adminDataSources = [];
-  // 使用for循环同步加载所有数据源
-  for (let i = 0; i < administrationData.length; i++) {
-    // 创建新的数据源
-    const dataSource = new Cesium.GeoJsonDataSource();
-    adminDataSources.push(dataSource);
-
-    // 配置加载选项并加载数据
-    dataSource.load(administrationData[i], {
-      enableFeatureStyles: false,
-      clampToGround: true,
-      suppressPointLabels: true
-    }).then(() => {
-      // 配置当前数据源的样式
-      const color = generateRandomColor(i);
-      configureAdminStyles(dataSource, color);
-      // 存储区县颜色
-      const districtId = administrationData[i].name || `district${i}`;
-      districtColors[districtId] = color;
-      // 添加到地图
-      window.viewer.dataSources.add(dataSource);
-
-    }).catch(error => {
-      console.error(`加载行政区划数据失败 (${administrationData[i].name || "未知区域"}):`, error);
-    });
-  }
-}
 
 // 判断点是否在椭圆范围内（地理坐标转米，考虑地球曲率）
 function isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis) {
@@ -989,8 +887,8 @@ function isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, m
   const dy = dLat * R;
 
   // 3. 椭圆方程 (x/a)^2 + (y/b)^2 <= 1
-  const normX = dx / (majorAxis*66);
-  const normY = dy / (minorAxis*46);
+  const normX = dx / (majorAxis);
+  const normY = dy / (minorAxis);
   const result = (normX * normX + normY * normY) <= 1;
   // console.log(normX * normX + normY * normY)
   return result;

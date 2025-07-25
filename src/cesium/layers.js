@@ -148,8 +148,8 @@ let layers = {
                 position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
                 name: "地震影响区域",
                 ellipse: {
-                    semiMinorAxis: params.semiMinorAxis * 1000,
-                    semiMajorAxis: params.semiMajorAxis * 1000,
+                    semiMinorAxis: params.semiMinorAxis,
+                    semiMajorAxis: params.semiMajorAxis,
                     material: Cesium.Color.fromCssColorString(params.color).withAlpha(0.3),
                     height: 0,
                     outline: true,
@@ -249,9 +249,10 @@ let layers = {
         const params = intensityLevels.map(level => {
 
             // 使用提供的公式计算长短轴
-            const semiMajorAxis = calculateRa(magnitude, level.ia);
+            //单位米
+            const semiMajorAxis = calculateRa(magnitude, level.ia)*1000;
 
-            const semiMinorAxis = calculateRb(magnitude, level.ib);
+            const semiMinorAxis = calculateRb(magnitude, level.ib)*1000;
 
             // 根据烈度级别设置透明度
             // const alpha = 0.8 - (level.ia - 5) * 0.3;

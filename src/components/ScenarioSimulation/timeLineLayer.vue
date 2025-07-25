@@ -36,12 +36,15 @@ export default {
   props: ['viewer','disaterEvent', 'currentTime'],
   watch: {
     disaterEvent() {
+      if(!this.viewer){return;}
+      basicLayers.loadAdminData()
       if (this.disaterEvent&&this.disaterEvent.trigger == "地震" ) {
            layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude, this.disaterEvent.disaterName)
             basicLayers.addFaultZone()
       }
     },
     viewer() {
+      basicLayers.loadAdminData()
       if (this.disaterEvent&&this.disaterEvent.trigger == "地震") {
         layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude, this.disaterEvent.disaterName)
         basicLayers.addFaultZone()
@@ -49,6 +52,8 @@ export default {
     },
   },
   mounted(){
+    if(!this.viewer){return;}
+    basicLayers.loadAdminData()
     if(this.disaterEvent&&this.disaterEvent.trigger=="地震" ){
       layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude,this.disaterEvent.disaterName)
       basicLayers.addFaultZone()
@@ -76,10 +81,10 @@ export default {
           {
             name: '行政区划',
             add: () => {
-              console.log("add 行政区划")
+              basicLayers.loadAdminData()
               },
             remove: () => {
-              console.log("remove 行政区划")
+              basicLayers.removeAdminData()
             }
           },
           {
