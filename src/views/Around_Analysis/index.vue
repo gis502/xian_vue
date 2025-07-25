@@ -228,6 +228,9 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import riverData from '@/assets/static/json/river.json';
 import lakeData from '@/assets/static/json/lake.json';
 // 引入滑坡，泥石流灾害点数据
+import landslideIcon from "@/assets/images/landslide.png"
+import flowIcon from "@/assets/images/DebrisFlow.png"
+import riskAreaIcon from "@/assets/images/riskArea.png"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
@@ -268,7 +271,7 @@ export default {
       // faultZone: faultZone,
       HuapoData: [],
       NishiliuData: [],
-      DangerAreaData: DangerAreaData,
+      DangerAreaData: null,
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
@@ -367,28 +370,27 @@ export default {
     getNum(){
 
       getSlide().then((res) =>{
-        const flag = [];
-        res.data.features.forEach((item)=>{
-          flag.push(item)
-        })
-        // flag.push(res.data.features);
-        this.HuapoData.push(flag);
-        this.loadDisasterData();
+        // const flag = [];
+        // res.data.features.forEach((item)=>{
+        //   flag.push(item)
+        // })
+        // // flag.push(res.data.features);
+        // this.HuapoData.push(flag);
+        this.HuapoData = res.data;
       });
       getFlow().then((res) =>{
-        const flag = [];
-        res.data.features.forEach((item)=>{
-          flag.push(item)
-        })
-        this.NishiliuData.push(flag);
+        // const flag = [];
+        // res.data.features.forEach((item)=>{
+        //   flag.push(item)
+        // })
+        // this.NishiliuData.push(flag);
+        this.NishiliuData = res.data;
+      });
+      getRisk().then((res) =>{
+        this.DangerAreaData = res.data;
         this.loadDisasterData();
       });
-
-      // getRisk().then((res) =>{
-      //   this.DangerAreaData = res.data;
-      //   console.log("333", res.data);
-      // });
-      // this.loadDisasterData(); // 加载灾害点数据
+      // 加载灾害点数据
     },
 
     load() {
@@ -617,9 +619,12 @@ export default {
 
       try {
         // 确保数据存在且格式正确
-        const huapoFeatures = JSON.parse(JSON.stringify(this.HuapoData))[0] || [];
-        const nishiliuFeatures = JSON.parse(JSON.stringify(this.NishiliuData))[0] || [];
+        // const huapoFeatures = JSON.parse(JSON.stringify(this.HuapoData))[0] || [];
+        // const nishiliuFeatures = JSON.parse(JSON.stringify(this.NishiliuData))[0] || [];
+        const huapoFeatures = this.HuapoData?.features || [];
+        const nishiliuFeatures = this.NishiliuData?.features || [];
         const dangerAreaFeatures = this.DangerAreaData?.features || [];
+
 
         // 存储所有添加的实体，用于事件处理
         this.disasterEntities = [];
@@ -641,11 +646,14 @@ export default {
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
             // 点
-            point: {
-              color: Cesium.Color.RED, // 点位颜色
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 1,
-              pixelSize: 15 // 像素点大小
+            billboard: {
+              image: landslideIcon, // 自定义图钉图标
+              width: 25,
+              height: 25,
+              scale: 1.0,
+              color: Cesium.Color.WHITE,
+              rotation: 0,
+              // verticalOrigin: Cesium.VerticalOrigin.BOTTOM // 锚点底部（图钉效果）
             },
             // 文字
             label: {
@@ -689,12 +697,14 @@ export default {
           // 创建灾害点实体
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-            // 点
-            point: {
-              color: Cesium.Color.YELLOW, // 点位颜色
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 1,
-              pixelSize: 15 // 像素点大小
+            billboard: {
+              image: flowIcon, // 自定义图钉图标
+              width: 25,
+              height: 25,
+              scale: 1.0,
+              color: Cesium.Color.WHITE,
+              rotation: 0,
+              // verticalOrigin: Cesium.VerticalOrigin.BOTTOM // 锚点底部（图钉效果）
             },
             // 文字
             label: {
@@ -747,12 +757,14 @@ export default {
           // 创建灾害点实体
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-            // 点
-            point: {
-              color: Cesium.Color.ORANGE, // 点位颜色
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 1,
-              pixelSize: 15 // 像素点大小
+            billboard: {
+              image: riskAreaIcon, // 自定义图钉图标
+              width: 25,
+              height: 25,
+              scale: 1.0,
+              color: Cesium.Color.WHITE,
+              rotation: 0,
+              // verticalOrigin: Cesium.VerticalOrigin.BOTTOM // 锚点底部（图钉效果）
             },
             // 文字
             label: {
