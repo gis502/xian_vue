@@ -140,6 +140,22 @@
             <th>风险区名称</th>
             <td>{{ getDisasterTypeName(selectedEntityData.properties.disasterName) }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.dangerName">
+            <th>危险源名称</th>
+            <td>{{ getDisasterTypeName(selectedEntityData.properties.dangerName) }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.hospitalName">
+            <th>医院名称</th>
+            <td>{{ selectedEntityData.properties.hospitalName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.level">
+            <th>级别</th>
+            <td>{{ getDisasterTypeName(selectedEntityData.properties.level) }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.enterpriseType">
+            <th>危险源类型</th>
+            <td>{{ getDisasterTypeName(selectedEntityData.properties.enterpriseType) }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.position">
             <th>地理位置</th>
             <td>{{ selectedEntityData.properties.position || '未知' }}</td>
@@ -180,10 +196,18 @@
             <th>风险等级</th>
             <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.sumPeople">
+            <th>年度诊疗人数</th>
+            <td>{{ selectedEntityData.properties.sumPeople || '未知' }}</td>
+          </tr>
 
           <tr v-if="selectedEntityData.properties.username">
             <th>巡查员</th>
             <td>{{ selectedEntityData.properties.username || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitHead">
+            <th>负责人</th>
+            <td>{{ selectedEntityData.properties.unitHead || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.phone">
             <th>手机号</th>
@@ -231,11 +255,13 @@ import lakeData from '@/assets/static/json/lake.json';
 import landslideIcon from "@/assets/images/landslide.png"
 import flowIcon from "@/assets/images/DebrisFlow.png"
 import riskAreaIcon from "@/assets/images/riskArea.png"
+import dangerSourceIcon from "@/assets/images/gasstation.png"
+import hospitalIcon from "@/assets/images/hospital.png"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
-import {getRisk, getSlide, getFlow} from "@/api/system/aroundanalysis.js";
+import {getRisk, getSlide, getFlow, getDangerous, getFire, getHospital, getShelter, getStore} from "@/api/system/aroundanalysis.js";
 import {get} from "@vueuse/core";
 
 export default {
@@ -269,9 +295,12 @@ export default {
       lakeData: lakeData,
       // 灾害点数据
       // faultZone: faultZone,
-      HuapoData: [],
-      NishiliuData: [],
+      HuapoData: null,
+      NishiliuData: null,
       DangerAreaData: null,
+      DangerSourceData: null,//危险源数据
+      HospitalData: null,
+      FireFighterData: null,
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
@@ -310,6 +339,9 @@ export default {
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
       secondaryRiskPoints: [], // 次生灾害风险点
+      dangerSourcePoints: [],
+      hospitalPoints: [],
+      fireFighterPoints: [],
       selectedEntityData: null,
       popupPosition: {x: 0, y: 0},
       popupVisible: false,
@@ -374,8 +406,17 @@ export default {
       });
       getRisk().then((res) =>{
         this.DangerAreaData = res.data;
-        this.loadDisasterData();//放在此处确保前面的所有数据都读取到了，再渲染点。
+        //放在此处确保前面的所有数据都读取到了，再渲染点。
+        this.loadDisasterData();
       });
+      getDangerous().then((res)=>{
+        this.DangerSourceData = res.data;
+        this.loadDangerSource();
+      });
+      getHospital().then((res)=>{
+        this.HospitalData = res.data;
+        this.loadProtectTarget();
+      })
     },
     load() {
       // Cesium.Ion.defaultAccessToken = '';
@@ -594,6 +635,168 @@ export default {
         };
       });
     },
+    // 加载医院(保护目标
+    loadProtectTarget(){
+      this.loading = true;
+      this.loadingText = '加载保护目标数据...'
+
+      try{
+        const hospitalFeatures = this.HospitalData?.features || [];
+
+        this.protectEntities = [];
+        this.HospitalEntities = [];
+
+        // 添加危险源点
+        hospitalFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const hospitalName = properties.hospitalName || '未知危险源';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入危险源到数组
+          this.hospitalPoints.push([longitude, latitude])
+
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: hospitalIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: true
+            },
+            // 文字
+            // label: {
+            //   text: `${hospitalName}`,
+            //   font: '12pt Source Han Sans CN',
+            //   fillColor: Cesium.Color.WHITE,
+            //   backgroundColor: Cesium.Color.AQUA,
+            //   showBackground: false,
+            //   outline: true,
+            //   outlineColor: Cesium.Color.BLACK,
+            //   outlineWidth: 10,
+            //   scale: 1.0,
+            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
+            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+            //   show: true
+            // },
+            // 添加灾害类型信息，用于弹窗显示
+            // description: this.createDisasterDescription(properties, '滑坡'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'protectTarget',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.protectEntities.push(entity);
+          this.HospitalEntities.push(entity);
+        });
+
+        // 设置实体点击事件
+        this.setupEntityClickHandler();
+
+        this.isLoading = false;
+
+      }catch (error) {
+        this.isLoading = false;
+        console.error('处理保护目标数据时出错:', error);
+      }
+    },
+    // 加载风险源
+    loadDangerSource(){
+      this.loading = true;
+      this.loadingText = '加载风险源数据...'
+
+      try{
+        const dangerSourceFeatures = this.DangerSourceData?.features || [];
+
+        this.disasterEntities = [];
+        this.dangerSourceEntities = [];
+
+        // 添加危险源点
+        dangerSourceFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const dangerNAME = properties.dangerName || '未知危险源';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入危险源到数组
+          this.dangerSourcePoints.push([longitude, latitude])
+
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: dangerSourceIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: true
+            },
+            // 文字
+            // label: {
+            //   text: `${dangerNAME}`,
+            //   font: '10pt Source Han Sans CN',
+            //   fillColor: Cesium.Color.WHITE,
+            //   backgroundColor: Cesium.Color.AQUA,
+            //   showBackground: false,
+            //   outline: true,
+            //   outlineColor: Cesium.Color.BLACK,
+            //   outlineWidth: 10,
+            //   scale: 0.8,
+            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
+            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+            //   show: true
+            // },
+            // 添加灾害类型信息，用于弹窗显示
+            // description: this.createDisasterDescription(properties, '滑坡'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'dangerSource',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.disasterEntities.push(entity);
+          this.dangerSourceEntities.push(entity);
+        });
+
+        // 设置实体点击事件
+        this.setupEntityClickHandler();
+
+        this.isLoading = false;
+
+      }catch (error) {
+        this.isLoading = false;
+        console.error('处理风险源数据时出错:', error);
+      }
+    },
     // 加载灾害点数据
     loadDisasterData() {
       this.isLoading = true;
@@ -606,7 +809,6 @@ export default {
         const huapoFeatures = this.HuapoData?.features || [];
         const nishiliuFeatures = this.NishiliuData?.features || [];
         const dangerAreaFeatures = this.DangerAreaData?.features || [];
-
 
         // 存储所有添加的实体，用于事件处理
         this.disasterEntities = [];
@@ -794,6 +996,7 @@ export default {
           this.disasterEntities.push(entity);
           this.secondaryRiskEntities.push(entity);
         });
+
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
@@ -1165,7 +1368,7 @@ export default {
         return colors[i % colors.length];
       }
     },
-    // 准备开始点击
+    // 准备开始点击事件
     toggleRainMode() {
       // 若不允许标记且当前为开启状态，则直接关闭
       if (!this.canMarkAgain && this.rainMode) {
@@ -1207,7 +1410,6 @@ export default {
         this.selectedPosition = {longitude, latitude, cartesian};
         this.showInfoPanel = true;
       }
-
     },
     confirmRainPoint() {
       if (!this.selectedPosition || !this.canMarkAgain) return;
@@ -1845,7 +2047,7 @@ export default {
         legendContent.style.maxWidth = '300px'; // 限制最大宽度
       }
       // 新增：添加灾害点图例
-      this.addDisasterLegend(legendContent);
+      this.addOtherLegend(legendContent);
     },
     // 添加降雨区域图例项的函数
     addRainAreaLegend(container) {
@@ -1877,8 +2079,8 @@ export default {
       item.appendChild(textDiv);
       container.appendChild(item);
     },
-    // 添加灾害点图例项
-    addDisasterLegend(container) {
+    // 添加其他图例项
+    addOtherLegend(container) {
       // 滑坡图例
       const landslideItem = document.createElement('div');
       landslideItem.className = 'legend-item';
@@ -1951,6 +2153,54 @@ export default {
       dangerItem.appendChild(dangerColorDiv);
       dangerItem.appendChild(dangerTextDiv);
       container.appendChild(dangerItem);
+
+      // 危险源图例
+      const dangerSourceItem = document.createElement('div');
+      dangerSourceItem.className = 'legend-item';
+      dangerSourceItem.style.display = 'flex';
+      dangerSourceItem.style.alignItems = 'center';
+      dangerSourceItem.style.marginBottom = '10px';
+
+      const dangerSourceColorDiv = document.createElement('img');
+      dangerSourceColorDiv.className = 'legend-point';
+      dangerSourceColorDiv.src = dangerSourceIcon;
+      dangerSourceColorDiv.style.width = '16px';
+      dangerSourceColorDiv.style.height = '16px';
+      dangerSourceColorDiv.style.marginRight = '10px';
+
+      const dangerSourceTextDiv = document.createElement('div');
+      dangerSourceTextDiv.className = 'legend-text';
+      dangerSourceTextDiv.textContent = '加油加气站危险源';
+      dangerSourceTextDiv.style.fontSize = '14px';
+      dangerSourceTextDiv.style.lineHeight = '20px';
+
+      dangerSourceItem.appendChild(dangerSourceColorDiv);
+      dangerSourceItem.appendChild(dangerSourceTextDiv);
+      container.appendChild(dangerSourceItem);
+
+      // 医院图例
+      const hospitalItem = document.createElement('div');
+      hospitalItem.className = 'legend-item';
+      hospitalItem.style.display = 'flex';
+      hospitalItem.style.alignItems = 'center';
+      hospitalItem.style.marginBottom = '10px';
+
+      const hospitalColorDiv = document.createElement('img');
+      hospitalColorDiv.className = 'legend-point';
+      hospitalColorDiv.src = hospitalIcon;
+      hospitalColorDiv.style.width = '16px';
+      hospitalColorDiv.style.height = '16px';
+      hospitalColorDiv.style.marginRight = '10px';
+
+      const hospitalTextDiv = document.createElement('div');
+      hospitalTextDiv.className = 'legend-text';
+      hospitalTextDiv.textContent = '加油加气站危险源';
+      hospitalTextDiv.style.fontSize = '14px';
+      hospitalTextDiv.style.lineHeight = '20px';
+
+      hospitalItem.appendChild(hospitalColorDiv);
+      hospitalItem.appendChild(hospitalTextDiv);
+      container.appendChild(hospitalItem);
     },
     // 更新图例
     updateLegend() {
