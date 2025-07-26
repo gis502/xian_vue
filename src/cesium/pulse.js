@@ -48,8 +48,8 @@ export const pulseUtils = {
           point: {
             pixelSize: 40, // 增大光晕大小，使其更明显
             color: Cesium.Color.RED.withAlpha(0.4), // 提高透明度，使其更明显
-            outlineColor: Cesium.Color.RED.withAlpha(1.0), // 完全不透明的边框
-            outlineWidth: 1, // 适中的边框宽度
+            // outlineColor: Cesium.Color.RED.withAlpha(1.0), // 完全不透明的边框
+            // outlineWidth: 1, // 适中的边框宽度
             heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
             disableDepthTestDistance: Number.POSITIVE_INFINITY, // 确保不被地形遮挡
           },
@@ -80,13 +80,13 @@ export const pulseUtils = {
     let pulsePhase = 0;
     // 使用定时器创建脉冲效果
     const pulseInterval = setInterval(() => {
-      pulsePhase += 0.5; // 稍微加快动画速度
+      pulsePhase += 0.2; // 稍微加快动画速度
       const alpha = 0.2 + 0.5 * Math.sin(pulsePhase); // 提高透明度范围
       const size = 30 + 20 * Math.sin(pulsePhase); // 增大尺寸变化范围
-
       haloEntity.point.color = baseColor.withAlpha(alpha);
       haloEntity.point.pixelSize = size;
-    }, 300); // 适中的更新频率
+
+    }, 100); // 适中的更新频率
 
     // 存储定时器引用以便清理
     haloEntity.pulseInterval = pulseInterval;
