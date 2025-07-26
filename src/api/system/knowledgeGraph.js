@@ -17,13 +17,20 @@ export function getChartDataBy(eqid, disasterType) {
     });
 }
 
-export function getNewsPage(pageNum, pageSize) {
+export function getNewsPage(pageNum, pageSize, lastItem) {
     return request({
         url: '/xian_news/list',
         method: 'get',
-        params: { pageNum, pageSize }
-    });
+        params: {
+            pageNum,
+            pageSize,
+            disasterType: lastItem?.disasterType || '',
+            earthquakeDisasterId: lastItem?.earthquakeDisasterId || '',
+            rainDisasterId: lastItem?.rainDisasterId || '',
+        }
+    })
 }
+
 
 export function getEarthquakeRainPage(pageNum, pageSize) {
     return request({

@@ -247,9 +247,11 @@ const handleNewsPanel = () => {
   isNewsBoxVisible.value = isPanelShow.value.NewsInfo
 }
 //新闻数据处理逻辑
-const fetchNewsData = async () => {
+const fetchNewsData = async (item = lastItem) => {
+  lastItem = item
+  console.log('最新数据lastItem:', lastItem)
   try {
-    const res = await getNewsPage(pageNum.value, pageSize.value)
+    const res = await getNewsPage(pageNum.value, pageSize.value, lastItem)
     console.log(res)
     if (res.code === 200) {
       newsDataList.value = res.data.records
@@ -263,9 +265,9 @@ const fetchNewsData = async () => {
   }
 }
 
+// 分页变化时调用
 const handlePageChange = (newPage) => {
-  pageNum.value = newPage
-  fetchNewsData()
+  fetchNewsData(newPage) // 这里不需要手动传 lastItem，它会默认用上一次的
 }
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
@@ -395,6 +397,7 @@ const chartDataCount = ref();
 // 获取数据并初始化图表
 const getData = async (item) => {
   console.log("item", item)
+  await fetchNewsData(item);
   try {
     if (!item || !item.disasterType) {
       console.warn("无效灾害数据");
@@ -671,7 +674,6 @@ const getData = async (item) => {
     });
 
     chartData.value = Array.from(nodeMap.values());
-    console.log("chartData111",chartData.value)
 
     allDataLinks = chartLinks.value;
 
@@ -685,7 +687,6 @@ const getData = async (item) => {
 
     // 给节点分配图标样式
     chartStartData.value = chartData.value.map(item => {
-      console.log("itemTuBiao",item)
       if (item.name === lastDisasterData.value.disasterName) {
         item.symbol = `image:///images/eqentity1.png`;
         item.itemStyle = {
@@ -1043,7 +1044,6 @@ const handleChildClick = (child) => {
 // 生命周期钩子
 onMounted(async () => {
   await fetchData()
-  await fetchNewsData()
 });
 
 onBeforeUnmount(() => {
