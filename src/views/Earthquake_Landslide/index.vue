@@ -1,15 +1,20 @@
 <template>
-  <div id="cesium-container" ref="cesiumContainer">
+  <div
+    id="cesium-container"
+    ref="cesiumContainer"
+    v-loading="loading"
+    :element-loading-spinner="svg"
+    element-loading-svg-view-box="-10, -10, 50, 50"
+    element-loading-background="rgba(122, 122, 122, 0.8)"
+  >
     <!-- 图例 -->
     <Legend></Legend>
 
     <!-- 表格 -->
     <Table v-if="showTable" :dataTypes="dataTypes"></Table>
 
-    <!-- 图表容器 -->
-    <div class="chart-container">
-      <div id="main" style="height: 100%"></div>
-    </div>
+    <!-- chart -->
+    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
 
     <!-- 点击弹窗 -->
     <BaseInfo
@@ -40,8 +45,14 @@
       v-if="showEarthquakeSimulation"
       :position="earthquakeSimulationPosition"
       :dataTypes="dataTypes"
+      :chartDatas="chartDatas"
       @displayTable="displayTable"
+      @hideTable="hideTable"
+      @displayChart="displayChart"
+      @hideChart="hideChart"
       @cancelEarthquake="cancelEarthquake"
+      @startLoading="startLoading"
+      @stopLoading="stopLoading"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -53,7 +64,6 @@
 import * as Cesium from "cesium";
 
 import { initCesium } from "@/cesium/initLayer.js";
-import * as echarts from "echarts";
 import { onMounted, reactive, ref } from "vue";
 import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
@@ -65,39 +75,55 @@ import { pulseUtils } from "../../cesium/pulse";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
+import Chart from "../../components/Earthquake/Chart.vue";
+
+// 加载
+let loading = ref(false);
 
 // 表格数据
 const dataTypes = reactive({
   filterCriteria: [
     {
-      name: "风险区预警点",
+      name: "滑坡预警点",
       value: "type1",
     },
     {
-      name: "滑坡预警点",
+      name: "泥石流预警点",
       value: "type2",
     },
     {
-      name: "泥石流预警点",
+      name: "风险区预警点",
       value: "type3",
     },
   ],
   type1: {
-    headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
-    data: [],
-  },
-  type2: {
     headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
     data: [],
   },
-  type3: {
+  type2: {
     headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+    data: [],
+  },
+  type3: {
+    headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
     data: [],
   },
 });
 
 // 显示表格
 const showTable = ref(false);
+
+// 显示chart
+const showChart = ref(false);
+
+// chart数据
+const chartDatas = reactive({
+  title: "地震模拟",
+  xAxis: {
+    data: ["滑坡受影响点", "泥石流受影响点", "风险区受影响点"],
+  },
+  seriesDatas: [0, 0, 0],
+});
 
 // 弹窗信息
 let showBaseInfo = ref(false);
@@ -127,16 +153,7 @@ let earthquakeClickHandler = null;
 
 let entityClickHandler = ref(null);
 
-// 显示表格
-function displayTable() {
-  showTable.value = true;
-}
-
 onMounted(() => {
-  load();
-});
-
-function load() {
   window.viewer = initCesium("cesium-container");
 
   // 断裂带
@@ -151,8 +168,7 @@ function load() {
   // 罗盘
   init_cesium_navigation(108.948024, 34.263161, window.viewer);
 
-  AddChart();
-
+  // 调整到指定位置
   window.viewer.cesiumWidget.creditContainer.style.display = "none";
   window.viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
@@ -162,194 +178,26 @@ function load() {
       roll: 0.0,
     },
   });
+});
+
+// 显示表格
+function displayTable() {
+  showTable.value = true;
 }
 
-// 添加chart
-function AddChart() {
-  let chartDom = document.getElementById("main");
-  let myChart = echarts.init(chartDom);
-  let option;
+// 隐藏表格
+function hideTable() {
+  showTable.value = false;
+}
 
-  // 定义柱状图形状基础配置
-  const myShape = {
-    x: 0,
-    y: 0,
-    width: 10, // 柱体宽度
-  };
+// 显示chart
+function displayChart() {
+  showChart.value = true;
+}
 
-  // 注册自定义图形（斜角设计）
-  const InclinedRoofColumn = echarts.graphic.extendShape({
-    shape: myShape,
-    buildPath: function (ctx, shape) {
-      const xAxisPoint = shape.xAxisPoint;
-      const c0 = [shape.x, shape.y - 0]; // 控制斜角倾斜度（-6 表示向左倾斜）
-      const c1 = [shape.x - 10, shape.y];
-      const c2 = [xAxisPoint[0] - 10, xAxisPoint[1]];
-      const c3 = [xAxisPoint[0], xAxisPoint[1]];
-      ctx
-        .moveTo(c0[0], c0[1])
-        .lineTo(c1[0], c1[1])
-        .lineTo(c2[0], c2[1])
-        .lineTo(c3[0], c3[1])
-        .closePath();
-    },
-  });
-  echarts.graphic.registerShape("InclinedRoofColumn", InclinedRoofColumn);
-
-  const gradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-    { offset: 0, color: "#438BFD" }, // 顶部颜色
-    { offset: 0.5, color: "#13B0D7" }, // 中间颜色
-    { offset: 1, color: "#13B0D7" }, // 底部颜色
-  ]);
-
-  // 网格配置
-  const grid = {
-    left: 50,
-    right: 50, // 增加右侧边距，为外部标签留出空间
-    top: 50,
-    bottom: 50,
-  };
-
-  // 为每个柱子定义不同的颜色
-  const colors = [
-    "#e2ac07", // 泥石流受影响点 - 浅绿色
-    "#fff700", // 滑坡受影响点 - 蓝色
-    "#66c2a5", // 滑坡未受影响点 - 青绿色
-    "#e6f598", // 泥石流未受影响点 - 黄绿色
-    "#fee08b", // 风险区受影响点 - 浅黄色
-    "#fdae61", // 风险区未受影响点 - 橙色
-  ];
-
-  // 准备带颜色的柱子数据
-  const barData = [5, 1, 0].map((value, index) => ({
-    value,
-    itemStyle: {
-      color: colors[index],
-    },
-  }));
-
-  option = {
-    // 添加标题配置
-    title: {
-      subtext: "长安区地震影响点统计",
-      left: "center",
-      top: 0,
-      subtextStyle: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold", // 加粗字体
-        marginBottom: 10, // 底部边距
-        textAlign: "center", // 文本居中
-        marginTop: 0, // 顶部边距
-        paddingTop: 20, // 顶部内边距
-      },
-    },
-    // grid,
-    xAxis: {
-      type: "category",
-      data: ["风险区受影响点", "滑坡受影响点", "泥石流受影响点"],
-      axisLabel: {
-        textStyle: {
-          fontSize: 12, // 设置字体大小为25
-        },
-        interval: 0,
-        margin: 20,
-        color: "#fff", // x轴标签保持白色
-        rich: {
-          wrap: {
-            lineHeight: 18,
-            align: "center",
-            fontSize: 15,
-          },
-        },
-        // formatter: function(params) {
-        //   const textMap = {
-        //     '滑坡受影响点': '滑坡受\n影响点',
-        //     '滑坡未受影响点': '滑坡未受\n影响点',
-        //     '泥石流受影响点': '泥石流\n受影响点',
-        //     '泥石流未受影响点': '泥石流未受\n影响点',
-        //     '风险区受影响点': '风险区\n受影响点',
-        //     '风险区未受影响点': '风险区未受\n影响点',
-        //   };
-        //   return textMap[params] || params;
-        // },
-      },
-      axisLine: {
-        lineStyle: {
-          color: "#888",
-        },
-      },
-    },
-    yAxis: {
-      type: "value",
-      axisLabel: {
-        formatter: "{value}",
-        color: "#fff", // y轴标签保持白色
-      },
-      axisLine: {
-        lineStyle: {
-          color: "#888",
-        },
-      },
-      splitLine: {
-        lineStyle: {
-          color: "rgba(255,255,255,0.1)",
-        },
-      },
-    },
-    series: [
-      {
-        data: barData, // 使用带颜色的柱子数据
-        type: "custom",
-        renderItem: (params, api) => {
-          const value = api.value(1);
-          const location = api.coord([api.value(0), api.value(1)]); // 柱顶坐标
-          const point = api.coord([api.value(0), 0]); // 柱底坐标
-          const children = [];
-          if (value !== 0) {
-            // 只有值不为0时绘制自定义柱状图形
-            children.push({
-              type: "InclinedRoofColumn", // 使用自定义图形
-              shape: {
-                x: location[0] + 5, // 水平居中微调
-                y: location[1],
-                xAxisPoint: [point[0] + 5, point[1]], // 底部对齐
-              },
-              style: {
-                fill: gradient, // 应用渐变色
-                shadowColor: "rgba(0, 0, 0, 0.3)",
-                shadowBlur: 10,
-                shadowOffsetX: 3,
-                shadowOffsetY: 3,
-              },
-            });
-          }
-          children.push({
-            type: "text",
-            style: {
-              text: api.value(1),
-              x: location[0],
-              y: location[1] - 10,
-              fill: "#fff",
-              font: "12px sans-serif",
-              textAlign: "center",
-              textVerticalAlign: "bottom",
-            },
-          });
-          return {
-            type: "group",
-            children,
-          };
-        },
-      },
-    ],
-  };
-
-  option && myChart.setOption(option);
-  // 窗口大小变化时自适应图表
-  window.addEventListener("resize", () => {
-    myChart.resize();
-  });
+// 隐藏chart
+function hideChart() {
+  showChart.value = false;
 }
 
 // 触发点击实体事件
@@ -510,7 +358,7 @@ function getClickedPosition(screenPosition) {
   };
 }
 
-// 隐藏地震模拟
+// 取消地震模拟
 function cancelEarthquake() {
   showEarthquakeSimulation.value = false;
 
@@ -526,6 +374,9 @@ function cancelEarthquake() {
 
 // 清除地震模拟
 function removeEarthquakeSimulation() {
+  // 清除地震中心点
+  basicLayers.removeCenterPoint("earthquakeCenter");
+
   // 清除烈度圈实体
   layers.removeIsoseismalCircle();
 
@@ -534,6 +385,19 @@ function removeEarthquakeSimulation() {
 
   // 隐藏表格
   showTable.value = false;
+
+  // 隐藏chart
+  showChart.value = false;
+}
+
+// 加载
+function startLoading() {
+  loading.value = true;
+}
+
+// 停止加载
+function stopLoading() {
+  loading.value = false;
 }
 </script>
 
@@ -544,23 +408,6 @@ function removeEarthquakeSimulation() {
   padding: 0;
   margin: 0;
   position: relative;
-}
-
-.chart-container {
-  position: absolute;
-  bottom: 10px; /* 距离顶部20px */
-  left: 20px; /* 距离左侧20px */
-  /*background-color: white; !* 与图例背景色一致 *!*/
-  background-color: rgba(40, 40, 40, 0.8);
-  color: white;
-  padding: 15px;
-  border-radius: 4px;
-  z-index: 1000;
-  height: 367px;
-  width: 350px; /* 限制表格宽度 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
-  font-size: 14px; /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
 }
 
 .btns-box {

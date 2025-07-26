@@ -83,7 +83,7 @@ const { dataTypes } = defineProps(["dataTypes"]);
 const tableData = ref([]);
 
 // 控制表格显示/隐藏的状态
-const isTableVisible = ref(false);
+const isTableVisible = ref(true);
 
 // 表格数据和分页相关状态
 // 新增数据相关状态

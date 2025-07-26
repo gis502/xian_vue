@@ -2,6 +2,7 @@
 <template>
   <!-- 收集内容 -->
   <div
+    v-show="isShow"
     class="earthquake-info-panel"
     :style="{
       top: position.y + 'px',
@@ -42,25 +43,54 @@
 </template>
 
 <script setup name="SimulatingEarthquake">
-import { reactive } from "vue";
+import { onBeforeMount, reactive} from "vue";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 import { pulseUtils } from "../../cesium/pulse";
 import basicLayers from "../../cesium/basicLayers";
 
+// 显示弹窗
+let isShow = ref(true);
+
+// 默认震级
 let form = reactive({
   magnitude: 6,
 });
 
 // 获取位置以及表格中要呈现的内容
-const { position, dataTypes } = defineProps(["position", "dataTypes"]);
-const emit = defineEmits(["cancelEarthquake", "displayTable"]);
+const { position, dataTypes, chartDatas } = defineProps([
+  "position",
+  "dataTypes",
+  "chartDatas",
+]);
+const emit = defineEmits([
+  "cancelEarthquake",
+  "displayTable",
+  "hideTable",
+  "displayChart",
+  "hideChart",
+  "startLoading",
+  "stopLoading"
+]);
+
+onBeforeMount(() => {
+  // 隐藏显示
+  emit("hideTable");
+  emit("hideChart");
+});
+
 // 添加模拟
 async function confirmEarthquake() {
+  // 显示加载
+  emit("startLoading");
+
+  // 隐藏弹窗
+  isShow.value = false;
+
   // 删除原本地震中心
-  basicLayers.removeCenterPoint('earthquakeCenter');
-  
+  basicLayers.removeCenterPoint("earthquakeCenter");
+
   // 添加地震中心位置
   basicLayers.addCenterPoint({
     id: "earthquakeCenter",
@@ -71,10 +101,6 @@ async function confirmEarthquake() {
   });
 
   layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
-  emit("cancelEarthquake");
-
-  // 显示表格
-  emit("displayTable");
 
   // 处理各个模拟点
   let inEllipsePoints = [];
@@ -103,21 +129,45 @@ async function confirmEarthquake() {
   // 添加脉冲实体
   pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
 
-  // 处理表格数据
-  addDatasToTable(probabilityPoints);
+  // 处理表格和chart数据
+  addDatasToTableAndChart(probabilityPoints);
+
+  // 显示表格和chart
+  emit("displayTable");
+  emit("displayChart");
+
+  // 注销模拟
+  emit("cancelEarthquake");
+
+  // 停止加载
+  emit("stopLoading");
 }
 
-// 处理表格数据
-function addDatasToTable(probabilityPoints) {
+// 处理表格和chart数据
+function addDatasToTableAndChart(probabilityPoints) {
   // 清空表格数据
   dataTypes.type1.data = [];
   dataTypes.type2.data = [];
   dataTypes.type3.data = [];
 
+  // 设置chart数据初始为0
+  chartDatas.seriesDatas = [0, 0, 0];
+
   // 风险区数据，滑坡数据，泥石流数据
   probabilityPoints.forEach((item) => {
     switch (item.geologicalDisasterHideDTO.disasterType) {
       case "滑坡":
+        dataTypes.type1.data.push({
+          field1: item.geologicalDisasterHideDTO.disasterName,
+          field2: item.geologicalDisasterHideDTO.position,
+          field3: item.geologicalDisasterHideDTO.scaleGrade,
+          field4: item.geologicalDisasterHideDTO.riskGrade,
+          field5: item.geologicalDisasterHideDTO.lon,
+          field6: item.geologicalDisasterHideDTO.lat,
+        });
+        chartDatas.seriesDatas[0]++;
+        break;
+      case "泥石流":
         dataTypes.type2.data.push({
           field1: item.geologicalDisasterHideDTO.disasterName,
           field2: item.geologicalDisasterHideDTO.position,
@@ -126,19 +176,10 @@ function addDatasToTable(probabilityPoints) {
           field5: item.geologicalDisasterHideDTO.lon,
           field6: item.geologicalDisasterHideDTO.lat,
         });
-        break;
-      case "泥石流":
-        dataTypes.type3.data.push({
-          field1: item.geologicalDisasterHideDTO.disasterName,
-          field2: item.geologicalDisasterHideDTO.position,
-          field3: item.geologicalDisasterHideDTO.scaleGrade,
-          field4: item.geologicalDisasterHideDTO.riskGrade,
-          field5: item.geologicalDisasterHideDTO.lon,
-          field6: item.geologicalDisasterHideDTO.lat,
-        });
+        chartDatas.seriesDatas[1]++;
         break;
       default:
-        dataTypes.type1.data.push({
+        dataTypes.type3.data.push({
           field1: item.geologicalDisasterHideDTO.disasterName,
           field2: item.geologicalDisasterHideDTO.position,
           field3: item.geologicalDisasterHideDTO.inspectorName,
@@ -146,6 +187,7 @@ function addDatasToTable(probabilityPoints) {
           field5: item.geologicalDisasterHideDTO.lon,
           field6: item.geologicalDisasterHideDTO.lat,
         });
+        chartDatas.seriesDatas[2]++;
     }
   });
 }
