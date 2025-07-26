@@ -56,6 +56,7 @@ import DebrisFlow from "./DebrisFlow.vue";
 import Landslide from "./Landslide.vue";
 import RiskPoints from "./RiskPoints.vue";
 import Hazards from "./Hazards.vue";
+import { staticHazardsDatas } from "../../api/earthquake/datas";
 const emit = defineEmits(["removeBaseInfoBox"]);
 
 const parentDatas = defineProps([
