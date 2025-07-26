@@ -2194,7 +2194,7 @@ export default {
 
       const hospitalTextDiv = document.createElement('div');
       hospitalTextDiv.className = 'legend-text';
-      hospitalTextDiv.textContent = '加油加气站危险源';
+      hospitalTextDiv.textContent = '医院保护目标';
       hospitalTextDiv.style.fontSize = '14px';
       hospitalTextDiv.style.lineHeight = '20px';
 
