@@ -5,7 +5,7 @@
     <!-- 致灾因子信息 -->
     <el-form :model="form" label-width="auto" style="max-width: 100%">
       <el-form-item
-        v-for="item, index in hazardsDatas.factorVoList"
+        v-for="(item, index) in hazardsDatas.factorVoList"
         :key="item.attributeNameAlias"
         :label="item.attributeName"
       >
@@ -44,6 +44,8 @@
 <script setup name="Hazards">
 import { onBeforeMount, reactive, ref } from "vue";
 import { getHazardProbability } from "../../api/earthquake/hazards";
+import { pulseUtils } from "../../cesium/pulse";
+import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 
 // 接收父组件数据
 const hazards = defineProps(["hazardsDatas"]);
@@ -56,26 +58,35 @@ let probability = ref(0);
 
 onBeforeMount(() => {
   // 设置默认值
-  hazards.hazardsDatas.factorVoList.forEach(element => {
-    form.push({
-      hideId: element.hideId,
-      attributeId: element.attributeId,
-      valueId: element.valueId,
-      factorValue: element.factorValue
-    })
+  hazards.hazardsDatas.factorVoList.forEach((element) => {
+    form.push(element);
   });
 
+  console.log(form)
+
   // 设置预测值
-  if(hazards.hazardsDatas.predict && hazards.hazardsDatas.predict.probaility) {
-    probability.value = hazards.hazardsDatas.predict.probaility.toFixed(2);
+  if (
+    hazards.hazardsDatas.predict &&
+    hazards.hazardsDatas.predict.probability
+  ) {
+    probability.value = (
+      hazards.hazardsDatas.predict.probability * 100
+    ).toFixed(2);
   }
 });
 
 async function modifyDatas() {
   // 从后台获取概率值
   const res = await getHazardProbability(form);
-
+  console.log(res);
   // 修改概率值
+  probability.value = (res.data.predict.probability * 100).toFixed(2);
+
+  // 设置概率值
+  hazards.hazardsDatas.predict = res.data.predict;
+
+  // 设置脉冲
+  pulseUtils.createPause([hazards.hazardsDatas], useSimulationPointStore(), window.viewer);
 }
 </script>
 

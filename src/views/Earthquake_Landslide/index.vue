@@ -114,8 +114,11 @@
     <!-- 地震模拟 -->
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation"
-        >地震模拟</el-button
-      >
+        >地震模拟
+      </el-button>
+      <el-button type="danger" @click="removeEarthquakeSimulation"
+        >清除地震模拟
+      </el-button>
     </div>
 
     <!-- 模拟地震弹窗 -->
@@ -142,6 +145,9 @@ import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthqua
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
 import { init_cesium_navigation } from "../../cesium/initLayer";
+import layers from "../../cesium/layers";
+import { pulseUtils } from "../../cesium/pulse";
+import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 
 // 弹窗信息
 let showBaseInfo = ref(false);
@@ -639,6 +645,15 @@ function cancelEarthquake() {
     earthquakeClickHandler = null;
   }
 }
+
+// 清除地震模拟
+function removeEarthquakeSimulation() {
+  // 清除烈度圈实体
+  layers.removeIsoseismalCircle();
+
+  // 清除脉冲
+  pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+}
 </script>
 
 <style scoped>
@@ -900,6 +915,5 @@ function cancelEarthquake() {
   top: 20px;
   left: 580px;
   z-index: 1000;
-  background-color: #6c757d;
 }
 </style>
