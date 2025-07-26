@@ -47,6 +47,7 @@ import { useSimulationPointStore } from "../../store/earthquake/simulation_point
 import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 import { pulseUtils } from "../../cesium/pulse";
+import basicLayers from "../../cesium/basicLayers";
 
 let form = reactive({
   magnitude: 6,
@@ -57,6 +58,18 @@ const { position, dataTypes } = defineProps(["position", "dataTypes"]);
 const emit = defineEmits(["cancelEarthquake", "displayTable"]);
 // 添加模拟
 async function confirmEarthquake() {
+  // 删除原本地震中心
+  basicLayers.removeCenterPoint('earthquakeCenter');
+  
+  // 添加地震中心位置
+  basicLayers.addCenterPoint({
+    id: "earthquakeCenter",
+    disasterName: "",
+    trigger: "",
+    longitude: position.longitude,
+    latitude: position.latitude,
+  });
+
   layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
   emit("cancelEarthquake");
 

@@ -65,6 +65,12 @@ let basicLayers = {
         }
         return entity;
     },
+    removeCenterPoint(id) {
+        const entity = window.viewer.entities.getById(id);
+        if (entity) {
+            window.viewer.entities.remove(entity)
+        }
+    },
     addFaultZone() {
         let line_data = []
         lineData.features.forEach(line => {
