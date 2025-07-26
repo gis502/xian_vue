@@ -91,12 +91,12 @@
 
     <div class="legend">
       <div class="legend-title">图例</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>
-      <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>
-      <div class="legend-item"><span class="legend-circle" style="background: yellow;"></span> 震源</div>
-      <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span>断裂带</div>
-      <div class="legend-item"><span class="legend-circle" style="background: #ff0000;"></span> 危险源</div>
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>-->
+<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>-->
+<!--      <div class="legend-item"><span class="legend-circle" style="background: yellow;"></span> 震源</div>-->
+<!--      <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span>断裂带</div>-->
+<!--      <div class="legend-item"><span class="legend-circle" style="background: #ff0000;"></span> 危险源</div>-->
       <div class="legend-item">
         <div class="legend-icon" id="flow"></div>
         泥石流隐患点
@@ -174,12 +174,12 @@
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.scaleGrade">
             {{ item.scaleGrade}}
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.city">
-            {{ item.city }}
-          </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.county">
-            {{ item.county}}
-          </td>
+<!--          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.city">-->
+<!--            {{ item.city }}-->
+<!--          </td>-->
+<!--          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.county">-->
+<!--            {{ item.county}}-->
+<!--          </td>-->
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.village">
             {{ item.village}}
           </td>
@@ -192,6 +192,11 @@
         <button @click="nextPointPage" :disabled="currentPointPage === totalPointPages">下一页</button>
         <span class="total-items">共 {{ warn_point.length }} 条</span>
       </div>
+    </div>
+
+    <!-- 图表容器 -->
+    <div class="chart-container">
+      <div id="main" style="height: 100%"></div>
     </div>
   </div>
 </template>
@@ -225,6 +230,7 @@ import CesiumNavigation from "cesium-navigation-es6";
 import {initCesium} from '@/cesium/initLayer.js'
 import axios from 'axios';
 import {getFlow, getRisk, getSlide} from "@/api/system/association_analysis.js";
+import * as echarts from "echarts";
 
 export default {
   name: "index",
@@ -318,13 +324,14 @@ export default {
       searchQuery: '搜索',
       currentPage: 1,
       tableHeaders: ['区县名称','降水量', '温度', '湿度'],
-      point_tableHeaders: ['预警点名称', '预警灾害类型','预警点危险等级','预警灾害规模','预警点位置（市）','预警点位置（区县）', '预警点位置（街道）'],
+      point_tableHeaders: ['预警点名称', '预警灾害类型','预警点危险等级','预警灾害规模', '预警点位置'],
       pageSize: 4,
       slide: [], // 滑坡隐患点信息
       warn_point: [], //预警点数组
       iswarn_point_table: true, //控制表格显示/隐藏的状态
       currentPointPage: 1,
-      pagePointSize: 8,
+      pagePointSize: 5,
+      countByCounty: [], //预警点统计数量数组
     };
   },
 
@@ -554,20 +561,20 @@ export default {
         case '晴':
         case '多云':
         case '阴':
-          minRain = 0;
-          maxRain = 5; // 晴天最多5毫米
+          minRain = 20;
+          maxRain = 35; // 晴天最多5毫米
           break;
         case '小雨':
-          minRain = 0.1;
-          maxRain = 10;
+          minRain = 35;
+          maxRain = 85;
           break;
         case '中雨':
-          minRain = 10.1;
-          maxRain = 25;
+          minRain = 30;
+          maxRain = 95;
           break;
         case '大雨':
-          minRain = 25.1;
-          maxRain = 50;
+          minRain = 30;
+          maxRain = 100;
           break;
         case '暴雨':
           minRain = 50.1;
@@ -987,6 +994,7 @@ export default {
     },
 
     showInfoList(info,entity) {
+
       // 清除现有信息窗口
       const existingWindows = document.querySelectorAll('.cesium-info-window');
       existingWindows.forEach(win => win.remove());
@@ -1002,8 +1010,8 @@ export default {
       container.className = 'cesium-info-window';
 
       // 计算窗口位置（基于屏幕坐标偏移）
-      const left = canvasPosition.x + 20; // 右侧显示
-      const top = canvasPosition.y - 100; // 垂直居中
+      const left = canvasPosition.x + 250; // 右侧显示
+      const top = canvasPosition.y + 20; // 垂直居中
 
       container.style.cssText = `
         position: absolute;
@@ -1358,6 +1366,7 @@ export default {
     flashPoints(){
       // console.log(99999,this.riskzone)
       const flag = [];
+      const poin = [];
       this.weather_data.forEach(i => {
         if (i.rainfall > 50){
           flag.push(i.name);
@@ -1374,8 +1383,7 @@ export default {
         }
         return;
       }
-
-
+      this.warn_point = [];
       this.slide.forEach(item => {
         if (flag.includes(item.county)) { // 匹配区县名称
           this.warn_point.push(item)
@@ -1390,9 +1398,37 @@ export default {
               disableDepthTestDistance: Number.POSITIVE_INFINITY // 确保不被地形遮挡
             }
           });
-          this.addPulseAnimation(haloEntity,Cesium.Color.RED)
+          this.addPulseAnimation(haloEntity,Cesium.Color.RED);
+        }else {
+          poin.push(item)
         }
       });
+      // console.log(45646,poin)
+
+      // 获取所有区县（需要预警和不需要预警的）
+      const allCounties = [
+        ...new Set(this.warn_point.map(item => item.county)),
+        ...new Set(poin.map(item => item.county))
+      ];
+
+      // 初始化统计对象，需要预警的点计数，不需要预警的点为0
+      const sortedCounties = allCounties.reduce((acc, county) => {
+        // 判断该区县是否有需要预警的点
+        const hasWarningPoints = this.warn_point.some(item => item.county === county);
+        acc[county] = hasWarningPoints ?
+            this.warn_point.filter(item => item.county === county).length : 0;
+        return acc;
+      }, {});
+
+      this.countByCounty = Object.entries(sortedCounties)
+          .sort((a, b) => a[1] - b[1])
+          .reduce((obj, [county, count]) => {
+            obj[county] = count;
+            return obj;
+          }, {});
+      console.log(789789,this.countByCounty)
+      this.AddChart();
+      // console.log(66666666,countByCounty)
       // console.log(46556456464,this.warn_point)
     },
 
@@ -1416,7 +1452,7 @@ export default {
     pointTableClick(item) {
       console.log(123456789,item)
       this.viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(item.lon, item.lat, 400.0),
+        destination: Cesium.Cartesian3.fromDegrees(item.lon, item.lat, 4000.0),
         orientation: {
           // 指向
           heading: 6.283185307179581,
@@ -1424,6 +1460,89 @@ export default {
           pitch: -1.5688168484696687,
           roll: 0.0
         }
+      });
+    },
+
+    AddChart() {
+      // 若无统计数据则返回
+      if (!this.countByCounty || Object.keys(this.countByCounty).length === 0) return;
+
+      let chartDom = document.getElementById("main");
+      let myChart = echarts.init(chartDom);
+      let option;
+
+      // 从统计结果中提取数据，适配图表所需格式
+      const yAxisData = Object.keys(this.countByCounty);
+      const seriesData = [
+        {
+          name: '预警点数量',
+          data: yAxisData.map(county => this.countByCounty[county])
+        }
+      ];
+
+      const gradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: "#438BFD" }, // 顶部颜色
+        { offset: 0.5, color: "#13B0D7" }, // 中间颜色
+        { offset: 1, color: "#13B0D7" }, // 底部颜色
+      ]);
+
+      option = {
+        title: {
+          subtext: "预警点数量统计",
+          left: "center",
+          top: 0,
+          subtextStyle: {
+            color: "#fff",
+            fontSize: 16,
+            fontWeight: "bold", // 加粗字体
+            marginBottom: 10, // 底部边距
+            textAlign: "center", // 文本居中
+            marginTop: 0, // 顶部边距
+            paddingTop: 20, // 顶部内边距
+          },
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type:'shadow'
+          }
+        },
+        grid: {
+          left: '2%', // 增大左侧边距，给 y 轴标签留空间，可根据实际情况调整百分比或像素值（如 '150px'）
+          right: '4%',
+          bottom: '3%',
+          containLabel: true // 确保边距包含标签，避免被裁剪
+        },
+        xAxis: {
+          type: 'value',
+          boundaryGap: [0, 0.01],
+          axisLabel: {
+            color: "#fff",
+          },
+        },
+        yAxis: {
+          type: 'category',
+          data: yAxisData,
+          axisLabel: {
+            color: "#fff",
+          },
+        },
+        series: [
+          {
+            name: '预警点数量',
+            type: 'bar',
+            data: seriesData[0].data,
+            itemStyle: {
+              color: gradient // 应用渐变色
+            }
+          }
+        ]
+      };
+
+      option && myChart.setOption(option);
+      // 窗口大小变化时自适应图表
+      window.addEventListener("resize", () => {
+        myChart.resize();
       });
     },
 
@@ -2041,7 +2160,7 @@ export default {
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
-  width: 760px; /* 限制表格宽度 */
+  width: 647px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
 }
@@ -2103,8 +2222,22 @@ export default {
   padding-top: 20px; /* 增加内边距，为按钮留出空间 */
 }
 
-
-
+.chart-container {
+  position: absolute;
+  bottom: 71px; /* 距离顶部20px */
+  left: 0; /* 距离左侧20px */
+  /*background-color: white; !* 与图例背景色一致 *!*/
+  background-color: rgba(40, 40, 40, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 4px;
+  z-index: 1000;
+  height: 367px;
+  width: 420px; /* 限制表格宽度 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
+  font-size: 14px; /* 调整字体大小 */
+  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+}
 
 .data-table table {
   width: 100%;

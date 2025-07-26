@@ -385,17 +385,6 @@ function AddChart() {
             fontSize: 15,
           },
         },
-        // formatter: function(params) {
-        //   const textMap = {
-        //     '滑坡受影响点': '滑坡受\n影响点',
-        //     '滑坡未受影响点': '滑坡未受\n影响点',
-        //     '泥石流受影响点': '泥石流\n受影响点',
-        //     '泥石流未受影响点': '泥石流未受\n影响点',
-        //     '风险区受影响点': '风险区\n受影响点',
-        //     '风险区未受影响点': '风险区未受\n影响点',
-        //   };
-        //   return textMap[params] || params;
-        // },
       },
       axisLine: {
         lineStyle: {
