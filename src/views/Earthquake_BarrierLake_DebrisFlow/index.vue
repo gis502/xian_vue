@@ -20,7 +20,7 @@
             <el-button type="primary" @click="toggleHiddenDangerPoints()">
               {{ showHiddenDangerPoints ? '隐藏隐患点' : '显示隐患点' }}
             </el-button>
-            <el-button type="primary" @click="draw('point')">添加危险源</el-button>
+<!--            <el-button type="primary" @click="draw('point')">添加危险源</el-button>-->
             <el-button type="primary" @click="toggleRiskArea()">
               {{ showriskArea ? '隐藏风险区' : '显示风险区' }}
             </el-button>

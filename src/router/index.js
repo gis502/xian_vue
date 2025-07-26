@@ -61,12 +61,12 @@ export const constantRoutes = [
     component: Layout,
     redirect: '/graph',
     children: [
-      {
-        path: '/graph',
-        component: () => import('@/views/graph/index.vue'),
-        name: 'Graph',
-        meta: { title: '多灾种灾害链分析', icon: 'dashboard', affix: true }
-      }
+      // {
+      //   path: '/graph',
+      //   component: () => import('@/views/graph/index.vue'),
+      //   name: 'Graph',
+      //   meta: { title: '多灾种灾害链分析', icon: 'dashboard', affix: true }
+      // }
     ]
   },
   {
