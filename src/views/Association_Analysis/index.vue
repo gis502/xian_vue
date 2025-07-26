@@ -1,93 +1,93 @@
 <template>
   <div id="cesiumContainer">
-    <div class="navbar">
-      <h2 class="zhts-title">
-        <div class="logo">
-          <span class="text">西安今日天气</span>
-        </div>
-      </h2>
+<!--    <div class="navbar">-->
+<!--      <h2 class="zhts-title">-->
+<!--        <div class="logo">-->
+<!--          <span class="text">西安今日天气</span>-->
+<!--        </div>-->
+<!--      </h2>-->
 
-      <!-- 天气数据区域-->
-      <div class="weather-container">
-        <!-- 加载状态 -->
-        <div v-if="weatherLoading" class="text-center py-4">
-          <i class="fa fa-spinner fa-spin mr-2"></i>加载中...
-        </div>
+<!--      &lt;!&ndash; 天气数据区域&ndash;&gt;-->
+<!--      <div class="weather-container">-->
+<!--        &lt;!&ndash; 加载状态 &ndash;&gt;-->
+<!--        <div v-if="weatherLoading" class="text-center py-4">-->
+<!--          <i class="fa fa-spinner fa-spin mr-2"></i>加载中...-->
+<!--        </div>-->
 
-        <!-- 错误状态 -->
-        <div v-else-if="weatherError" class="text-center py-4 text-red-500">
-          <i class="fa fa-exclamation-circle mr-2"></i>{{ weatherError }}
-        </div>
-        <!-- 天气数据 -->
-        <div v-else-if="weatherData" class="weather-info">
+<!--        &lt;!&ndash; 错误状态 &ndash;&gt;-->
+<!--        <div v-else-if="weatherError" class="text-center py-4 text-red-500">-->
+<!--          <i class="fa fa-exclamation-circle mr-2"></i>{{ weatherError }}-->
+<!--        </div>-->
+<!--        &lt;!&ndash; 天气数据 &ndash;&gt;-->
+<!--        <div v-else-if="weatherData" class="weather-info">-->
 
-          <!-- 天气状况 -->
-          <div class="weather-item">
-            <div class="font-medium">{{ weatherData?.weather || '-' }}</div>
-          </div>
+<!--          &lt;!&ndash; 天气状况 &ndash;&gt;-->
+<!--          <div class="weather-item">-->
+<!--            <div class="font-medium">{{ weatherData?.weather || '-' }}</div>-->
+<!--          </div>-->
 
-          <!-- 天气图标 -->
-          <div class="weather-item icon-item">
-            <span class="text-3xl mr-2" v-text="getWeatherIcon(weatherData?.weather)"></span>
-          </div>
+<!--          &lt;!&ndash; 天气图标 &ndash;&gt;-->
+<!--          <div class="weather-item icon-item">-->
+<!--            <span class="text-3xl mr-2" v-text="getWeatherIcon(weatherData?.weather)"></span>-->
+<!--          </div>-->
 
-          <!-- 温度 -->
-          <div class="weather-item temperature-item">
-            <span class="text-xl font-bold">温度： {{ weatherData?.temperature || '-' }}°C</span>
-          </div>
+<!--          &lt;!&ndash; 温度 &ndash;&gt;-->
+<!--          <div class="weather-item temperature-item">-->
+<!--            <span class="text-xl font-bold">温度： {{ weatherData?.temperature || '-' }}°C</span>-->
+<!--          </div>-->
 
-          <!-- 湿度 -->
-          <div class="weather-item">
-            <span class="text-sm flex items-center">
-              <i class="fa fa-tint text-blue-400 mr-1"></i>
-              <!-- 使用 || 确保始终有显示内容 -->
-              湿度：{{ weatherData?.humidity || '50' }}%
-            </span>
-          </div>
+<!--          &lt;!&ndash; 湿度 &ndash;&gt;-->
+<!--          <div class="weather-item">-->
+<!--            <span class="text-sm flex items-center">-->
+<!--              <i class="fa fa-tint text-blue-400 mr-1"></i>-->
+<!--              &lt;!&ndash; 使用 || 确保始终有显示内容 &ndash;&gt;-->
+<!--              湿度：{{ weatherData?.humidity || '50' }}%-->
+<!--            </span>-->
+<!--          </div>-->
 
-          <!-- 降雨量 -->
-          <div class="weather-item rainfall-item" v-if="shouldShowRainfall(weatherData?.weather)">
-            <span class="text-sm flex items-center">
-              <i class="fa fa-cloud-rain text-blue-500 mr-1"></i>
-              降雨量：{{ weatherData?.precipitation === '0' ? '无降雨' : `${weatherData.precipitation}mm` }}
-            </span>
-          </div>
+<!--          &lt;!&ndash; 降雨量 &ndash;&gt;-->
+<!--          <div class="weather-item rainfall-item" v-if="shouldShowRainfall(weatherData?.weather)">-->
+<!--            <span class="text-sm flex items-center">-->
+<!--              <i class="fa fa-cloud-rain text-blue-500 mr-1"></i>-->
+<!--              降雨量：{{ weatherData?.precipitation === '0' ? '无降雨' : `${weatherData.precipitation}mm` }}-->
+<!--            </span>-->
+<!--          </div>-->
 
-          <!-- 风向 -->
-          <div class="weather-item wind-item">
-            <span class="text-sm flex items-center">
-              <i class="fa fa-location-arrow text-gray-600 mr-1"></i>
-              <!-- 使用 || 确保始终有显示内容 -->
-              风向：{{ weatherData?.winddirection || '无风向数据' }}风
-            </span>
-          </div>
+<!--          &lt;!&ndash; 风向 &ndash;&gt;-->
+<!--          <div class="weather-item wind-item">-->
+<!--            <span class="text-sm flex items-center">-->
+<!--              <i class="fa fa-location-arrow text-gray-600 mr-1"></i>-->
+<!--              &lt;!&ndash; 使用 || 确保始终有显示内容 &ndash;&gt;-->
+<!--              风向：{{ weatherData?.winddirection || '无风向数据' }}风-->
+<!--            </span>-->
+<!--          </div>-->
 
-          <!-- 获取时间 -->
-          <div class="weather-item time-item">
-            <span class="text-xs text-gray-500">
-              更新时间：{{ formatTime(weatherData?.reporttime) }}
-            </span>
-          </div>
+<!--          &lt;!&ndash; 获取时间 &ndash;&gt;-->
+<!--          <div class="weather-item time-item">-->
+<!--            <span class="text-xs text-gray-500">-->
+<!--              更新时间：{{ formatTime(weatherData?.reporttime) }}-->
+<!--            </span>-->
+<!--          </div>-->
 
-        </div>
-      </div>
+<!--        </div>-->
+<!--      </div>-->
 
-      <el-button type="primary" @click="refreshWeather">
-        {{'刷新'}}
-      </el-button>
+<!--      <el-button type="primary" @click="refreshWeather">-->
+<!--        {{'刷新'}}-->
+<!--      </el-button>-->
 
-      <div>
-        <el-select
-            v-model="eqlistName"
-            placeholder="请选择灾害信息"
-            size="large"
-            style="width: 350px"
-            filterable
-        >
-        </el-select>
-      </div>
+<!--      <div>-->
+<!--        <el-select-->
+<!--            v-model="eqlistName"-->
+<!--            placeholder="请选择灾害信息"-->
+<!--            size="large"-->
+<!--            style="width: 350px"-->
+<!--            filterable-->
+<!--        >-->
+<!--        </el-select>-->
+<!--      </div>-->
 
-    </div>
+<!--    </div>-->
 
     <div class="legend">
       <div class="legend-title">图例</div>
@@ -111,7 +111,7 @@
       </div>
     </div>
 
-    <!-- 新增的表格区域 -->
+    <!-- 新增的西安各区县天气表格区域 -->
     <div class="data-table">
       <button @click="toggleTableVisibility" class="toggle-table-btn">{{ isTableVisible ? '-' : '+' }}</button>
       <div class="table-title">西安各区县天气</div>
@@ -123,9 +123,8 @@
         </thead>
 
         <tbody>
-        <!-- 遍历weather_data数组，每个item对应一个区县的数据 -->
-        <tr v-for="(item, index) in weather_data" :key="index">
-          <!-- 只显示指定的4个字段，按顺序排列 -->
+        <!-- 只渲染当前页的数据 -->
+        <tr v-for="(item, index) in currentPageData" :key="index">
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.name">
             {{ item.name }}
           </td>
@@ -133,7 +132,7 @@
             {{ item.rainfall }}mm
           </td>
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.temperature">
-            {{ item.temperature }}°C  <!-- 补充温度单位 -->
+            {{ item.temperature }}°C
           </td>
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.humidity">
             {{ item.humidity }}%
@@ -141,6 +140,58 @@
         </tr>
         </tbody>
       </table>
+      <div class="pagination-controls" v-if="isTableVisible">
+        <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
+        <span>{{ currentPage }} / {{ totalPages }}</span>
+        <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
+        <span class="total-items">共 {{ weather_data.length }} 条</span>
+      </div>
+    </div>
+
+    <!-- 新增的预警点信息表格区域 -->
+    <div class="warn-point-table">
+      <button @click="togglePointTableVisibility" class="toggle-point-table-btn">{{ iswarn_point_table ? '-' : '+' }}</button>
+      <div class="table-title">预警点信息</div>
+      <table v-if="iswarn_point_table" style="table-layout: fixed;">
+        <thead>
+        <tr >
+          <th style="text-align: center" v-for="(header, index) in point_tableHeaders" :key="index">{{ header }}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <!-- 只渲染当前页的数据 -->
+        <tr v-for="(item, index) in currentPointPageData" :key="index" @click="pointTableClick(item)" >
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.disasterName">
+            {{ item.disasterName }}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.disasterType">
+            {{ item.disasterType }}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.riskGrade">
+            {{ item.riskGrade}}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.scaleGrade">
+            {{ item.scaleGrade}}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.city">
+            {{ item.city }}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.county">
+            {{ item.county}}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.village">
+            {{ item.village}}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="pagination-controls" v-if="iswarn_point_table">
+        <button @click="prevPointPage" :disabled="currentPointPage === 1">上一页</button>
+        <span>{{ currentPointPage }} / {{ totalPointPages }}</span>
+        <button @click="nextPointPage" :disabled="currentPointPage === totalPointPages">下一页</button>
+        <span class="total-items">共 {{ warn_point.length }} 条</span>
+      </div>
     </div>
   </div>
 </template>
@@ -267,16 +318,47 @@ export default {
       searchQuery: '搜索',
       currentPage: 1,
       tableHeaders: ['区县名称','降水量', '温度', '湿度'],
+      point_tableHeaders: ['预警点名称', '预警灾害类型','预警点危险等级','预警灾害规模','预警点位置（市）','预警点位置（区县）', '预警点位置（街道）'],
+      pageSize: 4,
       slide: [], // 滑坡隐患点信息
-      flow: [],
-      riskzone: [],
+      warn_point: [], //预警点数组
+      iswarn_point_table: true, //控制表格显示/隐藏的状态
+      currentPointPage: 1,
+      pagePointSize: 8,
     };
   },
+
   mounted() {
     this.init();
     this.AddCompass();
     this.loadAdminData(); // 加载行政区划数据
   },
+
+  computed: {
+    // 计算总页数
+    totalPages() {
+      return Math.ceil(this.weather_data.length / this.pageSize);
+    },
+    // 西安天气表当前页要显示的数据
+    currentPageData() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.weather_data.slice(start, end);
+    },
+
+    // 预警点信息表计算总页数
+    totalPointPages() {
+      return Math.ceil(this.warn_point.length / this.pagePointSize);
+    },
+
+    // 预警点信息表
+    currentPointPageData() {
+      const start = (this.currentPointPage - 1) * this.pagePointSize;
+      const end = start + this.pagePointSize;
+      return this.warn_point.slice(start, end);
+    }
+  },
+
   methods: {
 
     init() {
@@ -290,7 +372,7 @@ export default {
       this.locatedXiAn();
 
       //获取天气数据
-      this.fetchWeatherData();
+      // this.fetchWeatherData();
 
       //添加风险区
       this.Addriskzone();
@@ -307,57 +389,57 @@ export default {
     },
 
     // 获取高德天气数据
-    fetchWeatherData() {
-      this.weatherLoading = true;
-      this.weatherError = null;
-
-      // 使用 extensions=all 获取更详细的天气数据（可能包含降雨量）
-      const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=${this.weather}&city=610100&extensions=all`;
-
-      axios.get(url)
-          .then(response => {
-            // console.log('完整API响应:', response.data);
-
-            if (response.data.status !== '1') {
-              throw new Error(`API错误: ${response.data.info}`);
-            }
-
-            // 提取实时天气数据（如果有）
-            const liveData = response.data.lives && response.data.lives.length > 0
-                ? response.data.lives[0]
-                : {};
-
-            // 提取预报天气数据（可能包含降雨量）
-            const forecastData = response.data.forecasts && response.data.forecasts.length > 0 &&
-            response.data.forecasts[0].casts && response.data.forecasts[0].casts.length > 0
-                ? response.data.forecasts[0].casts[0] // 今天的预报
-                : {};
-
-            // 整合数据，优先使用实时数据，缺少的字段用预报数据补充
-            this.weatherData = {
-              weather: liveData.weather || forecastData.dayweather || '-', // 天气状况
-              temperature: liveData.temperature || forecastData.daytemp || '-', // 温度
-              humidity: liveData.humidity ||
-                  liveData.humidity_float ||  // 备选字段
-                  '50',
-              precipitation: liveData.precipitation || forecastData.dayrain || forecastData.rainfall || '0', // 降雨量
-              winddirection: liveData.winddirection ||
-                  forecastData.daywind ||  // 预报中的风向
-                  forecastData.winddirection ||  // 备选字段
-                  '无风向数据',  // 最终默认值
-              reporttime: liveData.reporttime || new Date().toLocaleString(), // 报告时间
-            };
-
-            // console.log('整合后的天气数据:', this.weatherData);
-          })
-          .catch(error => {
-            this.weatherError = error.message;
-            console.error('获取天气数据出错:', error);
-          })
-          .finally(() => {
-            this.weatherLoading = false;
-          });
-    },
+    // fetchWeatherData() {
+    //   this.weatherLoading = true;
+    //   this.weatherError = null;
+    //
+    //   // 使用 extensions=all 获取更详细的天气数据（可能包含降雨量）
+    //   const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=${this.weather}&city=610100&extensions=all`;
+    //
+    //   axios.get(url)
+    //       .then(response => {
+    //         // console.log('完整API响应:', response.data);
+    //
+    //         if (response.data.status !== '1') {
+    //           throw new Error(`API错误: ${response.data.info}`);
+    //         }
+    //
+    //         // 提取实时天气数据（如果有）
+    //         const liveData = response.data.lives && response.data.lives.length > 0
+    //             ? response.data.lives[0]
+    //             : {};
+    //
+    //         // 提取预报天气数据（可能包含降雨量）
+    //         const forecastData = response.data.forecasts && response.data.forecasts.length > 0 &&
+    //         response.data.forecasts[0].casts && response.data.forecasts[0].casts.length > 0
+    //             ? response.data.forecasts[0].casts[0] // 今天的预报
+    //             : {};
+    //
+    //         // 整合数据，优先使用实时数据，缺少的字段用预报数据补充
+    //         this.weatherData = {
+    //           weather: liveData.weather || forecastData.dayweather || '-', // 天气状况
+    //           temperature: liveData.temperature || forecastData.daytemp || '-', // 温度
+    //           humidity: liveData.humidity ||
+    //               liveData.humidity_float ||  // 备选字段
+    //               '50',
+    //           precipitation: liveData.precipitation || forecastData.dayrain || forecastData.rainfall || '0', // 降雨量
+    //           winddirection: liveData.winddirection ||
+    //               forecastData.daywind ||  // 预报中的风向
+    //               forecastData.winddirection ||  // 备选字段
+    //               '无风向数据',  // 最终默认值
+    //           reporttime: liveData.reporttime || new Date().toLocaleString(), // 报告时间
+    //         };
+    //
+    //         // console.log('整合后的天气数据:', this.weatherData);
+    //       })
+    //       .catch(error => {
+    //         this.weatherError = error.message;
+    //         console.error('获取天气数据出错:', error);
+    //       })
+    //       .finally(() => {
+    //         this.weatherLoading = false;
+    //       });
+    // },
     //获取各区县天气数据
     async fetchDistrictWeather() {
       // 清空原有数据
@@ -498,7 +580,6 @@ export default {
       return parseFloat(rainfall); // 转换为数字类型
     },
 
-    // 刷新天气数据
     refreshWeather() {
       this.fetchWeatherData();
     },
@@ -545,8 +626,36 @@ export default {
       return timeStr.replace(' ', ' '); // 简单处理，可根据需要优化
     },
 
-    toggleTableVisibility(){
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+
+    nextPointPage() {
+      if (this.currentPointPage < this.totalPointPages) {
+        this.currentPointPage++;
+      }
+    },
+
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+
+    prevPointPage() {
+      if (this.currentPointPage > 1) {
+        this.currentPointPage--;
+      }
+    },
+
+    toggleTableVisibility() {
       this.isTableVisible = !this.isTableVisible;
+    },
+
+    togglePointTableVisibility(){
+      this.iswarn_point_table = !this.iswarn_point_table;
     },
 
     locatedXiAn() {
@@ -1247,15 +1356,14 @@ export default {
     },
 
     flashPoints(){
-      console.log(99999,this.riskzone)
+      // console.log(99999,this.riskzone)
       const flag = [];
       this.weather_data.forEach(i => {
         if (i.rainfall > 50){
           flag.push(i.name);
         }
       });
-      console.log(7897897987,flag)
-      // 2. 若没有符合条件的区县，停止动画并清空
+      // console.log(7897897987,flag)
       if (flag.length === 0) {
         if (this.flashInterval) {
           clearInterval(this.flashInterval);
@@ -1270,8 +1378,7 @@ export default {
 
       this.slide.forEach(item => {
         if (flag.includes(item.county)) { // 匹配区县名称
-          // warningPoints.push([item.lon, item.lat]); // 添加经纬度
-          // console.log(888,item.lon)
+          this.warn_point.push(item)
           const haloEntity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
             point: {
@@ -1286,7 +1393,7 @@ export default {
           this.addPulseAnimation(haloEntity,Cesium.Color.RED)
         }
       });
-
+      // console.log(46556456464,this.warn_point)
     },
 
     addPulseAnimation(haloEntity, baseColor){
@@ -1305,6 +1412,20 @@ export default {
         // 存储定时器引用以便清理
         haloEntity.pulseInterval = pulseInterval;
       },
+
+    pointTableClick(item) {
+      console.log(123456789,item)
+      this.viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(item.lon, item.lat, 400.0),
+        orientation: {
+          // 指向
+          heading: 6.283185307179581,
+          // 视角
+          pitch: -1.5688168484696687,
+          roll: 0.0
+        }
+      });
+    },
 
     draw(type) {
       let that = this;
@@ -1814,12 +1935,13 @@ export default {
     },
   },
 
+
   beforeDestroy() {
     if (this.viewer) {
       this.viewer.destroy();
       this.viewer = null;
     }
-  }
+  },
 }
 </script>
 
@@ -1897,23 +2019,57 @@ export default {
 
 .data-table {
   position: absolute;
-  top: 82px; /* 距离顶部20px */
+  top: 217px; /* 距离顶部20px */
+  right: 0; /* 距离左侧20px */
+  background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
+  color: white;
+  padding: 15px;
+  border-radius: 4px;
+  z-index: 1000;
+  width: 361px; /* 限制表格宽度 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
+  font-size: 14px; /* 调整字体大小 */
+  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+}
+
+.warn-point-table {
+  position: absolute;
+  top: 20px; /* 距离顶部20px */
   left: 0; /* 距离左侧20px */
   background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
   color: white;
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
-  width: 550px; /* 限制表格宽度 */
+  width: 760px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+}
+
+.toggle-point-table-btn{
+  position: absolute;
+  top: 5px; /* 调整按钮位置 */
+  left: 5px; /* 调整按钮位置 */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%; /* 圆形按钮 */
+  width: 25px; /* 按钮宽度 */
+  height: 25px; /* 按钮高度 */
+  font-size: 14px;
+  line-height: 1; /* 垂直居中文本 */
+  text-align: center;
+  cursor: pointer;
+  z-index: 1001; /* 确保按钮在表格内容之上 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .toggle-table-btn {
   position: absolute;
   top: 5px; /* 调整按钮位置 */
-  left: 5px; /* 调整按钮位置 */
+  right: 5px; /* 调整按钮位置 */
   background-color: #007bff;
   color: white;
   border: none;
@@ -1934,6 +2090,10 @@ export default {
   background-color: #0056b3;
 }
 
+.toggle-point-table-btn:hover{
+  background-color: #0056b3;
+}
+
 .table-title {
   font-weight: bold;
   margin-bottom: 10px;
@@ -1951,8 +2111,22 @@ export default {
   border-collapse: collapse; /* 合并边框 */
 }
 
+.warn-point-table table {
+  width: 100%;
+  border-collapse: collapse; /* 合并边框 */
+}
+
 .data-table th,
 .data-table td {
+  height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.warn-point-table th,
+.warn-point-table td{
   height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
   padding: 8px 12px;
@@ -1965,11 +2139,24 @@ export default {
   font-weight: bold;
 }
 
+.warn-point-table th {
+  background-color: rgba(60, 60, 60, 0.9); /* 表头背景色 */
+  font-weight: bold;
+}
+
 .data-table tbody tr:nth-child(even) {
   background-color: rgba(50, 50, 50, 0.7); /* 斑马纹效果 */
 }
 
+.warn-point-table tbody tr:nth-child(even) {
+  background-color: rgba(50, 50, 50, 0.7); /* 斑马纹效果 */
+}
+
 .data-table tbody tr:hover {
+  background-color: rgba(70, 70, 70, 0.9); /* 鼠标悬停效果 */
+}
+
+.warn-point-table tr:hover {
   background-color: rgba(70, 70, 70, 0.9); /* 鼠标悬停效果 */
 }
 
