@@ -41,7 +41,7 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
     index = pointIndex[index]; 
     points[index].predict = element.predict;
   });
-  return points;
+  return [points, res.data];
 };
 
 /**

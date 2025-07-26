@@ -13,7 +13,7 @@ export const useSimulationPointStore = defineStore("simulationPoint", () => {
 
   // 清空模拟点
   function clearSimulationPoints() {
-    simulationPoints = [];
+    simulationPoints.splice(0)
   }
 
   // 清空脉冲实体

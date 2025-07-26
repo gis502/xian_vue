@@ -12,7 +12,7 @@ import {
   riskVillageData,
 } from "../../api/earthquake/datas";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
-import { onUnmounted, watch } from "vue";
+import { onBeforeMount, onUnmounted } from "vue";
 
 // 清空pinia中存储的模拟点
 useSimulationPointStore().clearSimulationPoints();
@@ -40,6 +40,10 @@ landslideHazardPointData().then((res) => {
 dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
   addHiddenDangerPoints(res.data, debrisFlowIcon);
 });
+
+onBeforeMount(() => {
+  useSimulationPointStore().clearSimulationPoints();
+})
 
 onUnmounted(() => {
   useSimulationPointStore().clearSimulationPoints();
