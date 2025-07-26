@@ -28,7 +28,7 @@ import Layout from '@/layout'
 export const constantRoutes = [
   {
     path: '/index',
-    redirect: '/graph'
+    redirect: '/Around_Analysis/index'
   },
   {
     path: '/redirect',
@@ -56,18 +56,31 @@ export const constantRoutes = [
     component: () => import('@/views/error/401'),
     hidden: true
   },
+  // {
+  //   path: '',
+  //   component: Layout,
+  //   redirect: '/graph',
+  //   children: [
+  //     // {
+  //     //   path: '/graph',
+  //     //   component: () => import('@/views/graph/index.vue'),
+  //     //   name: 'Graph',
+  //     //   meta: { title: '多灾种灾害链分析', icon: 'dashboard', affix: true }
+  //     // }
+  //   ]
+  // },
   {
     path: '',
     component: Layout,
-    redirect: '/graph',
+    redirect: '/Around_Analysis/index',
     children: [
       {
-        path: '/graph',
-        component: () => import('@/views/graph/index.vue'),
-        name: 'Graph',
-        meta: { title: '多灾种灾害链分析', icon: 'dashboard', affix: true }
-      }
-    ]
+        path: '/thdTimeLine/:id/:trigger',
+        // path: '/thdTimeLine',
+        component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
+        name: 'thdTimeLine',
+        props: true,
+      }]
   },
 
   {
