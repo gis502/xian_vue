@@ -231,13 +231,8 @@ export const dataTypes = {
  * @returns 滑坡数据
  */
 export const landslideHazardPointData = () => {
-  // return request({
-  //   url: "/hide/allslide",
-  //   method: "get",
-  // });
-
   return request({
-    url: "/hide/slide", // 包含致灾因子
+    url: "/hide/slide",
     method: "get",
   });
 };
