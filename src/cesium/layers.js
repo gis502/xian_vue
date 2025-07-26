@@ -7,17 +7,35 @@ let layers = {
     //画烈度圈
     DrawEllipse(longitude, latitude, magnitude) {
         this.removeIsoseismalCircle()
-        // console.log(longitude, latitude, magnitude, name, "longitude,latitude,magnitude,name")
+        let rotation=this.calculateRotation(longitude, latitude, magnitude)
+        Cesium.Cartesian3.fromDegrees(longitude, latitude)
+        this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
+    },
+    calculateRotation(longitude, latitude){
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
         // console.log(min_line,"==================")
         let first_point = min_line.coordinates[0]
         let last_point = min_line.coordinates[min_line.coordinates.length - 1]
-        //计算角度
-        let bearing = this.calculateStrikeDirection(first_point[0], first_point[1], last_point[0], last_point[1])
-        console.log(bearing, "==================")
-        Cesium.Cartesian3.fromDegrees(longitude, latitude)
-        // // 绘制椭圆
-        this.DrawCircle({x: longitude, y: latitude}, bearing, magnitude);
+        // 计算角度，将角度转换为弧度
+        const radLat1 = Cesium.Math.toRadians(first_point[1]);
+        const radLon1 = Cesium.Math.toRadians(first_point[0]);
+        const radLat2 = Cesium.Math.toRadians(last_point[1]);
+        const radLon2 = Cesium.Math.toRadians(last_point[0]);
+
+        // 计算经纬度差
+        const dLon = radLon2 - radLon1;
+
+        // 计算方位角
+        const y = Math.sin(dLon) * Math.cos(radLat2);
+        const x = Math.cos(radLat1) * Math.sin(radLat2) -
+            Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(dLon);
+
+        // 计算角度并转换为0-360度范围
+        let bearing = Cesium.Math.toDegrees(Math.atan2(y, x));
+        bearing = (bearing + 360) % 360;
+
+        let rotation = Cesium.Math.toRadians(bearing - 90);
+        return rotation;
     },
     pointToLineDistance_getMinLine(position, lineData) {
         /**
@@ -111,45 +129,30 @@ let layers = {
         })
         return min_line
     },
-    calculateStrikeDirection(lon1, lat1, lon2, lat2) {
-        // 计算角度，将角度转换为弧度
-        const radLat1 = Cesium.Math.toRadians(lat1);
-        const radLon1 = Cesium.Math.toRadians(lon1);
-        const radLat2 = Cesium.Math.toRadians(lat2);
-        const radLon2 = Cesium.Math.toRadians(lon2);
+    DrawCircle(point, rotation, magnitude) {
 
-        // 计算经纬度差
-        const dLon = radLon2 - radLon1;
-
-        // 计算方位角
-        const y = Math.sin(dLon) * Math.cos(radLat2);
-        const x = Math.cos(radLat1) * Math.sin(radLat2) -
-            Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(dLon);
-
-        // 计算角度并转换为0-360度范围
-        let bearing = Cesium.Math.toDegrees(Math.atan2(y, x));
-        bearing = (bearing + 360) % 360;
-
-        return bearing;
-    },
-    DrawCircle(point, bearing, magnitude) {
         // 地震源位置
         let position = point;
         // 根据断裂带计算的角度
-        let strikeDirection = bearing;
+        // let strikeDirection = bearing;
 
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
+        console.log(ellipseParams)
         // 先添加遮罩层，确保它在最底层
-        const rotation = Cesium.Math.toRadians(strikeDirection - 90);
+        // const rotation = Cesium.Math.toRadians(strikeDirection - 90);
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
         ellipseParams.forEach(params => {
+            let short=Math.min(params.semiMinorAxis,params.semiMajorAxis)
+            let long=Math.max(params.semiMajorAxis,params.semiMinorAxis)
             let ellipse = new Cesium.Entity({
                 position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
                 name: "地震影响区域",
                 ellipse: {
-                    semiMinorAxis: params.semiMinorAxis,
-                    semiMajorAxis: params.semiMajorAxis,
+                    // semiMinorAxis: params.semiMinorAxis,
+                    // semiMajorAxis: params.semiMajorAxis,
+                    semiMinorAxis: short,
+                    semiMajorAxis: long,
                     material: Cesium.Color.fromCssColorString(params.color).withAlpha(0.3),
                     height: 0,
                     outline: true,
@@ -192,11 +195,7 @@ let layers = {
         });
     },
     calculateEllipseParams(magnitude) {
-        let sum = Math.floor(Number(magnitude) + 2);
-        let intensityLevels = [];
-        for (let i = sum; i >= 6; i--) {
-            intensityLevels.push({ia:i,ib:i});
-        }
+
 
         // // 自定义的烈度圈等级与颜色渲染
         let intensityLabel = [
@@ -230,6 +229,17 @@ let layers = {
             }
         ];
 
+
+        // let sum = Math.floor(Number(magnitude) + 2);
+
+
+        const IaWhenAIsZero = (M) => {
+            return 1.3003 * M + 0.3889
+        };
+
+        const IbWhenBIsZero = (M) => {
+            return 1.3003 * M + 0.3844;
+        }
         const calculateRa = (M, Ia) => {
             const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) ;
             // console.log(a, "=============================")
@@ -242,7 +252,11 @@ let layers = {
 
             return b;
         }
-
+        let sum = Math.floor(Math.min(Number(IaWhenAIsZero(magnitude)), Number(IbWhenBIsZero(magnitude))));
+        let intensityLevels = [];
+        for (let i = sum; i >= 6; i--) {
+            intensityLevels.push({ia:i,ib:i});
+        }
         let plphas = [0.1,0.1, 0.1,0.1, 0.1]
         let i = 0
         // 存储计算出的椭圆参数
@@ -250,9 +264,9 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            const semiMajorAxis = calculateRa(magnitude, level.ia)*1000;
+            const semiMinorAxis = calculateRa(magnitude, level.ia)*1000;
 
-            const semiMinorAxis = calculateRb(magnitude, level.ib)*1000;
+            const semiMajorAxis = calculateRb(magnitude, level.ib)*1000;
 
             // 根据烈度级别设置透明度
             // const alpha = 0.8 - (level.ia - 5) * 0.3;
@@ -260,7 +274,6 @@ let layers = {
             i++
             // 计算 extrusion height，使较大的椭圆有更高的 extrusion
             // const extrudedHeight = semiMajorAxis * 0.15;
-
             return {
                 semiMinorAxis,
                 semiMajorAxis,

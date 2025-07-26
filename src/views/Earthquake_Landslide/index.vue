@@ -99,9 +99,9 @@ import basicLayers from "@/cesium/basicLayers.js";
 
 let administrationData = reactive([BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi])
 let districtColors = ref(null)
-let weinan = {id:1,disasterName:"陕西省渭南市华州区7.0级地震（模拟）",trigger:"地震",longitude: 109.7,latitude:34.5}
+let weinan = {id:1,disasterName:"陕西省渭南市华州区7.0级地震（模拟）",trigger:"地震",longitude: 109.7,latitude:34.5,magnitude:8}
 let EllipseAxis = {a:null,b:null}
-
+let rotation=0
 // 表格数据和分页相关状态
 // 新增数据相关状态
 const selectedDataType = ref('type1');
@@ -242,10 +242,10 @@ function load(){
 
 
   // loadTDT(0)
-  layers.DrawEllipse(weinan.longitude, weinan.latitude,7)
-  EllipseAxis.a  = layers.calculateEllipseParams(7).at(-1).semiMinorAxis
-  EllipseAxis.b  = layers.calculateEllipseParams(7).at(-1).semiMajorAxis
-
+  layers.DrawEllipse(weinan.longitude, weinan.latitude,weinan.magnitude)
+  EllipseAxis.a  = layers.calculateEllipseParams(weinan.magnitude).at(-1).semiMinorAxis
+  EllipseAxis.b  = layers.calculateEllipseParams(weinan.magnitude).at(-1).semiMajorAxis
+  rotation=layers.calculateRotation(weinan.longitude, weinan.latitude)
   basicLayers.addCenterPoint(weinan)
   basicLayers.addFaultZone()
   basicLayers.loadAdminData()
@@ -326,7 +326,7 @@ function loadLandSlide(landslide) {
     // console.log("111111")
     // console.log(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)
     // console.log(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b),"isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)")
-    if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
+    if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b,rotation)){
       // console.log("2222222222222")
       window.viewer.entities.add({
         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
@@ -860,7 +860,7 @@ function AddDangerAreaDataSource(DangerAreaData) {
         data:DangerAreaData_point
       }
     });
-    if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b)){
+    if(isPointInEllipse(parseFloat(lon),parseFloat(lat),weinan.longitude,weinan.latitude,EllipseAxis.a,EllipseAxis.b,rotation)){
       // 统一收集高亮点
       haloEntities.push({
         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
@@ -875,23 +875,42 @@ function AddDangerAreaDataSource(DangerAreaData) {
 // 加载行政区划数据
 
 // 判断点是否在椭圆范围内（地理坐标转米，考虑地球曲率）
-function isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis) {
+function isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis,rotation) {
   // 1. 计算中心点和目标点的经纬度差
-  const R = 6371000; // 地球半径（米）
-  const dLat = (pointLat - centerLat) * Math.PI / 180;
-  const avgLat = (pointLat + centerLat) / 2 * Math.PI / 180;
+  // const R = 6371000; // 地球半径（米）
+  // const dLat = (pointLat - centerLat) * Math.PI / 180;
+  // const avgLat = (pointLat + centerLat) / 2 * Math.PI / 180;
+  //
+  // const dLon = (pointLon - centerLon) * Math.PI / 180;
+  // // 2. 近似投影到平面（横向距离和纵向距离，单位米）
+  // const dx = dLon * R * Math.cos(avgLat);
+  // const dy = dLat * R;
+  //
+  // // 3. 椭圆方程 (x/a)^2 + (y/b)^2 <= 1
+  // const normX = dx / (majorAxis);
+  // const normY = dy / (minorAxis);
+  // const result = (normX * normX + normY * normY) <= 1;
+  // // console.log(normX * normX + normY * normY)
+  // return result;
+  const center = Cesium.Cartesian3.fromDegrees(centerLon, centerLat);
+  const point = Cesium.Cartesian3.fromDegrees(pointLon, pointLat);
+  let short=Math.min(majorAxis,minorAxis)
+  let long=Math.max(majorAxis,minorAxis)
+  // 构建椭圆边界（用于判断）
+  const ellipse = new Cesium.EllipseGeometry({
+    center: center,
+    semiMajorAxis: long,
+    semiMinorAxis: short,
+    rotation: rotation, // 旋转角度（弧度）
+    ellipsoid: Cesium.Ellipsoid.WGS84
+  });
 
-  const dLon = (pointLon - centerLon) * Math.PI / 180;
-  // 2. 近似投影到平面（横向距离和纵向距离，单位米）
-  const dx = dLon * R * Math.cos(avgLat);
-  const dy = dLat * R;
+  const geometry = Cesium.EllipseGeometry.createGeometry(ellipse);
+  const boundingSphere = Cesium.BoundingSphere.fromVertices(geometry.attributes.position.values);
 
-  // 3. 椭圆方程 (x/a)^2 + (y/b)^2 <= 1
-  const normX = dx / (majorAxis);
-  const normY = dy / (minorAxis);
-  const result = (normX * normX + normY * normY) <= 1;
-  // console.log(normX * normX + normY * normY)
-  return result;
+  const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
+  return distance <= boundingSphere.radius;
+
 }
 
 function setupEntityClickHandler() {
