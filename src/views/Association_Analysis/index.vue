@@ -233,7 +233,7 @@ export default {
       image_landslideIcon:landslideIcon,
       viewer: null,
       handler: null, // 创建共享的 handler
-      tdtToken: "72ec1fc9cf0b5783de5bd13f5f85af39",//天地图密钥
+      tdtToken: "07f071d2d20098468ee7697112e8fc58",//天地图密钥
       weather: "c8e118cd71b1ab650c73d86a6eaa7cba",//高德密钥
       mapViewer: undefined,
       isDebrisFlowActive: false,
