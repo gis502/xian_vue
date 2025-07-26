@@ -62,8 +62,6 @@ onBeforeMount(() => {
     form.push(element);
   });
 
-  console.log(form)
-
   // 设置预测值
   if (
     hazards.hazardsDatas.predict &&
@@ -78,7 +76,6 @@ onBeforeMount(() => {
 async function modifyDatas() {
   // 从后台获取概率值
   const res = await getHazardProbability(form);
-  console.log(res);
   // 修改概率值
   probability.value = (res.data.predict.probability * 100).toFixed(2);
 

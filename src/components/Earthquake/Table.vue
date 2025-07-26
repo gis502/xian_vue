@@ -149,7 +149,6 @@ function prevPage() {
 }
 
 function handleTableClick(item) {
-  // console.log(item.field5,item)
   window.viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(
       parseFloat(item.field5),
