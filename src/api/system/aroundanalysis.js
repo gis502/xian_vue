@@ -1,0 +1,58 @@
+import request from '@/utils/request'
+
+//查询隐患点
+export function getSlide() {
+    return request({
+        url: '/hide/getSlide',
+        method: 'get'
+    })
+}
+
+export function getFlow() {
+    return request({
+        url: '/hide/getFlow',
+        method: 'get'
+    })
+}
+
+export function getRisk() {
+    return request({
+        url: '/risk/villages',
+        method: 'get'
+    })
+}
+
+export function getDangerous() {
+    return request({
+        url: '/around/getDangerousSource',
+        method: 'get'
+    })
+}
+
+export function getFire() {
+    return request({
+        url: '/around/getFireFighter',
+        method: 'get'
+    })
+}
+
+export function getHospital() {
+    return request({
+        url: '/around/getHospital',
+        method: 'get'
+    })
+}
+
+export function getShelter() {
+    return request({
+        url: '/around/getEmergencyShelter',
+        method: 'get'
+    })
+}
+
+export function getStore() {
+    return request({
+        url: '/around/getStorePoints',
+        method: 'get'
+    })
+}

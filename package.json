@@ -19,7 +19,7 @@
     "@element-plus/icons-vue": "2.3.1",
     "@vueup/vue-quill": "1.2.0",
     "@vueuse/core": "10.11.0",
-    "axios": "0.28.1",
+    "axios": "^0.28.1",
     "cesium": "^1.105.2",
     "cesium-navigation-es6": "^3.0.8",
     "echarts": "5.5.1",
