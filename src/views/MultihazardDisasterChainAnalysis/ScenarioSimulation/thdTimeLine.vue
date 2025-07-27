@@ -28,6 +28,7 @@
         :disaterEvent="disaterEvent"
         :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
+        @update:onceLoadLayer="onceLoadLayer = $event"
     />
   </div>
 </template>
@@ -71,6 +72,7 @@ export default {
       isMarkingLayerLocal: true,
       currentTime:new Date(),
       onceLoadLayer:false,
+
     };
   },
   computed: {
@@ -253,9 +255,10 @@ export default {
       setTimeout(() => {
         this.eqCenterPanelVisible = false;
         this.rainCenterPanelVisible = false;
-        viewer.clockViewModel.shouldAnimate = true;
+        // viewer.clockViewModel.shouldAnimate = true;
         this.onceLoadLayer=true
       }, 3000);
+
     },
 
     //-------信息面板弹框-----
