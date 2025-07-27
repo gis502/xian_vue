@@ -27,8 +27,8 @@
         :viewer="viewer"
         :disaterEvent="disaterEvent"
         :currentTime="currentTimeString"
+        :onceLoadLayer="onceLoadLayer"
     />
-
   </div>
 </template>
 
@@ -69,7 +69,8 @@ export default {
       stopTimePlay: false,
       isTimeRunning: false,
       isMarkingLayerLocal: true,
-      currentTime:new Date()
+      currentTime:new Date(),
+      onceLoadLayer:false,
     };
   },
   computed: {
@@ -253,6 +254,7 @@ export default {
         this.eqCenterPanelVisible = false;
         this.rainCenterPanelVisible = false;
         viewer.clockViewModel.shouldAnimate = true;
+        this.onceLoadLayer=true
       }, 3000);
     },
 
