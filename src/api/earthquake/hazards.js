@@ -19,7 +19,6 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
     data.factorVoList = points[i].factorVoList;
     data.entityId = points[i].entityId;
     datas.push(data);
-    console.log(datas)
 
     // 写入实体id
     entityIds.push(points[i].entityId);

@@ -288,4 +288,8 @@ function addDatasToTableAndChart(probabilityPoints) {
   text-align: center;
   padding-bottom: 10px;
 }
+
+::v-deep .el-form-item__label {
+  color: #FFF;
+}
 </style>
