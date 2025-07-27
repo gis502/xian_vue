@@ -38,25 +38,26 @@ export default {
         {id: '4', name: '滑坡隐患点'},
         {id: '5', name: '风险区域'},
         {id: '6', name: '预警点'},
+        {id: '7', name: '灾害点'},
       ],
-      selectedlayers: ['行政区划',  '泥石流隐患点', '滑坡隐患点', '风险区域'],
-      prevSelectedLayers:['行政区划',  '泥石流隐患点', '滑坡隐患点', '风险区域']
+      selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
+      prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域']
     }
   },
   name: "timeLineLayer",
-  props: ['viewer', 'disaterEvent', 'currentTime','onceLoadLayer'],
+  props: ['viewer', 'disaterEvent', 'currentTime', 'onceLoadLayer'],
   watch: {
-    viewer(){
+    viewer() {
       basicLayers.AddHazardSource()
       basicLayers.loadLandSlide()
       basicLayers.AddDangerAreaDataSource()
       basicLayers.loadAdminData()
     },
-    onceLoadLayer(){
-      console.log(this.onceLoadLayer,"onceLoadLayer")
-      if(this.onceLoadLayer){
-        console.log(this.onceLoadLayer,"onceLoadLayer11")
-        this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域','预警点'];
+    onceLoadLayer() {
+      console.log(this.onceLoadLayer, "onceLoadLayer")
+      if (this.onceLoadLayer) {
+        console.log(this.onceLoadLayer, "onceLoadLayer11")
+        this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
         this.updateMapLayers();
       }
     }
@@ -138,12 +139,12 @@ export default {
         },
         {
           name: '预警点',
-          add:async () => {
-            let allHiddeninEllipse=layers.getAllHiddeninEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
+          add: async () => {
+            let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
             const [points, probabilityPoints] =
                 await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
 
-            console.log(allHiddeninEllipse,points, probabilityPoints,"inEllipsePoints,points, probabilityPoints")
+            console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints")
             // 清除全部脉冲实体
             pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
 
@@ -155,6 +156,79 @@ export default {
             pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
           }
         },
+        {
+          name: '灾害点',
+          add: () => {
+            const landslideEvent = {
+              id: 'landslideEvent',
+              name: '滑坡事件',
+              position: Cesium.Cartesian3.fromDegrees(108.9225, 34.02472),
+              startTime: Cesium.JulianDate.fromIso8601('2025-07-27T15:00:00Z'),
+
+// 设置结束时间为开始时间 +10 天
+              stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
+              message: '发生了一个滑坡'
+            };
+
+// 添加滑坡事件实体
+            const entity = viewer.entities.add({
+              id: landslideEvent.id,
+              name: landslideEvent.name,
+              position: landslideEvent.position,
+              point: {
+                pixelSize: 10,
+                color: Cesium.Color.RED,
+              },
+              label: {
+                text: landslideEvent.message,
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.BLACK,
+                backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -16),
+              },
+              availability: new Cesium.TimeIntervalCollection([
+                new Cesium.TimeInterval({
+                  start: landslideEvent.startTime,
+                  stop: landslideEvent.stopTime,
+                }),
+              ]),
+            });
+
+// 添加黑色光圈效果
+            const halo = viewer.entities.add({
+              position: landslideEvent.position,
+              point: {
+                pixelSize: 30,
+                color: Cesium.Color.BLACK.withAlpha(0.5),
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+              },
+              availability: new Cesium.TimeIntervalCollection([
+                new Cesium.TimeInterval({
+                  start: landslideEvent.startTime,
+                  stop: landslideEvent.stopTime,
+                }),
+              ]),
+            });
+
+          },
+          remove: () => {
+            // 移除滑坡事件实体
+            const entity = viewer.entities.getById('landslideEvent');
+            if (entity) {
+              viewer.entities.remove(entity);
+            }
+
+            // 移除黑色光圈效果
+            const halo = viewer.entities.getById('landslideEventHalo');
+            if (halo) {
+              viewer.entities.remove(halo);
+            }
+          }
+        }
       ];
 
       // 构建 map 提升查找效率
@@ -174,8 +248,8 @@ export default {
         }
       });
     },
+    }
   }
-}
 </script>
 
 <style scoped>
