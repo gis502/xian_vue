@@ -652,6 +652,11 @@ export default {
         }
         // 后期新增类型时，直接在这里添加映射关系即可
       ],
+      flashEntities: [],
+      // 新增：标记界面是否已关闭
+      isClosed: false,
+      // 新增：存储所有定时器ID
+      timers: []
     }
   },
   computed: {
@@ -673,6 +678,9 @@ export default {
     this.loadData();
   },
   beforeDestroy() {
+    if (!this.isClosed) {
+      this.releaseAllResources();
+    }
     if (this.viewer) {
       this.viewer.destroy();
       this.viewer = null;
@@ -1643,12 +1651,9 @@ export default {
     // },
     confirmRainPoint() {
       if (!this.selectedPosition) return;
-
       const {longitude, latitude, cartesian} = this.selectedPosition;
-
       // 计算降雨强度(mm/小时)
       const intensity = this.rainfall / (this.duration || 1);
-
       // 创建标记点实体
       const entity = this.viewer.entities.add({
         position: cartesian,
@@ -1953,14 +1958,12 @@ export default {
     checkDisasterPointsInAdministration(adminCoordinates) {
       const landslidePointsInside = [];
       //const debrisFlowPointsInside = [];
-
       // 检查所有滑坡点
       this.landslidePoints.forEach(point => {
         if (this.pointInPolygon(point, adminCoordinates)) {
           landslidePointsInside.push(point);
         }
       });
-
       // 检查所有泥石流点
       // this.debrisFlowPoints.forEach(point => {
       //   if (this.pointInPolygon(point, adminCoordinates)) {
@@ -1976,7 +1979,6 @@ export default {
         ...landslidePointsInside,
         // ...debrisFlowPointsInside
       ];
-
       // 找出HuapoData中匹配的滑坡点信息
       if (landslidePointsInside.length > 0) {
         // 创建经纬度字符串集合用于快速匹配
@@ -1987,9 +1989,9 @@ export default {
           const lat = point[1];
           pointSet.add(`${lon},${lat}`);
         });
-
         // 筛选匹配的滑坡点数据
         const matchedHuapoData = []
+        const matchedHuapoEntities = []
         getGeologicalDisasterHideByLandSlideList().then(res => {
           const hides = res.data;
           hides.forEach(item => {
@@ -2000,7 +2002,13 @@ export default {
               matchedHuapoData.push(item.factorVoList);
             }
           });
-          console.log(matchedHuapoData, "============全部");
+          for (var i = 0; i < matchedHuapoData.length; i++) {
+            for (var j = 0; j < matchedHuapoData[i].length; j++) {
+              if (matchedHuapoData[i][j].attributeName === "降雨量") {
+                matchedHuapoData[i][j].factorValue = this.rainfall
+              }
+            }
+          }
           // 触发暴雨分析
           rainSlideTrigger(matchedHuapoData).then(res => {
             this.formatAnalyzedData = res.data;
@@ -2045,7 +2053,9 @@ export default {
                 }, {});
                 // 将返回的隐患点替换加入到当前地图展示的全部隐患点中，只替换匹配部分
                 this.landslideEntities.forEach(entity => {
+                  // 修改为降雨量
                   if (entity._disasterData.factorVoList.hideId === item.factorVoList.hideId) {
+                    item.factorVoList.rainfall.factorValue = this.rainfall
                     // 删除原有的
                     this.viewer.entities.remove(entity);
                     // 添加最新的
@@ -2100,95 +2110,136 @@ export default {
                       disasterData: item,
                     });
                     this.landslideEntities.push(newentity);
+                    matchedHuapoEntities.push(item)
                   }
                 })
               }
             });
             console.log("添加的点...", this.landslideEntities)
+            if (allPointsInside.length > 0) {
+              console.log(matchedHuapoEntities,"这是匹配的实体")
+              this.flashDisasterPoints(allPointsInside,matchedHuapoEntities);
+            }
           })
-
-          if (allPointsInside.length > 0) {
-            this.flashDisasterPoints(allPointsInside);
-          }
         })
       }
     },
     // 闪烁灾害点
-    flashDisasterPoints(points) {
+    flashDisasterPoints(points, entities) {
+      console.log("传输过来的匹配实体是：", entities);
+
+      // 若界面已关闭，直接返回
+      if (this.isClosed) return;
+
       // 停止之前的闪烁动画
       if (this.flashInterval) {
-        clearInterval(this.flashInterval);
+        if (typeof this.flashInterval === 'number') {
+          clearInterval(this.flashInterval);
+        } else {
+          cancelAnimationFrame(this.flashInterval);
+        }
+        this.flashInterval = null;
       }
+
+      // 清除已有的光晕集合
       if (this.haloCollection) {
         this.haloCollection.removeAll();
+        this.viewer.scene.primitives.remove(this.haloCollection);
       }
+
+      // 如果没有需要处理的实体，直接返回
+      if (!entities || entities.length === 0) return;
 
       // 创建光晕点集合
       this.haloCollection = new Cesium.PointPrimitiveCollection();
       this.viewer.scene.primitives.add(this.haloCollection);
 
-      // 从所有灾害实体中查找匹配的点
-      const entitiesToFlash = [];
-      this.disasterEntities.forEach(entity => {
-        const position = entity.position.getValue(Cesium.JulianDate.now());
-        const cartographic = Cesium.Cartographic.fromCartesian(position);
-        const entityPoint = [
-          Cesium.Math.toDegrees(cartographic.longitude),
-          Cesium.Math.toDegrees(cartographic.latitude)
-        ];
+      // 存储需要闪烁的实体及其对应的光晕配置
+      const flashConfigs = [];
 
-        // 检查该实体是否在需要闪烁的点列表中
-        for (const point of points) {
-          if (Math.abs(point[0] - entityPoint[0]) < 0.00001 &&
-              Math.abs(point[1] - entityPoint[1]) < 0.00001) {
-            entitiesToFlash.push(entity);
+      // 处理每个实体
+      entities.forEach(entity => {
+        try {
+          // 从实体数据中获取经纬度
+          const lon = entity.geologicalDisasterHideDTO.lon;
+          const lat = entity.geologicalDisasterHideDTO.lat;
+          const level = entity.predict?.level || '低'; // 默认低风险
 
-            // 创建光晕点
-            this.haloCollection.add({
-              position: position,
-              pixelSize: 15,
-              color: entity.point.color.getValue(),
-              outlineColor: Cesium.Color.RED,
-              outlineWidth: 1,
-              show: true,
-              // 自定义材质用于光晕效果
-              material: new Cesium.Material({
-                fabric: {
-                  type: 'Halo',
-                  uniforms: {
-                    color: entity.point.color.getValue(),
-                    glowPower: 0.5,
-                    innerRadius: 0.5,
-                    outerRadius: 1.0
-                  },
-                  source: `
-                uniform vec4 color;
-                uniform float glowPower;
-                uniform float innerRadius;
-                uniform float outerRadius;
+          // 将经纬度转换为Cesium可用的坐标
+          const position = Cesium.Cartesian3.fromDegrees(lon, lat);
 
-                czm_material czm_getMaterial(czm_materialInput materialInput) {
-                  czm_material material = czm_getDefaultMaterial(materialInput);
-                  vec2 st = materialInput.st;
-                  float dist = distance(st, vec2(0.5, 0.5));
-                  float alpha = smoothstep(outerRadius, innerRadius, dist);
-                  alpha = pow(alpha, glowPower);
-                  material.diffuse = color.rgb;
-                  material.alpha = alpha * color.a;
-                  return material;
-                }
-              `
-                }
-              })
-            });
-
-            break;
+          // 根据风险等级确定颜色和是否闪烁
+          let color, shouldFlash;
+          switch (level) {
+            case '高':
+              color = Cesium.Color.RED;
+              shouldFlash = true;
+              break;
+            case '中':
+              color = Cesium.Color.YELLOW;
+              shouldFlash = true;
+              break;
+            case '低':
+            default:
+              color = Cesium.Color.GREEN.withAlpha(0.5); // 低风险不闪烁，用半透明绿色标识
+              shouldFlash = false;
+              break;
           }
+
+          // 创建光晕点
+          const halo = this.haloCollection.add({
+            position: position,
+            pixelSize: 15,
+            color: color,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 1,
+            show: true,
+            // 自定义材质用于光晕效果
+            material: new Cesium.Material({
+              fabric: {
+                type: 'Halo',
+                uniforms: {
+                  color: color,
+                  glowPower: 0.5,
+                  innerRadius: 0.5,
+                  outerRadius: 1.0
+                },
+                source: `
+              uniform vec4 color;
+              uniform float glowPower;
+              uniform float innerRadius;
+              uniform float outerRadius;
+
+              czm_material czm_getMaterial(czm_materialInput materialInput) {
+                czm_material material = czm_getDefaultMaterial(materialInput);
+                vec2 st = materialInput.st;
+                float dist = distance(st, vec2(0.5, 0.5));
+                float alpha = smoothstep(outerRadius, innerRadius, dist);
+                alpha = pow(alpha, glowPower);
+                material.diffuse = color.rgb;
+                material.alpha = alpha * color.a;
+                return material;
+              }
+            `
+              }
+            })
+          });
+
+          // 只对需要闪烁的实体进行动画配置
+          if (shouldFlash) {
+            flashConfigs.push({
+              halo: halo,
+              baseColor: color,
+              baseSize: 15
+            });
+          }
+        } catch (error) {
+          console.error("处理实体时出错:", error, "实体数据:", entity);
         }
       });
 
-      // 如果没有找到匹配的实体，直接返回
-      if (entitiesToFlash.length === 0) return;
+      // 如果没有需要闪烁的实体，直接返回
+      if (flashConfigs.length === 0) return;
 
       // 动画控制变量
       let animationTime = 0;
@@ -2199,28 +2250,25 @@ export default {
         animationTime = (animationTime + 50) % animationDuration;
         const normalizedTime = animationTime / animationDuration;
 
-        // 更新所有光晕点的大小和透明度
-        for (let i = 0; i < this.haloCollection.length; i++) {
-          const halo = this.haloCollection.get(i);
+        // 更新所有需要闪烁的光晕点
+        flashConfigs.forEach(config => {
+          const { halo, baseColor, baseSize } = config;
 
           // 计算光晕大小（从原始大小到3倍）
-          const baseSize = 15;
           const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
           halo.pixelSize = baseSize * sizeFactor;
 
           // 计算光晕透明度（大小最大时透明度最低）
           const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
-          const originalColor = entitiesToFlash[i].point.color.getValue();
           halo.color = new Cesium.Color(
-              originalColor.red,
-              originalColor.green,
-              originalColor.blue,
+              baseColor.red,
+              baseColor.green,
+              baseColor.blue,
               alphaFactor * 0.8
           );
-        }
+        });
       }, 50);
     },
-
     // addRainEllipse(centerCartesian, rainfall) {
     //   // 根据降雨量计算椭圆半径 (mm -> 米)
     //   const majorRadius = rainfall * this.rainEllipseScale; // 长轴半径
@@ -2612,8 +2660,7 @@ export default {
 
       // 新增：添加灾害点图例
       this.addDisasterLegend(legendContent);
-    }
-    ,
+    },
     // 添加降雨区域图例项的函数
     addRainAreaLegend(container) {
       const item = document.createElement('div');
@@ -2643,8 +2690,7 @@ export default {
       item.appendChild(colorDiv);
       item.appendChild(textDiv);
       container.appendChild(item);
-    }
-    ,
+    },
     // 添加灾害点图例项
     addDisasterLegend(container) {
       // 滑坡图例（使用滑坡图标）
@@ -2724,13 +2770,11 @@ export default {
       dangerItem.appendChild(dangerImg);
       dangerItem.appendChild(dangerTextDiv);
       container.appendChild(dangerItem);
-    }
-    ,
+    },
     // 更新图例
     updateLegend() {
       this.createLegend();
-    }
-    ,
+    },
     // 计算并显示弹出面板
     async calculateAndShowPopup(entity, movementPosition) {
       try {
@@ -2768,8 +2812,7 @@ export default {
       } catch (error) {
         console.error("计算弹出面板位置出错:", error);
       }
-    }
-    ,
+    },
     // 检测弹出面板边界
     checkPopupBoundary() {
       const panelWidth = 280;
@@ -2792,29 +2835,24 @@ export default {
       if (this.popupPosition.y < 10) {
         this.popupPosition.y = 10;
       }
-    }
-    ,
+    },
     // 计算弹出面板左坐标
     calculatePopupLeft() {
       return this.popupPosition.x;
-    }
-    ,
+    },
     // 计算弹出面板上坐标
     calculatePopupTop() {
       return this.popupPosition.y;
-    }
-    ,
+    },
     // 关闭弹出面板
     closePopup() {
       this.popupVisible = false;
       this.selectedEntityData = null;
-    }
-    ,
+    },
     // 阻止事件冒泡
     stopPropagation(e) {
       e.stopPropagation();
-    }
-    ,
+    },
     // 获取灾害类型名称
     getDisasterTypeName(type) {
       const typeMap = {
@@ -2823,18 +2861,15 @@ export default {
         'secondaryRisk': '次生灾害风险区'
       };
       return typeMap[type] || type;
-    }
-    ,
+    },
     toggleRiskTable() {
       this.showRiskTable = !this.showRiskTable;
-    }
-    ,
+    },
     // 行点击事件处理
     handleRowClick(row, event, column) {
       console.log('点击行数据:', row);
       this.jumpToPosition(row);
-    }
-    ,
+    },
     // 跳转到指定位置
     jumpToPosition(row) {
       if (!this.viewer || !row.lon || !row.lat) return;
@@ -2862,32 +2897,27 @@ export default {
       });
       // 可选：高亮显示该风险区
       this.highlightRiskArea(row);
-    }
-    ,
+    },
     // 高亮显示风险区
     highlightRiskArea(row) {
       // 这里可以添加高亮显示逻辑
       // 例如：在地图上标记该风险区位置
       console.log('高亮显示风险区:', row.disasterName);
-    }
-    ,
+    },
     handleSizeChange(size) {
       this.pageSize = size;
       this.currentPage = 1;
-    }
-    ,
+    },
     handleCurrentChange(page) {
       this.currentPage = page;
-    }
-    ,
+    },
     loadData() {
       this.loading = true;
       setTimeout(() => {
         this.loading = false;
         this.total = this.tableData.length;
       }, 500);
-    }
-    ,
+    },
     toggleTableExpand() {
       this.isExpanded = !this.isExpanded;
 
@@ -2912,7 +2942,7 @@ export default {
         updatedDataList.forEach(item => {
           if (item.geologicalDisasterHideDTO.id === this.selectedEntityData.factorVoList.hideId) {
             // 转换数据格式
-            const requestData = this.attributeMap.map (mapItem => {
+            const requestData = this.attributeMap.map(mapItem => {
               // 获取实体中对应别名的属性数据
               const entityAttr = this.selectedEntityData.factorVoList [mapItem.attributeNameAlias] || {};
               return {
@@ -2927,8 +2957,7 @@ export default {
                 factorValue: entityAttr.factorValue !== undefined ? entityAttr.factorValue : mapItem.factorValue,
                 unit: entityAttr.unit || mapItem.unit || ''
               };
-            }).filter (item => item.factorValue !== '' && item.factorValue !== null);
-
+            }).filter(item => item.factorValue !== '' && item.factorValue !== null);
             // 发送请求
             rainSlideFactorUpdata(requestData).then(res => {
               this.formatUpdateAnalyzedData = res.data
@@ -2961,18 +2990,111 @@ export default {
                 };
                 return merged;
               }, {});
-              console.log(this.formatUpdateAnalyzedData.factorVoList,"新值")
+              console.log(this.formatUpdateAnalyzedData.factorVoList, "新值")
               this.selectedEntityData.factorVoList = this.formatUpdateAnalyzedData.factorVoList;
-              console.log( this.selectedEntityData.factorVoList,"表格值")
+              console.log(this.selectedEntityData.factorVoList, "表格值")
               this.selectedEntityData.predict = this.formatUpdateAnalyzedData.predict
             })
           }
         })
       })
+    },
 
+    // 关闭界面的方法（调用此方法时触发资源释放）
+    closeInterface() {
+      this.isClosed = true;
+      this.releaseAllResources();
+      // 清空DOM引用
+      const container = this.$refs.cesiumContainer;
+      if (container) container.innerHTML = '';
+      // 触发组件销毁
+      this.$destroy();
+    },
+    // 释放所有资源的核心方法
+    releaseAllResources() {
+      // 1. 清理Cesium核心资源
+      if (this.viewer) {
+        // 移除所有实体
+        this.viewer.entities.removeAll();
+        // 移除所有数据源
+        this.viewer.dataSources.removeAll();
+        // 移除所有图元
+        this.viewer.scene.primitives.removeAll();
+        // 移除所有 imagery图层
+        this.viewer.imageryLayers.removeAll();
+        // 销毁viewer实例
+        this.viewer.destroy();
+        this.viewer = null;
+      }
 
+      // 2. 清理定时器和动画帧
+      this.timers.forEach(id => {
+        if (typeof id === 'number') {
+          clearInterval(id);
+          clearTimeout(id);
+        } else {
+          cancelAnimationFrame(id);
+        }
+      });
+      this.timers = [];
+
+      // 3. 清理事件监听
+      if (this.clickHandler) {
+        this.clickHandler.destroy();
+        this.clickHandler = null;
+      }
+      if (this.handler) {
+        this.handler.destroy();
+        this.handler = null;
+      }
+      document.removeEventListener('keydown', this.onKeyDown);
+      if (this.viewer?.camera?.moveEnd) {
+        this.viewer.camera.moveEnd.removeEventListener(this.handleCameraMoveEnd);
+      }
+
+      // 4. 清理自定义数据结构
+      this.disasterEntities = [];
+      this.landslideEntities = [];
+      this.debrisFlowEntities = [];
+      this.secondaryRiskEntities = [];
+      this.rainPoints = [];
+      this.entityCache.clear(); // 清空实体缓存
+
+      // 5. 清理DOM元素
+      const rainControl = document.getElementById('rain-control-panel');
+      if (rainControl) rainControl.remove();
+      const legend = this.$refs.legendContent;
+      if (legend) legend.innerHTML = '';
+
+      // 6. 强制垃圾回收（浏览器环境下触发）
+      if (window.gc) {
+        try {
+          window.gc();
+        } catch (e) {
+          console.log('触发垃圾回收失败:', e);
+        }
+      }
+
+      console.log('所有资源已释放');
+    },
+    // 重写定时器相关方法，统一管理定时器ID
+    setSafeInterval(fn, delay) {
+      const id = setInterval(fn, delay);
+      this.timers.push(id);
+      return id;
+    },
+    setSafeTimeout(fn, delay) {
+      const id = setTimeout(fn, delay);
+      this.timers.push(id);
+      return id;
+    },
+    requestSafeAnimationFrame(fn) {
+      const id = requestAnimationFrame(fn);
+      this.timers.push(id);
+      return id;
     },
   }
+
 }
 </script>
 
