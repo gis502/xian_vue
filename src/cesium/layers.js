@@ -1,17 +1,27 @@
 import * as Cesium from "cesium";
 import lineData from "@/assets/西安断层数据.json";
 
+import DebrisFlow from "@/assets/西安泥石流灾害点.json";
+import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
+import landslide from '@/assets/landslide/landslide.json'
+import landslideIcon from "@/assets/images/landslide.png";
+import landslide_surface01 from "@/assets/images/landslide_surface01.jpg";
+import riskArea from "@/assets/images/riskArea.png";
+import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
+// let flashInterval = null;
+// let haloCollection = null;
+// key: 'hazard' | 'landslide' | 'dangerArea'
+const haloCollections = new Map();
+const haloIntervals = new Map();
 let layers = {
-
-
     //画烈度圈
     DrawEllipse(longitude, latitude, magnitude) {
         this.removeIsoseismalCircle()
-        let rotation=this.calculateRotation(longitude, latitude, magnitude)
+        let rotation = this.calculateRotation(longitude, latitude, magnitude)
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
         this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
     },
-    calculateRotation(longitude, latitude){
+    calculateRotation(longitude, latitude) {
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
         // console.log(min_line,"==================")
         let first_point = min_line.coordinates[0]
@@ -143,8 +153,8 @@ let layers = {
         // const rotation = Cesium.Math.toRadians(strikeDirection - 90);
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
         ellipseParams.forEach(params => {
-            let short=Math.min(params.semiMinorAxis,params.semiMajorAxis)
-            let long=Math.max(params.semiMajorAxis,params.semiMinorAxis)
+            let short = Math.min(params.semiMinorAxis, params.semiMajorAxis)
+            let long = Math.max(params.semiMajorAxis, params.semiMinorAxis)
             let ellipse = new Cesium.Entity({
                 position: Cesium.Cartesian3.fromDegrees(position.x, position.y),
                 name: "地震影响区域",
@@ -167,7 +177,7 @@ let layers = {
             //    这里选椭圆“正上”方向（rotation=0 时即正北）
             const angleRad = Cesium.Math.toRadians(rotation); // 椭圆长轴方向
             // 长轴端点在地球表面上的位移（近似）
-            const offsetMeters = params.semiMajorAxis  * 0.5; // 1.1 倍半径
+            const offsetMeters = params.semiMajorAxis * 0.5; // 1.1 倍半径
             const offsetLon = (offsetMeters / 111320) * Math.sin(angleRad);
             const offsetLat = (offsetMeters / 111320) * Math.cos(angleRad);
             // 3. 文字实体
@@ -241,13 +251,13 @@ let layers = {
             return 1.3003 * M + 0.3844;
         }
         const calculateRa = (M, Ia) => {
-            const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10) ;
+            const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10);
             // console.log(a, "=============================")
             return a;
         }
 
         const calculateRb = (M, Ib) => {
-            const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5) ;
+            const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5);
             // console.log(b, "=============================")
 
             return b;
@@ -255,18 +265,18 @@ let layers = {
         let sum = Math.floor(Math.min(Number(IaWhenAIsZero(magnitude)), Number(IbWhenBIsZero(magnitude))));
         let intensityLevels = [];
         for (let i = sum; i >= 6; i--) {
-            intensityLevels.push({ia:i,ib:i});
+            intensityLevels.push({ia: i, ib: i});
         }
-        let plphas = [0.1,0.1, 0.1,0.1, 0.1]
+        let plphas = [0.1, 0.1, 0.1, 0.1, 0.1]
         let i = 0
         // 存储计算出的椭圆参数
         const params = intensityLevels.map(level => {
 
             // 使用提供的公式计算长短轴
             //单位米
-            const semiMinorAxis = calculateRa(magnitude, level.ia)*1000;
+            const semiMinorAxis = calculateRa(magnitude, level.ia) * 1000;
 
-            const semiMajorAxis = calculateRb(magnitude, level.ib)*1000;
+            const semiMajorAxis = calculateRb(magnitude, level.ib) * 1000;
 
             // 根据烈度级别设置透明度
             // const alpha = 0.8 - (level.ia - 5) * 0.3;
@@ -278,8 +288,8 @@ let layers = {
                 semiMinorAxis,
                 semiMajorAxis,
                 intensity: level.ia,
-                leveltext:intensityLabel[ level.ia-6].level,
-                color:intensityLabel[ level.ia-6].color,
+                leveltext: intensityLabel[level.ia - 6].level,
+                color: intensityLabel[level.ia - 6].color,
                 // extrudedHeight,
                 alpha,
             };
@@ -309,11 +319,11 @@ let layers = {
 
         return canvas;
     },
-    removeIsoseismalCircle(){
+    removeIsoseismalCircle() {
         let toRemove = window.viewer.entities.values.filter(
             e => e.name === '地震影响区域'
         );
-        if(toRemove){
+        if (toRemove) {
             // 2. 逐个删除
             toRemove.forEach(entity => {
                 window.viewer.entities.remove(entity);
@@ -322,7 +332,7 @@ let layers = {
         let toRemoveLabel = window.viewer.entities.values.filter(
             e => e.name === '地震影响区域标签'
         );
-        if(toRemoveLabel){
+        if (toRemoveLabel) {
             // 2. 逐个删除
             toRemoveLabel.forEach(entity => {
                 window.viewer.entities.remove(entity);
@@ -330,7 +340,141 @@ let layers = {
         }
 
 
-    }
+    },
     //画烈度圈 end
+
+    //高亮
+    isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation) {
+        const center = Cesium.Cartesian3.fromDegrees(centerLon, centerLat);
+        const point = Cesium.Cartesian3.fromDegrees(pointLon, pointLat);
+        let short = Math.min(majorAxis, minorAxis)
+        let long = Math.max(majorAxis, minorAxis)
+        // 构建椭圆边界（用于判断）
+        const ellipse = new Cesium.EllipseGeometry({
+            center: center,
+            semiMajorAxis: long,
+            semiMinorAxis: short,
+            rotation: rotation, // 旋转角度（弧度）
+            ellipsoid: Cesium.Ellipsoid.WGS84
+        });
+
+        const geometry = Cesium.EllipseGeometry.createGeometry(ellipse);
+        const boundingSphere = Cesium.BoundingSphere.fromVertices(geometry.attributes.position.values);
+
+        const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
+        return distance <= boundingSphere.radius;
+    },
+    haloEntitiesHazardSource(longitude, latitude, magnitude) {
+        let EllipseAxisa = this.calculateEllipseParams(magnitude).at(-1).semiMinorAxis
+        let EllipseAxisb = this.calculateEllipseParams(magnitude).at(-1).semiMajorAxis
+        let rotation = this.calculateRotation(longitude, latitude)
+        let haloEntities = []
+        let DangerAreaDataArr = []
+        DebrisFlow.features.forEach(DangerAreaData_source => {
+            DangerAreaDataArr.push(DangerAreaData_source)
+        })
+        DangerAreaDataArr.forEach(DangerAreaData_point => {
+            let lon = DangerAreaData_point.geometry.coordinates[0]
+            let lat = DangerAreaData_point.geometry.coordinates[1]
+            if (this.isPointInEllipse(parseFloat(lon), parseFloat(lat), longitude, latitude, EllipseAxisa, EllipseAxisb, rotation)) {
+                // 统一收集高亮点
+                haloEntities.push({
+                    position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
+                    color: Cesium.Color.RED
+                });
+            }
+        })
+        // 批量调用统一光晕动画
+        this.addHaloEffect('泥石流隐患点',haloEntities);
+    },
+    haloEntitiesLandSlide(longitude, latitude, magnitude) {
+        let EllipseAxisa = this.calculateEllipseParams(magnitude).at(-1).semiMinorAxis
+        let EllipseAxisb = this.calculateEllipseParams(magnitude).at(-1).semiMajorAxis
+        let rotation = this.calculateRotation(longitude, latitude)
+        let haloEntities = []
+        for (let i = 0; i < landslide.length; i++) {
+            let lon = landslide[i].lon
+            let lat = landslide[i].lat
+            if (this.isPointInEllipse(parseFloat(lon), parseFloat(lat), longitude, latitude, EllipseAxisa, EllipseAxisb, rotation)) {
+                // 统一收集高亮点
+                haloEntities.push({
+                    position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
+                    color: Cesium.Color.RED
+                });
+            }
+        }
+        // 批量调用统一光晕动画
+        this.addHaloEffect('滑坡隐患点',haloEntities);
+    },
+    haloEntitiesDangerAreaDataSource(longitude, latitude, magnitude) {
+        let EllipseAxisa = this.calculateEllipseParams(magnitude).at(-1).semiMinorAxis
+        let EllipseAxisb = this.calculateEllipseParams(magnitude).at(-1).semiMajorAxis
+        let rotation = this.calculateRotation(longitude, latitude)
+        let haloEntities = []
+        let DangerAreaDataArr = []
+        DangerAreaData.features.forEach(DangerAreaData_source => {
+            DangerAreaDataArr.push(DangerAreaData_source)
+        })
+        DangerAreaDataArr.forEach(DangerAreaData_point => {
+            let lon = DangerAreaData_point.geometry.coordinates[0]
+            let lat = DangerAreaData_point.geometry.coordinates[1]
+            if (this.isPointInEllipse(parseFloat(lon), parseFloat(lat), longitude, latitude, EllipseAxisa, EllipseAxisb, rotation)) {
+                // 统一收集高亮点
+                haloEntities.push({
+                    position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
+                    color: Cesium.Color.RED
+                });
+            }
+        })
+        // 批量调用统一光晕动画
+        this.addHaloEffect('风险区域',haloEntities);
+    },
+
+    addHaloEffect(type,entities) {
+            this.clearHaloEffectByType(type); // 先清旧的一类
+            if (!entities || !entities.length) return;
+
+            const coll = new Cesium.PointPrimitiveCollection();
+            window.viewer.scene.primitives.add(coll);
+            haloCollections.set(type, coll);
+
+            entities.forEach(({ position, color }) => {
+                coll.add({ position, pixelSize: 15, color, outlineColor: Cesium.Color.RED, outlineWidth: 1 });
+            });
+
+            let t = 0;
+            const dur = 2000;
+            const iv = setInterval(() => {
+                t = (t + 50) % dur;
+                const f = Math.sin(t / dur * Math.PI * 2);
+                for (let i = 0; i < coll.length; i++) {
+                    const p = coll.get(i);
+                    p.pixelSize = 15 + 15 * f;
+                    p.color = p.color.withAlpha(0.8 - 0.4 * f);
+                }
+            }, 50);
+            haloIntervals.set(type, iv);
+
+    },
+
+    // 清除动画
+    clearHaloEffectByType(type) {
+        console.log('🔍 清除类型：', type);
+        console.log('📦 当前集合：', [...haloCollections.keys()]);
+        const coll = haloCollections.get(type);
+        const iv = haloIntervals.get(type);
+        if (iv) {
+            clearInterval(iv);
+            haloIntervals.delete(type);
+            console.log('✅ 已清除 interval');
+        }
+        if (coll) {
+            window.viewer.scene.primitives.remove(coll);
+            haloCollections.delete(type);
+            console.log('✅ 已清除 primitive');
+        } else {
+            console.warn('❗ 未找到该类型的 collection');
+        }
+    }
 }
 export default layers;
