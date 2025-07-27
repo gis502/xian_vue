@@ -124,7 +124,7 @@ async function confirmEarthquake() {
       )
     ) {
       inEllipsePoints.push(item);
-      console.log(item.factorVoList,"factorVoList")
+      // console.log(item.factorVoList,"factorVoList")
     }
   });
 

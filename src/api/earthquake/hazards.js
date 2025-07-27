@@ -12,7 +12,6 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
   // 记录点的索引
   const pointIndex = [];
   for (let i = 0; i < points.length; i++) {
-    console.log(points[i].factorVoList ,"points[i].factorVoList ")
     // 如果存在致灾因子，则记为参数
     if (points[i].factorVoList == null || points[i].factorVoList.length == 0)
       continue;
@@ -36,7 +35,6 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
 
   // 修改datas中实体id对应的预测值
   res.data.forEach(element => {
-    console.log(element,"element")
     // 实体id
     const entityId = element.entityId;
     // 索引

@@ -1,5 +1,10 @@
 <template>
   <div>
+    <!-- 消息提示框 -->
+    <div v-if="isCalculating || calculationMessage" class="calculation-message">
+      {{ calculationMessage }}
+    </div>
+
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
@@ -28,20 +33,24 @@ import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 export default {
   data() {
     return {
-      loadedOnce: false, // 是否已加载过
+      isWarningPointsCalculated: false, // 预警点是否计算完成
       showLayerFeatures: false,
       layeritems: [
-        {id: '0', name: '行政区划'},
-        {id: '1', name: '烈度圈'},
-        {id: '2', name: '断裂带'},
-        {id: '3', name: '泥石流隐患点'},
-        {id: '4', name: '滑坡隐患点'},
-        {id: '5', name: '风险区域'},
-        {id: '6', name: '预警点'},
-        {id: '7', name: '灾害点'},
+        {id: '0', name: '行政区划', disabled: false},
+        {id: '1', name: '烈度圈', disabled: false},
+        {id: '2', name: '断裂带', disabled: false},
+        {id: '3', name: '泥石流隐患点', disabled: false},
+        {id: '4', name: '滑坡隐患点', disabled: false},
+        {id: '5', name: '风险区域', disabled: false},
+        {id: '6', name: '预警点', disabled: false},
+        {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
       ],
-      selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
-      prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域']
+      selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
+      prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
+
+      warningPoints: null, // 存储预警点结果
+      isCalculating: false, // 消息提示框显示隐藏
+      calculationMessage: '', // 提示信息
     }
   },
   name: "timeLineLayer",
@@ -58,7 +67,9 @@ export default {
       if (this.onceLoadLayer) {
         console.log(this.onceLoadLayer, "onceLoadLayer11")
         this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+        // this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域',  "灾害点"];
         this.updateMapLayers();
+
       }
     }
   },
@@ -68,7 +79,7 @@ export default {
     toggleLayerFeatures() {
       this.showLayerFeatures = !this.showLayerFeatures;
     },
-    updateMapLayers() {
+    async updateMapLayers() {
       const currentSelected = [
         ...this.selectedlayers
       ];
@@ -140,16 +151,44 @@ export default {
         {
           name: '预警点',
           add: async () => {
-            let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
-            const [points, probabilityPoints] =
-                await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+            if (this.warningPoints) {
+              // 如果已经计算过预警点，直接使用存储的结果
+              pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
+            }
+            else {
 
-            console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints")
-            // 清除全部脉冲实体
-            pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+              // 第一次加载，计算预警点
+              this.isCalculating = true; // 设置为正在计算
+              this.calculationMessage = '正在计算预警点...';
 
-            // 添加脉冲实体
-            pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+              let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude);
+              const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+
+              console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+
+              // 清除全部脉冲实体
+              pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+
+              // 存储预警点结果
+              this.warningPoints = points;
+
+              // 添加脉冲实体
+              pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+              // 设置计算完成
+              this.isCalculating = false;
+              this.calculationMessage = '预警点计算完成！';
+
+              // 3 秒后关闭提示框
+              setTimeout(() => {
+                this.calculationMessage = '';
+              }, 3000);
+
+              // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+              if (this.onceLoadLayer) {
+                this.$emit('update:onceLoadLayer', false);
+                viewer.clockViewModel.shouldAnimate = true;
+              }
+            }
 
           },
           remove: () => {
@@ -159,13 +198,63 @@ export default {
         {
           name: '灾害点',
           add: () => {
+
+
+            const landslideEvent1 = {
+              id: 'landslideEvent1',
+              name: '泥石流事件',
+              position: Cesium.Cartesian3.fromDegrees(108.8435, 33.9367),
+              startTime: Cesium.JulianDate.fromIso8601('2025-07-25T15:00:00Z'),
+              stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
+              message: '发生了一个泥石流事件'
+            };
+            const entity1 = viewer.entities.add({
+              id: landslideEvent1.id,
+              name: landslideEvent1.name,
+              position: landslideEvent1.position,
+              point: {
+                pixelSize: 10,
+                color: Cesium.Color.RED,
+              },
+              label: {
+                text: landslideEvent1.message,
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.BLACK,
+                backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -16),
+              },
+              availability: new Cesium.TimeIntervalCollection([
+                new Cesium.TimeInterval({
+                  start: landslideEvent1.startTime,
+                  stop: landslideEvent1.stopTime,
+                }),
+              ]),
+            });
+            const halo1 = viewer.entities.add({
+              position: landslideEvent1.position,
+              point: {
+                pixelSize: 30,
+                color: Cesium.Color.BLACK.withAlpha(0.5),
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+              },
+              availability: new Cesium.TimeIntervalCollection([
+                new Cesium.TimeInterval({
+                  start: landslideEvent1.startTime,
+                  stop: landslideEvent1.stopTime,
+                }),
+              ]),
+            });
+
+
             const landslideEvent = {
               id: 'landslideEvent',
               name: '滑坡事件',
               position: Cesium.Cartesian3.fromDegrees(108.9225, 34.02472),
               startTime: Cesium.JulianDate.fromIso8601('2025-07-27T15:00:00Z'),
-
-// 设置结束时间为开始时间 +10 天
               stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
               message: '发生了一个滑坡'
             };
@@ -248,8 +337,8 @@ export default {
         }
       });
     },
-    }
   }
+}
 </script>
 
 <style scoped>
@@ -279,7 +368,7 @@ export default {
   position: absolute;
   right: 5vh;
   bottom: 6vh;
-  width: 450px;
+  width: 220px;
   border-radius: 5px;
   background: rgb(0, 195, 255);
   background: linear-gradient(90deg, rgb(22 105 179 / 9%) 25%, rgb(10 33 75 / 76%) 88%);
@@ -307,5 +396,28 @@ export default {
   position: relative;
   top: 26%;
   left: 7%;
+}
+
+.el-checkbox-group {
+  display: flex;
+  flex-direction: column; /* 使选项垂直排列 */
+  align-items: flex-start; /* 使所有选项左对齐 */
+  padding-left: 20px; /* 向右移动选项 */
+}
+.el-checkbox {
+  display: block; /* 将每个 checkbox 设置为块级元素 */
+  margin-bottom: 10px; /* 添加一些间距 */
+}
+.calculation-message {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  z-index: 1000;
 }
 </style>
