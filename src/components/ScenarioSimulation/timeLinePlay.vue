@@ -191,8 +191,8 @@ export default {
               startTime: Cesium.JulianDate.fromIso8601('2025-07-25T15:00:00Z'),
               stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
               message: '发生了一个泥石流',
-              longitude: 109.9225,
-              latitude: 35.02472,
+              longitude: 108.8435,
+              latitude: 33.9367,
             }
           ]
 
