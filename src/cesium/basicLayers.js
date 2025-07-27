@@ -26,7 +26,7 @@ import {
     landslideHazardPointData,
     riskVillageData,
 } from "@/api/earthquake/datas";
-// import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 
 let basicLayers = {
@@ -283,9 +283,11 @@ let basicLayers = {
                 },
                 properties: {
                     data: hiddenDangerPoint,
+                    longitude:lon,
+                    latitude:lat,
                 },
             });
-            // useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
+            useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
     },
 
