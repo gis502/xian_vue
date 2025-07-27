@@ -17,6 +17,18 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 import lineData from "@/assets/西安断层数据.json";
 
+
+import landslideIcon from "@/assets/images/landslide.png";
+import riskArea from "@/assets/images/riskArea.png";
+import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
+import {
+    dataOnHiddenDangerPointsOfDebrisFlow,
+    landslideHazardPointData,
+    riskVillageData,
+} from "@/api/earthquake/datas";
+// import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+
+
 let basicLayers = {
     addCenterPoint(item) {
         // console.log(item,"addCenterPoint item")
@@ -115,6 +127,7 @@ let basicLayers = {
             });
         }
     },
+
     loadAdminData() {
         let administrationData = [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi]
 
@@ -163,16 +176,15 @@ let basicLayers = {
                 if (!labelPrinted.has(name)) {
                     labelPrinted.set(name, true);
 
-                    if(name !=="新城区"){
+                    if (name !== "新城区") {
                         // 计算多边形的中心点作为标签的位置
                         const positions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions; // 输入一组坐标
                         const boundingSphere = Cesium.BoundingSphere.fromPoints(positions); // 自动计算中心位置和半径
                         entity.position = boundingSphere.center;
-                    }
-                    else{
+                    } else {
                         let point1 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[0];
-                        let point2 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length/6)];
-                        let point3 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length/3)];
+                        let point2 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length / 6)];
+                        let point3 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length / 3)];
                         entity.position = Cesium.BoundingSphere.fromPoints([point1, point2, point3]).center;
                     }
                     entity.label = {
@@ -215,6 +227,106 @@ let basicLayers = {
             ds => ds.name && ds.name.startsWith('区县-')
         )
         toRemove.forEach(ds => window.viewer.dataSources.remove(ds, true))
-    }
+    },
+
+    async AddHazardSource(){
+        dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
+            this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
+        });
+
+    },
+    async loadLandSlide(){
+        landslideHazardPointData().then((res) => {
+            this.addHiddenDangerPoints("滑坡隐患点",res.data, landslideIcon);
+        });
+    },
+    async AddDangerAreaDataSource(){
+        riskVillageData().then((res) => {
+            // 修改数据结构，待后续接口同意后更改
+            const datas = [];
+
+            res.data.features.forEach((item) => {
+                datas.push({
+                    factorVoList: null,
+                    geologicalDisasterHideDTO: item.properties,
+                });
+            });
+            this.addHiddenDangerPoints("风险区域",datas, riskArea);
+        });
+    },
+    async addHiddenDangerPoints(type,hiddenDangerPoints, imageEntity) {
+        hiddenDangerPoints.forEach((hiddenDangerPoint) => {
+            let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
+            let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
+
+            // 生成唯一ID (使用隐患点ID或随机生成)
+            const entityId = `HIDDEN_DANGER_${Math.floor(Math.random() * 10000000)}`;
+            hiddenDangerPoint.entityId = entityId;
+
+            window.viewer.entities.add({
+                name:type,
+                id: entityId,
+                position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                billboard: {
+                    // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                    image: imageEntity,
+                    width: 50, // 图片宽度,单位px
+                    height: 50, // 图片高度，单位px
+                    eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                    color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                    scale: 0.8, // 缩放比例
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                    scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                    depthTest: false, // 禁止深度测试
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                    show: true,
+                },
+                properties: {
+                    data: hiddenDangerPoint,
+                },
+            });
+            // useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
+        });
+    },
+
+
+    removeHazardSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '泥石流隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                window.viewer.entities.remove(entity);
+            });
+        }
+    },
+
+    removeLandSlide() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '滑坡隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                window.viewer.entities.remove(entity);
+            });
+        }
+    },
+
+
+    removeDangerAreaDataSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '风险区域'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                window.viewer.entities.remove(entity);
+            });
+        }
+    },
+
+
 }
 export default basicLayers;
