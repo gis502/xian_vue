@@ -416,4 +416,8 @@ function stopLoading() {
   left: 580px;
   z-index: 1000;
 }
+
+::v-deep .el-form-item__label {
+  color: #FFF;
+}
 </style>

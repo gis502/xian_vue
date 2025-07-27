@@ -11,52 +11,109 @@
   >
     <div class="panel-title">地震信息</div>
     <div class="panel-content">
-      <div>
-        震级:
-        <input
-          v-model.number="form.magnitude"
-          type="number"
-          min="0"
-          max="10"
-          step="0.1"
-        />
-        ms
-      </div>
-      <div>震中位置:</div>
-      <div>
-        {{
-          position
-            ? `北纬:${position.latitude.toFixed(
-                4
-              )}, 东经:${position.longitude.toFixed(4)}`
-            : ""
-        }}
-      </div>
-      <el-row type="flex" :gutter="36">
-        <el-col :span="24">
-          <button @click="confirmEarthquake">确认添加</button>
-          <button @click="emit('cancelEarthquake')">取消</button>
-        </el-col>
-      </el-row>
+      <el-form
+        ref="ruleFormRef"
+        :rules="rules"
+        :model="form"
+        label-width="auto"
+      >
+        <el-form-item label="震级" prop="magnitude">
+          <el-input
+            v-model="form.magnitude"
+            type="number"
+            min="0"
+            max="10"
+            step="0.1"
+          >
+            <template #append>Ms</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="纬度" prop="longitude">
+          <el-input v-model="form.longitude" type="number" />
+        </el-form-item>
+        <el-form-item label="经度" prop="latitude">
+          <el-input v-model="form.latitude" type="number" />
+        </el-form-item>
+        <el-form-item label="时间" prop="dateTime">
+          <el-date-picker
+            v-model="form.dateTime"
+            type="datetime"
+            placeholder="选择日期时间"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-row :gutter="10" style="width: 100%">
+            <el-col :span="12">
+              <el-button
+                type="success"
+                @click="confirmEarthquake(ruleFormRef)"
+                style="width: 100%"
+                >确认添加</el-button
+              >
+            </el-col>
+            <el-col :span="12">
+              <el-button
+                type="danger"
+                @click="emit('cancelEarthquake')"
+                style="width: 100%"
+                >取消</el-button
+              >
+            </el-col>
+          </el-row>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
 
 <script setup name="SimulatingEarthquake">
-import { onBeforeMount, reactive} from "vue";
+import { onBeforeMount, reactive } from "vue";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 import { pulseUtils } from "../../cesium/pulse";
 import basicLayers from "../../cesium/basicLayers";
 
-// 显示弹窗
-let isShow = ref(true);
+// 表单对象
+const ruleFormRef = ref();
 
-// 默认震级
+// 表单元素
 let form = reactive({
   magnitude: 6,
+  longitude: parseFloat(position.longitude.toFixed(4)),
+  latitude: parseFloat(position.latitude.toFixed(4)),
+  dateTime: "",
 });
+
+// 验证规则
+const rules = reactive({
+  magnitude: [{ required: true, message: "震级不能为空", trigger: "blur" }],
+  longitude: [
+    {
+      required: true,
+      message: "纬度不能为空",
+      trigger: "blur",
+    },
+  ],
+  latitude: [
+    {
+      required: true,
+      message: "经度不能为空",
+      trigger: "blur",
+    },
+  ],
+  dateTime: [
+    {
+      type: "date",
+      required: true,
+      message: "请选择日期事件",
+      trigger: "blur",
+    },
+  ],
+});
+
+// 显示弹窗
+let isShow = ref(true);
 
 // 获取位置以及表格中要呈现的内容
 const { position, dataTypes, chartDatas } = defineProps([
@@ -71,7 +128,7 @@ const emit = defineEmits([
   "displayChart",
   "hideChart",
   "startLoading",
-  "stopLoading"
+  "stopLoading",
 ]);
 
 onBeforeMount(() => {
@@ -81,66 +138,90 @@ onBeforeMount(() => {
 });
 
 // 添加模拟
-async function confirmEarthquake() {
-  // 显示加载
-  emit("startLoading");
+async function confirmEarthquake(formEl) {
+  if (!formEl) return;
+  // 验证
+  await formEl.validate(async (valid, fields) => {
+    if (valid) {
+      // 显示加载
+      emit("startLoading");
 
-  // 隐藏弹窗
-  isShow.value = false;
+      // 隐藏弹窗
+      isShow.value = false;
 
-  // 删除原本地震中心
-  basicLayers.removeCenterPoint("earthquakeCenter");
+      // 删除原本地震中心
+      basicLayers.removeCenterPoint("earthquakeCenter");
 
-  // 添加地震中心位置
-  basicLayers.addCenterPoint({
-    id: "earthquakeCenter",
-    disasterName: "",
-    trigger: "",
-    longitude: position.longitude,
-    latitude: position.latitude,
-  });
+      // 修改位置经纬度
+      position.longitude = parseFloat(form.longitude);
+      position.latitude = parseFloat(form.latitude);
 
-  layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
+      // 添加地震中心位置
+      basicLayers.addCenterPoint({
+        id: "earthquakeCenter",
+        disasterName: "",
+        trigger: "",
+        longitude: position.longitude,
+        latitude: position.latitude,
+      });
 
-  // 处理各个模拟点
-  let inEllipsePoints = [];
-  useSimulationPointStore().simulationPoints.forEach((item) => {
-    // 将模拟点的预测值全部清空，重新获取
-    item.predict = null;
+      layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
 
-    // 判断在不在震圈内
-    if (
-      layers.isPointInEllipse([
-        item.geologicalDisasterHideDTO.lon,
-        item.geologicalDisasterHideDTO.lat,
-      ])
-    ) {
-      inEllipsePoints.push(item);
+      // 处理各个模拟点
+      let inEllipsePoints = [];
+      // 椭圆信息
+      const semiMinor = layers.calculateEllipseParams(form.magnitude).at(-1);
+      // 偏转角度
+      const rotation = layers.calculateRotation(
+        position.longitude,
+        position.latitude
+      );
+      useSimulationPointStore().simulationPoints.forEach((item) => {
+        // 将模拟点的预测值全部清空，重新获取
+        item.predict = null;
+
+        // 判断在不在震圈内
+        if (
+          layers.isPointInEllipse(
+            item.geologicalDisasterHideDTO.lon,
+            item.geologicalDisasterHideDTO.lat,
+            position.longitude,
+            position.latitude,
+            semiMinor.semiMajorAxis,
+            semiMinor.semiMinorAxis,
+            rotation,
+          )
+        ) {
+          inEllipsePoints.push(item);
+        }
+      });
+
+      // 获取各个点的风险概率
+      const [points, probabilityPoints] =
+        await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
+
+      // 清除全部脉冲实体
+      pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+
+      // 添加脉冲实体
+      pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+
+      // 处理表格和chart数据
+      addDatasToTableAndChart(probabilityPoints);
+
+      // 显示表格和chart
+      emit("displayTable");
+      emit("displayChart");
+
+      // 注销模拟
+      emit("cancelEarthquake");
+
+      // 停止加载
+      emit("stopLoading");
+    } else {
+      console.log("error submit!", fields);
     }
   });
-
-  // 获取各个点的风险概率
-  const [points, probabilityPoints] =
-    await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-
-  // 清除全部脉冲实体
-  pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
-
-  // 添加脉冲实体
-  pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
-
-  // 处理表格和chart数据
-  addDatasToTableAndChart(probabilityPoints);
-
-  // 显示表格和chart
-  emit("displayTable");
-  emit("displayChart");
-
-  // 注销模拟
-  emit("cancelEarthquake");
-
-  // 停止加载
-  emit("stopLoading");
 }
 
 // 处理表格和chart数据
@@ -203,34 +284,8 @@ function addDatasToTableAndChart(probabilityPoints) {
   z-index: 1000;
   width: 250px;
 }
-
-.earthquake-info-panel input {
-  width: 60px;
-  margin-left: 10px;
-  padding: 5px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid #666;
-  color: white;
-}
-
-.earthquake-info-panel button {
-  margin-top: 10px;
-  margin-right: 30px;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.earthquake-info-panel button:first-child {
-  background-color: #386641;
-  color: white;
-  width: 100%;
-}
-
-.earthquake-info-panel button:last-child {
-  background-color: #bc4749;
-  color: white;
-  width: 100%;
+.panel-title {
+  text-align: center;
+  padding-bottom: 10px;
 }
 </style>

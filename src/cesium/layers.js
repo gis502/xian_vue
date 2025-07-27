@@ -148,7 +148,6 @@ let layers = {
 
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
-        console.log(ellipseParams)
         // 先添加遮罩层，确保它在最底层
         // const rotation = Cesium.Math.toRadians(strikeDirection - 90);
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
@@ -349,6 +348,7 @@ let layers = {
         const point = Cesium.Cartesian3.fromDegrees(pointLon, pointLat);
         let short = Math.min(majorAxis, minorAxis)
         let long = Math.max(majorAxis, minorAxis)
+        
         // 构建椭圆边界（用于判断）
         const ellipse = new Cesium.EllipseGeometry({
             center: center,
