@@ -8,6 +8,7 @@ import landslideIcon from "@/assets/images/landslide.png";
 import landslide_surface01 from "@/assets/images/landslide_surface01.jpg";
 import riskArea from "@/assets/images/riskArea.png";
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
+import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 // let flashInterval = null;
 // let haloCollection = null;
 // key: 'hazard' | 'landslide' | 'dangerArea'
@@ -15,7 +16,9 @@ const haloCollections = new Map();
 const haloIntervals = new Map();
 let layers = {
     //画烈度圈
-    DrawEllipse(longitude, latitude, magnitude) {
+    DrawEllipse(log, lat, magnitude) {
+        let longitude = Number(log)
+        let latitude = Number(lat)
         this.removeIsoseismalCircle()
         let rotation = this.calculateRotation(longitude, latitude, magnitude)
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
@@ -344,9 +347,21 @@ let layers = {
     //画烈度圈 end
 
     //高亮
+    getAllHiddeninEllipse(longitude, latitude, magnitude) {
+        let allHiddeninEllipse = []
+        let rotation = layers.calculateRotation(longitude, latitude, magnitude)
+        const params = layers.calculateEllipseParams(magnitude).at(-1);
+        useSimulationPointStore().simulationPoints.forEach((item) => {
+            console.log(item, "item useSimulationPointStore")
+            if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+                allHiddeninEllipse.push(item)
+            }
+        })
+        return allHiddeninEllipse
+    },
     isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation) {
-        const center = Cesium.Cartesian3.fromDegrees(centerLon, centerLat);
-        const point = Cesium.Cartesian3.fromDegrees(pointLon, pointLat);
+        const center = Cesium.Cartesian3.fromDegrees(Number(centerLon), Number(centerLat));
+        const point = Cesium.Cartesian3.fromDegrees(Number(pointLon), Number(pointLat));
         let short = Math.min(majorAxis, minorAxis)
         let long = Math.max(majorAxis, minorAxis)
         // 构建椭圆边界（用于判断）
@@ -364,80 +379,6 @@ let layers = {
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
     },
-    highlightExistingEntities(type, longitude, latitude, magnitude) {
-        this.clearHaloEffectByType(type);
 
-        const params = this.calculateEllipseParams(magnitude).at(-1);
-        const rotation = this.calculateRotation(longitude, latitude);
-        const majorAxis = params.semiMajorAxis;
-        const minorAxis = params.semiMinorAxis;
-
-        const hits = [];
-
-        window.viewer.entities.values.forEach(entity => {
-            if (entity.name !== type) return;
-
-            // ✅ 修正：传入当前时间
-            const pos = entity.position?.getValue(Cesium.JulianDate.now());
-            if (!pos) return;
-
-            const carto = Cesium.Cartographic.fromCartesian(pos);
-            const lon = Cesium.Math.toDegrees(carto.longitude);
-            const lat = Cesium.Math.toDegrees(carto.latitude);
-
-            if (this.isPointInEllipse(lon, lat, longitude, latitude, majorAxis, minorAxis, rotation)) {
-                hits.push({ position: pos, color: Cesium.Color.RED });
-            }
-        });
-
-        this.addHaloEffect(type, hits);
-    },
-    addHaloEffect(type,entities) {
-        console.log(type,entities,"(type,entities)")
-        this.clearHaloEffectByType(type); // 先清旧的一类
-        if (!entities || !entities.length) return;
-
-        const coll = new Cesium.PointPrimitiveCollection();
-        window.viewer.scene.primitives.add(coll);
-        haloCollections.set(type, coll);
-
-        entities.forEach(({ position, color }) => {
-            coll.add({ position, pixelSize: 15, color, outlineColor: Cesium.Color.RED, outlineWidth: 1 });
-        });
-
-        let t = 0;
-        const dur = 2000;
-        const iv = setInterval(() => {
-            t = (t + 50) % dur;
-            const f = Math.sin(t / dur * Math.PI * 2);
-            for (let i = 0; i < coll.length; i++) {
-                const p = coll.get(i);
-                p.pixelSize = 15 + 15 * f;
-                p.color = p.color.withAlpha(0.8 - 0.4 * f);
-            }
-        }, 50);
-        haloIntervals.set(type, iv);
-
-    },
-
-    // 清除动画
-    clearHaloEffectByType(type) {
-        console.log('🔍 清除类型：', type);
-        console.log('📦 当前集合：', [...haloCollections.keys()]);
-        const coll = haloCollections.get(type);
-        const iv = haloIntervals.get(type);
-        if (iv) {
-            clearInterval(iv);
-            haloIntervals.delete(type);
-            console.log('✅ 已清除 interval');
-        }
-        if (coll) {
-            window.viewer.scene.primitives.remove(coll);
-            haloCollections.delete(type);
-            console.log('✅ 已清除 primitive');
-        } else {
-            console.warn('❗ 未找到该类型的 collection');
-        }
-    }
 }
 export default layers;

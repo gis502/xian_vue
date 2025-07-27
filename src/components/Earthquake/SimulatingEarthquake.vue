@@ -95,34 +95,44 @@ async function confirmEarthquake() {
   basicLayers.addCenterPoint({
     id: "earthquakeCenter",
     disasterName: "",
-    trigger: "",
+    trigger: "地震",
     longitude: position.longitude,
     latitude: position.latitude,
   });
 
   layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
+  let rotation = layers.calculateRotation(position.longitude, position.latitude, form.magnitude)
+  const params=layers.calculateEllipseParams(form.magnitude).at(-1);
 
-  // 处理各个模拟点
+  // // 处理各个模拟点
   let inEllipsePoints = [];
   useSimulationPointStore().simulationPoints.forEach((item) => {
     // 将模拟点的预测值全部清空，重新获取
     item.predict = null;
 
+
     // 判断在不在震圈内
     if (
-      layers.isPointInEllipse([
+      layers.isPointInEllipse(
         item.geologicalDisasterHideDTO.lon,
         item.geologicalDisasterHideDTO.lat,
-      ])
+        position.longitude,
+        position.latitude,
+        params.semiMajorAxis,
+        params.semiMinorAxis,
+        rotation
+      )
     ) {
       inEllipsePoints.push(item);
+      console.log(item.factorVoList,"factorVoList")
     }
   });
 
-  // 获取各个点的风险概率
+  // // 获取各个点的风险概率
   const [points, probabilityPoints] =
     await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
 
+  console.log(inEllipsePoints,points, probabilityPoints,"inEllipsePoints,points, probabilityPoints")
   // 清除全部脉冲实体
   pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
 
@@ -132,7 +142,7 @@ async function confirmEarthquake() {
   // 处理表格和chart数据
   addDatasToTableAndChart(probabilityPoints);
 
-  // 显示表格和chart
+  // // 显示表格和chart
   emit("displayTable");
   emit("displayChart");
 
