@@ -261,7 +261,7 @@
               </div>
             </el-form-item>
             <!--断层距离-->
-            <el-form-item :label="selectedEntityData.factorVoList.breakDistance?.attributeName"
+            <el-form-item v-show="false"  :label="selectedEntityData.factorVoList.breakDistance?.attributeName"
                           v-if="selectedEntityData.factorVoList.breakDistance?.attributeName">
               <div class="input-with-unit">
                 <el-input v-model="selectedEntityData.factorVoList.breakDistance.factorValue"/>
