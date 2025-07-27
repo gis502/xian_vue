@@ -5,6 +5,17 @@
       {{ calculationMessage }}
     </div>
 
+    <!-- 图例 -->
+    <Legend></Legend>
+
+    <!--    预警点table-->
+    <Table :dataTypes="dataTypes"></Table>
+
+    <!--    灾害点table-->
+    <!--    <Table :dataTypes="dataTypesRealDisater"></Table>-->
+
+
+
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
@@ -29,6 +40,9 @@ import basicLayers from "@/cesium/basicLayers.js";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
 import {pulseUtils} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+import Table from "@/components/Earthquake/Table.vue";
+import Legend from "@/components/Earthquake/Legend.vue";
+import {reactive} from "vue";
 
 export default {
   data() {
@@ -51,16 +65,76 @@ export default {
       warningPoints: null, // 存储预警点结果
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
+
+      dataTypes: {
+        filterCriteria: [
+          {
+            name: "滑坡预警点",
+            value: "type1",
+          },
+          {
+            name: "泥石流预警点",
+            value: "type2",
+          },
+          {
+            name: "风险区预警点",
+            value: "type3",
+          },
+        ],
+        type1: {
+          headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type2: {
+          headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type3: {
+          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
+      },
+      dataTypesRealDisater: {
+        filterCriteria: [
+          {
+            name: "滑坡预警点",
+            value: "type1",
+          },
+          {
+            name: "泥石流预警点",
+            value: "type2",
+          },
+          {
+            name: "风险区预警点",
+            value: "type3",
+          },
+        ],
+        type1: {
+          headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type2: {
+          headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type3: {
+          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
+      },
+      showBaseInfo:false,
     }
   },
   name: "timeLineLayer",
   props: ['viewer', 'disaterEvent', 'currentTime', 'onceLoadLayer'],
   watch: {
-    viewer() {
-      basicLayers.AddHazardSource()
-      basicLayers.loadLandSlide()
-      basicLayers.AddDangerAreaDataSource()
-      basicLayers.loadAdminData()
+    async viewer() {
+      await Promise.all([
+        basicLayers.AddHazardSource(),
+        basicLayers.loadLandSlide(),
+        basicLayers.AddDangerAreaDataSource(),
+        basicLayers.loadAdminData()
+      ]);
     },
     onceLoadLayer() {
       console.log(this.onceLoadLayer, "onceLoadLayer")
@@ -72,6 +146,10 @@ export default {
 
       }
     }
+  },
+  components: {
+    Legend,
+    Table
   },
   mounted() {
   },
@@ -154,8 +232,7 @@ export default {
             if (this.warningPoints) {
               // 如果已经计算过预警点，直接使用存储的结果
               pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
-            }
-            else {
+            } else {
 
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
@@ -166,6 +243,7 @@ export default {
 
               console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
 
+              this.pushprobabilityPointsinTable(probabilityPoints)
               // 清除全部脉冲实体
               pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
 
@@ -337,6 +415,46 @@ export default {
         }
       });
     },
+    pushprobabilityPointsinTable(probabilityPoints) {
+      // 清空表格数据
+      this.dataTypes.type1.data = [];
+      this.dataTypes.type2.data = [];
+      this.dataTypes.type3.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
+      probabilityPoints.forEach((item) => {
+        switch (item.geologicalDisasterHideDTO.disasterType) {
+          case "滑坡":
+            this.dataTypes.type1.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          case "泥石流":
+            this.dataTypes.type2.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          default:
+            this.dataTypes.type3.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.inspectorName,
+              field4: item.geologicalDisasterHideDTO.inspectorTele,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+        }
+      });
+    },
   }
 }
 </script>
@@ -404,10 +522,12 @@ export default {
   align-items: flex-start; /* 使所有选项左对齐 */
   padding-left: 20px; /* 向右移动选项 */
 }
+
 .el-checkbox {
   display: block; /* 将每个 checkbox 设置为块级元素 */
   margin-bottom: 10px; /* 添加一些间距 */
 }
+
 .calculation-message {
   position: fixed;
   top: 60px;
@@ -419,5 +539,10 @@ export default {
   border-radius: 5px;
   font-size: 14px;
   z-index: 1000;
+}
+
+:deep(.legend) {
+  bottom: 55px;
+  right: 45px;
 }
 </style>

@@ -57,6 +57,7 @@ export default {
     },
     position() {
       this.positionEntity = this.position
+      // console.log( this.positionEntity," this.positionEntity")
     },
   },
   computed: {

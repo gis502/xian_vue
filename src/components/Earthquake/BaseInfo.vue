@@ -1,22 +1,22 @@
 <!-- 左键实体显示内容 -->
 <template>
   <div
-    class="cesium-info-window"
-    :style="{
+      class="cesium-info-window"
+      :style="{
       top: position.top + 'px',
       left: position.left + 'px',
     }"
-    ref="cesiumInfoWindow"
+      ref="cesiumInfoWindow"
   >
     <div class="disaster-popup">
       <div class="popup-header">
         <h3>{{ title }}</h3>
         <el-button
-          type="info"
-          v-text="
+            type="info"
+            v-text="
             displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'
           "
-          @click="displayComponents"
+            @click="displayComponents"
         ></el-button>
         <button @click="emit('removeBaseInfoBox')" class="close-btn">
           关闭
@@ -25,26 +25,26 @@
 
       <!-- 滑坡信息 -->
       <Landslide
-        v-if="!displayDisasterCausingFactors && showDisasterInformation"
-        :info="disasterInformation"
+          v-if="!displayDisasterCausingFactors && showDisasterInformation"
+          :info="disasterInformation"
       ></Landslide>
 
       <!-- 泥石流 -->
       <DebrisFlow
-        v-if="!displayDisasterCausingFactors && showdebrisFlowInformation"
-        :info="debrisFlowInformation"
+          v-if="!displayDisasterCausingFactors && showdebrisFlowInformation"
+          :info="debrisFlowInformation"
       ></DebrisFlow>
 
       <!-- 风险点 -->
       <RiskPoints
-        v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
-        :info="riskPointsInformation"
+          v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
+          :info="riskPointsInformation"
       ></RiskPoints>
 
       <!-- 致灾因子信息 -->
       <Hazards
-        v-if="displayDisasterCausingFactors"
-        :hazardsDatas="hazards"
+          v-if="displayDisasterCausingFactors"
+          :hazardsDatas="hazards"
       ></Hazards>
     </div>
   </div>
@@ -114,7 +114,7 @@ function resetWindowPosition() {
 
   // 获取元素宽高
   const { elementWidth, elementHeight } = getElementSize(
-    cesiumInfoWindow.value
+      cesiumInfoWindow.value
   );
 
   // 获取元素位置
