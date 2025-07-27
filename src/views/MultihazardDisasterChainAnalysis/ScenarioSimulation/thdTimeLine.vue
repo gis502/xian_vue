@@ -29,7 +29,6 @@
         :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
     />
-
   </div>
 </template>
 

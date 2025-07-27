@@ -4,6 +4,8 @@
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
     </div>
+
+
     <div class="universalPanel" v-if="showLayerFeatures">
       <div class="panelTop">
         <h2 class="panelName">多源要素图层</h2>
@@ -32,19 +34,28 @@ export default {
         {id: '3', name: '泥石流隐患点'},
         {id: '4', name: '滑坡隐患点'},
         {id: '5', name: '风险区域'},
+        {id: '6', name: '泥石流隐患点预警点'},
+        {id: '7', name: '滑坡隐患点预警点'},
+        {id: '8', name: '风险区域预警点'},
       ],
-      selectedlayers: [],
-      prevSelectedLayers: []
+      selectedlayers: ['行政区划',  '泥石流隐患点', '滑坡隐患点', '风险区域'],
+      prevSelectedLayers:['行政区划',  '泥石流隐患点', '滑坡隐患点', '风险区域']
     }
   },
   name: "timeLineLayer",
   props: ['viewer', 'disaterEvent', 'currentTime','onceLoadLayer'],
   watch: {
+    viewer(){
+      basicLayers.AddHazardSource()
+      basicLayers.loadLandSlide()
+      basicLayers.AddDangerAreaDataSource()
+      basicLayers.loadAdminData()
+    },
     onceLoadLayer(){
       console.log(this.onceLoadLayer,"onceLoadLayer")
       if(this.onceLoadLayer){
         console.log(this.onceLoadLayer,"onceLoadLayer11")
-        this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域'];
+        this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域','泥石流隐患点预警点', '滑坡隐患点预警点', '风险区域预警点'];
         this.updateMapLayers();
       }
     }
@@ -101,32 +112,53 @@ export default {
           name: '泥石流隐患点',
           add: () => {
             basicLayers.AddHazardSource()
-            layers.haloEntitiesHazardSource(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
           },
           remove: () => {
             basicLayers.removeHazardSource()
-            layers.clearHaloEffectByType("泥石流隐患点")
           }
         },
         {
           name: '滑坡隐患点',
           add: () => {
             basicLayers.loadLandSlide()
-            layers.haloEntitiesLandSlide(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
           },
           remove: () => {
             basicLayers.removeLandSlide()
-            layers.clearHaloEffectByType("滑坡隐患点")
           }
         },
         {
           name: '风险区域',
           add: () => {
             basicLayers.AddDangerAreaDataSource()
-            layers.haloEntitiesDangerAreaDataSource(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
           },
           remove: () => {
             basicLayers.removeDangerAreaDataSource()
+          }
+        },
+        {
+          name: '泥石流隐患点预警点',
+          add: () => {
+            layers.highlightExistingEntities('泥石流隐患点',this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
+          },
+          remove: () => {
+            layers.clearHaloEffectByType("泥石流隐患点")
+          }
+        },
+        {
+          name: '滑坡隐患点预警点',
+          add: () => {
+            layers.highlightExistingEntities('滑坡隐患点',this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
+          },
+          remove: () => {
+            layers.clearHaloEffectByType("滑坡隐患点")
+          }
+        },
+        {
+          name: '风险区域预警点',
+          add: () => {
+            layers.highlightExistingEntities( '风险区域',this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude)
+          },
+          remove: () => {
             layers.clearHaloEffectByType("风险区域")
           }
         }

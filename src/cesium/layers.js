@@ -364,73 +364,36 @@ let layers = {
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
     },
-    haloEntitiesHazardSource(longitude, latitude, magnitude) {
-        let EllipseAxisa = this.calculateEllipseParams(magnitude).at(-1).semiMinorAxis
-        let EllipseAxisb = this.calculateEllipseParams(magnitude).at(-1).semiMajorAxis
-        let rotation = this.calculateRotation(longitude, latitude)
-        let haloEntities = []
-        let DangerAreaDataArr = []
-        DebrisFlow.features.forEach(DangerAreaData_source => {
-            DangerAreaDataArr.push(DangerAreaData_source)
-        })
-        DangerAreaDataArr.forEach(DangerAreaData_point => {
-            let lon = DangerAreaData_point.geometry.coordinates[0]
-            let lat = DangerAreaData_point.geometry.coordinates[1]
-            if (this.isPointInEllipse(parseFloat(lon), parseFloat(lat), longitude, latitude, EllipseAxisa, EllipseAxisb, rotation)) {
-                // 统一收集高亮点
-                haloEntities.push({
-                    position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-                    color: Cesium.Color.RED
-                });
-            }
-        })
-        // 批量调用统一光晕动画
-        this.addHaloEffect('泥石流隐患点',haloEntities);
-    },
-    haloEntitiesLandSlide(longitude, latitude, magnitude) {
-        let EllipseAxisa = this.calculateEllipseParams(magnitude).at(-1).semiMinorAxis
-        let EllipseAxisb = this.calculateEllipseParams(magnitude).at(-1).semiMajorAxis
-        let rotation = this.calculateRotation(longitude, latitude)
-        let haloEntities = []
-        for (let i = 0; i < landslide.length; i++) {
-            let lon = landslide[i].lon
-            let lat = landslide[i].lat
-            if (this.isPointInEllipse(parseFloat(lon), parseFloat(lat), longitude, latitude, EllipseAxisa, EllipseAxisb, rotation)) {
-                // 统一收集高亮点
-                haloEntities.push({
-                    position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-                    color: Cesium.Color.RED
-                });
-            }
-        }
-        // 批量调用统一光晕动画
-        this.addHaloEffect('滑坡隐患点',haloEntities);
-    },
-    haloEntitiesDangerAreaDataSource(longitude, latitude, magnitude) {
-        let EllipseAxisa = this.calculateEllipseParams(magnitude).at(-1).semiMinorAxis
-        let EllipseAxisb = this.calculateEllipseParams(magnitude).at(-1).semiMajorAxis
-        let rotation = this.calculateRotation(longitude, latitude)
-        let haloEntities = []
-        let DangerAreaDataArr = []
-        DangerAreaData.features.forEach(DangerAreaData_source => {
-            DangerAreaDataArr.push(DangerAreaData_source)
-        })
-        DangerAreaDataArr.forEach(DangerAreaData_point => {
-            let lon = DangerAreaData_point.geometry.coordinates[0]
-            let lat = DangerAreaData_point.geometry.coordinates[1]
-            if (this.isPointInEllipse(parseFloat(lon), parseFloat(lat), longitude, latitude, EllipseAxisa, EllipseAxisb, rotation)) {
-                // 统一收集高亮点
-                haloEntities.push({
-                    position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-                    color: Cesium.Color.RED
-                });
-            }
-        })
-        // 批量调用统一光晕动画
-        this.addHaloEffect('风险区域',haloEntities);
-    },
+    highlightExistingEntities(type, longitude, latitude, magnitude) {
+        this.clearHaloEffectByType(type);
 
+        const params = this.calculateEllipseParams(magnitude).at(-1);
+        const rotation = this.calculateRotation(longitude, latitude);
+        const majorAxis = params.semiMajorAxis;
+        const minorAxis = params.semiMinorAxis;
+
+        const hits = [];
+
+        window.viewer.entities.values.forEach(entity => {
+            if (entity.name !== type) return;
+
+            // ✅ 修正：传入当前时间
+            const pos = entity.position?.getValue(Cesium.JulianDate.now());
+            if (!pos) return;
+
+            const carto = Cesium.Cartographic.fromCartesian(pos);
+            const lon = Cesium.Math.toDegrees(carto.longitude);
+            const lat = Cesium.Math.toDegrees(carto.latitude);
+
+            if (this.isPointInEllipse(lon, lat, longitude, latitude, majorAxis, minorAxis, rotation)) {
+                hits.push({ position: pos, color: Cesium.Color.RED });
+            }
+        });
+
+        this.addHaloEffect(type, hits);
+    },
     addHaloEffect(type,entities) {
+        console.log(type,entities,"(type,entities)")
         this.clearHaloEffectByType(type); // 先清旧的一类
         if (!entities || !entities.length) return;
 
