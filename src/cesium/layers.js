@@ -431,29 +431,29 @@ let layers = {
     },
 
     addHaloEffect(type,entities) {
-            this.clearHaloEffectByType(type); // 先清旧的一类
-            if (!entities || !entities.length) return;
+        this.clearHaloEffectByType(type); // 先清旧的一类
+        if (!entities || !entities.length) return;
 
-            const coll = new Cesium.PointPrimitiveCollection();
-            window.viewer.scene.primitives.add(coll);
-            haloCollections.set(type, coll);
+        const coll = new Cesium.PointPrimitiveCollection();
+        window.viewer.scene.primitives.add(coll);
+        haloCollections.set(type, coll);
 
-            entities.forEach(({ position, color }) => {
-                coll.add({ position, pixelSize: 15, color, outlineColor: Cesium.Color.RED, outlineWidth: 1 });
-            });
+        entities.forEach(({ position, color }) => {
+            coll.add({ position, pixelSize: 15, color, outlineColor: Cesium.Color.RED, outlineWidth: 1 });
+        });
 
-            let t = 0;
-            const dur = 2000;
-            const iv = setInterval(() => {
-                t = (t + 50) % dur;
-                const f = Math.sin(t / dur * Math.PI * 2);
-                for (let i = 0; i < coll.length; i++) {
-                    const p = coll.get(i);
-                    p.pixelSize = 15 + 15 * f;
-                    p.color = p.color.withAlpha(0.8 - 0.4 * f);
-                }
-            }, 50);
-            haloIntervals.set(type, iv);
+        let t = 0;
+        const dur = 2000;
+        const iv = setInterval(() => {
+            t = (t + 50) % dur;
+            const f = Math.sin(t / dur * Math.PI * 2);
+            for (let i = 0; i < coll.length; i++) {
+                const p = coll.get(i);
+                p.pixelSize = 15 + 15 * f;
+                p.color = p.color.withAlpha(0.8 - 0.4 * f);
+            }
+        }, 50);
+        haloIntervals.set(type, iv);
 
     },
 

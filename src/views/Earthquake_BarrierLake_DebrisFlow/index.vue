@@ -20,7 +20,7 @@
             <el-button type="primary" @click="toggleHiddenDangerPoints()">
               {{ showHiddenDangerPoints ? '隐藏隐患点' : '显示隐患点' }}
             </el-button>
-            <el-button type="primary" @click="draw('point')">添加危险源</el-button>
+<!--            <el-button type="primary" @click="draw('point')">添加危险源</el-button>-->
             <el-button type="primary" @click="toggleRiskArea()">
               {{ showriskArea ? '隐藏风险区' : '显示风险区' }}
             </el-button>
@@ -171,7 +171,7 @@ export default {
       // this.mapViewer = this.viewer
 
       this.viewer = initCesium("cesiumContainer")
-
+      this.mapViewer = this.viewer
       //天地图导入
       // const imageLayers = this.viewer.scene.imageryLayers;
       // imageLayers.remove(imageLayers.get(0)); //移除默认影像图层
@@ -861,6 +861,7 @@ export default {
         //     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
         //   break;
         case "point":
+          console.log(22332)
           // 监听鼠标左键
           this.handler.setInputAction(function (movement) {
             // 从相机位置通过windowPosition 世界坐标中的像素创建一条射线。返回Cartesian3射线的位置和方向。
@@ -1359,6 +1360,18 @@ export default {
           viewer.entities.remove(entitys[f]);
         }
       }
+
+      // 隐藏断裂带
+      this.showFaultZone = false
+      this.HideFaultZone()
+
+      // 隐藏隐患点
+      this.showHiddenDangerPoints = false
+      this.HideHiddenDangerPoints()
+
+      // 隐藏风险区
+      this.showriskArea = false
+      this.Hideriskzone()
     },
 
     /**
