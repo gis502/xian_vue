@@ -1,5 +1,9 @@
 <template>
-  <div class="cesium-container" ref="cesiumContainer">
+  <div class="cesium-container" ref="cesiumContainer"
+       v-loading="loadingModel"
+       :element-loading-spinner="svg"
+       element-loading-svg-view-box="-10, -10, 50, 50"
+       element-loading-background="rgba(122, 122, 122, 0.8)">
     <!-- 功能按钮 -->
     <div class="controls">
       <div class="btn-group">
@@ -656,7 +660,8 @@ export default {
       // 新增：标记界面是否已关闭
       isClosed: false,
       // 新增：存储所有定时器ID
-      timers: []
+      timers: [],
+      loadingModel:false
     }
   },
   computed: {
@@ -1710,6 +1715,7 @@ export default {
         console.log(`标记点位于行政区划: ${adminArea.name}`);
         // 获取该行政区划的经纬度范围
         const adminCoordinates = adminArea.geometry.coordinates;
+        this.startLoading()
         // 检查灾害点是否在该行政区划内
         this.checkDisasterPointsInAdministration(adminCoordinates);
       } else {
@@ -2120,6 +2126,7 @@ export default {
               console.log(matchedHuapoEntities,"这是匹配的实体")
               this.flashDisasterPoints(allPointsInside,matchedHuapoEntities);
             }
+            this.stopLoading()
           })
         })
       }
@@ -3093,6 +3100,16 @@ export default {
       this.timers.push(id);
       return id;
     },
+
+    // 加载
+    startLoading(){
+      this.loadingModel = true;
+    },
+
+    // 停止加载
+    stopLoading() {
+      this.loadingModel = false;
+    }
   }
 
 }
