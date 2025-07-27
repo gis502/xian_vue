@@ -59,12 +59,12 @@
             <thead>
             <tr>
               <th style="width: 50px">序号</th>
-              <th style="width: 80px">来源</th>
-              <th>标题</th>
+              <th>来源</th>
+              <th style="width: 100px">标题</th>
               <th>时间</th>
               <th style="width: 70px">发布者</th>
               <th>内容</th>
-              <th style="width: 80px">实体分类</th>
+              <th style="width: 90px">实体分类</th>
             </tr>
             </thead>
             <tbody>
@@ -75,7 +75,7 @@
               <td>{{ formatDate(news.publishTime) }}</td>
               <td>{{ news.publishName }}</td>
               <td class="truncate-content" :title="news.content">{{ news.content }}</td>
-              <td>{{ news.newEntity }}</td>
+              <td >{{ news.newEntity }}</td>
             </tr>
             </tbody>
           </table>
@@ -252,7 +252,7 @@ const fetchNewsData = async (item = lastItem) => {
   console.log('最新数据lastItem:', lastItem)
   try {
     const res = await getNewsPage(pageNum.value, pageSize.value, lastItem)
-    console.log(res)
+    console.log("新闻数据",res)
     if (res.code === 200) {
       newsDataList.value = res.data.records
       total.value = res.data.total
@@ -267,8 +267,10 @@ const fetchNewsData = async (item = lastItem) => {
 
 // 分页变化时调用
 const handlePageChange = (newPage) => {
-  fetchNewsData(newPage) // 这里不需要手动传 lastItem，它会默认用上一次的
+  pageNum.value = newPage
+  fetchNewsData() // 使用已有 lastItem
 }
+
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleString()
@@ -370,6 +372,7 @@ const fetchData = async () => {
     tableData.value = res.data.records
     lastItem= tableData.value[0]
     total.value = res.data.total
+    console.log('最新数据:', tableData.value)
 
     await getData(lastItem) // 放这里确保拿到的是最新数据
   } catch (error) {
@@ -687,6 +690,7 @@ const getData = async (item) => {
 
     // 给节点分配图标样式
     chartStartData.value = chartData.value.map(item => {
+      console.log(lastDisasterData.value.disasterName)
       if (item.name === lastDisasterData.value.disasterName) {
         item.symbol = `image:///images/eqentity1.png`;
         item.itemStyle = {
@@ -1694,11 +1698,12 @@ onBeforeUnmount(() => {
 }
 
 .truncate-content {
-  max-width: 300px;
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 
 
 </style>
