@@ -19,6 +19,7 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
     data.factorVoList = points[i].factorVoList;
     data.entityId = points[i].entityId;
     datas.push(data);
+    console.log(datas)
 
     // 写入实体id
     entityIds.push(points[i].entityId);
@@ -30,6 +31,7 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
     method: "post",
     data: datas,
   });
+
 
   // 修改datas中实体id对应的预测值
   res.data.forEach(element => {

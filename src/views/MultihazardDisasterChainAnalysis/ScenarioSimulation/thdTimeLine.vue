@@ -15,19 +15,30 @@
     <div class="coordinate-box">
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}
     </div>
+    <!-- 点击弹窗 -->
+    <HiddenDisasterPanel
+        v-if="showBaseInfo"
+        :title="baseInfoTitle"
+        :position="PanelPosition"
+        :showDisasterInformation="showDisasterInformation"
+        :disasterInformation="disasterInformation"
+        :showdebrisFlowInformation="showdebrisFlowInformation"
+        :debrisFlowInformation="debrisFlowInformation"
+        :showRiskPointsInformation="showRiskPointsInformation"
+        :riskPointsInformation="riskPointsInformation"
+    />
+
     <timeLinePlay
         :viewer="viewer"
         :disaterEvent="disaterEvent"
         :currentTime="currentTimeString"
     />
-    <!--    :isMarkingLayer="isMarkingLayerLocal"-->
-    <!--    :stopTimePlay="stopTimePlay"-->
-    <!--    @startTimePlay="handleStartTimePlay"-->
     <timeLineLayer
         :viewer="viewer"
         :disaterEvent="disaterEvent"
         :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
+        @update:onceLoadLayer="onceLoadLayer = $event"
     />
   </div>
 </template>
@@ -35,7 +46,7 @@
 <script>
 import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
-import {initCesium,init_cesium_navigation, setupMouseCoordinateDisplay} from '@/cesium/initLayer.js'
+import {initCesium, init_cesium_navigation, setupMouseCoordinateDisplay} from '@/cesium/initLayer.js'
 import {getEarthquakeEventById, getDisasterRainById} from '@/api/system/disasterEvents'
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
@@ -43,10 +54,12 @@ import timeLine from "@/cesium/timeLine.js";
 //面板
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
+import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 //时间轴组件
 import timeLinePlay from "@/components/ScenarioSimulation/timeLinePlay.vue";
 import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
 import basicLayers from "@/cesium/basicLayers.js";
+
 export default {
   name: "thdTimeLine",
   props: ['id', 'trigger'],
@@ -63,14 +76,26 @@ export default {
       PanelData: {}, // TimeLinePanel弹窗的数据
       eqCenterPanelVisible: false,
       rainCenterPanelVisible: false,
+
+      baseInfoTitle: false,
+      showDisasterInformation: false,
+      showdebrisFlowInformation: false,
+      showRiskPointsInformation: false,
+      disasterInformation: null,
+      debrisFlowInformation: null,
+      riskPointsInformation: null,
+
+
+      showBaseInfo: false,
       //鼠标位置经纬度
       coordinateBoxData: {longitude: 108, latitude: 34},
 
       stopTimePlay: false,
       isTimeRunning: false,
       isMarkingLayerLocal: true,
-      currentTime:new Date(),
-      onceLoadLayer:false,
+      currentTime: new Date(),
+      onceLoadLayer: false,
+
     };
   },
   computed: {
@@ -86,6 +111,7 @@ export default {
   components: {
     eqCenterPanel,
     rainCenterPanel,
+    HiddenDisasterPanel,
 
     timeLinePlay,
     timeLineLayer
@@ -138,7 +164,7 @@ export default {
       let stopTimetmp = new Date(startTimetmp.getTime() + 10 * 24 * 3600 * 1000);
       let stopTime = Cesium.JulianDate.fromDate(stopTimetmp);
       let clock = new Cesium.Clock({
-        startTime:startTime,
+        startTime: startTime,
         stopTime: stopTime,
         currentTime: startTime,
         clockRange: Cesium.ClockRange.CLAMPED,
@@ -245,7 +271,7 @@ export default {
       this.updatePopupPosition(); // 确保位置已更新
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.plotShowOnlyPanelVisible || this.dataSourcePopupVisible) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo ) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -253,9 +279,10 @@ export default {
       setTimeout(() => {
         this.eqCenterPanelVisible = false;
         this.rainCenterPanelVisible = false;
-        viewer.clockViewModel.shouldAnimate = true;
-        this.onceLoadLayer=true
+        // viewer.clockViewModel.shouldAnimate = true;
+        this.onceLoadLayer = true
       }, 3000);
+
     },
 
     //-------信息面板弹框-----
@@ -263,58 +290,104 @@ export default {
       let that = this;
       // 在屏幕空间事件处理器中添加左键点击事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
-        // 检查点击位置是否拾取到实体
-        let pickedEntity = window.viewer.scene.pick(click.position);
-        window.selectedEntity = pickedEntity?.id;
+            // 检查点击位置是否拾取到实体
+            let pickedEntity = window.viewer.scene.pick(click.position);
+            window.selectedEntity = pickedEntity?.id;
 
-        // 如果拾取到实体
-        if (Cesium.defined(pickedEntity)) {
-          let entity = window.selectedEntity;
-          console.log(entity, "拾取entity")
-          // 计算图标的世界坐标
-          this.selectedEntityPosition = this.calculatePosition(click.position);
-          this.updatePopupPosition(); // 确保位置已更新
+            // 如果拾取到实体
+            if (Cesium.defined(pickedEntity)) {
+              let entity = window.selectedEntity;
+              console.log(entity, "拾取entity")
+              // 计算图标的世界坐标
+              this.selectedEntityPosition = this.calculatePosition(click.position);
+              this.updatePopupPosition(); // 确保位置已更新
 
 
-          // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
-          if (!entity.name) {
-            this.eqCenterPanelVisible = false;
-            this.rainCenterPanelVisible = false;
-            return;
-          }
-          // 如果点击的是标绘点
-          else if (entity.name === "地震中心") {
-            this.eqCenterPanelVisible = true;
-            this.rainCenterPanelVisible = false;
-            this.PanelPosition = this.selectedEntityPosition; // 更新位置
-            this.PanelData = {}
-            this.PanelData = this.extractDataForRouter(entity)
-          } else if (entity.name === "暴雨中心") {
-            this.eqCenterPanelVisible = false;
-            this.rainCenterPanelVisible = true;
-            this.PanelPosition = this.selectedEntityPosition; // 更新位置
-            this.PanelData = {}
-            this.PanelData = this.extractDataForRouter(entity)
-          } else {
-            this.rainCenterPanelVisible = false;
-            this.eqCenterPanelVisible = false;
-          }
-        }
-        //没有拾取到实体
-        else {
-          this.eqCenterPanelVisible = false;
-          this.rainCenterPanelVisible = false;
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-      // 在屏幕空间事件处理器中添加鼠标移动事件的处理逻辑
+              // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
+              if (!entity.name) {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = false;
+                return;
+              }
+              // 如果点击的是标绘点
+              else if (entity.name === "地震中心") {
+                this.eqCenterPanelVisible = true;
+                this.rainCenterPanelVisible = false;
+                this.showBaseInfo = false;
+                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+
+                this.PanelData = {}
+                this.PanelData = this.extractDataForRouter(entity)
+              } else if (entity.name === "暴雨中心") {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = true;
+                this.showBaseInfo = false;
+                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+
+                this.PanelData = {}
+                this.PanelData = this.extractDataForRouter(entity)
+              } else if (entity.name === "滑坡隐患点") {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = false;
+                this.showBaseInfo = true;
+                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                this.baseInfoTitle = entity.name;
+                this.showDisasterInformation = true;
+                this.showdebrisFlowInformation = false;
+                this.showRiskPointsInformation = false;
+                this.disasterInformation = entity.properties.data._value;
+                this.debrisFlowInformation = null
+                this.riskPointsInformation = null
+              } else if (entity.name === "泥石流隐患点") {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = false;
+                this.showBaseInfo = true;
+                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                this.baseInfoTitle = entity.name;
+
+                this.showDisasterInformation = false;
+                this.showdebrisFlowInformation = true;
+                this.showRiskPointsInformation = false;
+
+                this.disasterInformation = null
+                this.debrisFlowInformation = entity.properties.data._value;
+                this.riskPointsInformation = null
+              } else if (entity.name === "风险区域") {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = false;
+                this.showBaseInfo = true;
+                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                this.baseInfoTitle = entity.name;
+                this.showDisasterInformation = false;
+                this.showdebrisFlowInformation = false;
+                this.showRiskPointsInformation = true;
+
+                this.debrisFlowInformation = null
+                this.riskPointsInformation = null
+                this.riskPointsInformation = entity.properties.data._value;
+              } else {
+                this.rainCenterPanelVisible = false;
+                this.eqCenterPanelVisible = false;
+                this.showBaseInfo = false;
+              }
+            }
+            //没有拾取到实体
+            else {
+              this.eqCenterPanelVisible = false;
+              this.rainCenterPanelVisible = false;
+              this.showBaseInfo=false;
+            }
+          }, Cesium.ScreenSpaceEventType.LEFT_CLICK
+      );
+// 在屏幕空间事件处理器中添加鼠标移动事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.plotShowOnlyPanelVisible || this.dataSourcePopupVisible) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
     },
-    //计算点击位置的经纬度和高度
+//计算点击位置的经纬度和高度
     calculatePosition(clickPosition) {
       // 根据点击位置获取射线
       let ray = viewer.camera.getPickRay(clickPosition);
@@ -335,7 +408,7 @@ export default {
         z: height     // 高度
       };
     },
-    //更新弹窗位置
+//更新弹窗位置
     updatePopupPosition() {
       // 使用$nextTick确保DOM更新后才执行位置计算
       this.$nextTick(() => {
@@ -356,6 +429,7 @@ export default {
         }
       });
     },
+
     extractDataForRouter(entity) {
       let properties = {};
       entity.properties.propertyNames.forEach(name => {
@@ -363,18 +437,16 @@ export default {
       });
       return properties;
     },
-
-
   },
 
-  // //子-父-子，控制时间轴暂停与播放
-  // handleStopTimePlay() {
-  //   this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
-  //   console.log(this.stopTimePlay, "this.stopTimePlay")
-  // },
-  // handleStartTimePlay() {
-  //   this.stopTimePlay = false;
-  // },
+// //子-父-子，控制时间轴暂停与播放
+// handleStopTimePlay() {
+//   this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
+//   console.log(this.stopTimePlay, "this.stopTimePlay")
+// },
+// handleStartTimePlay() {
+//   this.stopTimePlay = false;
+// },
 }
 </script>
 
