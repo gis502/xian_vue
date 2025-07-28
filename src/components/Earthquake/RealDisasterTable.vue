@@ -126,10 +126,6 @@ function prevPage() {
   }
 }
 
-function handleTableClick(item) {
-  console.log("Clicked on item:", item);
-}
-
 const toggleTableVisibility = () => {
   isTableVisible.value = !isTableVisible.value;
 };
@@ -158,6 +154,24 @@ function updateTableData() {
     }
 }
 
+function handleTableClick(item) {
+  // console.log(item,"handleTableClick")
+  const longitude = item.field5; // 获取经度
+  const latitude = item.field6; // 获取纬度
+  // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
+  // if (cesiumViewer) {
+  window.viewer.scene.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
+      orientation: {
+        heading: Cesium.Math.toRadians(0.0),
+        pitch: Cesium.Math.toRadians(-90.0),
+        roll: 0.0,
+      },
+      duration: 2, // 飞行动画持续时间（秒）
+    });
+  // }
+}
+
 onMounted(() => {
   changeDataType();
 });
@@ -168,11 +182,6 @@ const throttledUpdateTableData = throttle(updateTableData, 1000);
 watch(() => props.currentTime, () => {
   throttledUpdateTableData();
 });
-// 监听 currentTime 的变化
-// watch(() => props.currentTime, () => {
-//   updateTableData();
-// });
-
 // 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   changeDataType();
