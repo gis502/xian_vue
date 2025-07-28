@@ -1,11 +1,11 @@
 <template>
   <div
-      id="cesium-container"
-      ref="cesiumContainer"
-      v-loading="loading"
-      :element-loading-spinner="svg"
-      element-loading-svg-view-box="-10, -10, 50, 50"
-      element-loading-background="rgba(122, 122, 122, 0.8)"
+    id="cesium-container"
+    ref="cesiumContainer"
+    v-loading="loading"
+    :element-loading-spinner="svg"
+    element-loading-svg-view-box="-10, -10, 50, 50"
+    element-loading-background="rgba(122, 122, 122, 0.8)"
   >
     <!-- 图例 -->
     <Legend></Legend>
@@ -18,42 +18,42 @@
 
     <!-- 点击弹窗 -->
     <BaseInfo
-        v-if="showBaseInfo"
-        :title="baseInfoTitle"
-        :position="baseInfoPosition"
-        :showDisasterInformation="showDisasterInformation"
-        :disasterInformation="disasterInformation"
-        :showdebrisFlowInformation="showdebrisFlowInformation"
-        :debrisFlowInformation="debrisFlowInformation"
-        :showRiskPointsInformation="showRiskPointsInformation"
-        :riskPointsInformation="riskPointsInformation"
-        :options="options"
-        @removeBaseInfoBox="removeBaseInfoBox"
+      v-if="showBaseInfo"
+      :title="baseInfoTitle"
+      :position="baseInfoPosition"
+      :showDisasterInformation="showDisasterInformation"
+      :disasterInformation="disasterInformation"
+      :showdebrisFlowInformation="showdebrisFlowInformation"
+      :debrisFlowInformation="debrisFlowInformation"
+      :showRiskPointsInformation="showRiskPointsInformation"
+      :riskPointsInformation="riskPointsInformation"
+      :options="options"
+      @removeBaseInfoBox="removeBaseInfoBox"
     />
 
     <!-- 地震模拟 -->
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation"
-      >地震模拟
+        >地震模拟
       </el-button>
       <el-button type="danger" @click="removeEarthquakeSimulation"
-      >清除地震模拟
+        >清除地震模拟
       </el-button>
     </div>
 
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
-        v-if="showEarthquakeSimulation"
-        :position="earthquakeSimulationPosition"
-        :dataTypes="dataTypes"
-        :chartDatas="chartDatas"
-        @displayTable="displayTable"
-        @hideTable="hideTable"
-        @displayChart="displayChart"
-        @hideChart="hideChart"
-        @cancelEarthquake="cancelEarthquake"
-        @startLoading="startLoading"
-        @stopLoading="stopLoading"
+      v-if="showEarthquakeSimulation"
+      :position="earthquakeSimulationPosition"
+      :dataTypes="dataTypes"
+      :chartDatas="chartDatas"
+      @displayTable="displayTable"
+      @hideTable="hideTable"
+      @displayChart="displayChart"
+      @hideChart="hideChart"
+      @cancelEarthquake="cancelEarthquake"
+      @startLoading="startLoading"
+      @stopLoading="stopLoading"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -99,7 +99,7 @@ const dataTypes = reactive({
     },
   ],
   type1: {
-    headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["滑坡灾害名称", "位置", "危险程度", "产生滑坡的概率"],
     data: [],
   },
   type2: {
@@ -224,7 +224,6 @@ function setupEntityClickHandler() {
     showBaseInfo.value = false;
     // 获取点击位置的实体
     const pickedObject = window.viewer.scene.pick(click.position);
-    // console.log(pickedObject)
 
     try {
       if (pickedObject && Cesium.defined(pickedObject.id)) {
@@ -236,18 +235,18 @@ function setupEntityClickHandler() {
         // 显示弹窗
         if (entity.properties) {
           if (
-              entity.properties.data._value.geologicalDisasterHideDTO
-                  .disasterType === "滑坡" ||
-              entity.properties.data._value.geologicalDisasterHideDTO
-                  .disasterType === "泥石流"
+            entity.properties.data._value.geologicalDisasterHideDTO
+              .disasterType === "滑坡" ||
+            entity.properties.data._value.geologicalDisasterHideDTO
+              .disasterType === "泥石流"
           ) {
             isRisk = false; // 不是风险区
           }
 
           //屏幕坐标转世界坐标
           let cartesian = window.viewer.scene.globe.pick(
-              window.viewer.camera.getPickRay(click.position),
-              window.viewer.scene
+            window.viewer.camera.getPickRay(click.position),
+            window.viewer.scene
           );
           //世界坐标转经纬度
           let ellipsoid = window.viewer.scene.globe.ellipsoid;
@@ -270,10 +269,10 @@ function setupEntityClickHandler() {
                 showInfoList(entity.properties.data._value, entity, "风险区");
               } else {
                 showInfoList(
-                    entity.properties.data._value,
-                    entity,
-                    entity.properties.data._value.geologicalDisasterHideDTO
-                        .disasterType
+                  entity.properties.data._value,
+                  entity,
+                  entity.properties.data._value.geologicalDisasterHideDTO
+                    .disasterType
                 );
               }
             },
@@ -292,7 +291,7 @@ function showInfoList(info, entity, flag) {
   // 获取实体位置的屏幕坐标
   const position = entity.position.getValue(window.viewer.clock.currentTime);
   const canvasPosition =
-      window.viewer.scene.cartesianToCanvasCoordinates(position);
+    window.viewer.scene.cartesianToCanvasCoordinates(position);
   if (!canvasPosition) return; // 位置不可见时返回
 
   // 计算窗口位置（基于屏幕坐标偏移）
@@ -332,20 +331,28 @@ function startEarthquakeSimulation() {
 
   // 保存事件处理函数以便后续移除
   earthquakeClickHandler = new Cesium.ScreenSpaceEventHandler(
-      window.viewer.canvas
+    window.viewer.canvas
   );
 
   // 设置事件监听
   earthquakeClickHandler.setInputAction((event) => {
     if (!showEarthquakeSimulation.value) {
+      const pick = window.viewer.scene.pick(event.position);
+      const entity = pick && pick.id;
+     
       // 显示弹窗
       showEarthquakeSimulation.value = true;
       earthquakeSimulationPosition.value = event.position;
       const latitudeAndLongitude = getClickedPosition(event.position);
       earthquakeSimulationPosition.value.latitude =
-          latitudeAndLongitude.latitude;
+        latitudeAndLongitude.latitude;
       earthquakeSimulationPosition.value.longitude =
-          latitudeAndLongitude.longitude;
+        latitudeAndLongitude.longitude;
+      
+      // 添加地点
+      earthquakeSimulationPosition.value.name = entity && entity._name;
+    } else {
+      cancelEarthquake();
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -375,7 +382,7 @@ function cancelEarthquake() {
   // 如果正在监听则移除事件
   if (isMonitoringEarthquake && earthquakeClickHandler) {
     earthquakeClickHandler.removeInputAction(
-        Cesium.ScreenSpaceEventType.LEFT_CLICK
+      Cesium.ScreenSpaceEventType.LEFT_CLICK
     );
     isMonitoringEarthquake = false;
     earthquakeClickHandler = null;

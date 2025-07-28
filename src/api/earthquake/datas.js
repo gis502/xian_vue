@@ -139,3 +139,16 @@ export const riskVillageData = () => {
     method: "get",
   });
 };
+
+/**
+ * 添加数据到灾害表中
+ * @param {*} data - 添加的数据
+ * @returns 
+ */
+export const addDisaster = (data) => {
+  return request({
+    url: "/XianEarthquakeList/disaster/add",
+    method: "post",
+    data
+  });
+}
