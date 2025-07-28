@@ -102,8 +102,8 @@ export default {
       endTime: new Date()
     }
   },
-  // props: ['viewer','disaterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
-  props: ['viewer', 'disaterEvent', 'currentTime'],
+  // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
+  props: ['viewer', 'disasterEvent', 'currentTime'],
   watch: {
     currentTime(newVal, oldVal) {
       if (newVal && oldVal && newVal !== oldVal) {
@@ -115,12 +115,12 @@ export default {
         this.ifstopandflash(newVal, oldVal);
       }
     },
-    disaterEvent(newVal) {
+    disasterEvent(newVal) {
 
       // this.getPlotwithStartandEndTime(this.eqid)
-      this.startTime = new Date(this.disaterEvent.occurrenceTime);
+      this.startTime = new Date(this.disasterEvent.occurrenceTime);
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
-      console.log(this.disaterEvent, "this.startTime,this.endTime,")
+      console.log(this.disasterEvent, "this.startTime,this.endTime,")
       console.log(this.startTime, "this.startTime,this.endTime,")
       console.log(this.endTime, "this.startTime,this.endTime,")
       let realTime = new Date()
@@ -265,7 +265,7 @@ export default {
     },
     backToStart() {
       window.viewer.clockViewModel.shouldAnimate = false;
-      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disaterEvent.occurrenceTime));
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disasterEvent.occurrenceTime));
       window.viewer.clock.multiplier = this.currentSpeed
       this.flyflag = true
       this.endflag = true;
