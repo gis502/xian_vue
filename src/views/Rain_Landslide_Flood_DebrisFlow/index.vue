@@ -705,7 +705,6 @@ export default {
     document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
-
     load() {
       const container = this.$refs.cesiumContainer;
 
@@ -2999,7 +2998,6 @@ export default {
         })
       })
     },
-
     // 关闭界面的方法（调用此方法时触发资源释放）
     closeInterface() {
       this.isClosed = true;
