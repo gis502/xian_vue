@@ -5,7 +5,8 @@ export function rainSlideTrigger(data) {
     return request({
         url: '/model/rainSlideTrigger',
         method: 'post',
-        data: data
+        data: data,
+        timeout:20000
     });
 }
 
@@ -14,6 +15,7 @@ export function rainSlideFactorUpdata(data) {
     return request({
         url: '/model/rainSlideFactorUpdata',
         method: 'post',
-        data: data
+        data: data,
+        timeout:20000
     });
 }

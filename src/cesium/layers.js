@@ -351,7 +351,7 @@ let layers = {
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
         const params = layers.calculateEllipseParams(magnitude).at(-1);
         useSimulationPointStore().simulationPoints.forEach((item) => {
-            console.log(item, "item useSimulationPointStore")
+            // console.log(item, "item useSimulationPointStore")
             if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
                 allHiddeninEllipse.push(item)
             }

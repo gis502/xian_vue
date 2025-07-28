@@ -6,5 +6,6 @@ export function getGeologicalDisasterRiskList() {
     return request({
         url: '/risk/villages',
         method: 'get',
+        timeout:20000
     });
 }
