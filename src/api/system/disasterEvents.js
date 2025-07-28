@@ -29,4 +29,12 @@ export function getDisasterRainById(data){
     })
 }
 
+export function selectDisasterRealByDisasterId(data) {
+    return request({
+        url: '/XianDisasterReal/selectDisasterRealByDisasterId',
+        method: 'post',
+        params:data
+    })
+}
+
 

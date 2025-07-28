@@ -30,12 +30,12 @@
 
     <timeLinePlay
         :viewer="viewer"
-        :disaterEvent="disaterEvent"
+        :disasterEvent="disasterEvent"
         :currentTime="currentTimeString"
     />
     <timeLineLayer
         :viewer="viewer"
-        :disaterEvent="disaterEvent"
+        :disasterEvent="disasterEvent"
         :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
         @update:onceLoadLayer="onceLoadLayer = $event"
@@ -67,7 +67,7 @@ export default {
     return {
       viewer: null,
 
-      disaterEvent: null,
+      disasterEvent: null,
       centerpoint: null,
       //---信息弹框---
       hasUpdatedPosition: false,
@@ -143,23 +143,23 @@ export default {
     async init() {
       let that = this
       if (this.trigger == "地震") {
-        this.disaterEvent = await getEarthquakeEventById({id: this.id})
-        this.disaterEvent.trigger = "地震"
+        this.disasterEvent = await getEarthquakeEventById({id: this.id})
+        this.disasterEvent.trigger = "地震"
       } else if (this.trigger == "暴雨") {
-        this.disaterEvent = await getDisasterRainById({id: this.id})
-        this.disaterEvent.trigger = "暴雨"
+        this.disasterEvent = await getDisasterRainById({id: this.id})
+        this.disasterEvent.trigger = "暴雨"
       }
 
-      let {longitude, latitude} = parsePointString(this.disaterEvent.geom)
-      this.disaterEvent.longitude = longitude
-      this.disaterEvent.latitude = latitude
+      let {longitude, latitude} = parsePointString(this.disasterEvent.geom)
+      this.disasterEvent.longitude = longitude
+      this.disasterEvent.latitude = latitude
 
-      if (!this.disaterEvent.occurrenceTime) {
-        console.error("Invalid occurrenceTime:", this.disaterEvent.occurrenceTime);
+      if (!this.disasterEvent.occurrenceTime) {
+        console.error("Invalid occurrenceTime:", this.disasterEvent.occurrenceTime);
         return;
       }
 
-      let startTimetmp = new Date(this.disaterEvent.occurrenceTime);
+      let startTimetmp = new Date(this.disasterEvent.occurrenceTime);
       let startTime = Cesium.JulianDate.fromDate(startTimetmp);
       let stopTimetmp = new Date(startTimetmp.getTime() + 10 * 24 * 3600 * 1000);
       let stopTime = Cesium.JulianDate.fromDate(stopTimetmp);
@@ -240,26 +240,26 @@ export default {
       window.viewer = viewer
       this.viewer = viewer
 
-      init_cesium_navigation(this.disaterEvent.longitude, this.disaterEvent.latitude, viewer)
+      init_cesium_navigation(this.disasterEvent.longitude, this.disasterEvent.latitude, viewer)
       this.MouseCoordinateHandler = setupMouseCoordinateDisplay(this.viewer, this.coordinateBoxData)
-      this.centerpoint = basicLayers.addCenterPoint(this.disaterEvent)
+      this.centerpoint = basicLayers.addCenterPoint(this.disasterEvent)
       this.locatedCenter()
       this.entitiesClickPonpHandler()
     },
     async locatedCenter() {
-      await timeLine.fly(this.disaterEvent.longitude, this.disaterEvent.latitude, 200000)
+      await timeLine.fly(this.disasterEvent.longitude, this.disasterEvent.latitude, 200000)
       //中心面板闪烁
-      if (this.disaterEvent.trigger == "地震") {
+      if (this.disasterEvent.trigger == "地震") {
         this.eqCenterPanelVisible = true;
-      } else if (this.disaterEvent.trigger == "暴雨") {
+      } else if (this.disasterEvent.trigger == "暴雨") {
         this.rainCenterPanelVisible = true;
       }
       this.PanelData = this.extractDataForRouter(this.centerpoint)
 
       this.selectedEntity = this.centerpoint
       this.selectedEntityPosition = {
-        x: this.disaterEvent.longitude, // 经度
-        y: this.disaterEvent.latitude,  // 纬度
+        x: this.disasterEvent.longitude, // 经度
+        y: this.disasterEvent.latitude,  // 纬度
         z: 0     // 高度
       };
       let position = this.centerpoint.position.getValue(Cesium.JulianDate.now());

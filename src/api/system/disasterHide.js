@@ -6,6 +6,7 @@ export function getGeologicalDisasterHideByLandSlideList() {
     return request({
         url: '/hide/slide',
         method: 'get',
+        timeout:20000
     });
 }
 
@@ -14,5 +15,6 @@ export function getGeologicalDisasterHideByFlowList() {
     return request({
         url: '/hide/flow',
         method: 'get',
+        timeout:20000
     });
 }
