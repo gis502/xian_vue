@@ -13,6 +13,7 @@ export const staticHazardsDatas = [
     unit: "米", // 单位
     type: "input.number", // 表单类型，input表示输入框，number表示数字输入框
     isModified: true, // 是否可以修改
+    isShow: true,     // 是否显示
   },
   {
     attributeName: "坡度",
@@ -21,6 +22,7 @@ export const staticHazardsDatas = [
     unit: "度",
     type: "input.number",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "岩土类型",
@@ -28,7 +30,8 @@ export const staticHazardsDatas = [
     factorValue: "黄土",
     unit: "",
     type: "select",
-    isModified: true
+    isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "断层距离",
@@ -37,6 +40,7 @@ export const staticHazardsDatas = [
     unit: "米",
     type: "input.number",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "土地利用类型",
@@ -45,6 +49,7 @@ export const staticHazardsDatas = [
     unit: "",
     type: "select",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "水系距离",
@@ -53,6 +58,7 @@ export const staticHazardsDatas = [
     unit: "米",
     type: "input.number",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "降雨量",
@@ -61,6 +67,7 @@ export const staticHazardsDatas = [
     unit: "mm",
     type: "input.number",
     isModified: true,
+    isShow: false,  
   },
   {
     attributeName: "植被覆盖率",
@@ -69,6 +76,7 @@ export const staticHazardsDatas = [
     unit: "%",
     type: "input.number",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "坡面曲率",
@@ -77,6 +85,7 @@ export const staticHazardsDatas = [
     unit: "%",
     type: "input.number",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "土壤沙砾度",
@@ -85,6 +94,7 @@ export const staticHazardsDatas = [
     unit: "%",
     type: "input.number",
     isModified: true,
+    isShow: true,  
   },
   {
     attributeName: "坡型",
@@ -92,7 +102,8 @@ export const staticHazardsDatas = [
     factorValue: "阶梯",
     unit: "",
     type: "select",
-    isModified: true
+    isModified: true,
+    isShow: true,  
   },
 ];
 

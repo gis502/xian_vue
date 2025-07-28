@@ -7,6 +7,7 @@
     <el-form :model="form" label-width="auto" style="max-width: 100%">
       <el-form-item
         v-for="(item, index) in hazardsDatas.factorVoList"
+        v-show="item.isShow"
         :key="item.attributeNameAlias"
         :label="item.attributeName"
       >
@@ -66,6 +67,7 @@ let options = ref([]);
 onBeforeMount(() => {
   // 设置默认值
   hazards.hazardsDatas.factorVoList.forEach((element) => {
+    console.log(element);
     form.push(element);
   });
 

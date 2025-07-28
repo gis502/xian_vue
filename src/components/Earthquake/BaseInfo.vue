@@ -82,6 +82,12 @@ let hazards = computed(() => {
     parentDatas.disasterInformation.factorVoList.forEach((element) => {
       element.type = element.unit == "" ? "select" : "input:number";
       element.isModified = true;
+      element.isShow = true;
+
+      // 隐藏降雨量
+      if(element.attributeNameAlias	== 'rainfall') {
+        element.isShow = false;
+      }
     });
     return parentDatas.disasterInformation;
   }

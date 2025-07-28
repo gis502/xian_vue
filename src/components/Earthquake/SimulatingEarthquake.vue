@@ -17,50 +17,97 @@
         :model="form"
         label-width="auto"
       >
-        <el-form-item label="震级" prop="magnitude">
-          <el-input
-            v-model="form.magnitude"
-            type="number"
-            min="0"
-            max="10"
-            step="0.1"
-          >
-            <template #append>Ms</template>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="纬度" prop="longitude">
-          <el-input v-model="form.longitude" type="number" />
-        </el-form-item>
-        <el-form-item label="经度" prop="latitude">
-          <el-input v-model="form.latitude" type="number" />
-        </el-form-item>
-        <el-form-item label="时间" prop="dateTime">
-          <el-date-picker
-            v-model="form.dateTime"
-            type="datetime"
-            placeholder="选择日期时间"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-row :gutter="10" style="width: 100%">
-            <el-col :span="12">
+        <el-row gutter="10">
+          <el-col :span="24">
+            <el-form-item label="地震名称" prop="name">
+              <el-input v-model="form.name"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row gutter="10">
+          <el-col :span="24">
+            <el-form-item label="地震全称" prop="fullName">
+              <el-input v-model="form.fullName"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row gutter="10">
+          <el-col :span="12">
+            <el-form-item label="震级" prop="magnitude">
+              <el-input
+                v-model="form.magnitude"
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+              >
+                <template #append>Ms</template>
+              </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="震源深度" prop="depth">
+              <el-input v-model="form.depth" type="number">
+                <template #append>km</template>
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row gutter="10">
+          <el-col :span="12">
+            <el-form-item label="纬度" prop="longitude">
+              <el-input v-model="form.longitude" type="number" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="经度" prop="latitude">
+              <el-input v-model="form.latitude" type="number" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row gutter="10">
+          <el-col :span="12">
+            <el-form-item label="时间" prop="dateTime">
+              <el-date-picker
+                v-model="form.dateTime"
+                type="datetime"
+                placeholder="选择日期时间"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="地震类型" prop="type">
+              <el-select v-model="form.type">
+                <el-option label="正式" value="Z"></el-option>
+                <el-option label="演练" value="Y"></el-option>
+                <el-option label="测试" value="T"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item>
               <el-button
                 type="success"
                 @click="confirmEarthquake(ruleFormRef)"
                 style="width: 100%"
                 >确认添加</el-button
               >
-            </el-col>
-            <el-col :span="12">
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item>
               <el-button
                 type="danger"
                 @click="emit('cancelEarthquake')"
                 style="width: 100%"
                 >取消</el-button
               >
-            </el-col>
-          </el-row>
-        </el-form-item>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
     </div>
   </div>
@@ -79,19 +126,50 @@ const ruleFormRef = ref();
 
 // 表单元素
 let form = reactive({
+  name: "",
+  fullName: "",
   magnitude: 6,
+  depth: 0,
   longitude: parseFloat(position.longitude.toFixed(4)),
   latitude: parseFloat(position.latitude.toFixed(4)),
   dateTime: "",
+  type: "",
 });
 
 // 验证规则
 const rules = reactive({
-  magnitude: [{ required: true, message: "震级不能为空", trigger: "blur" }],
+  name: [
+    {
+      required: true,
+      message: "地震名称不能为空",
+      trigger: "blur",
+    },
+  ],
+  fullName: [
+    {
+      required: true,
+      message: "地震全称不能为空",
+      trigger: "blur",
+    },
+  ],
+  magnitude: [
+    {
+      required: true,
+      message: "震级不能为空",
+      trigger: "blur",
+    },
+  ],
   longitude: [
     {
       required: true,
-      message: "纬度不能为空",
+      message: "震级不能为空",
+      trigger: "blur",
+    },
+  ],
+  depth: [
+    {
+      required: true,
+      message: "震源深度不能为空",
       trigger: "blur",
     },
   ],
@@ -107,6 +185,13 @@ const rules = reactive({
       type: "date",
       required: true,
       message: "请选择日期事件",
+      trigger: "blur",
+    },
+  ],
+  type: [
+    {
+      required: true,
+      message: "地震类型不能为空",
       trigger: "blur",
     },
   ],
@@ -189,7 +274,7 @@ async function confirmEarthquake(formEl) {
             position.latitude,
             semiMinor.semiMajorAxis,
             semiMinor.semiMinorAxis,
-            rotation,
+            rotation
           )
         ) {
           inEllipsePoints.push(item);
@@ -282,7 +367,7 @@ function addDatasToTableAndChart(probabilityPoints) {
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
-  width: 250px;
+  width: 500px;
 }
 .panel-title {
   text-align: center;
@@ -290,6 +375,6 @@ function addDatasToTableAndChart(probabilityPoints) {
 }
 
 ::v-deep .el-form-item__label {
-  color: #FFF;
+  color: #fff;
 }
 </style>
