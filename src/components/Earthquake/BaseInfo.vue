@@ -45,6 +45,7 @@
       <Hazards
           v-if="displayDisasterCausingFactors"
           :hazardsDatas="hazards"
+          :options="options"
       ></Hazards>
     </div>
   </div>
@@ -68,6 +69,7 @@ const parentDatas = defineProps([
   "debrisFlowInformation",
   "showRiskPointsInformation",
   "riskPointsInformation",
+  "options"
 ]);
 
 // 是否显示致灾因子

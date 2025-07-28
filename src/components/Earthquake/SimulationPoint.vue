@@ -19,7 +19,7 @@ useSimulationPointStore().clearSimulationPoints();
 
 // 添加风险区
 riskVillageData().then((res) => {
-  // 修改数据结构，待后续接口同意后更改
+  // 修改数据结构，待后续接口统一后更改
   const datas = [];
 
   res.data.features.forEach((item) => {

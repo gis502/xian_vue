@@ -25,15 +25,10 @@ export const staticHazardsDatas = [
   {
     attributeName: "岩土类型",
     attributeNameAlias: "rockType",
-    factorValue: "沙岩",
+    factorValue: "黄土",
     unit: "",
     type: "select",
-    isModified: true,
-    options: [
-      { label: "沙岩", value: "沙岩" },
-      { label: "砾岩", value: "砾岩" },
-      // ...
-    ],
+    isModified: true
   },
   {
     attributeName: "断层距离",
@@ -46,15 +41,10 @@ export const staticHazardsDatas = [
   {
     attributeName: "土地利用类型",
     attributeNameAlias: "landUseType",
-    factorValue: "人工地",
+    factorValue: "林地",
     unit: "",
     type: "select",
     isModified: true,
-    options: [
-      { label: "人工地", value: "人工地" },
-      { label: "自然地", value: "自然地" },
-      // ...
-    ],
   },
   {
     attributeName: "水系距离",
@@ -99,16 +89,10 @@ export const staticHazardsDatas = [
   {
     attributeName: "坡型",
     attributeNameAlias: "slopeType",
-    factorValue: "凹型",
+    factorValue: "阶梯",
     unit: "",
     type: "select",
-    isModified: true,
-    options: [
-      { label: "凹型", value: "凹型" },
-      { label: "凸型", value: "凸型" },
-      { label: "直线", value: "直线" },
-      { label: "阶梯", value: "阶梯" },
-    ],
+    isModified: true
   },
 ];
 
