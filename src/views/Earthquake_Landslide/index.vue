@@ -27,6 +27,7 @@
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :options="options"
         @removeBaseInfoBox="removeBaseInfoBox"
     />
 
@@ -76,6 +77,7 @@ import { useSimulationPointStore } from "../../store/earthquake/simulation_point
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
+import { getHazardOptions } from "../../api/earthquake/hazards";
 
 // 加载
 let loading = ref(false);
@@ -153,6 +155,9 @@ let earthquakeClickHandler = null;
 
 let entityClickHandler = ref(null);
 
+// 下拉列表选项
+let options = ref([]);
+
 onMounted(() => {
   window.viewer = initCesium("cesium-container");
 
@@ -164,6 +169,11 @@ onMounted(() => {
 
   // 点击隐患点触发
   setupEntityClickHandler();
+
+  // 获取致灾因子下拉列表选项
+  getHazardOptions().then((res) => {
+    options.value = res;
+  });
 
   // 罗盘
   init_cesium_navigation(108.948024, 34.263161, window.viewer);

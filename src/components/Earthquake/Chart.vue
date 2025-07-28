@@ -18,7 +18,6 @@ const { chartDatas } = defineProps(["chartDatas"]);
 
 onMounted(() => {
   addChart();
-  console.log(111, chartDatas);
 });
 
 // 添加chart
