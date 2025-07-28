@@ -54,7 +54,7 @@
       <!-- 新闻展示悬浮框 - 列表表格样式 -->
       <div v-if="isNewsBoxVisible" class="news-float-box">
         <div class="news-box-title">新闻信息列表</div>
-        <div class="news-scroll-area">
+        <div class="news-scroll-area fixed-header-table">
           <table class="news-table">
             <thead>
             <tr>
@@ -1678,7 +1678,18 @@ onBeforeUnmount(() => {
   max-height: 300px;
   overflow-y: auto;
 }
+.fixed-header-table table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
 
+.fixed-header-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #ccc;
+}
 .news-table {
   min-width: 800px; /* ✅ 设置表格整体宽度，触发横向滚动 */
   width: 100%;
