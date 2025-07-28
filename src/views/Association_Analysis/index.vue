@@ -91,12 +91,7 @@
 
     <div class="legend">
       <div class="legend-title">图例</div>
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(246,5,5,0.5);"></span>Ⅻ度</div>-->
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(231,7,7,0.4);"></span>Ⅺ度</div>-->
-<!--      <div class="legend-item"><span class="legend-color" style="background: rgba(182,37,37,0.4);"></span>Ⅹ度</div>-->
-<!--      <div class="legend-item"><span class="legend-circle" style="background: yellow;"></span> 震源</div>-->
-<!--      <div class="legend-item"><span class="legend-line" style="background: #ff0000;"></span>断裂带</div>-->
-<!--      <div class="legend-item"><span class="legend-circle" style="background: #ff0000;"></span> 危险源</div>-->
+      <div class="legend-content" ref="legendContent"></div>
       <div class="legend-item">
         <div class="legend-icon" id="flow"></div>
         泥石流隐患点
@@ -149,7 +144,7 @@
     </div>
 
     <!-- 新增的预警点信息表格区域 -->
-    <div class="warn-point-table">
+    <div  v-if="tableChange==true" class="warn-point-table">
       <button @click="togglePointTableVisibility" class="toggle-point-table-btn">{{ iswarn_point_table ? '-' : '+' }}</button>
       <div class="table-title">预警点信息</div>
       <table v-if="iswarn_point_table" style="table-layout: fixed;">
@@ -194,6 +189,45 @@
       </div>
     </div>
 
+    <!-- 新增的历史案例表格区域 -->
+    <div  v-if="tableChange==false" class="warn-point-table">
+      <button @click="togglePointTableVisibility" class="toggle-point-table-btn">{{ iswarn_point_table ? '-' : '+' }}</button>
+      <div class="table-title">历史案例信息</div>
+      <table v-if="iswarn_point_table" style="table-layout: fixed;">
+        <thead>
+        <tr >
+          <th style="text-align: center" v-for="(header, index) in history_disasterHeaders" :key="index">{{ header }}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.locateName">
+            {{ this.hisDas.locateName}}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.historyDisasterevent">
+            {{ this.hisDas.historyDisasterevent }}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.historyDisastertype">
+            {{ this.hisDas.historyDisastertype}}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.missing_persons">
+            {{ this.hisDas.missing_persons }}
+          </td>
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.collapsedHouses">
+            {{ this.hisDas.collapsedHouses}}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+<!--      <div class="pagination-controls" v-if="iswarn_point_table">-->
+<!--        <button @click="prevPointPage" :disabled="currentPointPage === 1">上一页</button>-->
+<!--        <span>{{ currentPointPage }} / {{ totalPointPages }}</span>-->
+<!--        <button @click="nextPointPage" :disabled="currentPointPage === totalPointPages">下一页</button>-->
+<!--        <span class="total-items">共 {{ warn_point.length }} 条</span>-->
+<!--      </div>-->
+    </div>
+
     <!-- 图表容器 -->
     <div class="chart-container">
       <div id="main" style="height: 100%"></div>
@@ -229,7 +263,7 @@ import flowIcon from "@/assets/images/DebrisFlow.png"
 import CesiumNavigation from "cesium-navigation-es6";
 import {initCesium} from '@/cesium/initLayer.js'
 import axios from 'axios';
-import {getFlow, getRisk, getSlide} from "@/api/system/association_analysis.js";
+import {getFlow, getRisk, getSlide,getHistoryDisaster} from "@/api/system/association_analysis.js";
 import * as echarts from "echarts";
 
 export default {
@@ -325,6 +359,7 @@ export default {
       currentPage: 1,
       tableHeaders: ['区县名称','降水量', '温度', '湿度'],
       point_tableHeaders: ['预警点名称', '预警灾害类型','预警点危险等级','预警灾害规模', '预警点位置'],
+      history_disasterHeaders: ['灾害位置', '灾害名称','灾害类型','遇难人数', '倒塌房屋'],
       pageSize: 4,
       slide: [], // 滑坡隐患点信息
       warn_point: [], //预警点数组
@@ -332,6 +367,10 @@ export default {
       currentPointPage: 1,
       pagePointSize: 5,
       countByCounty: [], //预警点统计数量数组
+      history_desaster: [], //历史灾害数组
+      tableChange: true, //表格变化
+      hisDas: null,
+      districtColors: {}, // 存储各区县的颜色
     };
   },
 
@@ -339,6 +378,8 @@ export default {
     this.init();
     this.AddCompass();
     this.loadAdminData(); // 加载行政区划数据
+    // this.createLegend(); // 创建图例
+
   },
 
   computed: {
@@ -1032,6 +1073,7 @@ export default {
             <div class="disaster-popup">
                 <div class="popup-header">
                     <h3>隐患点信息</h3>
+                    <button class="toggle-btn">匹配历史案例</button>
                     <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
                 </div>
                 <table class="disaster-info-table">
@@ -1077,6 +1119,7 @@ export default {
           <div class="disaster-popup">
               <div class="popup-header">
                   <h3>隐患点信息</h3>
+                  <button class="toggle-btn">匹配历史案例</button>
                   <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
               </div>
               <table class="disaster-info-table">
@@ -1122,6 +1165,7 @@ export default {
             <div class="disaster-popup">
                 <div class="popup-header">
                     <h3>风险区信息</h3>
+                    <button class="toggle-btn">匹配历史案例</button>
                     <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
                 </div>
                 <table class="disaster-info-table">
@@ -1230,6 +1274,15 @@ export default {
       document.body.appendChild(container);
       // 检查是否超出视口边界并调整位置
       this.adjustWindowPosition(container);
+      // 然后手动绑定事件
+      const toggleBtn = container.querySelector('.toggle-btn');
+      toggleBtn.addEventListener('click', () => {
+        this.GetHistoryDisaster();
+      });
+      const closeBtn = container.querySelector('.close-btn');
+      closeBtn.addEventListener('click', () => {
+        this.closHisHisDasTableVisibility();
+      });
     },
 
     adjustWindowPosition(container) {
@@ -1274,6 +1327,7 @@ export default {
         }).then(() => {
           // 配置当前数据源的样式
           this.configureAdminStyles(dataSource,i);
+          // this.districtColors[districtId] = color;
           // 添加到地图
           this.viewer.dataSources.add(dataSource);
         }).catch(error => {
@@ -1546,6 +1600,111 @@ export default {
       });
     },
 
+    //获取历史灾害数据
+    GetHistoryDisaster(){
+      getHistoryDisaster().then(history => {
+        let data = history.data.features[0];
+        this.history_desaster.push(data.properties);
+        this.toggleHisDasTableVisibility();
+      })
+
+    },
+
+    toggleHisDasTableVisibility(){
+      this.tableChange = !this.tableChange;
+      this.hisDas = this.history_desaster[0]
+      console.log(7897,this.hisDas)
+    },
+
+    closHisHisDasTableVisibility(){
+      this.tableChange = true;
+    },
+
+    // createLegend() {
+    //   const legendContent = this.$refs.legendContent;
+    //   if (!legendContent) return;
+    //
+    //   // 清空所有子元素
+    //   while (legendContent.firstChild) {
+    //     legendContent.removeChild(legendContent.firstChild);
+    //   }
+    //
+    //   // 添加行政区划图例
+    //   const addedDistricts = new Set();
+    //   const districtItems = []; // 存储所有行政区划图例项
+    //
+    //   this.administrationData.forEach((district, index) => {
+    //     const districtId = `district${index}`;
+    //     const districtName = district.features[0].properties.name;
+    //
+    //     if (addedDistricts.has(districtName)) {
+    //       return;
+    //     }
+    //     addedDistricts.add(districtName);
+    //
+    //     const color = this.districtColors[districtId];
+    //
+    //     if (color) {
+    //       const item = document.createElement('div');
+    //       item.className = 'legend-item district-item';
+    //       item.style.display = 'flex';
+    //       item.style.alignItems = 'center';
+    //       item.style.marginBottom = '10px';
+    //       item.style.width = '45%'; // 占45%宽度，留5%间隙
+    //
+    //       const colorDiv = document.createElement('div');
+    //       colorDiv.className = 'legend-color';
+    //       colorDiv.style.backgroundColor = `rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, ${color.alpha})`;
+    //       colorDiv.style.border = `1px solid rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, 1)`;
+    //       colorDiv.style.width = '60px';
+    //       colorDiv.style.height = '20px';
+    //       colorDiv.style.marginRight = '10px';
+    //
+    //       const textDiv = document.createElement('div');
+    //       textDiv.className = 'legend-text';
+    //       textDiv.textContent = districtName;
+    //       textDiv.style.fontSize = '14px';
+    //       textDiv.style.lineHeight = '20px';
+    //
+    //       item.appendChild(colorDiv);
+    //       item.appendChild(textDiv);
+    //       districtItems.push(item);
+    //     }
+    //   });
+    //
+    //   // 创建两排两列的容器
+    //   const gridContainer = document.createElement('div');
+    //   gridContainer.style.display = 'flex';
+    //   gridContainer.style.flexWrap = 'wrap';
+    //   gridContainer.style.gap = '10px';
+    //   gridContainer.style.marginTop = '10px';
+    //
+    //   // 添加到容器中，实现两列布局
+    //   districtItems.forEach((item, index) => {
+    //     gridContainer.appendChild(item);
+    //   });
+    //
+    //   legendContent.appendChild(gridContainer);
+    //
+    //   // 优化图例容器样式
+    //   if (legendContent.style) {
+    //     legendContent.style.padding = '10px';
+    //     legendContent.style.borderRadius = '5px';
+    //     legendContent.style.backgroundColor = 'rgba(255,255,255,0.9)';
+    //     legendContent.style.maxWidth = '300px'; // 限制最大宽度
+    //   }
+    //
+    // },
+
+
+
+
+
+
+
+
+
+    //------------------------------------------------------------------------------------------------------------------
     draw(type) {
       let that = this;
       let viewer = this.mapViewer;
@@ -2330,6 +2489,11 @@ export default {
   font-size: 14px;
   color: #ccc;
 }
+
+.legend-content {
+  font-size: 12px;
+}
+
 
 .controls {
   position: absolute;

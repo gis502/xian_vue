@@ -4,7 +4,7 @@
     <button @click="toggleTableVisibility" class="toggle-table-btn">
       {{ isTableVisible ? "-" : "+" }}
     </button>
-    <div class="table-title">灾害链影响点列表</div>
+    <div class="table-title">{{ dataTypes.title || '灾害链影响点列表' }}</div>
     <div class="table-header" v-if="isTableVisible">
       <div class="search-box">
         <input

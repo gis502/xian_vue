@@ -45,6 +45,7 @@
       <Hazards
           v-if="displayDisasterCausingFactors"
           :hazardsDatas="hazards"
+          :options="options"
       ></Hazards>
     </div>
   </div>
@@ -68,6 +69,7 @@ const parentDatas = defineProps([
   "debrisFlowInformation",
   "showRiskPointsInformation",
   "riskPointsInformation",
+  "options"
 ]);
 
 // 是否显示致灾因子
@@ -80,6 +82,12 @@ let hazards = computed(() => {
     parentDatas.disasterInformation.factorVoList.forEach((element) => {
       element.type = element.unit == "" ? "select" : "input:number";
       element.isModified = true;
+      element.isShow = true;
+
+      // 隐藏降雨量
+      if(element.attributeNameAlias	== 'rainfall') {
+        element.isShow = false;
+      }
     });
     return parentDatas.disasterInformation;
   }
