@@ -4,7 +4,7 @@
     <button @click="toggleTableVisibility" class="toggle-table-btn">
       {{ isTableVisible ? "-" : "+" }}
     </button>
-    <div class="table-title">灾害链影响点列表</div>
+    <div class="table-title">{{ dataTypes.title || '灾害链影响点列表' }}</div>
     <div class="table-header" v-if="isTableVisible">
       <div class="search-box">
         <input
@@ -69,6 +69,7 @@
 
 <script setup name="Table">
 import { ref, watch, computed, onMounted } from "vue";
+import * as Cesium from "cesium";
 
 // 定义 props
 const props = defineProps({
@@ -138,6 +139,19 @@ function prevPage() {
 function handleTableClick(item) {
   // 示例逻辑，根据实际需求调整
   console.log("Clicked on item:", item);
+  const longitude = item.field5; // 获取经度
+  const latitude = item.field6; // 获取纬度
+  // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
+  // if (cesiumViewer) {
+  window.viewer.scene.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0.0),
+      pitch: Cesium.Math.toRadians(-90.0),
+      roll: 0.0,
+    },
+    duration: 2, // 飞行动画持续时间（秒）
+  });
 }
 
 // 显示隐藏

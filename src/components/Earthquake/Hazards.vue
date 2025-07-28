@@ -7,6 +7,7 @@
     <el-form :model="form" label-width="auto" style="max-width: 100%">
       <el-form-item
         v-for="(item, index) in hazardsDatas.factorVoList"
+        v-show="item.isShow"
         :key="item.attributeNameAlias"
         :label="item.attributeName"
       >
@@ -28,7 +29,7 @@
           v-if="item.type.includes('select')"
         >
           <el-option
-            v-for="(option, optionIndex) in item.options"
+            v-for="(option, optionIndex) in options[item.attributeNameAlias.split('Type')[0]]"
             :key="optionIndex"
             :value="option.value"
             :label="option.label"
@@ -49,7 +50,7 @@ import { pulseUtils } from "../../cesium/pulse";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 
 // 接收父组件数据
-const hazards = defineProps(["hazardsDatas"]);
+const hazards = defineProps(["hazardsDatas", "options"]);
 
 // 表单数据
 let form = reactive([]);
@@ -60,9 +61,13 @@ let dangerLevel = ref("");
 // 概率值
 let probability = ref(0);
 
+// 下拉列表
+let options = ref([]);
+
 onBeforeMount(() => {
   // 设置默认值
   hazards.hazardsDatas.factorVoList.forEach((element) => {
+    console.log(element);
     form.push(element);
   });
 
@@ -83,8 +88,10 @@ onBeforeMount(() => {
   ) {
     dangerLevel.value = hazards.hazardsDatas.predict.level;
   }
-});
 
+  // 设置下拉列表
+  options.value = hazards.options;
+});
 async function modifyDatas() {
   // 从后台获取概率值
   const res = await getHazardProbability(form);

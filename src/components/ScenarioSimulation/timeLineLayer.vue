@@ -1,6 +1,6 @@
 <template>
   <div>
-<!--    <span>{{currentTime}}当前时间</span>-->
+    <!--    <span>{{currentTime}}当前时间</span>-->
     <!-- 消息提示框 -->
     <div v-if="isCalculating || calculationMessage" class="calculation-message">
       {{ calculationMessage }}
@@ -47,6 +47,7 @@ import Legend from "@/components/Earthquake/Legend.vue";
 import {reactive} from "vue";
 import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
 import timeTransfer from "@/cesium/timeTransfer.js";
+import {parsePointString} from "@/cesium/geomTransfer.js";
 
 export default {
   data() {
@@ -62,6 +63,7 @@ export default {
         {id: '5', name: '风险区域', disabled: false},
         {id: '6', name: '预警点', disabled: false},
         {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
+        // {id: '7', name: '灾害点标签', disabled: true}, // 设置为 true 使其不可取消勾选
       ],
       selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
       prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
@@ -141,14 +143,14 @@ export default {
       },
       showBaseInfo: false,
       realDisasterPoint: null,
-      currentTime:new Date(),
+      currentTime: new Date(),
     }
   },
   name: "timeLineLayer",
   props: ['viewer', 'disasterEvent', 'currentTime', 'onceLoadLayer'],
   watch: {
     async viewer() {
-      this.currentTime=viewer.clock.currentTime
+      this.currentTime = viewer.clock.currentTime
       await Promise.all([
         basicLayers.AddHazardSource(),
         basicLayers.loadLandSlide(),
@@ -162,7 +164,6 @@ export default {
         console.log(this.onceLoadLayer, "onceLoadLayer11")
         this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
         this.updateMapLayers();
-
       }
     }
   },
@@ -301,143 +302,8 @@ export default {
               disasterId: this.disasterEvent.disasterId,
               disasterTrigger: this.disasterEvent.trigger
             })
-            console.log(this.realDisasterPoint, "this.realDisasterPoint")
-
-            this.dataTypesRealDisater.type1.data = [];
-            this.dataTypesRealDisater.type2.data = [];
-            this.dataTypesRealDisater.type3.data = [];
-            // 风险区数据，滑坡数据，泥石流数据
-            this.realDisasterPoint.forEach((item) => {
-              switch (item.disasterType) {
-                case "滑坡":
-                  this.dataTypesRealDisater.type1.data.push({
-                    field1: item.disasterName,
-                    field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-                    field3: item.peopleInjure,
-                    field4: item.state,
-                  });
-                  break;
-                case "泥石流":
-                  this.dataTypesRealDisater.type2.data.push({
-                    field1: item.disasterName,
-                    field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-                    field3: item.peopleInjure,
-                    field4: item.state,
-                  });
-                  break;
-                default:
-                  this.dataTypesRealDisater.type3.data.push({
-                    field1: item.disasterName,
-                    field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-                    field3: item.peopleInjure,
-                    field4: item.state,
-                  });
-              }
-            });
-
-            // const landslideEvent1 = {
-            //   id: 'landslideEvent1',
-            //   name: '泥石流事件',
-            //   position: Cesium.Cartesian3.fromDegrees(108.8435, 33.9367),
-            //   startTime: Cesium.JulianDate.fromIso8601('2025-07-25T15:00:00Z'),
-            //   stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
-            //   message: '发生了一个泥石流事件'
-            // };
-            // const entity1 = viewer.entities.add({
-            //   id: landslideEvent1.id,
-            //   name: landslideEvent1.name,
-            //   position: landslideEvent1.position,
-            //   point: {
-            //     pixelSize: 10,
-            //     color: Cesium.Color.RED,
-            //   },
-            //   label: {
-            //     text: landslideEvent1.message,
-            //     font: '14px sans-serif',
-            //     fillColor: Cesium.Color.BLACK,
-            //     backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-            //     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            //     outlineWidth: 2,
-            //     verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            //     pixelOffset: new Cesium.Cartesian2(0, -16),
-            //   },
-            //   availability: new Cesium.TimeIntervalCollection([
-            //     new Cesium.TimeInterval({
-            //       start: landslideEvent1.startTime,
-            //       stop: landslideEvent1.stopTime,
-            //     }),
-            //   ]),
-            // });
-            // const halo1 = viewer.entities.add({
-            //   position: landslideEvent1.position,
-            //   point: {
-            //     pixelSize: 30,
-            //     color: Cesium.Color.BLACK.withAlpha(0.5),
-            //     outlineColor: Cesium.Color.BLACK,
-            //     outlineWidth: 2,
-            //   },
-            //   availability: new Cesium.TimeIntervalCollection([
-            //     new Cesium.TimeInterval({
-            //       start: landslideEvent1.startTime,
-            //       stop: landslideEvent1.stopTime,
-            //     }),
-            //   ]),
-            // });
-
-            //
-            // const landslideEvent = {
-            //   id: 'landslideEvent',
-            //   name: '滑坡事件',
-            //   position: Cesium.Cartesian3.fromDegrees(108.9225, 34.02472),
-            //   startTime: Cesium.JulianDate.fromIso8601('2025-07-27T15:00:00Z'),
-            //   stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
-            //   message: '发生了一个滑坡'
-            // };
-
-// 添加滑坡事件实体
-//             const entity = viewer.entities.add({
-//               id: landslideEvent.id,
-//               name: landslideEvent.name,
-//               position: landslideEvent.position,
-//               point: {
-//                 pixelSize: 10,
-//                 color: Cesium.Color.RED,
-//               },
-//               label: {
-//                 text: landslideEvent.message,
-//                 font: '14px sans-serif',
-//                 fillColor: Cesium.Color.BLACK,
-//                 backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-//                 style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-//                 outlineWidth: 2,
-//                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-//                 pixelOffset: new Cesium.Cartesian2(0, -16),
-//               },
-//               availability: new Cesium.TimeIntervalCollection([
-//                 new Cesium.TimeInterval({
-//                   start: landslideEvent.startTime,
-//                   stop: landslideEvent.stopTime,
-//                 }),
-//               ]),
-//             });
-
-// // 添加黑色光圈效果
-//             const halo = viewer.entities.add({
-//               position: landslideEvent.position,
-//               point: {
-//                 pixelSize: 30,
-//                 color: Cesium.Color.BLACK.withAlpha(0.5),
-//                 outlineColor: Cesium.Color.BLACK,
-//                 outlineWidth: 2,
-//               },
-//               availability: new Cesium.TimeIntervalCollection([
-//                 new Cesium.TimeInterval({
-//                   start: landslideEvent.startTime,
-//                   stop: landslideEvent.stopTime,
-//                 }),
-//               ]),
-//             });
-
+            this.pushpRealPointsinRealDisasterTable(this.realDisasterPoint)
+            layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
           },
           remove: () => {
             // 移除滑坡事件实体
@@ -452,7 +318,7 @@ export default {
             //   viewer.entities.remove(halo);
             // }
           }
-        }
+        },
       ];
 
       // 构建 map 提升查找效率
@@ -511,6 +377,46 @@ export default {
             });
         }
       });
+    },
+    pushpRealPointsinRealDisasterTable(realDisasterPoint) {
+      this.dataTypesRealDisater.type1.data = [];
+      this.dataTypesRealDisater.type2.data = [];
+      this.dataTypesRealDisater.type3.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
+      realDisasterPoint.forEach((item) => {
+        switch (item.disasterType) {
+          case "滑坡":
+            this.dataTypesRealDisater.type1.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5:parsePointString(item.geom).longitude,
+              field6:parsePointString(item.geom).latitude,
+            });
+            break;
+          case "泥石流":
+            this.dataTypesRealDisater.type2.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5:parsePointString(item.geom).longitude,
+              field6:parsePointString(item.geom).latitude,
+            });
+            break;
+          default:
+            this.dataTypesRealDisater.type3.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5:parsePointString(item.geom).longitude,
+              field6:parsePointString(item.geom).latitude,
+            });
+        }
+      });
+
     },
   }
 }

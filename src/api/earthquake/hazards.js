@@ -19,7 +19,6 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
     data.factorVoList = points[i].factorVoList;
     data.entityId = points[i].entityId;
     datas.push(data);
-    console.log(datas)
 
     // 写入实体id
     entityIds.push(points[i].entityId);
@@ -58,4 +57,33 @@ export async function getHazardProbability(disasterFactor) {
     data: disasterFactor,
   });
   return res;
+}
+
+/**
+ * 获取所有下拉列表致灾因子option
+ * @returns 
+ */
+export async function getHazardOptions() {
+  const res = await request({
+    url: "/factor/type",
+    method: "get"
+  });
+  // 整合类型
+  const options = {
+    landUse: [],
+    rock: [],
+    slope: []
+  };
+  // key
+  const keys = Object.keys(res.data);
+  keys.forEach((key) => {
+    const value = res.data[key];
+    value.forEach((item) => {
+      options[key].push({
+        label: item,
+        value: item
+      })
+    })
+  })
+  return options;
 }

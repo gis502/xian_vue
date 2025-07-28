@@ -1,6 +1,5 @@
 <template>
   <div class="data-table">
-
     <button @click="toggleTableVisibility" class="toggle-table-btn">
       {{ isTableVisible ? "-" : "+" }}
     </button>
@@ -37,7 +36,6 @@
         </th>
       </tr>
       </thead>
-
       <tbody>
       <tr
           v-for="(item, index) in paginatedTableData"
@@ -56,7 +54,6 @@
       </tr>
       </tbody>
     </table>
-
     <div class="pagination-controls" v-if="isTableVisible">
       <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
@@ -67,18 +64,19 @@
     </div>
   </div>
 </template>
+
 <script setup name="Table">
-import {ref, watch, computed, onMounted} from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import * as Cesium from "cesium";
 import timeTransfer from "@/cesium/timeTransfer.js";
-
+import { isEqual, throttle, debounce } from "lodash";
 const props = defineProps({
   dataTypes: {
     type: Object,
     required: true
   },
   currentTime: {
-    type: Object,
+    type: String,
     required: true
   }
 });
@@ -128,10 +126,6 @@ function prevPage() {
   }
 }
 
-function handleTableClick(item) {
-  console.log("Clicked on item:", item);
-}
-
 const toggleTableVisibility = () => {
   isTableVisible.value = !isTableVisible.value;
 };
@@ -144,38 +138,56 @@ const performSearch = () => {
 // 更新表格数据的函数
 function updateTableData() {
   const currentTime = new Date(props.currentTime);
-  if (!searchQuery.value) {
-    filteredTableData.value = tableData.value.filter(item => {
+
+    const newData = tableData.value.filter(item => {
       const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
+      // console.log(occurTime,currentTime,"occurTime,currentTime")
+      if (!occurTime||!currentTime) {
+        console.error(`Invalid date format for field2: ${item.field2}`);
+        return false;
+      }
       return occurTime < currentTime;
     });
-  } else {
-    const query = searchQuery.value.toLowerCase();
-    filteredTableData.value = tableData.value.filter(item => {
-      const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
-      return occurTime < currentTime && Object.values(item).some(value =>
-          String(value).toLowerCase().includes(query)
-      );
+    // 只有在数据实际发生变化时才更新 filteredTableData
+    if (!isEqual(filteredTableData.value, newData)) {
+      filteredTableData.value = newData;
+    }
+}
+
+function handleTableClick(item) {
+  // console.log(item,"handleTableClick")
+  const longitude = item.field5; // 获取经度
+  const latitude = item.field6; // 获取纬度
+  // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
+  // if (cesiumViewer) {
+  window.viewer.scene.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
+      orientation: {
+        heading: Cesium.Math.toRadians(0.0),
+        pitch: Cesium.Math.toRadians(-90.0),
+        roll: 0.0,
+      },
+      duration: 2, // 飞行动画持续时间（秒）
     });
-  }
+  // }
 }
 
 onMounted(() => {
   changeDataType();
 });
+// 节流后的 updateTableData 函数
+const throttledUpdateTableData = throttle(updateTableData, 1000);
 
 // 监听 currentTime 的变化
 watch(() => props.currentTime, () => {
-  console.log("Current time updated:", props.currentTime);
-  updateTableData();
+  throttledUpdateTableData();
 });
-
+// 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
-  // 当 dataTypes 发生变化时，重新设置表格数据
   changeDataType();
-
-}, {deep: true});
+}, { deep: true });
 </script>
+
 
 
 <style scoped lang="scss">
