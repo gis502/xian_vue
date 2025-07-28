@@ -9,6 +9,7 @@ import landslide_surface01 from "@/assets/images/landslide_surface01.jpg";
 import riskArea from "@/assets/images/riskArea.png";
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+import {parsePointString} from "@/cesium/geomTransfer"
 // let flashInterval = null;
 // let haloCollection = null;
 // key: 'hazard' | 'landslide' | 'dangerArea'
@@ -346,7 +347,7 @@ let layers = {
     },
     //画烈度圈 end
 
-    //高亮
+    //预警点高亮
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
         let allHiddeninEllipse = []
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
@@ -379,6 +380,148 @@ let layers = {
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
     },
+    //预警点高亮结束
 
+    judgeandaddRealDisasterNewPoint(realDisasterPoints) {
+        realDisasterPoints.forEach(item => {
+            let lon = parsePointString(item.geom).longitude
+            let lat = parsePointString(item.geom).latitude
+            let matchentity
+            if (item.disasterType === "滑坡") {
+                matchentity = window.viewer.entities.values.filter(
+                    e => e.name === "滑坡隐患点" && Math.abs(e.properties.longitude - lon) < 0.00001 &&
+                        Math.abs(e.properties.latitude - lat) < 0.00001
+                );
+                if (matchentity.length==0) {
+                    item.entityId ='灾害点'+item.id;
+
+                    window.viewer.entities.add({
+                        name: '新出现灾害点',
+                        id: item.entityId,
+                        availability: new Cesium.TimeIntervalCollection([
+                            new Cesium.TimeInterval({
+                                start:new Date(item.startTime),
+                                stop: new Date((new Date(item.startTime)).getTime() + 10 * 24 * 3600 * 1000)
+                            }),
+                        ]),
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        billboard: {
+                            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                            image: landslideIcon,
+                            width: 50, // 图片宽度,单位px
+                            height: 50, // 图片高度，单位px
+                            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                            scale: 0.8, // 缩放比例
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                            depthTest: false, // 禁止深度测试
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                            show: true,
+                        },
+                        properties: {
+                            data: item,
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+
+                }
+            }
+            else if (item.disasterType === "泥石流") {
+                matchentity = window.viewer.entities.values.filter(
+                    e => e.name === "泥石流隐患点" && Math.abs(e.properties.longitude - lon) < 0.00001 &&
+                        Math.abs(e.properties.latitude - lat) < 0.00001
+                );
+                if (matchentity.length==0) {
+                    item.entityId ='灾害点'+item.id;
+                    window.viewer.entities.add({
+                        name: '新出现灾害点',
+                        id: item.entityId,
+                        availability: new Cesium.TimeIntervalCollection([
+                            new Cesium.TimeInterval({
+                                start:new Date(item.startTime),
+                                stop: new Date((new Date(item.startTime)).getTime() + 10 * 24 * 3600 * 1000)
+                            }),
+                        ]),
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        billboard: {
+                            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                            image: debrisFlowIcon,
+                            width: 50, // 图片宽度,单位px
+                            height: 50, // 图片高度，单位px
+                            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                            scale: 0.8, // 缩放比例
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                            depthTest: false, // 禁止深度测试
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                            show: true,
+                        },
+                          // label: {
+                          //   text: "这里，新的",
+                          //   font: '18px sans-serif',
+                          //   fillColor: Cesium.Color.BLACK,
+                          //   backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+                          //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                          //   outlineWidth: 2,
+                          //   verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                          //   pixelOffset: new Cesium.Cartesian2(0, -16),
+                          // },
+                        properties: {
+                            data: item,
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+
+                }
+            }
+            else {
+                matchentity = window.viewer.entities.values.filter(
+                    e => e.name === "风险区域" && Math.abs(e.properties.longitude - lon) < 0.00001 &&
+                        Math.abs(e.properties.latitude - lat) < 0.00001
+                );
+                if (matchentity.length==0) {
+                    item.entityId ='灾害点'+item.id;
+                     window.viewer.entities.add({
+                        name: '新出现灾害点',
+                        id: item.entityId,
+                        availability: new Cesium.TimeIntervalCollection([
+                            new Cesium.TimeInterval({
+                                start:new Date(item.startTime),
+                                stop: new Date((new Date(item.startTime)).getTime() + 10 * 24 * 3600 * 1000)
+                            }),
+                        ]),
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        billboard: {
+                            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                            image: riskArea,
+                            width: 50, // 图片宽度,单位px
+                            height: 50, // 图片高度，单位px
+                            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                            scale: 0.8, // 缩放比例
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                            depthTest: false, // 禁止深度测试
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                            show: true,
+                        },
+                        properties: {
+                            data: item,
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                }
+            }
+
+
+
+            //找是否有同一类型，同一经纬度
+        })
+    }
 }
 export default layers;

@@ -162,7 +162,6 @@ export default {
         console.log(this.onceLoadLayer, "onceLoadLayer11")
         this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
         this.updateMapLayers();
-
       }
     }
   },
@@ -301,39 +300,9 @@ export default {
               disasterId: this.disasterEvent.disasterId,
               disasterTrigger: this.disasterEvent.trigger
             })
-            console.log(this.realDisasterPoint, "this.realDisasterPoint")
+            this.pushpRealPointsinRealDisasterTable(this.realDisasterPoint)
+            layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
 
-            this.dataTypesRealDisater.type1.data = [];
-            this.dataTypesRealDisater.type2.data = [];
-            this.dataTypesRealDisater.type3.data = [];
-            // 风险区数据，滑坡数据，泥石流数据
-            this.realDisasterPoint.forEach((item) => {
-              switch (item.disasterType) {
-                case "滑坡":
-                  this.dataTypesRealDisater.type1.data.push({
-                    field1: item.disasterName,
-                    field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-                    field3: item.peopleInjure,
-                    field4: item.state,
-                  });
-                  break;
-                case "泥石流":
-                  this.dataTypesRealDisater.type2.data.push({
-                    field1: item.disasterName,
-                    field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-                    field3: item.peopleInjure,
-                    field4: item.state,
-                  });
-                  break;
-                default:
-                  this.dataTypesRealDisater.type3.data.push({
-                    field1: item.disasterName,
-                    field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-                    field3: item.peopleInjure,
-                    field4: item.state,
-                  });
-              }
-            });
 
             // const landslideEvent1 = {
             //   id: 'landslideEvent1',
@@ -511,6 +480,40 @@ export default {
             });
         }
       });
+    },
+    pushpRealPointsinRealDisasterTable(realDisasterPoint) {
+      this.dataTypesRealDisater.type1.data = [];
+      this.dataTypesRealDisater.type2.data = [];
+      this.dataTypesRealDisater.type3.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
+      realDisasterPoint.forEach((item) => {
+        switch (item.disasterType) {
+          case "滑坡":
+            this.dataTypesRealDisater.type1.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+            });
+            break;
+          case "泥石流":
+            this.dataTypesRealDisater.type2.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+            });
+            break;
+          default:
+            this.dataTypesRealDisater.type3.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+            });
+        }
+      });
+
     },
   }
 }

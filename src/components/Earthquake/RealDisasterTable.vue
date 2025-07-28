@@ -1,6 +1,5 @@
 <template>
   <div class="data-table">
-
     <button @click="toggleTableVisibility" class="toggle-table-btn">
       {{ isTableVisible ? "-" : "+" }}
     </button>
@@ -37,7 +36,6 @@
         </th>
       </tr>
       </thead>
-
       <tbody>
       <tr
           v-for="(item, index) in paginatedTableData"
@@ -56,7 +54,6 @@
       </tr>
       </tbody>
     </table>
-
     <div class="pagination-controls" v-if="isTableVisible">
       <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
@@ -67,18 +64,19 @@
     </div>
   </div>
 </template>
+
 <script setup name="Table">
-import {ref, watch, computed, onMounted} from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import * as Cesium from "cesium";
 import timeTransfer from "@/cesium/timeTransfer.js";
-
+import { isEqual, throttle, debounce } from "lodash";
 const props = defineProps({
   dataTypes: {
     type: Object,
     required: true
   },
   currentTime: {
-    type: Object,
+    type: String,
     required: true
   }
 });
@@ -144,38 +142,43 @@ const performSearch = () => {
 // 更新表格数据的函数
 function updateTableData() {
   const currentTime = new Date(props.currentTime);
-  if (!searchQuery.value) {
-    filteredTableData.value = tableData.value.filter(item => {
+
+    const newData = tableData.value.filter(item => {
       const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
+      // console.log(occurTime,currentTime,"occurTime,currentTime")
+      if (!occurTime||!currentTime) {
+        console.error(`Invalid date format for field2: ${item.field2}`);
+        return false;
+      }
       return occurTime < currentTime;
     });
-  } else {
-    const query = searchQuery.value.toLowerCase();
-    filteredTableData.value = tableData.value.filter(item => {
-      const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
-      return occurTime < currentTime && Object.values(item).some(value =>
-          String(value).toLowerCase().includes(query)
-      );
-    });
-  }
+    // 只有在数据实际发生变化时才更新 filteredTableData
+    if (!isEqual(filteredTableData.value, newData)) {
+      filteredTableData.value = newData;
+    }
 }
 
 onMounted(() => {
   changeDataType();
 });
+// 节流后的 updateTableData 函数
+const throttledUpdateTableData = throttle(updateTableData, 1000);
 
 // 监听 currentTime 的变化
 watch(() => props.currentTime, () => {
-  console.log("Current time updated:", props.currentTime);
-  updateTableData();
+  throttledUpdateTableData();
 });
+// 监听 currentTime 的变化
+// watch(() => props.currentTime, () => {
+//   updateTableData();
+// });
 
+// 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
-  // 当 dataTypes 发生变化时，重新设置表格数据
   changeDataType();
-
-}, {deep: true});
+}, { deep: true });
 </script>
+
 
 
 <style scoped lang="scss">
