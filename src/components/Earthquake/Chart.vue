@@ -1,7 +1,10 @@
 <!-- chart -->
 <template>
   <!-- 图表容器 -->
-  <div class="chart-container">
+  <div class="chart-container" :style="{
+    height: (chartDatas.attribute && chartDatas.attribute.height) ? chartDatas.attribute.height + 'px' : '350px',
+    width: (chartDatas.attribute && chartDatas.attribute.width) ? chartDatas.attribute.width + 'px' : '367px'
+  }">
     <div id="main" style="height: 100%"></div>
   </div>
 </template>
@@ -15,6 +18,7 @@ const { chartDatas } = defineProps(["chartDatas"]);
 
 onMounted(() => {
   addChart();
+  console.log(111, chartDatas);
 });
 
 // 添加chart
@@ -208,8 +212,6 @@ function addChart() {
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
-  height: 367px;
-  width: 350px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
   /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
