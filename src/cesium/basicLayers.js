@@ -229,7 +229,7 @@ let basicLayers = {
         toRemove.forEach(ds => window.viewer.dataSources.remove(ds, true))
     },
 
-    async AddHazardSource(){
+    async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });

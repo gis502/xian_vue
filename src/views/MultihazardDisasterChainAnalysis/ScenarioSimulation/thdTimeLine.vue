@@ -76,6 +76,7 @@ import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
 import Legend from "@/components/Earthquake/Legend.vue";
 import RealDisasterTable from "@/components/ScenarioSimulation/RealDisasterTable.vue";
 import Table from "@/components/Earthquake/Table.vue";
+
 export default {
   name: "thdTimeLine",
   props: ['id', 'trigger'],
@@ -87,7 +88,6 @@ export default {
       centerpoint: null,
 
       //---信息弹框---
-      hasUpdatedPosition: false,
       selectedEntityPosition: '', //拾取的点的弹框位置
       PanelPosition: {x: 0, y: 0}, // TimeLinePanel弹窗的位置
       PanelData: {}, // TimeLinePanel弹窗的数据
@@ -332,7 +332,7 @@ export default {
       window.viewer = viewer
       this.viewer = viewer
 
-      init_cesium_navigation(this.disasterEvent.longitude, this.disasterEvent.latitude,200000, viewer)
+      init_cesium_navigation(this.disasterEvent.longitude, this.disasterEvent.latitude, 200000, viewer)
       this.MouseCoordinateHandler = setupMouseCoordinateDisplay(this.viewer, this.coordinateBoxData)
       this.centerpoint = basicLayers.addCenterPoint(this.disasterEvent)
       this.locatedCenter()
@@ -392,7 +392,10 @@ export default {
               console.log(entity, "拾取entity")
               // 计算图标的世界坐标
               this.selectedEntityPosition = this.calculatePosition(click.position);
-              this.updatePopupPosition(); // 确保位置已更新
+              setTimeout(() => {
+                updatePopupPosition();
+              }, 10);
+              // this.updatePopupPosition(); // 确保位置已更新
 
 
               // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
@@ -406,7 +409,7 @@ export default {
                 this.eqCenterPanelVisible = true;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = false;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
                 this.PanelData = this.extractDataForRouter(entity)
@@ -414,7 +417,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
                 this.showBaseInfo = false;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
                 this.PanelData = this.extractDataForRouter(entity)
@@ -422,7 +425,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
@@ -434,7 +437,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
 
                 this.showDisasterInformation = false;
@@ -448,7 +451,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;

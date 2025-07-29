@@ -1943,59 +1943,6 @@ export default {
       }
     },
 
-    // 根据点坐标获取所在的行政区划
-    // getAdministrationByPoint(point) {
-    //   // 遍历所有行政区划
-    //   for (const admin of this.administrationData) {
-    //     // 每个行政区划的features数组
-    //     for (const feature of admin.features) {
-    //       const geometry = feature.geometry;
-    //       const coordinates = geometry.coordinates;
-    //       let point=[longitude, latitude]
-    //       // 判断点是否在当前行政区划范围内
-    //       if (layers.pointInPolygon(point, coordinates)) {
-    //         return {
-    //           name: feature.properties.name,
-    //           geometry: geometry
-    //         };
-    //       }
-    //     }
-    //   }
-    //   return null;
-    // },
-
-    // 判断点是否在多边形内
-    // pointInPolygon(point, polygonCoords) {
-    //   const [x, y] = point;
-    //   let inside = false;
-    //
-    //   // 处理多边形坐标的多层嵌套（行政区划坐标可能是[[[lon,lat],...]]结构）
-    //   const flattenCoords = (coords) => {
-    //     if (coords.length > 0 && typeof coords[0][0] === 'number') {
-    //       return [coords]; // 单层坐标
-    //     } else if (coords.length > 0 && Array.isArray(coords[0][0])) {
-    //       return flattenCoords(coords[0]); // 多层嵌套取最内层
-    //     }
-    //     return [];
-    //   };
-    //
-    //   const polygon = flattenCoords(polygonCoords);
-    //
-    //   // 遍历多边形的每条边
-    //   for (let i = 0, j = polygon[0].length - 1; i < polygon[0].length; j = i++) {
-    //     const [xi, yi] = polygon[0][i];
-    //     const [xj, yj] = polygon[0][j];
-    //
-    //     // 检查点是否在边的垂直范围内
-    //     const intersect = ((yi > y) !== (yj > y))
-    //         // 计算射线与边的交点x坐标
-    //         && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-    //
-    //     if (intersect) inside = !inside;
-    //   }
-    //
-    //   return inside;
-    // },
     // 找行政区划范围内灾害点
     checkDisasterPointsInAdministration(adminCoordinates) {
       const landslidePointsInside = [];

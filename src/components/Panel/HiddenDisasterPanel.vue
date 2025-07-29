@@ -41,6 +41,7 @@
       <Hazards
         v-if="displayDisasterCausingFactors"
         :hazardsDatas="hazards"
+        :options="options"
       ></Hazards>
     </div>
   </div>
@@ -53,6 +54,7 @@ import Landslide from "@/components/Earthquake/Landslide.vue";
 import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
 import { staticHazardsDatas } from "@/api/earthquake/datas";
+import {getHazardOptions} from "@/api/earthquake/hazards.js";
 
 const emit = defineEmits(["removeBaseInfoBox"]);
 const props = defineProps({
@@ -65,12 +67,24 @@ const props = defineProps({
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
 });
+// 获取致灾因子下拉列表选项
+
+
+let options = ref([]);
+getHazardOptions().then((res) => {
+  options.value = res;
+});
+
 
 const positionEntity = ref({ x: 0, y: 0 });
 
+watch(() => props.position.x, (newX) => {
+  positionEntity.value.x = newX;
+  // console.log(props.position,"props.position")
+});
 
-watch(() => props.position, (newPosition) => {
-  positionEntity.value = newPosition;
+watch(() => props.position.y, (newY) => {
+  positionEntity.value.y = newY;
 });
 
 const styleObject = computed(() => ({
@@ -79,6 +93,7 @@ const styleObject = computed(() => ({
   top: `${positionEntity.value.y}px`,
 }));
 
+
 const displayDisasterCausingFactors = ref(false);
 
 const hazards = computed(() => {
@@ -86,6 +101,12 @@ const hazards = computed(() => {
     props.disasterInformation.factorVoList.forEach((element) => {
       element.type = element.unit == "" ? "select" : "input:number";
       element.isModified = true;
+      element.isShow = true;
+
+      // 隐藏降雨量
+      if(element.attributeNameAlias	== 'rainfall') {
+        element.isShow = false;
+      }
     });
     return props.disasterInformation;
   } else if (props.showdebrisFlowInformation) {
@@ -95,7 +116,6 @@ const hazards = computed(() => {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
     return props.riskPointsInformation;
   }
-  return {};
 });
 
 function displayComponents() {
@@ -157,7 +177,7 @@ function displayComponents() {
   font-size: 13px;
 }
 .close-btn {
-  font-weight: nom;
+  font-weight: normal;
   background: none;
   border: none;
   padding: 5px 10px;

@@ -6,9 +6,9 @@
     </div>
 
 
-    <rainfallPeriodTable
-        :currentTime="currentTime"
-    />
+<!--    <rainfallPeriodTable-->
+<!--        :currentTime="currentTime"-->
+<!--    />-->
 
 
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
@@ -73,7 +73,7 @@ export default {
     async viewer() {
       this.currentTime = viewer.clock.currentTime
       await Promise.all([
-        basicLayers.AddHazardSource(),
+        basicLayers.Addmudslide(),
         basicLayers.loadLandSlide(),
         basicLayers.AddDangerAreaDataSource(),
         basicLayers.loadAdminData()
@@ -81,8 +81,15 @@ export default {
     },
     onceLoadLayer() {
       if (this.onceLoadLayer) {
-        this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
-        this.updateMapLayers();
+        if(this.disasterEvent.trigger=="地震"){
+          this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+          this.updateMapLayers();
+        }
+        else if(this.disasterEvent.trigger=="暴雨"){
+          this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+          this.updateMapLayers();
+        }
+
       }
     }
   },
@@ -139,7 +146,7 @@ export default {
         {
           name: '泥石流隐患点',
           add: () => {
-            basicLayers.AddHazardSource()
+            basicLayers.Addmudslide()
           },
           remove: () => {
             basicLayers.removeHazardSource()
@@ -199,15 +206,15 @@ export default {
                   viewer.clockViewModel.shouldAnimate = true;
                 }
               } else if (this.disasterEvent.trigger == "暴雨") {
-                let adminArea = this.getAdministrationByPoint(this.disasterEvent.longitude,this.disasterEvent.latitude);
+                let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude,this.disasterEvent.latitude);
 
                 if (adminArea) {
                   // console.log(`标记点位于行政区划: ${adminArea.name}`);
                   // 获取该行政区划的经纬度范围
-                  const adminCoordinates = adminArea.geometry.coordinates;
+                  let adminCoordinates = adminArea.geometry.coordinates;
                   // this.startLoading()
                   // 检查灾害点是否在该行政区划内
-                  this.checkDisasterPointsInAdministration(adminCoordinates);
+                  await layers.findDisasterPointsFlash(adminCoordinates);
                 }
                 // else {
                 //   console.log("未找到标记点所在的行政区划");

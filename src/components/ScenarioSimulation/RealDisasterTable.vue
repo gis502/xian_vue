@@ -76,7 +76,7 @@ const props = defineProps({
     required: true
   },
   currentTime: {
-    type: String,
+    type: [String, Object],
     required: true
   }
 });
