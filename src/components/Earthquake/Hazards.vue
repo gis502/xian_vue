@@ -46,11 +46,9 @@
 <script setup name="Hazards">
 import { onBeforeMount, reactive, ref } from "vue";
 import { getHazardProbability } from "../../api/earthquake/hazards";
-import { pulseUtils } from "../../cesium/pulse";
-import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 
 // 接收父组件数据
-const hazards = defineProps(["hazardsDatas", "options"]);
+const hazards = defineProps(["hazardsDatas", "options", "pulse"]);
 
 // 表单数据
 let form = reactive([]);
@@ -67,7 +65,6 @@ let options = ref([]);
 onBeforeMount(() => {
   // 设置默认值
   hazards.hazardsDatas.factorVoList.forEach((element) => {
-    console.log(element);
     form.push(element);
   });
 
@@ -104,7 +101,7 @@ async function modifyDatas() {
   hazards.hazardsDatas.predict = res.data.predict;
 
   // 设置脉冲
-  pulseUtils.createPause([hazards.hazardsDatas], useSimulationPointStore(), window.viewer);
+  hazards.pulse.createPause([hazards.hazardsDatas]);
 }
 </script>
 

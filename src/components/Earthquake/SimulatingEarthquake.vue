@@ -168,7 +168,6 @@ import { reactive } from "vue";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
-import { pulseUtils } from "../../cesium/pulse";
 import basicLayers from "../../cesium/basicLayers";
 import { addDisaster } from "../../api/earthquake/datas";
 import { parseTime } from "../../utils/ruoyi";
@@ -184,8 +183,8 @@ const ruleFormRef = ref();
 
 // 表单元素
 let form = reactive({
-  name: "",
-  fullName: "",
+  name: '',
+  fullName: '',
   position: `${province}${city}${position.name ? position.name : ''}`,
   magnitude: 6,
   depth: 0,
@@ -278,11 +277,14 @@ let isShow = ref(true);
 let isShowMore = ref(false);
 
 // 获取位置以及表格中要呈现的内容
-const { position, dataTypes, chartDatas } = defineProps([
+const { position, dataTypes, chartDatas, pulse } = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
+  "pulse"
 ]);
+
+// 接收传递的方法
 const emit = defineEmits([
   "cancelEarthquake",
   "displayTable",
@@ -292,6 +294,7 @@ const emit = defineEmits([
   "startLoading",
   "stopLoading",
 ]);
+
 // 添加模拟
 async function confirmEarthquake(formEl) {
   if (!formEl) return;
@@ -362,12 +365,12 @@ async function confirmEarthquake(formEl) {
       // 获取各个点的风险概率
       const [points, probabilityPoints] =
         await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-
+      
       // 清除全部脉冲实体
-      pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+      pulse.removePulseEntity();
 
       // 添加脉冲实体
-      pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+      pulse.createPause(points);
 
       // 处理表格和chart数据
       addDatasToTableAndChart(probabilityPoints);

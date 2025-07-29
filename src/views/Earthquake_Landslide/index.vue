@@ -21,6 +21,7 @@
       v-if="showBaseInfo"
       :title="baseInfoTitle"
       :position="baseInfoPosition"
+      :pulse="pulse"
       :showDisasterInformation="showDisasterInformation"
       :disasterInformation="disasterInformation"
       :showdebrisFlowInformation="showdebrisFlowInformation"
@@ -47,6 +48,7 @@
       :position="earthquakeSimulationPosition"
       :dataTypes="dataTypes"
       :chartDatas="chartDatas"
+      :pulse="pulse"
       @displayTable="displayTable"
       @hideTable="hideTable"
       @displayChart="displayChart"
@@ -72,12 +74,12 @@ import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
 import { init_cesium_navigation } from "../../cesium/initLayer";
 import layers from "../../cesium/layers";
-import { pulseUtils } from "../../cesium/pulse";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
 import { getHazardOptions } from "../../api/earthquake/hazards";
+import { PulseTool } from "../../cesium/pulse";
 
 // 加载
 let loading = ref(false);
@@ -155,11 +157,15 @@ let earthquakeClickHandler = null;
 
 let entityClickHandler = ref(null);
 
+// 脉冲对象
+let pulse = {};
+
 // 下拉列表选项
 let options = ref([]);
 
 onMounted(() => {
   window.viewer = initCesium("cesium-container");
+  pulse = new PulseTool(window.viewer);
 
   // 断裂带
   basicLayers.addFaultZone();
@@ -339,7 +345,7 @@ function startEarthquakeSimulation() {
     if (!showEarthquakeSimulation.value) {
       const pick = window.viewer.scene.pick(event.position);
       const entity = pick && pick.id;
-     
+
       // 显示弹窗
       showEarthquakeSimulation.value = true;
       earthquakeSimulationPosition.value = event.position;
@@ -348,7 +354,7 @@ function startEarthquakeSimulation() {
         latitudeAndLongitude.latitude;
       earthquakeSimulationPosition.value.longitude =
         latitudeAndLongitude.longitude;
-      
+
       // 添加地点
       earthquakeSimulationPosition.value.name = entity && entity._name;
     } else {
@@ -398,7 +404,7 @@ function removeEarthquakeSimulation() {
   layers.removeIsoseismalCircle();
 
   // 清除脉冲
-  pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+  pulse.removePulseEntity();
 
   // 隐藏表格
   showTable.value = false;
