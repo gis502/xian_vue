@@ -18,20 +18,6 @@
     <!-- chart -->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
 
-    <!-- 点击弹窗 -->
-    <!--    <BaseInfo-->
-    <!--        v-if="showBaseInfo"-->
-    <!--        :title="baseInfoTitle"-->
-    <!--        :position="baseInfoPosition"-->
-    <!--        :showDisasterInformation="showDisasterInformation"-->
-    <!--        :disasterInformation="disasterInformation"-->
-    <!--        :showdebrisFlowInformation="showdebrisFlowInformation"-->
-    <!--        :debrisFlowInformation="debrisFlowInformation"-->
-    <!--        :showRiskPointsInformation="showRiskPointsInformation"-->
-    <!--        :riskPointsInformation="riskPointsInformation"-->
-    <!--        :options="options"-->
-    <!--        @removeBaseInfoBox="removeBaseInfoBox"-->
-    <!--    />-->
     <eqCenterPanel
         v-show="eqCenterPanelVisible"
         :position="PanelPosition"
@@ -47,6 +33,8 @@
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :trigger="'地震'"
+        :rainfall="'0'"
     />
 
     <!-- 地震模拟 -->
@@ -84,7 +72,6 @@ import * as Cesium from "cesium";
 
 import {initCesium} from "@/cesium/initLayer.js";
 import {onMounted, reactive, ref} from "vue";
-import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
@@ -238,122 +225,6 @@ function displayChart() {
 function hideChart() {
   showChart.value = false;
 }
-
-// 触发点击实体事件
-// function setupEntityClickHandler() {
-//   // 清除旧的事件处理程序
-//   if (entityClickHandler.value) {
-//     entityClickHandler.value.destroy();
-//   }
-//
-//   // 添加新的事件处理程序
-//   entityClickHandler = new Cesium.ScreenSpaceEventHandler(window.viewer.canvas);
-//   entityClickHandler.setInputAction((click) => {
-//     // 隐藏弹窗
-//     showBaseInfo.value = false;
-//     // 获取点击位置的实体
-//     const pickedObject = window.viewer.scene.pick(click.position);
-//     // console.log(pickedObject)
-//
-//     try {
-//       if (pickedObject && Cesium.defined(pickedObject.id)) {
-//         const entity = pickedObject.id;
-//         // console.log(entity.properties);
-//         // 判断是不是风险区
-//         let isRisk = true;
-//
-//         // 显示弹窗
-//         if (entity.properties) {
-//           if (
-//               entity.properties.data._value.geologicalDisasterHideDTO
-//                   .disasterType === "滑坡" ||
-//               entity.properties.data._value.geologicalDisasterHideDTO
-//                   .disasterType === "泥石流"
-//           ) {
-//             isRisk = false; // 不是风险区
-//           }
-//
-//           //屏幕坐标转世界坐标
-//           let cartesian = window.viewer.scene.globe.pick(
-//               window.viewer.camera.getPickRay(click.position),
-//               window.viewer.scene
-//           );
-//           //世界坐标转经纬度
-//           let ellipsoid = window.viewer.scene.globe.ellipsoid;
-//           let cartographic = ellipsoid.cartesianToCartographic(cartesian);
-//           let lat = Cesium.Math.toDegrees(cartographic.latitude);
-//           let lon = Cesium.Math.toDegrees(cartographic.longitude);
-//           window.viewer.camera.flyTo({
-//             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-//             orientation: {
-//               // 指向
-//               heading: 6.283185307179581,
-//               // 视角
-//               pitch: -1.5688168484696687,
-//               roll: 0.0,
-//             },
-//             duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-//             complete: () => {
-//               // 飞行完成后显示信息窗口
-//               if (isRisk) {
-//                 showInfoList(entity.properties.data._value, entity, "风险区");
-//               } else {
-//                 showInfoList(
-//                     entity.properties.data._value,
-//                     entity,
-//                     entity.properties.data._value.geologicalDisasterHideDTO
-//                         .disasterType
-//                 );
-//               }
-//             },
-//           });
-//         }
-//       }
-//     } catch (error) {}
-//   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-// }
-// 显示信息
-// function showInfoList(info, entity, flag) {
-//   // 隐藏所有信息
-//   showDisasterInformation.value = false;
-//   showdebrisFlowInformation.value = false;
-//   showRiskPointsInformation.value = false;
-//   // 获取实体位置的屏幕坐标
-//   const position = entity.position.getValue(window.viewer.clock.currentTime);
-//   const canvasPosition =
-//       window.viewer.scene.cartesianToCanvasCoordinates(position);
-//   if (!canvasPosition) return; // 位置不可见时返回
-//
-//   // 计算窗口位置（基于屏幕坐标偏移）
-//   const left = canvasPosition.x + 80; // 右侧显示
-//   const top = canvasPosition.y + 50; // 垂直居中
-//
-//   // console.log(info.properties,entity,11111)
-//   baseInfoPosition.top = top;
-//   baseInfoPosition.left = left;
-//
-//   // 构建信息列表内容
-//   showBaseInfo.value = true;
-//   if (flag === "滑坡") {
-//     showDisasterInformation.value = true;
-//     disasterInformation.value = info;
-//     baseInfoTitle.value = "灾害信息";
-//   } else if (flag === "泥石流") {
-//     showdebrisFlowInformation.value = true;
-//     debrisFlowInformation.value = info;
-//     baseInfoTitle.value = "灾害信息";
-//   } else if (flag === "风险区") {
-//     showRiskPointsInformation.value = true;
-//     riskPointsInformation.value = info;
-//     baseInfoTitle.value = "风险区信息";
-//   }
-// }
-
-// 隐藏弹窗
-// function removeBaseInfoBox() {
-//   showBaseInfo.value = false;
-// }
-
 
 //面板
 //-------信息面板弹框-----

@@ -26,6 +26,8 @@
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :trigger="disasterEvent.trigger"
+        :rainfall="'0'"
     />
 
 
@@ -393,7 +395,7 @@ export default {
               // 计算图标的世界坐标
               this.selectedEntityPosition = this.calculatePosition(click.position);
               setTimeout(() => {
-                updatePopupPosition();
+                this.updatePopupPosition();
               }, 10);
               // this.updatePopupPosition(); // 确保位置已更新
 

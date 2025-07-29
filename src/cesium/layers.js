@@ -398,7 +398,9 @@ let layers = {
             // ...debrisFlowPointsInside
         ];
 
-        await this.replaceLandslidePoints(landslidePointsInside)
+        // let { pointSet, matchedHuapoData } = await this.getGeologicalDisasterHide(landslidePointsInside);
+        this.getGeologicalDisasterHide(landslidePointsInside);
+        // this.replaceLandslidePoints(landslidePointsInside,matchedHuapoData,pointSet)
         // await this.replaceMudslidePoints(mudslidePointsInside)
         // await this.replaceRiskVillage(riskVillageInside)
 
@@ -410,6 +412,7 @@ let layers = {
         let points = window.viewer.entities.values.filter(
             e => e.name === type
         );
+        console.log(points, adminCoordinates, "points")
         points.forEach(item => {
             let point = [item.properties.longitude, item.properties.latitude]
             if (layers.pointInPolygon(point, adminCoordinates)) {
@@ -418,9 +421,7 @@ let layers = {
         });
         return pointsInside;
     },
-
-    //隐患点替换降雨致灾因子
-    async replaceLandslidePoints(landslidePointsInside) {
+    async getGeologicalDisasterHide(landslidePointsInside) {
         if (landslidePointsInside.length > 0) {
             // 创建经纬度字符串集合用于快速匹配
             let pointSet = new Set();
@@ -432,9 +433,12 @@ let layers = {
             });
             // 筛选匹配的滑坡点数据
             let matchedHuapoData = []
-            let matchedHuapoEntities = []
+
             //获取滑坡和致灾因子 所有
-            let hides = await getGeologicalDisasterHideByLandSlideList().data
+            let res = await getGeologicalDisasterHideByLandSlideList()
+            // console.log(res, "hides")
+            let hides = res.data
+            // console.log(hides, "hides")
             hides.forEach(item => {
                 let lon = item.geologicalDisasterHideDTO.lon;
                 let lat = item.geologicalDisasterHideDTO.lat;
@@ -451,131 +455,429 @@ let layers = {
                     }
                 }
             }
-            // 触发暴雨分析
-            let formatAnalyzedData = await rainSlideTrigger(matchedHuapoData).data
-            // this.formatAnalyzedData = res.data;
-            let landslideEntities = window.viewer.entities.values.filter(
-                e => e.name === type
-            );
+            console.log(matchedHuapoData, "matchedHuapoData")
+            rainSlideTrigger(matchedHuapoData).then(res => {
+                // let res1 = await rainSlideTrigger(matchedHuapoData)
+                // console.log(res1, "formatAnalyzedData")
+                let formatAnalyzedData = res.data
+                console.log(formatAnalyzedData, "formatAnalyzedData")
+                // this.formatAnalyzedData = res.data;
+                let landslideEntities = window.viewer.entities.values.filter(
+                    e => e.name === "滑坡隐患点"
+                );
+                // entity.properties.data._value.factorVoList
 
-            // 格式化
-            formatAnalyzedData.forEach(item => {
-                let disasterNAME = item.geologicalDisasterHideDTO.disasterName || '未知灾害点';
-                let lon = item.geologicalDisasterHideDTO.lon;
-                let lat = item.geologicalDisasterHideDTO.lat;
-                let key = `${lon},${lat}`;
-                if (pointSet.has(key)) {
-                    // 处理factorVoList，将多条因子记录融合为一条
-                    item.factorVoList = item.factorVoList.reduce((merged, factorItem) => {
-                        const {
-                            hideId,
-                            attributeId,
-                            valueId,
-                            attributeName,
-                            factorValue,
-                            unit,
-                            attributeNameAlias
-                        } = factorItem;
+                console.log(landslideEntities, "landslideEntities")
+                // 格式化
+                formatAnalyzedData.forEach(item => {
+                    let disasterNAME = item.geologicalDisasterHideDTO.disasterName || '未知灾害点';
+                    let lon = item.geologicalDisasterHideDTO.lon;
+                    let lat = item.geologicalDisasterHideDTO.lat;
+                    let key = `${lon},${lat}`;
+                    if (pointSet.has(key)) {
+                        // 处理factorVoList，将多条因子记录融合为一条
+                        item.factorVoList = item.factorVoList.reduce((merged, factorItem) => {
+                            const {
+                                hideId,
+                                attributeId,
+                                valueId,
+                                attributeName,
+                                factorValue,
+                                unit,
+                                attributeNameAlias
+                            } = factorItem;
 
-                        // 初始化合并对象（首次循环时）
-                        if (Object.keys(merged).length === 0) {
-                            merged.hideId = hideId;
-                            merged.attributeIds = [];
-                            merged.valueIds = [];
-                            // 保留经纬度信息用于匹配
-                            merged.lon = lon;
-                            merged.lat = lat;
-                        }
-                        // 收集所有attributeId和valueId
-                        merged.attributeIds.push(attributeId);
-                        merged.valueIds.push(valueId);
-                        // 以属性别名为键，存储因子值和单位
-                        merged[attributeNameAlias] = {
-                            attributeName: attributeName,
-                            factorValue: factorValue,
-                            unit: unit
-                        };
-                        return merged;
-                    }, {});
-                    // 将返回的隐患点替换加入到当前地图展示的全部隐患点中，只替换匹配部分
-                    this.landslideEntities.forEach(entity => {
-                        // 修改为降雨量
-                        if (entity._disasterData.factorVoList.hideId === item.factorVoList.hideId) {
-                            item.factorVoList.rainfall.factorValue = this.rainfall
-                            // 删除原有的
-                            this.viewer.entities.remove(entity);
+                            // 初始化合并对象（首次循环时）
+                            if (Object.keys(merged).length === 0) {
+                                merged.hideId = hideId;
+                                merged.attributeIds = [];
+                                merged.valueIds = [];
+                                // 保留经纬度信息用于匹配
+                                merged.lon = lon;
+                                merged.lat = lat;
+                            }
+                            // 收集所有attributeId和valueId
+                            merged.attributeIds.push(attributeId);
+                            merged.valueIds.push(valueId);
+                            // 以属性别名为键，存储因子值和单位
+                            merged[attributeNameAlias] = {
+                                attributeName: attributeName,
+                                factorValue: factorValue,
+                                unit: unit
+                            };
+                            return merged;
+                        }, {});
+                        // 将返回的隐患点替换加入到当前地图展示的全部隐患点中，只替换匹配部分
+                        landslideEntities.forEach(entity => {
+                            // 修改为降雨量
+                            if (entity.properties.data._value.factorVoList.hideId === item.factorVoList.hideId) {
+                                item.factorVoList.rainfall.factorValue = this.rainfall
+                                // 删除原有的
+                                window.viewer.entities.remove(entity);
 
-                            // 添加最新的
-                            let newentity = this.viewer.entities.add({
-                                position: Cesium.Cartesian3.fromDegrees(lon, lat, 5),
-                                // 点
-                                point: {
-                                    color: Cesium.Color.RED, // 点位颜色
-                                    outlineColor: Cesium.Color.BLACK,
-                                    outlineWidth: 0,
-                                    pixelSize: 0 // 像素点大小
-                                },
-                                billboard: {
-                                    // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-                                    image: landslideIcon,
-                                    width: 100, // 图片宽度,单位px
-                                    height: 100, // 图片高度，单位px
-                                    eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-                                    color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-                                    scale: 0.8, // 缩放比例
-                                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-                                    scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-                                    depthTest: false, // 禁止深度测试
-                                    disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-                                    show: true
-                                },
-                                // 文字
-                                label: {
-                                    text: `${disasterNAME}`,
-                                    font: '15pt Source Han Sans CN',
-                                    fillColor: Cesium.Color.WHITE,
-                                    backgroundColor: Cesium.Color.AQUA,
-                                    showBackground: false,
-                                    outline: true,
-                                    outlineColor: Cesium.Color.BLACK,
-                                    outlineWidth: 10,
-                                    scale: 1.0,
-                                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                                    verticalOrigin: Cesium.VerticalOrigin.CENTER,
-                                    horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-                                    pixelOffset: new Cesium.Cartesian2(-70, -35),
-                                    distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-                                    show: true
-                                },
-                                // 添加灾害类型信息，用于弹窗显示
-                                description: this.createDisasterDescription(item, '滑坡'),
-                                // 保存原始样式，用于闪烁恢复
-                                originalColor: Cesium.Color.RED,
-                                originalPixelSize: 15,
-                                // 标记灾害类型
-                                disasterType: 'landslide',
-                                disasterData: item,
-                            });
-                            this.landslideEntities.push(newentity);
-                            matchedHuapoEntities.push(item)
-                        }
-                    })
-                }
-            });
-            console.log("添加的点...", this.landslideEntities)
-            if (allPointsInside.length > 0) {
-                console.log(matchedHuapoEntities, "这是匹配的实体")
-                // this.flashDisasterPoints(allPointsInside,matchedHuapoEntities);
-            }
-            // this.stopLoading()
-            // })
-            // })
+
+                                // 添加最新的
+                                // let newentity = window.viewer.entities.add({
+                                //     position: Cesium.Cartesian3.fromDegrees(lon, lat, 5),
+                                //     // 点
+                                //     point: {
+                                //         color: Cesium.Color.RED, // 点位颜色
+                                //         outlineColor: Cesium.Color.BLACK,
+                                //         outlineWidth: 0,
+                                //         pixelSize: 0 // 像素点大小
+                                //     },
+                                //     billboard: {
+                                //         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                                //         image: landslideIcon,
+                                //         width: 100, // 图片宽度,单位px
+                                //         height: 100, // 图片高度，单位px
+                                //         eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                                //         color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                                //         scale: 0.8, // 缩放比例
+                                //         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                                //         scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                                //         depthTest: false, // 禁止深度测试
+                                //         disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                                //         show: true
+                                //     },
+                                //     // 文字
+                                //     // label: {
+                                //     //     text: `${disasterNAME}`,
+                                //     //     font: '15pt Source Han Sans CN',
+                                //     //     fillColor: Cesium.Color.WHITE,
+                                //     //     backgroundColor: Cesium.Color.AQUA,
+                                //     //     showBackground: false,
+                                //     //     outline: true,
+                                //     //     outlineColor: Cesium.Color.BLACK,
+                                //     //     outlineWidth: 10,
+                                //     //     scale: 1.0,
+                                //     //     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                                //     //     verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                                //     //     horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+                                //     //     pixelOffset: new Cesium.Cartesian2(-70, -35),
+                                //     //     distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+                                //     //     show: true
+                                //     // },
+                                //     // 添加灾害类型信息，用于弹窗显示
+                                //     // description: this.createDisasterDescription(item, '滑坡'),
+                                //     // // 保存原始样式，用于闪烁恢复
+                                //     // originalColor: Cesium.Color.RED,
+                                //     // originalPixelSize: 15,
+                                //     // // 标记灾害类型
+                                //     // disasterType: 'landslide',
+                                //     // disasterData: item,
+                                // });
+                                // useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
+                                // this.landslideEntities.push(newentity);
+                                matchedHuapoEntities.push(item)
+                            }
+                            console.log(matchedHuapoEntities, "matchedHuapoEntities")
+                            basicLayers.addHiddenDangerPoints('泥石流隐患点', matchedHuapoEntities, debrisFlowIcon);
+                        })
+                    }
+                });
+                // console.log("添加的点...", this.landslideEntities)
+                // if (allPointsInside.length > 0) {
+                //     console.log(matchedHuapoEntities, "这是匹配的实体")
+                //     this.flashDisasterPoints(allPointsInside,matchedHuapoEntities);
+                this.flashDisasterPoints(matchedHuapoEntities);
+                // }
+                // this.stopLoading()
+                // })
+            })
+            // return {
+            //     pointSet: Array.from(pointSet), // 将 Set 转换为数组以便返回
+            //     matchedHuapoData: matchedHuapoData
+            // };
         }
+        // return { pointSet: [], matchedHuapoData: [] };
     },
+    //隐患点替换降雨致灾因子
+    //     async replaceLandslidePoints(landslidePointsInside,matchedHuapoData,pointSet) {
+    //         let matchedHuapoEntities = []
+    //         if (landslidePointsInside.length > 0) {
+    //         // rainSlideTrigger(matchedHuapoData).then(res => {
+    //         //     console.log(res, "rainSlideTrigger")
+    //         // })
+    //         // 触发暴雨分析
+    //             rainSlideTrigger(matchedHuapoData).then(res => {
+    //         // let res1 = await rainSlideTrigger(matchedHuapoData)
+    //         // console.log(res1, "formatAnalyzedData")
+    //         let formatAnalyzedData = res.data
+    //         console.log(formatAnalyzedData, "formatAnalyzedData")
+    //         // this.formatAnalyzedData = res.data;
+    //         let landslideEntities = window.viewer.entities.values.filter(
+    //             e => e.name === "滑坡隐患点"
+    //         );
+    //         // entity.properties.data._value.factorVoList
+    //
+    //         console.log(landslideEntities, "landslideEntities")
+    //         // 格式化
+    //         formatAnalyzedData.forEach(item => {
+    //             let disasterNAME = item.geologicalDisasterHideDTO.disasterName || '未知灾害点';
+    //             let lon = item.geologicalDisasterHideDTO.lon;
+    //             let lat = item.geologicalDisasterHideDTO.lat;
+    //             let key = `${lon},${lat}`;
+    //             if (pointSet.has(key)) {
+    //                 // 处理factorVoList，将多条因子记录融合为一条
+    //                 item.factorVoList = item.factorVoList.reduce((merged, factorItem) => {
+    //                     const {
+    //                         hideId,
+    //                         attributeId,
+    //                         valueId,
+    //                         attributeName,
+    //                         factorValue,
+    //                         unit,
+    //                         attributeNameAlias
+    //                     } = factorItem;
+    //
+    //                     // 初始化合并对象（首次循环时）
+    //                     if (Object.keys(merged).length === 0) {
+    //                         merged.hideId = hideId;
+    //                         merged.attributeIds = [];
+    //                         merged.valueIds = [];
+    //                         // 保留经纬度信息用于匹配
+    //                         merged.lon = lon;
+    //                         merged.lat = lat;
+    //                     }
+    //                     // 收集所有attributeId和valueId
+    //                     merged.attributeIds.push(attributeId);
+    //                     merged.valueIds.push(valueId);
+    //                     // 以属性别名为键，存储因子值和单位
+    //                     merged[attributeNameAlias] = {
+    //                         attributeName: attributeName,
+    //                         factorValue: factorValue,
+    //                         unit: unit
+    //                     };
+    //                     return merged;
+    //                 }, {});
+    //                 // 将返回的隐患点替换加入到当前地图展示的全部隐患点中，只替换匹配部分
+    //                 landslideEntities.forEach(entity => {
+    //                     // 修改为降雨量
+    //                     if (entity.properties.data._value.factorVoList.hideId === item.factorVoList.hideId) {
+    //                         item.factorVoList.rainfall.factorValue = this.rainfall
+    //                         // 删除原有的
+    //                         window.viewer.entities.remove(entity);
+    //
+    //
+    //                         // 添加最新的
+    //                         // let newentity = window.viewer.entities.add({
+    //                         //     position: Cesium.Cartesian3.fromDegrees(lon, lat, 5),
+    //                         //     // 点
+    //                         //     point: {
+    //                         //         color: Cesium.Color.RED, // 点位颜色
+    //                         //         outlineColor: Cesium.Color.BLACK,
+    //                         //         outlineWidth: 0,
+    //                         //         pixelSize: 0 // 像素点大小
+    //                         //     },
+    //                         //     billboard: {
+    //                         //         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+    //                         //         image: landslideIcon,
+    //                         //         width: 100, // 图片宽度,单位px
+    //                         //         height: 100, // 图片高度，单位px
+    //                         //         eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+    //                         //         color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+    //                         //         scale: 0.8, // 缩放比例
+    //                         //         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+    //                         //         scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+    //                         //         depthTest: false, // 禁止深度测试
+    //                         //         disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+    //                         //         show: true
+    //                         //     },
+    //                         //     // 文字
+    //                         //     // label: {
+    //                         //     //     text: `${disasterNAME}`,
+    //                         //     //     font: '15pt Source Han Sans CN',
+    //                         //     //     fillColor: Cesium.Color.WHITE,
+    //                         //     //     backgroundColor: Cesium.Color.AQUA,
+    //                         //     //     showBackground: false,
+    //                         //     //     outline: true,
+    //                         //     //     outlineColor: Cesium.Color.BLACK,
+    //                         //     //     outlineWidth: 10,
+    //                         //     //     scale: 1.0,
+    //                         //     //     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+    //                         //     //     verticalOrigin: Cesium.VerticalOrigin.CENTER,
+    //                         //     //     horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+    //                         //     //     pixelOffset: new Cesium.Cartesian2(-70, -35),
+    //                         //     //     distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+    //                         //     //     show: true
+    //                         //     // },
+    //                         //     // 添加灾害类型信息，用于弹窗显示
+    //                         //     // description: this.createDisasterDescription(item, '滑坡'),
+    //                         //     // // 保存原始样式，用于闪烁恢复
+    //                         //     // originalColor: Cesium.Color.RED,
+    //                         //     // originalPixelSize: 15,
+    //                         //     // // 标记灾害类型
+    //                         //     // disasterType: 'landslide',
+    //                         //     // disasterData: item,
+    //                         // });
+    //                         // useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
+    //                         // this.landslideEntities.push(newentity);
+    //                         matchedHuapoEntities.push(item)
+    //                     }
+    //                     console.log(matchedHuapoEntities, "matchedHuapoEntities")
+    //                     basicLayers.addHiddenDangerPoints('泥石流隐患点', matchedHuapoEntities, debrisFlowIcon);
+    //                 })
+    //             }
+    //         });
+    //         // console.log("添加的点...", this.landslideEntities)
+    //         // if (allPointsInside.length > 0) {
+    //         //     console.log(matchedHuapoEntities, "这是匹配的实体")
+    //         //     this.flashDisasterPoints(allPointsInside,matchedHuapoEntities);
+    //         this.flashDisasterPoints(matchedHuapoEntities);
+    //         // }
+    //         // this.stopLoading()
+    //         // })
+    //         })
+    //     }
+    // },
     // this.replaceMudslidePoints(mudslidePointsInside)
     // this.replaceRiskVillage(riskVillageInside)
+    flashDisasterPoints(entities) {
+        console.log("传输过来的匹配实体是：", entities);
 
-    //预警点高亮
+        // 若界面已关闭，直接返回
+        if (this.isClosed) return;
+
+        // 停止之前的闪烁动画
+        if (this.flashInterval) {
+            if (typeof this.flashInterval === 'number') {
+                clearInterval(this.flashInterval);
+            } else {
+                cancelAnimationFrame(this.flashInterval);
+            }
+            this.flashInterval = null;
+        }
+
+        // 清除已有的光晕集合
+        if (this.haloCollection) {
+            this.haloCollection.removeAll();
+            this.viewer.scene.primitives.remove(this.haloCollection);
+        }
+
+        // 如果没有需要处理的实体，直接返回
+        if (!entities || entities.length === 0) return;
+
+        // 创建光晕点集合
+        this.haloCollection = new Cesium.PointPrimitiveCollection();
+        this.viewer.scene.primitives.add(this.haloCollection);
+
+        // 存储需要闪烁的实体及其对应的光晕配置
+        const flashConfigs = [];
+
+        // 处理每个实体
+        entities.forEach(entity => {
+            try {
+                // 从实体数据中获取经纬度
+                const lon = entity.geologicalDisasterHideDTO.lon;
+                const lat = entity.geologicalDisasterHideDTO.lat;
+                const level = entity.predict?.level || '低'; // 默认低风险
+
+                // 将经纬度转换为Cesium可用的坐标
+                const position = Cesium.Cartesian3.fromDegrees(lon, lat);
+
+                // 根据风险等级确定颜色和是否闪烁
+                let color, shouldFlash;
+                switch (level) {
+                    case '高':
+                        color = Cesium.Color.RED;
+                        shouldFlash = true;
+                        break;
+                    case '中':
+                        color = Cesium.Color.YELLOW;
+                        shouldFlash = true;
+                        break;
+                    case '低':
+                    default:
+                        color = Cesium.Color.GREEN.withAlpha(0.5); // 低风险不闪烁，用半透明绿色标识
+                        shouldFlash = false;
+                        break;
+                }
+
+                // 创建光晕点
+                const halo = this.haloCollection.add({
+                    position: position,
+                    pixelSize: 15,
+                    color: color,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 1,
+                    show: true,
+                    // 自定义材质用于光晕效果
+                    material: new Cesium.Material({
+                        fabric: {
+                            type: 'Halo',
+                            uniforms: {
+                                color: color,
+                                glowPower: 0.5,
+                                innerRadius: 0.5,
+                                outerRadius: 1.0
+                            },
+                            source: `
+              uniform vec4 color;
+              uniform float glowPower;
+              uniform float innerRadius;
+              uniform float outerRadius;
+
+              czm_material czm_getMaterial(czm_materialInput materialInput) {
+                czm_material material = czm_getDefaultMaterial(materialInput);
+                vec2 st = materialInput.st;
+                float dist = distance(st, vec2(0.5, 0.5));
+                float alpha = smoothstep(outerRadius, innerRadius, dist);
+                alpha = pow(alpha, glowPower);
+                material.diffuse = color.rgb;
+                material.alpha = alpha * color.a;
+                return material;
+              }
+            `
+                        }
+                    })
+                });
+
+                // 只对需要闪烁的实体进行动画配置
+                if (shouldFlash) {
+                    flashConfigs.push({
+                        halo: halo,
+                        baseColor: color,
+                        baseSize: 15
+                    });
+                }
+            } catch (error) {
+                console.error("处理实体时出错:", error, "实体数据:", entity);
+            }
+        });
+
+        // 如果没有需要闪烁的实体，直接返回
+        if (flashConfigs.length === 0) return;
+
+        // 动画控制变量
+        let animationTime = 0;
+        const animationDuration = 2000; // 动画周期，毫秒
+
+        // 启动动画循环
+        this.flashInterval = setInterval(() => {
+            animationTime = (animationTime + 50) % animationDuration;
+            const normalizedTime = animationTime / animationDuration;
+
+            // 更新所有需要闪烁的光晕点
+            flashConfigs.forEach(config => {
+                const {halo, baseColor, baseSize} = config;
+
+                // 计算光晕大小（从原始大小到3倍）
+                const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
+                halo.pixelSize = baseSize * sizeFactor;
+
+                // 计算光晕透明度（大小最大时透明度最低）
+                const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
+                halo.color = new Cesium.Color(
+                    baseColor.red,
+                    baseColor.green,
+                    baseColor.blue,
+                    alphaFactor * 0.8
+                );
+            });
+        }, 50);
+    },
+//预警点高亮
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
         let allHiddeninEllipse = []
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
@@ -605,9 +907,10 @@ let layers = {
 
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
-    }, //预警点高亮结束
+    }
+    , //预警点高亮结束
 
-    //真实灾害点
+//真实灾害点
     judgeandaddRealDisasterNewPoint(realDisasterPoints) {
         realDisasterPoints.forEach(item => {
             this.ifaddNewPoint(item)
@@ -615,7 +918,8 @@ let layers = {
             // this.addRealDisasterLabel(item)
             //找是否有同一类型，同一经纬度
         })
-    },
+    }
+    ,
     ifaddNewPoint(item) {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
@@ -731,7 +1035,8 @@ let layers = {
                 });
             }
         }
-    },
+    }
+    ,
     addBlackBreathCircle(item) {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
@@ -765,7 +1070,8 @@ let layers = {
                 outlineWidth: 2,
             },
         });
-    },
+    }
+    ,
 
 }
 export default layers;

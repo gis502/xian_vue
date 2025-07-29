@@ -4,6 +4,9 @@
       class="cesium-info-window"
       :style="styleObject"
   >
+    <span>
+
+    </span>
     <div class="disaster-popup">
       <div class="popup-header">
         <h3>{{ title }}</h3>
@@ -66,8 +69,14 @@ const props = defineProps({
   debrisFlowInformation: Object,
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
+  trigger:String,
+  rainfall:String,
 });
 // 获取致灾因子下拉列表选项
+
+// watch(() => props, (newProps) => {
+//   console.log('Props updated:', newProps);
+// }, { deep: true });
 
 
 let options = ref([]);
@@ -75,13 +84,16 @@ getHazardOptions().then((res) => {
   options.value = res;
 });
 
-
+onMounted(() => {
+  console.log('Props received:', props);
+});
 const positionEntity = ref({ x: 0, y: 0 });
 
 watch(() => props.position.x, (newX) => {
   positionEntity.value.x = newX;
   // console.log(props.position,"props.position")
 });
+
 
 watch(() => props.position.y, (newY) => {
   positionEntity.value.y = newY;
@@ -102,10 +114,14 @@ const hazards = computed(() => {
       element.type = element.unit == "" ? "select" : "input:number";
       element.isModified = true;
       element.isShow = true;
-
-      // 隐藏降雨量
       if(element.attributeNameAlias	== 'rainfall') {
-        element.isShow = false;
+        console.log(element,props.trigger,props.rainfall,"(props.showDisasterInformation")
+        if(props.trigger=="地震"){
+          element.isShow = false;
+        }
+        else if(props.trigger=="暴雨"){
+          element.factorValue=props.rainfall
+        }
       }
     });
     return props.disasterInformation;
