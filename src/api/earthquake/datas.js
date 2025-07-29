@@ -13,7 +13,7 @@ export const staticHazardsDatas = [
     unit: "米", // 单位
     type: "input.number", // 表单类型，input表示输入框，number表示数字输入框
     isModified: true, // 是否可以修改
-    isShow: true,     // 是否显示
+    isShow: true, // 是否显示
   },
   {
     attributeName: "坡度",
@@ -22,7 +22,7 @@ export const staticHazardsDatas = [
     unit: "度",
     type: "input.number",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "岩土类型",
@@ -31,7 +31,7 @@ export const staticHazardsDatas = [
     unit: "",
     type: "select",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "断层距离",
@@ -40,7 +40,7 @@ export const staticHazardsDatas = [
     unit: "米",
     type: "input.number",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "土地利用类型",
@@ -49,7 +49,7 @@ export const staticHazardsDatas = [
     unit: "",
     type: "select",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "水系距离",
@@ -58,7 +58,7 @@ export const staticHazardsDatas = [
     unit: "米",
     type: "input.number",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "降雨量",
@@ -67,7 +67,7 @@ export const staticHazardsDatas = [
     unit: "mm",
     type: "input.number",
     isModified: true,
-    isShow: false,  
+    isShow: false,
   },
   {
     attributeName: "植被覆盖率",
@@ -76,7 +76,7 @@ export const staticHazardsDatas = [
     unit: "%",
     type: "input.number",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "坡面曲率",
@@ -85,7 +85,7 @@ export const staticHazardsDatas = [
     unit: "%",
     type: "input.number",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "土壤沙砾度",
@@ -94,7 +94,7 @@ export const staticHazardsDatas = [
     unit: "%",
     type: "input.number",
     isModified: true,
-    isShow: true,  
+    isShow: true,
   },
   {
     attributeName: "坡型",
@@ -103,7 +103,57 @@ export const staticHazardsDatas = [
     unit: "",
     type: "select",
     isModified: true,
-    isShow: true,  
+    isShow: true,
+  },
+];
+
+/**
+ * 致灾因子参数信息，此处是静态信息，后续由后端返回
+ */
+export const hazardsParams = [
+  {
+    attributeName: "高程",
+    attributeNameAlias: "elevation"
+  },
+  {
+    attributeName: "坡度",
+    attributeNameAlias: "slope"
+  },
+  {
+    attributeName: "岩土类型",
+    attributeNameAlias: "rockType"
+  },
+  {
+    attributeName: "断层距离",
+    attributeNameAlias: "breakDistance"
+  },
+  {
+    attributeName: "土地利用类型",
+    attributeNameAlias: "landUseType"
+  },
+  {
+    attributeName: "水系距离",
+    attributeNameAlias: "waterDistance"
+  },
+  {
+    attributeName: "降雨量",
+    attributeNameAlias: "rainfall"
+  },
+  {
+    attributeName: "植被覆盖率",
+    attributeNameAlias: "vegetationCoverage"
+  },
+  {
+    attributeName: "坡面曲率",
+    attributeNameAlias: "slopeCurvature"
+  },
+  {
+    attributeName: "土壤沙砾度",
+    attributeNameAlias: "soilSandDegree"
+  },
+  {
+    attributeName: "坡型",
+    attributeNameAlias: "slopeType"
   },
 ];
 
@@ -143,12 +193,12 @@ export const riskVillageData = () => {
 /**
  * 添加数据到灾害表中
  * @param {*} data - 添加的数据
- * @returns 
+ * @returns
  */
 export const addDisaster = (data) => {
   return request({
     url: "/XianEarthquakeList/disaster/add",
     method: "post",
-    data
+    data,
   });
-}
+};

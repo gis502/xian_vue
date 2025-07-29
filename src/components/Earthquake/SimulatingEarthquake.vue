@@ -9,13 +9,26 @@
       left: position.x + 'px',
     }"
   >
-    <div class="panel-title">地震信息</div>
+    <div style="padding: 10px">
+      <el-row align="middle" gutter="10">
+        <el-col :span="12" style="text-align: right">
+          {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}</el-col
+        >
+        <el-col :span="12">
+          <el-button type="info" round @click="showBaseInfo = !showBaseInfo"
+            >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息</el-button
+          >
+        </el-col>
+      </el-row>
+    </div>
     <div class="panel-content">
+      <!-- 模拟信息 -->
       <el-form
         ref="ruleFormRef"
         :rules="rules"
         :model="form"
         label-width="auto"
+        v-show="showBaseInfo"
       >
         <el-row gutter="10">
           <el-col :span="24">
@@ -143,7 +156,7 @@
                 type="success"
                 @click="confirmEarthquake(ruleFormRef)"
                 style="width: 100%"
-                >确认添加</el-button
+                >添加</el-button
               >
             </el-form-item>
           </el-col>
@@ -159,6 +172,20 @@
           </el-col>
         </el-row>
       </el-form>
+
+      <!-- 致灾因子参数信息 -->
+      <el-form :model="form" label-width="auto" v-show="!showBaseInfo">
+        <el-form-item
+          v-for="(param, index) in hazardsParams"
+          :key="index"
+          :label="param.attributeName"
+        >
+          <el-input
+            v-model="hazardsForm[param.attributeNameAlias]"
+            :placeholder="`请输入${param.attributeName}参数`"
+          ></el-input>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
@@ -169,7 +196,8 @@ import { useSimulationPointStore } from "../../store/earthquake/simulation_point
 import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 import basicLayers from "../../cesium/basicLayers";
-import { addDisaster } from "../../api/earthquake/datas";
+// (hazardsParams)致灾因子后端数据（此处是模拟）
+import { addDisaster, hazardsParams } from "../../api/earthquake/datas";
 import { parseTime } from "../../utils/ruoyi";
 
 // 常量
@@ -178,28 +206,46 @@ const { province, city } = {
   city: "西安市",
 };
 
+// 显示基本信息
+let showBaseInfo = ref(true);
+
 // 表单对象
 const ruleFormRef = ref();
 
 // 表单元素
 let form = reactive({
-  name: '',
-  fullName: '',
-  position: `${province}${city}${position.name ? position.name : ''}`,
+  name: "",
+  fullName: "",
+  position: `${province}${city}${position.name ? position.name : ""}`,
   magnitude: 6,
   depth: 0,
   longitude: parseFloat(position.longitude.toFixed(4)),
   latitude: parseFloat(position.latitude.toFixed(4)),
-  dateTime: '',
-  type: '',
+  dateTime: "",
+  type: "",
 
   // 下面数据非必须数据
-  source: '',
-  countyCode: '',
-  townshipCode: '',
+  source: "",
+  countyCode: "",
+  townshipCode: "",
   district: position.name,
   province: province,
   city: city,
+});
+
+// 致灾因子参数
+let hazardsForm = reactive({
+  elevation: 0,
+  slope: 0,
+  rockType: 0,
+  breakDistance: 0,
+  landUseType: 0,
+  waterDistance: 0,
+  rainfall: 0,
+  vegetationCoverage: 0,
+  slopeCurvature: 0,
+  soilSandDegree: 0,
+  slopeType: 0,
 });
 
 // 验证规则
@@ -281,7 +327,7 @@ const { position, dataTypes, chartDatas, pulse } = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
-  "pulse"
+  "pulse",
 ]);
 
 // 接收传递的方法
@@ -365,7 +411,7 @@ async function confirmEarthquake(formEl) {
       // 获取各个点的风险概率
       const [points, probabilityPoints] =
         await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-      
+
       // 清除全部脉冲实体
       pulse.removePulseEntity();
 
@@ -454,7 +500,7 @@ function setMore() {
   border-radius: 4px;
   z-index: 1000;
   width: 500px;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
 }
 .panel-title {
