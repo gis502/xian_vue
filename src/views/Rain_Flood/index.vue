@@ -326,17 +326,18 @@
       </div>
     </div>
     <!-- 图例面板 -->
-    <div class="legend-panel">
-      <div class="legend-title">图例</div>
-      <div class="legend-content" ref="legendContent">
-        <!-- 区县图例将通过JS动态生成 -->
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: rgba(255,0,0,0.5); border: 1px solid #f00;"></div>
-          <div class="legend-text">降雨区域</div>
-        </div>
+<!--    <div class="legend-panel">-->
+<!--      <div class="legend-title">图例</div>-->
+<!--      <div class="legend-content" ref="legendContent">-->
+<!--        &lt;!&ndash; 区县图例将通过JS动态生成 &ndash;&gt;-->
+<!--        <div class="legend-item">-->
+<!--          <div class="legend-color" style="background-color: rgba(255,0,0,0.5); border: 1px solid #f00;"></div>-->
+<!--          <div class="legend-text">降雨区域</div>-->
+<!--        </div>-->
 
-      </div>
-    </div>
+<!--      </div>-->
+<!--    </div>-->
+    <Legend></Legend>
   </div>
 </template>
 
@@ -363,10 +364,11 @@ import lakeData from '@/assets/static/json/lake.json';
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
-// 图例
+// 图标
 import riskArea from '@/assets/images/riskArea.png'
 import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
 import landslideIcon from '@/assets/images/landslide.png'
+import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 // api
 import {
   getGeologicalDisasterHideByLandSlideList,
@@ -382,6 +384,11 @@ import {
   rainSlideTrigger,
   rainSlideFactorUpdata
 } from '@/api/system/rainModel.js'
+//封装函数
+import layers from "@/cesium/layers.js";
+import basicLayers from "@/cesium/basicLayers.js";
+//组件
+import Legend from "@/components/Earthquake/Legend.vue";
 
 export default {
   name: 'CesiumRainMap',
@@ -406,7 +413,7 @@ export default {
       disasterDataSource: null, // 灾害点数据源
       // 行政区划数据
       administrationData: [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi],
-      adminDataSources: [],
+      // adminDataSources: [],
       faultZoneList: [],
       // 河流数据
       riverData: riverData,
@@ -671,14 +678,15 @@ export default {
       return this.tableData.slice(start, end);
     }
   },
+  components: {Legend},
   mounted() {
     this.load();
-    this.loadAdminData(); // 加载行政区划数据
+    basicLayers.loadAdminData(); // 加载行政区划数据
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
     this.loadDisasterData(); // 加载灾害点数据
     // this.loadLandSlide(landslide); // 加载滑坡点区域
-    this.createLegend(); // 创建图例
+    // this.createLegend(); // 创建图例
     this.total = this.tableData.length;
     this.loadData();
   },
@@ -686,36 +694,44 @@ export default {
     if (!this.isClosed) {
       this.releaseAllResources();
     }
+    if (this.viewer && this.viewer.entities) {
+      this.viewer.entities.removeAll();
+    }
+
+    // 2. 清空所有 GeoJSON / CZML / KML 等数据源
+    if (this.viewer && this.viewer.dataSources) {
+      this.viewer.dataSources.removeAll(true);
+    }
     if (this.viewer) {
       this.viewer.destroy();
       this.viewer = null;
     }
-    if (this.adminDataSource) {
-      this.viewer.dataSources.remove(this.adminDataSource);
-      this.adminDataSource = null;
-    }
-    if (this.riverDataSource) {
-      this.viewer.dataSources.remove(this.riverDataSource);
-      this.riverDataSource = null;
-    }
-    if (this.lakeDataSource) this.viewer.dataSources.remove(this.lakeDataSource);
-
-    // 移除所有行政区划数据源
-    if (this.adminDataSources && this.adminDataSources.length > 0) {
-      this.adminDataSources.forEach(dataSource => {
-        this.viewer.dataSources.remove(dataSource);
-      });
-      this.adminDataSources = [];
-    }
-    document.removeEventListener('keydown', this.onKeyDown);
+    // if (this.adminDataSource) {
+    //   this.viewer.dataSources.remove(this.adminDataSource);
+    //   this.adminDataSource = null;
+    // }
+    // if (this.riverDataSource) {
+    //   this.viewer.dataSources.remove(this.riverDataSource);
+    //   this.riverDataSource = null;
+    // }
+    // if (this.lakeDataSource) this.viewer.dataSources.remove(this.lakeDataSource);
+    //
+    // // 移除所有行政区划数据源
+    // if (this.adminDataSources && this.adminDataSources.length > 0) {
+    //   this.adminDataSources.forEach(dataSource => {
+    //     this.viewer.dataSources.remove(dataSource);
+    //   });
+    //   this.adminDataSources = [];
+    // }
+    // document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
-
     load() {
       const container = this.$refs.cesiumContainer;
 
       this.viewer = initCesium(container)
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
+      window.viewer=this.viewer
 
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
@@ -732,53 +748,53 @@ export default {
 
     },
     // 加载天地图
-    loadTDT(type) {
-      this.viewer.imageryLayers.removeAll();
-
-      const option = {
-        tileMatrixSetID: "w",
-        format: "tiles",
-        style: "default",
-        minimumLevel: 0,
-        maximumLevel: 18,
-        credit: "Tianditu",
-        subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"]
-      };
-
-      if (type === 0) {
-        const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/img_w/wmts?tk=${this.tdtToken}`,
-          layer: "img",
-          ...option
-        });
-
-        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/cia_w/wmts?tk=${this.tdtToken}`,
-          layer: "cia",
-          ...option
-        });
-
-        this.viewer.imageryLayers.addImageryProvider(imageryProvider);
-        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
-      } else {
-        const vectorProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/vec_w/wmts?tk=${this.tdtToken}`,
-          layer: "vec",
-          ...option
-        });
-
-        const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
-          url: `https://{s}.tianditu.gov.cn/cva_w/wmts?tk=${this.tdtToken}`,
-          layer: "cva",
-          ...option
-        });
-
-        this.viewer.imageryLayers.addImageryProvider(vectorProvider);
-        this.viewer.imageryLayers.addImageryProvider(annotationProvider);
-      }
-
-      this.currentMapType = type;
-    },
+    // loadTDT(type) {
+    //   this.viewer.imageryLayers.removeAll();
+    //
+    //   const option = {
+    //     tileMatrixSetID: "w",
+    //     format: "tiles",
+    //     style: "default",
+    //     minimumLevel: 0,
+    //     maximumLevel: 18,
+    //     credit: "Tianditu",
+    //     subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"]
+    //   };
+    //
+    //   if (type === 0) {
+    //     const imageryProvider = new Cesium.WebMapTileServiceImageryProvider({
+    //       url: `https://{s}.tianditu.gov.cn/img_w/wmts?tk=${this.tdtToken}`,
+    //       layer: "img",
+    //       ...option
+    //     });
+    //
+    //     const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
+    //       url: `https://{s}.tianditu.gov.cn/cia_w/wmts?tk=${this.tdtToken}`,
+    //       layer: "cia",
+    //       ...option
+    //     });
+    //
+    //     this.viewer.imageryLayers.addImageryProvider(imageryProvider);
+    //     this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+    //   } else {
+    //     const vectorProvider = new Cesium.WebMapTileServiceImageryProvider({
+    //       url: `https://{s}.tianditu.gov.cn/vec_w/wmts?tk=${this.tdtToken}`,
+    //       layer: "vec",
+    //       ...option
+    //     });
+    //
+    //     const annotationProvider = new Cesium.WebMapTileServiceImageryProvider({
+    //       url: `https://{s}.tianditu.gov.cn/cva_w/wmts?tk=${this.tdtToken}`,
+    //       layer: "cva",
+    //       ...option
+    //     });
+    //
+    //     this.viewer.imageryLayers.addImageryProvider(vectorProvider);
+    //     this.viewer.imageryLayers.addImageryProvider(annotationProvider);
+    //   }
+    //
+    //   this.currentMapType = type;
+    // },
     // 加载湖面数据
     loadLakeData() {
       if (!this.lakeData) {
@@ -1437,88 +1453,94 @@ export default {
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
     // 加载行政区划数据
-    loadAdminData() {
-      this.isLoading = true;
-      console.log('开始加载行政区划数据...');
-      // 重置数据源数组
-      this.adminDataSources = [];
-      // 使用for循环同步加载所有数据源
-      for (let i = 0; i < this.administrationData.length; i++) {
-
-        // 创建新的数据源
-        const dataSource = new Cesium.GeoJsonDataSource();
-        this.adminDataSources.push(dataSource);
-
-        // 配置加载选项并加载数据
-        dataSource.load(this.administrationData[i], {
-          enableFeatureStyles: false,
-          clampToGround: true,
-          suppressPointLabels: true
-        }).then(() => {
-          // 配置当前数据源的样式
-          const color = this.generateRandomColor(i);
-          this.configureAdminStyles(dataSource, i, color);
-          // 存储区县颜色
-          const districtId = this.administrationData[i].name || `district${i}`;
-          this.districtColors[districtId] = color;
-          // 添加到地图
-          this.viewer.dataSources.add(dataSource);
-          this.updateLegend();
-        }).catch(error => {
-          console.error(`加载行政区划数据失败 (${this.administrationData[i].name || "未知区域"}):`, error);
-        });
-      }
-    },
-    // 配置行政区划样式
-    configureAdminStyles(dataSource, i, color) {
-      if (!dataSource) return;
-
-      const entities = dataSource.entities.values;
-
-      entities.forEach(entity => {
-        const name = entity.properties.name._value || dataSource.name;
-
-        entity.polygon = {
-          hierarchy: entity.polygon.hierarchy,
-          material: color,
-          outline: true,
-          outlineColor: Cesium.Color.BLUE,
-          outlineWidth: 1,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          show: this.showAdminLayer, // 使用统一的显示控制
-          fill: true,
-          shadow: true,
-          depthFailMaterial: color.withAlpha(0.2)
-        };
-
-        entity.label = {
-          text: name,
-          font: '12px sans-serif',
-          fillColor: Cesium.Color.BLACK,
-          backgroundColor: color.withAlpha(0.7),
-          padding: new Cesium.Cartesian2(5, 5),
-          showBackground: true,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, 10),
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          show: this.showAdminLayer // 使用统一的显示控制
-        };
-
-      });
-    },
+    // loadAdminData() {
+    //   this.isLoading = true;
+    //   console.log('开始加载行政区划数据...');
+    //   // 重置数据源数组
+    //   this.adminDataSources = [];
+    //   // 使用for循环同步加载所有数据源
+    //   for (let i = 0; i < this.administrationData.length; i++) {
+    //
+    //     // 创建新的数据源
+    //     const dataSource = new Cesium.GeoJsonDataSource();
+    //     this.adminDataSources.push(dataSource);
+    //
+    //     // 配置加载选项并加载数据
+    //     dataSource.load(this.administrationData[i], {
+    //       enableFeatureStyles: false,
+    //       clampToGround: true,
+    //       suppressPointLabels: true
+    //     }).then(() => {
+    //       // 配置当前数据源的样式
+    //       const color = this.generateRandomColor(i);
+    //       this.configureAdminStyles(dataSource, i, color);
+    //       // 存储区县颜色
+    //       const districtId = this.administrationData[i].name || `district${i}`;
+    //       this.districtColors[districtId] = color;
+    //       // 添加到地图
+    //       this.viewer.dataSources.add(dataSource);
+    //       this.updateLegend();
+    //     }).catch(error => {
+    //       console.error(`加载行政区划数据失败 (${this.administrationData[i].name || "未知区域"}):`, error);
+    //     });
+    //   }
+    // },
+    // // 配置行政区划样式
+    // configureAdminStyles(dataSource, i, color) {
+    //   if (!dataSource) return;
+    //
+    //   const entities = dataSource.entities.values;
+    //
+    //   entities.forEach(entity => {
+    //     const name = entity.properties.name._value || dataSource.name;
+    //
+    //     entity.polygon = {
+    //       hierarchy: entity.polygon.hierarchy,
+    //       material: color,
+    //       outline: true,
+    //       outlineColor: Cesium.Color.BLUE,
+    //       outlineWidth: 1,
+    //       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+    //       show: this.showAdminLayer, // 使用统一的显示控制
+    //       fill: true,
+    //       shadow: true,
+    //       depthFailMaterial: color.withAlpha(0.2)
+    //     };
+    //
+    //     entity.label = {
+    //       text: name,
+    //       font: '12px sans-serif',
+    //       fillColor: Cesium.Color.BLACK,
+    //       backgroundColor: color.withAlpha(0.7),
+    //       padding: new Cesium.Cartesian2(5, 5),
+    //       showBackground: true,
+    //       verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+    //       pixelOffset: new Cesium.Cartesian2(0, 10),
+    //       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+    //       show: this.showAdminLayer // 使用统一的显示控制
+    //     };
+    //
+    //   });
+    // },
     // 添加切换行政区划图层显示的方法
     toggleAdminLayer() {
       this.showAdminLayer = !this.showAdminLayer;
-
-      if (this.adminDataSources && this.adminDataSources.length > 0) {
-        this.adminDataSources.forEach(dataSource => {
-          const entities = dataSource.entities.values;
-          entities.forEach(entity => {
-            if (entity.polygon) entity.polygon.show = this.showAdminLayer;
-            if (entity.label) entity.label.show = this.showAdminLayer;
-          });
-        });
+      if(this.showAdminLayer){
+        basicLayers.loadAdminData()
       }
+      else{
+        basicLayers.removeAdminData()
+      }
+
+      // if (this.adminDataSources && this.adminDataSources.length > 0) {
+      //   this.adminDataSources.forEach(dataSource => {
+      //     const entities = dataSource.entities.values;
+      //     entities.forEach(entity => {
+      //       if (entity.polygon) entity.polygon.show = this.showAdminLayer;
+      //       if (entity.label) entity.label.show = this.showAdminLayer;
+      //     });
+      //   });
+      // }
     },
     // 颜色生成器函数，增加透明度
     generateRandomColor(i) {
@@ -1662,13 +1684,25 @@ export default {
       // 创建标记点实体
       const entity = this.viewer.entities.add({
         position: cartesian,
-        point: {
-          pixelSize: 15,
-          color: Cesium.Color.DARKRED,
-          outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 1,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        billboard: {
+          image: centerstar,
+          width: 40,
+          height: 40,
+          eyeOffset: new Cesium.Cartesian3(0, 0, 0),
+          scale: 0.8,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          depthTest: false,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          color: Cesium.Color.WHITE.withAlpha(1),//颜色
+          clampToGround: true,
         },
+        // point: {
+        //   pixelSize: 15,
+        //   color: Cesium.Color.DARKRED,
+        //   outlineColor: Cesium.Color.WHITE,
+        //   outlineWidth: 1,
+        //   heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        // },
         label: {
           text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
           font: '14px sans-serif',
@@ -1708,8 +1742,8 @@ export default {
       });
 
       // 新增逻辑：获取标记点所在行政区划
-      const pointCoords = [longitude, latitude]; // 标记点经纬度[lon, lat]
-      const adminArea = this.getAdministrationByPoint(pointCoords);
+      // const pointCoords = [longitude, latitude]; // 标记点经纬度[lon, lat]
+      const adminArea = layers.getAdministrationByPoint(longitude, latitude);
 
       if (adminArea) {
         console.log(`标记点位于行政区划: ${adminArea.name}`);
@@ -1910,63 +1944,65 @@ export default {
     },
 
     // 根据点坐标获取所在的行政区划
-    getAdministrationByPoint(point) {
-      // 遍历所有行政区划
-      for (const admin of this.administrationData) {
-        // 每个行政区划的features数组
-        for (const feature of admin.features) {
-          const geometry = feature.geometry;
-          const coordinates = geometry.coordinates;
-          // 判断点是否在当前行政区划范围内
-          if (this.pointInPolygon(point, coordinates)) {
-            return {
-              name: feature.properties.name,
-              geometry: geometry
-            };
-          }
-        }
-      }
-      return null;
-    },
+    // getAdministrationByPoint(point) {
+    //   // 遍历所有行政区划
+    //   for (const admin of this.administrationData) {
+    //     // 每个行政区划的features数组
+    //     for (const feature of admin.features) {
+    //       const geometry = feature.geometry;
+    //       const coordinates = geometry.coordinates;
+    //       let point=[longitude, latitude]
+    //       // 判断点是否在当前行政区划范围内
+    //       if (layers.pointInPolygon(point, coordinates)) {
+    //         return {
+    //           name: feature.properties.name,
+    //           geometry: geometry
+    //         };
+    //       }
+    //     }
+    //   }
+    //   return null;
+    // },
+
     // 判断点是否在多边形内
-    pointInPolygon(point, polygonCoords) {
-      const [x, y] = point;
-      let inside = false;
-
-      // 处理多边形坐标的多层嵌套（行政区划坐标可能是[[[lon,lat],...]]结构）
-      const flattenCoords = (coords) => {
-        if (coords.length > 0 && typeof coords[0][0] === 'number') {
-          return [coords]; // 单层坐标
-        } else if (coords.length > 0 && Array.isArray(coords[0][0])) {
-          return flattenCoords(coords[0]); // 多层嵌套取最内层
-        }
-        return [];
-      };
-
-      const polygon = flattenCoords(polygonCoords);
-
-      // 遍历多边形的每条边
-      for (let i = 0, j = polygon[0].length - 1; i < polygon[0].length; j = i++) {
-        const [xi, yi] = polygon[0][i];
-        const [xj, yj] = polygon[0][j];
-
-        // 检查点是否在边的垂直范围内
-        const intersect = ((yi > y) !== (yj > y))
-            // 计算射线与边的交点x坐标
-            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-
-        if (intersect) inside = !inside;
-      }
-
-      return inside;
-    },
-    // 检查灾害点是否在行政区划范围内
+    // pointInPolygon(point, polygonCoords) {
+    //   const [x, y] = point;
+    //   let inside = false;
+    //
+    //   // 处理多边形坐标的多层嵌套（行政区划坐标可能是[[[lon,lat],...]]结构）
+    //   const flattenCoords = (coords) => {
+    //     if (coords.length > 0 && typeof coords[0][0] === 'number') {
+    //       return [coords]; // 单层坐标
+    //     } else if (coords.length > 0 && Array.isArray(coords[0][0])) {
+    //       return flattenCoords(coords[0]); // 多层嵌套取最内层
+    //     }
+    //     return [];
+    //   };
+    //
+    //   const polygon = flattenCoords(polygonCoords);
+    //
+    //   // 遍历多边形的每条边
+    //   for (let i = 0, j = polygon[0].length - 1; i < polygon[0].length; j = i++) {
+    //     const [xi, yi] = polygon[0][i];
+    //     const [xj, yj] = polygon[0][j];
+    //
+    //     // 检查点是否在边的垂直范围内
+    //     const intersect = ((yi > y) !== (yj > y))
+    //         // 计算射线与边的交点x坐标
+    //         && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    //
+    //     if (intersect) inside = !inside;
+    //   }
+    //
+    //   return inside;
+    // },
+    // 找行政区划范围内灾害点
     checkDisasterPointsInAdministration(adminCoordinates) {
       const landslidePointsInside = [];
       //const debrisFlowPointsInside = [];
       // 检查所有滑坡点
       this.landslidePoints.forEach(point => {
-        if (this.pointInPolygon(point, adminCoordinates)) {
+        if (layers.pointInPolygon(point, adminCoordinates)) {
           landslidePointsInside.push(point);
         }
       });
@@ -2592,199 +2628,199 @@ export default {
     //   }, 50); // 每50ms更新一次
     // },
     // 创建图例（修改版，添加灾害点图例）
-    createLegend() {
-      const legendContent = this.$refs.legendContent;
-      if (!legendContent) return;
-
-      // 清空所有子元素
-      while (legendContent.firstChild) {
-        legendContent.removeChild(legendContent.firstChild);
-      }
-      // 新增：添加降雨区域图例项
-      this.addRainAreaLegend(legendContent);
-
-      // 添加行政区划图例
-      const addedDistricts = new Set();
-      const districtItems = []; // 存储所有行政区划图例项
-
-      this.administrationData.forEach((district, index) => {
-        const districtId = `district${index}`;
-        const districtName = district.features[0].properties.name;
-
-        if (addedDistricts.has(districtName)) {
-          return;
-        }
-        addedDistricts.add(districtName);
-
-        const color = this.districtColors[districtId];
-
-        if (color) {
-          const item = document.createElement('div');
-          item.className = 'legend-item district-item';
-          item.style.display = 'flex';
-          item.style.alignItems = 'center';
-          item.style.marginBottom = '10px';
-          item.style.width = '45%'; // 占45%宽度，留5%间隙
-
-          const colorDiv = document.createElement('div');
-          colorDiv.className = 'legend-color';
-          colorDiv.style.backgroundColor = `rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, ${color.alpha})`;
-          colorDiv.style.border = `1px solid rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, 1)`;
-          colorDiv.style.width = '60px';
-          colorDiv.style.height = '20px';
-          colorDiv.style.marginRight = '10px';
-
-          const textDiv = document.createElement('div');
-          textDiv.className = 'legend-text';
-          textDiv.textContent = districtName;
-          textDiv.style.fontSize = '14px';
-          textDiv.style.lineHeight = '20px';
-
-          item.appendChild(colorDiv);
-          item.appendChild(textDiv);
-          districtItems.push(item);
-        }
-      });
-
-      // 创建两排两列的容器
-      const gridContainer = document.createElement('div');
-      gridContainer.style.display = 'flex';
-      gridContainer.style.flexWrap = 'wrap';
-      gridContainer.style.gap = '10px';
-      gridContainer.style.marginTop = '10px';
-
-      // 添加到容器中，实现两列布局
-      districtItems.forEach((item, index) => {
-        gridContainer.appendChild(item);
-      });
-
-      legendContent.appendChild(gridContainer);
-
-      // 优化图例容器样式
-      if (legendContent.style) {
-        legendContent.style.padding = '10px';
-        legendContent.style.borderRadius = '5px';
-        legendContent.style.backgroundColor = 'rgba(255,255,255,0.9)';
-        legendContent.style.maxWidth = '300px'; // 限制最大宽度
-      }
-
-      // 新增：添加灾害点图例
-      this.addDisasterLegend(legendContent);
-    },
+    // createLegend() {
+    //   const legendContent = this.$refs.legendContent;
+    //   if (!legendContent) return;
+    //
+    //   // 清空所有子元素
+    //   while (legendContent.firstChild) {
+    //     legendContent.removeChild(legendContent.firstChild);
+    //   }
+    //   // 新增：添加降雨区域图例项
+    //   this.addRainAreaLegend(legendContent);
+    //
+    //   // 添加行政区划图例
+    //   const addedDistricts = new Set();
+    //   const districtItems = []; // 存储所有行政区划图例项
+    //
+    //   this.administrationData.forEach((district, index) => {
+    //     const districtId = `district${index}`;
+    //     const districtName = district.features[0].properties.name;
+    //
+    //     if (addedDistricts.has(districtName)) {
+    //       return;
+    //     }
+    //     addedDistricts.add(districtName);
+    //
+    //     const color = this.districtColors[districtId];
+    //
+    //     if (color) {
+    //       const item = document.createElement('div');
+    //       item.className = 'legend-item district-item';
+    //       item.style.display = 'flex';
+    //       item.style.alignItems = 'center';
+    //       item.style.marginBottom = '10px';
+    //       item.style.width = '45%'; // 占45%宽度，留5%间隙
+    //
+    //       const colorDiv = document.createElement('div');
+    //       colorDiv.className = 'legend-color';
+    //       colorDiv.style.backgroundColor = `rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, ${color.alpha})`;
+    //       colorDiv.style.border = `1px solid rgba(${Math.floor(color.red * 255)}, ${Math.floor(color.green * 255)}, ${Math.floor(color.blue * 255)}, 1)`;
+    //       colorDiv.style.width = '60px';
+    //       colorDiv.style.height = '20px';
+    //       colorDiv.style.marginRight = '10px';
+    //
+    //       const textDiv = document.createElement('div');
+    //       textDiv.className = 'legend-text';
+    //       textDiv.textContent = districtName;
+    //       textDiv.style.fontSize = '14px';
+    //       textDiv.style.lineHeight = '20px';
+    //
+    //       item.appendChild(colorDiv);
+    //       item.appendChild(textDiv);
+    //       districtItems.push(item);
+    //     }
+    //   });
+    //
+    //   // 创建两排两列的容器
+    //   const gridContainer = document.createElement('div');
+    //   gridContainer.style.display = 'flex';
+    //   gridContainer.style.flexWrap = 'wrap';
+    //   gridContainer.style.gap = '10px';
+    //   gridContainer.style.marginTop = '10px';
+    //
+    //   // 添加到容器中，实现两列布局
+    //   districtItems.forEach((item, index) => {
+    //     gridContainer.appendChild(item);
+    //   });
+    //
+    //   legendContent.appendChild(gridContainer);
+    //
+    //   // 优化图例容器样式
+    //   if (legendContent.style) {
+    //     legendContent.style.padding = '10px';
+    //     legendContent.style.borderRadius = '5px';
+    //     legendContent.style.backgroundColor = 'rgba(255,255,255,0.9)';
+    //     legendContent.style.maxWidth = '300px'; // 限制最大宽度
+    //   }
+    //
+    //   // 新增：添加灾害点图例
+    //   this.addDisasterLegend(legendContent);
+    // },
     // 添加降雨区域图例项的函数
-    addRainAreaLegend(container) {
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.style.display = 'flex';
-      item.style.alignItems = 'center';
-      item.style.marginBottom = '15px';
-      //item.style.fontWeight = 'bold'; // 加粗标题
-
-      const colorDiv = document.createElement('div');
-      colorDiv.className = 'legend-color';
-      colorDiv.style.backgroundColor = 'rgba(180, 30, 30, 0.7)'; // 暗红色（RGB: 180, 30, 30）
-      colorDiv.style.border = '1px solid rgba(180, 30, 30, 1)';
-      colorDiv.style.width = '60px';
-      colorDiv.style.height = '20px';
-      colorDiv.style.marginRight = '10px';
-      colorDiv.style.borderRadius = '100px'; // 关键：设置圆角实现椭圆效果（高度的一半）
-      colorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
-
-      const textDiv = document.createElement('div');
-      textDiv.className = 'legend-text';
-      textDiv.textContent = '降雨影响范围';
-      textDiv.style.fontSize = '14px';
-      textDiv.style.lineHeight = '20px';
-      textDiv.style.flex = '1';
-
-      item.appendChild(colorDiv);
-      item.appendChild(textDiv);
-      container.appendChild(item);
-    },
+    // addRainAreaLegend(container) {
+    //   const item = document.createElement('div');
+    //   item.className = 'legend-item';
+    //   item.style.display = 'flex';
+    //   item.style.alignItems = 'center';
+    //   item.style.marginBottom = '15px';
+    //   //item.style.fontWeight = 'bold'; // 加粗标题
+    //
+    //   const colorDiv = document.createElement('div');
+    //   colorDiv.className = 'legend-color';
+    //   colorDiv.style.backgroundColor = 'rgba(180, 30, 30, 0.7)'; // 暗红色（RGB: 180, 30, 30）
+    //   colorDiv.style.border = '1px solid rgba(180, 30, 30, 1)';
+    //   colorDiv.style.width = '60px';
+    //   colorDiv.style.height = '20px';
+    //   colorDiv.style.marginRight = '10px';
+    //   colorDiv.style.borderRadius = '100px'; // 关键：设置圆角实现椭圆效果（高度的一半）
+    //   colorDiv.style.boxSizing = 'border-box'; // 包含边框尺寸
+    //
+    //   const textDiv = document.createElement('div');
+    //   textDiv.className = 'legend-text';
+    //   textDiv.textContent = '降雨影响范围';
+    //   textDiv.style.fontSize = '14px';
+    //   textDiv.style.lineHeight = '20px';
+    //   textDiv.style.flex = '1';
+    //
+    //   item.appendChild(colorDiv);
+    //   item.appendChild(textDiv);
+    //   container.appendChild(item);
+    // },
     // 添加灾害点图例项
-    addDisasterLegend(container) {
-      // 滑坡图例（使用滑坡图标）
-      const landslideItem = document.createElement('div');
-      landslideItem.className = 'legend-item';
-      landslideItem.style.display = 'flex';
-      landslideItem.style.alignItems = 'center';
-      landslideItem.style.marginBottom = '10px';
-
-      const landslideImg = document.createElement('img');
-      landslideImg.className = 'legend-icon';
-      landslideImg.src = landslideIcon; // 滑坡图标
-      landslideImg.alt = '历史滑坡灾害点图标';
-      landslideImg.style.width = '20px';
-      landslideImg.style.height = '20px';
-      landslideImg.style.marginRight = '10px';
-      landslideImg.style.objectFit = 'contain'; // 保持图标比例
-
-      const landslideTextDiv = document.createElement('div');
-      landslideTextDiv.className = 'legend-text';
-      landslideTextDiv.textContent = '历史滑坡灾害点';
-      landslideTextDiv.style.fontSize = '14px';
-      landslideTextDiv.style.lineHeight = '20px';
-
-      landslideItem.appendChild(landslideImg);
-      landslideItem.appendChild(landslideTextDiv);
-      container.appendChild(landslideItem);
-
-      // 泥石流图例（使用泥石流图标）
-      const debrisFlowItem = document.createElement('div');
-      debrisFlowItem.className = 'legend-item';
-      debrisFlowItem.style.display = 'flex';
-      debrisFlowItem.style.alignItems = 'center';
-      debrisFlowItem.style.marginBottom = '10px';
-
-      const debrisFlowImg = document.createElement('img');
-      debrisFlowImg.className = 'legend-icon';
-      debrisFlowImg.src = debrisFlowIcon; // 泥石流图标
-      debrisFlowImg.alt = '历史泥石流灾害点图标';
-      debrisFlowImg.style.width = '20px';
-      debrisFlowImg.style.height = '20px';
-      debrisFlowImg.style.marginRight = '10px';
-      debrisFlowImg.style.objectFit = 'contain'; // 保持图标比例
-
-      const debrisFlowTextDiv = document.createElement('div');
-      debrisFlowTextDiv.className = 'legend-text';
-      debrisFlowTextDiv.textContent = '历史泥石流灾害点';
-      debrisFlowTextDiv.style.fontSize = '14px';
-      debrisFlowTextDiv.style.lineHeight = '20px';
-
-      debrisFlowItem.appendChild(debrisFlowImg);
-      debrisFlowItem.appendChild(debrisFlowTextDiv);
-      container.appendChild(debrisFlowItem);
-
-      // 地质灾害风险区图例（使用风险区图标）
-      const dangerItem = document.createElement('div');
-      dangerItem.className = 'legend-item';
-      dangerItem.style.display = 'flex';
-      dangerItem.style.alignItems = 'center';
-      dangerItem.style.marginBottom = '10px';
-
-      const dangerImg = document.createElement('img');
-      dangerImg.className = 'legend-icon';
-      dangerImg.src = riskArea; // 风险区图标
-      dangerImg.alt = '地质灾害风险点图标';
-      dangerImg.style.width = '20px';
-      dangerImg.style.height = '20px';
-      dangerImg.style.marginRight = '10px';
-      dangerImg.style.objectFit = 'contain'; // 保持图标比例
-
-      const dangerTextDiv = document.createElement('div');
-      dangerTextDiv.className = 'legend-text';
-      dangerTextDiv.textContent = '地质灾害风险点';
-      dangerTextDiv.style.fontSize = '14px';
-      dangerTextDiv.style.lineHeight = '20px';
-
-      dangerItem.appendChild(dangerImg);
-      dangerItem.appendChild(dangerTextDiv);
-      container.appendChild(dangerItem);
-    },
+    // addDisasterLegend(container) {
+    //   // 滑坡图例（使用滑坡图标）
+    //   const landslideItem = document.createElement('div');
+    //   landslideItem.className = 'legend-item';
+    //   landslideItem.style.display = 'flex';
+    //   landslideItem.style.alignItems = 'center';
+    //   landslideItem.style.marginBottom = '10px';
+    //
+    //   const landslideImg = document.createElement('img');
+    //   landslideImg.className = 'legend-icon';
+    //   landslideImg.src = landslideIcon; // 滑坡图标
+    //   landslideImg.alt = '历史滑坡灾害点图标';
+    //   landslideImg.style.width = '20px';
+    //   landslideImg.style.height = '20px';
+    //   landslideImg.style.marginRight = '10px';
+    //   landslideImg.style.objectFit = 'contain'; // 保持图标比例
+    //
+    //   const landslideTextDiv = document.createElement('div');
+    //   landslideTextDiv.className = 'legend-text';
+    //   landslideTextDiv.textContent = '历史滑坡灾害点';
+    //   landslideTextDiv.style.fontSize = '14px';
+    //   landslideTextDiv.style.lineHeight = '20px';
+    //
+    //   landslideItem.appendChild(landslideImg);
+    //   landslideItem.appendChild(landslideTextDiv);
+    //   container.appendChild(landslideItem);
+    //
+    //   // 泥石流图例（使用泥石流图标）
+    //   const debrisFlowItem = document.createElement('div');
+    //   debrisFlowItem.className = 'legend-item';
+    //   debrisFlowItem.style.display = 'flex';
+    //   debrisFlowItem.style.alignItems = 'center';
+    //   debrisFlowItem.style.marginBottom = '10px';
+    //
+    //   const debrisFlowImg = document.createElement('img');
+    //   debrisFlowImg.className = 'legend-icon';
+    //   debrisFlowImg.src = debrisFlowIcon; // 泥石流图标
+    //   debrisFlowImg.alt = '历史泥石流灾害点图标';
+    //   debrisFlowImg.style.width = '20px';
+    //   debrisFlowImg.style.height = '20px';
+    //   debrisFlowImg.style.marginRight = '10px';
+    //   debrisFlowImg.style.objectFit = 'contain'; // 保持图标比例
+    //
+    //   const debrisFlowTextDiv = document.createElement('div');
+    //   debrisFlowTextDiv.className = 'legend-text';
+    //   debrisFlowTextDiv.textContent = '历史泥石流灾害点';
+    //   debrisFlowTextDiv.style.fontSize = '14px';
+    //   debrisFlowTextDiv.style.lineHeight = '20px';
+    //
+    //   debrisFlowItem.appendChild(debrisFlowImg);
+    //   debrisFlowItem.appendChild(debrisFlowTextDiv);
+    //   container.appendChild(debrisFlowItem);
+    //
+    //   // 地质灾害风险区图例（使用风险区图标）
+    //   const dangerItem = document.createElement('div');
+    //   dangerItem.className = 'legend-item';
+    //   dangerItem.style.display = 'flex';
+    //   dangerItem.style.alignItems = 'center';
+    //   dangerItem.style.marginBottom = '10px';
+    //
+    //   const dangerImg = document.createElement('img');
+    //   dangerImg.className = 'legend-icon';
+    //   dangerImg.src = riskArea; // 风险区图标
+    //   dangerImg.alt = '地质灾害风险点图标';
+    //   dangerImg.style.width = '20px';
+    //   dangerImg.style.height = '20px';
+    //   dangerImg.style.marginRight = '10px';
+    //   dangerImg.style.objectFit = 'contain'; // 保持图标比例
+    //
+    //   const dangerTextDiv = document.createElement('div');
+    //   dangerTextDiv.className = 'legend-text';
+    //   dangerTextDiv.textContent = '地质灾害风险点';
+    //   dangerTextDiv.style.fontSize = '14px';
+    //   dangerTextDiv.style.lineHeight = '20px';
+    //
+    //   dangerItem.appendChild(dangerImg);
+    //   dangerItem.appendChild(dangerTextDiv);
+    //   container.appendChild(dangerItem);
+    // },
     // 更新图例
-    updateLegend() {
-      this.createLegend();
-    },
+    // updateLegend() {
+    //   // this.createLegend();
+    // },
     // 计算并显示弹出面板
     async calculateAndShowPopup(entity, movementPosition) {
       try {

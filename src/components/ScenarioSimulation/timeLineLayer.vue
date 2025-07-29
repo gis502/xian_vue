@@ -199,6 +199,19 @@ export default {
                   viewer.clockViewModel.shouldAnimate = true;
                 }
               } else if (this.disasterEvent.trigger == "暴雨") {
+                let adminArea = this.getAdministrationByPoint(this.disasterEvent.longitude,this.disasterEvent.latitude);
+
+                if (adminArea) {
+                  // console.log(`标记点位于行政区划: ${adminArea.name}`);
+                  // 获取该行政区划的经纬度范围
+                  const adminCoordinates = adminArea.geometry.coordinates;
+                  // this.startLoading()
+                  // 检查灾害点是否在该行政区划内
+                  this.checkDisasterPointsInAdministration(adminCoordinates);
+                }
+                // else {
+                //   console.log("未找到标记点所在的行政区划");
+                // }
 
               }
 
