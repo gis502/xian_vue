@@ -13,11 +13,7 @@ export const pulseUtils = {
   createPause: (points, store, viewer) => {
     for (let i = 0; i < points.length; i++) {
       // 检测脉冲是否已经存在，如果存在，则清除脉冲
-      if (
-        store.entityCorrespondenceRelationship.hasOwnProperty(
-          points[i].entityId
-        )
-      ) {
+      if (store.entityCorrespondenceRelationship.hasOwnProperty(points[i].entityId)) {
         // 删除脉冲对象
         pulseUtils.deletePulseEntity(
           store.entityCorrespondenceRelationship[points[i].entityId],
@@ -32,10 +28,7 @@ export const pulseUtils = {
       if (!points[i].predict) continue;
 
       // 处理预测值
-      if (
-        points[i].predict.level === "高" ||
-        points[i].predict.level === "中"
-      ) {
+      if (points[i].predict.level === "高" || points[i].predict.level === "中") {
         const entityId = `PULSE_${Math.floor(Math.random() * 10000000)}`;
 
         // 创建脉冲

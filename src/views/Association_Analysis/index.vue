@@ -420,12 +420,22 @@ export default {
       init_cesium_navigation(108.948024, 34.263161, 200000,this.viewer);
       window.viewer=this.viewer
       //定位到西安
-      this.locatedXiAn();
+      // this.locatedXiAn();
+      // 调整到指定位置
+      window.viewer.cesiumWidget.creditContainer.style.display = "none";
+      window.viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-90),
+          roll: 0.0,
+        },
+      });
       basicLayers.loadAdminData();
-      //获取天气数据
+      // 获取天气数据
       // this.fetchWeatherData();
 
-      //添加风险区
+      // 添加风险区
       this.Addriskzone();
 
       //添加滑坡隐患点
@@ -1467,7 +1477,6 @@ export default {
         ...new Set(this.warn_point.map(item => item.county)),
         ...new Set(poin.map(item => item.county))
       ];
-
       // 初始化统计对象，需要预警的点计数，不需要预警的点为0
       const sortedCounties = allCounties.reduce((acc, county) => {
         // 判断该区县是否有需要预警的点

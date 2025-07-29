@@ -1998,7 +1998,9 @@ export default {
         // 筛选匹配的滑坡点数据
         const matchedHuapoData = []
         const matchedHuapoEntities = []
+        //获取滑坡和致灾因子 所有
         getGeologicalDisasterHideByLandSlideList().then(res => {
+          console.log(res,"getGeologicalDisasterHideByLandSlideList")
           const hides = res.data;
           hides.forEach(item => {
             const lon = item.geologicalDisasterHideDTO.lon;
@@ -2008,6 +2010,7 @@ export default {
               matchedHuapoData.push(item.factorVoList);
             }
           });
+          //降雨量值放到致灾因子里面去
           for (var i = 0; i < matchedHuapoData.length; i++) {
             for (var j = 0; j < matchedHuapoData[i].length; j++) {
               if (matchedHuapoData[i][j].attributeName === "降雨量") {
