@@ -473,6 +473,7 @@ let layers = {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
         item.entityId = '灾害点呼吸圈_' + item.id;
+        let labeltext=timeTransfer.timestampToTimeChina(item.occurrenceTime)+ " "+item.disasterName
         const start = Cesium.JulianDate.fromDate(new Date(item.occurrenceTime));
         const stop = Cesium.JulianDate.addDays(start, 10, new Cesium.JulianDate());
 
@@ -484,7 +485,7 @@ let layers = {
             }),]),
             position: Cesium.Cartesian3.fromDegrees(lon, lat),
             label: {
-                text: item.disasterName,
+                text:labeltext,
                 font: '16px sans-serif',
                 fillColor: Cesium.Color.BLACK,
                 backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),

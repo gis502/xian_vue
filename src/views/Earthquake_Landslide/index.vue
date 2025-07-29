@@ -176,7 +176,7 @@ onMounted(() => {
   });
 
   // 罗盘
-  init_cesium_navigation(108.948024, 34.263161, window.viewer);
+  init_cesium_navigation(108.948024, 34.263161,200000, window.viewer);
 
   // 调整到指定位置
   window.viewer.cesiumWidget.creditContainer.style.display = "none";

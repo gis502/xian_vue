@@ -1,18 +1,12 @@
 <template>
   <div>
-    <!--    <span>{{currentTime}}当前时间</span>-->
     <!-- 消息提示框 -->
     <div v-if="isCalculating || calculationMessage" class="calculation-message">
       {{ calculationMessage }}
     </div>
 
-    <!-- 图例 -->
-    <Legend></Legend>
 
-    <!--    预警点table-->
-    <Table :dataTypes="dataTypes"></Table>
-    <RealDisasterTable
-        :dataTypes="dataTypesRealDisater"
+    <rainfallPeriodTable
         :currentTime="currentTime"
     />
 
@@ -21,8 +15,6 @@
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
     </div>
-
-
     <div class="universalPanel" v-if="showLayerFeatures">
       <div class="panelTop">
         <h2 class="panelName">多源要素图层</h2>
@@ -41,9 +33,7 @@ import basicLayers from "@/cesium/basicLayers.js";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
 import {pulseUtils} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
-import Table from "@/components/Earthquake/Table.vue";
-import RealDisasterTable from "@/components/Earthquake/RealDisasterTable.vue";
-import Legend from "@/components/Earthquake/Legend.vue";
+
 import {reactive} from "vue";
 import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
 import timeTransfer from "@/cesium/timeTransfer.js";
@@ -72,78 +62,9 @@ export default {
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
-      dataTypes: {
-        filterCriteria: [
-          {
-            name: "滑坡预警点",
-            value: "type1",
-          },
-          {
-            name: "泥石流预警点",
-            value: "type2",
-          },
-          {
-            name: "风险区预警点",
-            value: "type3",
-          },
-        ],
-        type1: {
-          headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
-          data: [],
-        },
-        type2: {
-          headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
-          data: [],
-        },
-        type3: {
-          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
-          data: [],
-        },
-      },
-      dataTypesRealDisater: {
-        filterCriteria: [
-          {
-            name: "滑坡点",
-            value: "type1",
-          },
-          {
-            name: "泥石流点",
-            value: "type2",
-          },
-          {
-            name: "风险点",
-            value: "type3",
-          },
-        ],
-        type1: {
-          // headers: ["滑坡灾害名称", "发生时间", "人员伤亡情况","处置阶段"],
-          headers: [{name: "滑坡灾害名称", key: "field1", width: "30%"},
-            {name: "发生时间", key: "field2", width: "30%"},
-            {name: "人员伤亡", key: "field3", width: "15%"},
-            {name: "处置阶段", key: "field4", width: "15%"}],
-          data: [],
-
-        },
-        type2: {
-          // headers: ["泥石流灾害名称", "发生时间", "人员伤亡情况", "处置阶段"],
-          headers: [{name: "泥石流灾害名称", key: "field1", width: "30%"},
-            {name: "发生时间", key: "field2", width: "30%"},
-            {name: "人员伤亡", key: "field3", width: "15%"},
-            {name: "处置阶段", key: "field4", width: "15%"}],
-          data: [],
-        },
-        type3: {
-          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
-          headers: [{name: "风险区名称", key: "field1", width: "30%"},
-            {name: "发生时间", key: "field2", width: "30%"},
-            {name: "人员伤亡", key: "field3", width: "15%"},
-            {name: "处置阶段", key: "field4", width: "15%"}],
-          data: [],
-        },
-      },
-      showBaseInfo: false,
       realDisasterPoint: null,
       currentTime: new Date(),
+      rainfallPeriod: null,
     }
   },
   name: "timeLineLayer",
@@ -159,18 +80,13 @@ export default {
       ]);
     },
     onceLoadLayer() {
-      console.log(this.onceLoadLayer, "onceLoadLayer")
       if (this.onceLoadLayer) {
-        console.log(this.onceLoadLayer, "onceLoadLayer11")
         this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
         this.updateMapLayers();
       }
     }
   },
   components: {
-    Legend,
-    Table,
-    RealDisasterTable
   },
   mounted() {
   },
@@ -254,39 +170,39 @@ export default {
               // 如果已经计算过预警点，直接使用存储的结果
               pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
             } else {
-
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
               this.calculationMessage = '正在计算预警点...';
 
-              let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
-              const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+              if (this.disasterEvent.trigger == "地震") {
+                let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
+                const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+                console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                this.$emit("update:hiddenDisasterPoint", probabilityPoints);
+                // 清除全部脉冲实体
+                pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+                // 存储预警点结果
+                this.warningPoints = points;
+                // 添加脉冲实体
+                pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+                // 设置计算完成
+                this.isCalculating = false;
+                this.calculationMessage = '预警点计算完成！';
+                // 3 秒后关闭提示框
+                setTimeout(() => {
+                  this.calculationMessage = '';
+                }, 3000);
 
-              console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+                if (this.onceLoadLayer) {
+                  this.$emit('update:onceLoadLayer', false);
+                  viewer.clockViewModel.shouldAnimate = true;
+                }
+              } else if (this.disasterEvent.trigger == "暴雨") {
 
-              this.pushprobabilityPointsinTable(probabilityPoints)
-              // 清除全部脉冲实体
-              pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
-
-              // 存储预警点结果
-              this.warningPoints = points;
-
-              // 添加脉冲实体
-              pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
-              // 设置计算完成
-              this.isCalculating = false;
-              this.calculationMessage = '预警点计算完成！';
-
-              // 3 秒后关闭提示框
-              setTimeout(() => {
-                this.calculationMessage = '';
-              }, 3000);
-
-              // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-              if (this.onceLoadLayer) {
-                this.$emit('update:onceLoadLayer', false);
-                viewer.clockViewModel.shouldAnimate = true;
               }
+
+
             }
 
           },
@@ -298,12 +214,17 @@ export default {
           name: '灾害点',
           add: async () => {
             console.log(this.disasterEvent, "this.disasterEvent")
-            this.realDisasterPoint = await selectDisasterRealByDisasterId({
-              disasterId: this.disasterEvent.disasterId,
-              disasterTrigger: this.disasterEvent.trigger
-            })
-            this.pushpRealPointsinRealDisasterTable(this.realDisasterPoint)
-            layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+            if(!this.realDisasterPoint){
+              this.realDisasterPoint = await selectDisasterRealByDisasterId({
+                disasterId: this.disasterEvent.disasterId,
+                disasterTrigger: this.disasterEvent.trigger
+              })
+              this.$emit("update:realDisasterPoint", this.realDisasterPoint);
+              layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+            }
+            else{
+              layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+            }
           },
           remove: () => {
             // 移除滑坡事件实体
@@ -337,86 +258,6 @@ export default {
           layer.remove();
         }
       });
-    },
-    pushprobabilityPointsinTable(probabilityPoints) {
-      // 清空表格数据
-      this.dataTypes.type1.data = [];
-      this.dataTypes.type2.data = [];
-      this.dataTypes.type3.data = [];
-      // 风险区数据，滑坡数据，泥石流数据
-      probabilityPoints.forEach((item) => {
-        switch (item.geologicalDisasterHideDTO.disasterType) {
-          case "滑坡":
-            this.dataTypes.type1.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-            break;
-          case "泥石流":
-            this.dataTypes.type2.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-            break;
-          default:
-            this.dataTypes.type3.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.inspectorName,
-              field4: item.geologicalDisasterHideDTO.inspectorTele,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-        }
-      });
-    },
-    pushpRealPointsinRealDisasterTable(realDisasterPoint) {
-      this.dataTypesRealDisater.type1.data = [];
-      this.dataTypesRealDisater.type2.data = [];
-      this.dataTypesRealDisater.type3.data = [];
-      // 风险区数据，滑坡数据，泥石流数据
-      realDisasterPoint.forEach((item) => {
-        switch (item.disasterType) {
-          case "滑坡":
-            this.dataTypesRealDisater.type1.data.push({
-              field1: item.disasterName,
-              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-              field3: item.peopleInjure,
-              field4: item.state,
-              field5:parsePointString(item.geom).longitude,
-              field6:parsePointString(item.geom).latitude,
-            });
-            break;
-          case "泥石流":
-            this.dataTypesRealDisater.type2.data.push({
-              field1: item.disasterName,
-              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-              field3: item.peopleInjure,
-              field4: item.state,
-              field5:parsePointString(item.geom).longitude,
-              field6:parsePointString(item.geom).latitude,
-            });
-            break;
-          default:
-            this.dataTypesRealDisater.type3.data.push({
-              field1: item.disasterName,
-              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
-              field3: item.peopleInjure,
-              field4: item.state,
-              field5:parsePointString(item.geom).longitude,
-              field6:parsePointString(item.geom).latitude,
-            });
-        }
-      });
-
     },
   }
 }
@@ -504,9 +345,5 @@ export default {
   z-index: 1000;
 }
 
-:deep(.legend) {
-  bottom: 55px;
-  right: 45px;
-}
 
 </style>

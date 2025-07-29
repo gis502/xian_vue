@@ -101,7 +101,7 @@ function imageryProvider(type) {
     }
 }
 
-export function init_cesium_navigation(longitude, latitude, viewer) {
+export function init_cesium_navigation(longitude, latitude,height, viewer) {
     let options = {}
     // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
     options.enableCompass = true
@@ -112,7 +112,7 @@ export function init_cesium_navigation(longitude, latitude, viewer) {
     // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
     options.enableCompassOuterRing = true
     // 重置按钮
-    options.defaultResetView = new Cartographic(CesiumMath.toRadians(longitude), CesiumMath.toRadians(latitude), 6000)
+    options.defaultResetView = new Cartographic(CesiumMath.toRadians(longitude), CesiumMath.toRadians(latitude), height)
     options.resetTooltip = "重置视图";
     options.zoomInTooltip = "放大";
     options.zoomOutTooltip = "缩小";
@@ -122,7 +122,7 @@ export function init_cesium_navigation(longitude, latitude, viewer) {
     compass.addEventListener('dblclick', function () {
         // 设置相机飞行到指北视角
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, viewer.camera.positionCartographic.height), // 目标位置
+            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,height), // 目标位置
             orientation: {
                 heading: Cesium.Math.toRadians(0), // 朝向正北
                 pitch: Cesium.Math.toRadians(-90), // 向下俯视
