@@ -199,6 +199,7 @@ import basicLayers from "../../cesium/basicLayers";
 // (hazardsParams)致灾因子后端数据（此处是模拟）
 import { addDisaster, hazardsParams } from "../../api/earthquake/datas";
 import { parseTime } from "../../utils/ruoyi";
+import {PulseTool} from "@/cesium/pulse.js";
 
 // 常量
 const { province, city } = {
@@ -323,13 +324,12 @@ let isShow = ref(true);
 let isShowMore = ref(false);
 
 // 获取位置以及表格中要呈现的内容
-const { position, dataTypes, chartDatas, pulse } = defineProps([
+const { position, dataTypes, chartDatas } = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
-  "pulse",
 ]);
-
+let pulse = new PulseTool(window.viewer);
 // 接收传递的方法
 const emit = defineEmits([
   "cancelEarthquake",
@@ -388,10 +388,12 @@ async function confirmEarthquake(formEl) {
         position.longitude,
         position.latitude
       );
-      useSimulationPointStore().simulationPoints.forEach((item) => {
+      const validPoints = useSimulationPointStore().simulationPoints.filter(
+          item => item && item.geologicalDisasterHideDTO
+      );
+      validPoints.forEach((item) => {
+        // console.log(item,"useSimulationPointStore().simulationPoints")
         // 将模拟点的预测值全部清空，重新获取
-        item.predict = null;
-
         // 判断在不在震圈内
         if (
           layers.isPointInEllipse(
@@ -404,6 +406,7 @@ async function confirmEarthquake(formEl) {
             rotation
           )
         ) {
+          item.predict = null;
           inEllipsePoints.push(item);
         }
       });
@@ -411,12 +414,14 @@ async function confirmEarthquake(formEl) {
       // 获取各个点的风险概率
       const [points, probabilityPoints] =
         await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
+      console.log(points, probabilityPoints,"points, probabilityPoints")
 
       // 清除全部脉冲实体
       pulse.removePulseEntity();
 
       // 添加脉冲实体
-      pulse.createPause(points);
+      pulse.createPause(probabilityPoints);
+      console.log("addDatasToTableAndChart")
 
       // 处理表格和chart数据
       addDatasToTableAndChart(probabilityPoints);

@@ -46,10 +46,10 @@
 <script setup name="Hazards">
 import { onBeforeMount, reactive, ref } from "vue";
 import { getHazardProbability } from "../../api/earthquake/hazards";
-
+import {PulseTool} from "@/cesium/pulse.js";
 // 接收父组件数据
-const hazards = defineProps(["hazardsDatas", "options", "pulse"]);
-
+const hazards = defineProps(["hazardsDatas", "options"]);
+let pulse = new PulseTool(window.viewer);
 // 表单数据
 let form = reactive([]);
 

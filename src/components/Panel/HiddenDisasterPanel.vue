@@ -50,7 +50,7 @@
   </div>
 </template>
 
-<script setup name="BaseInfo">
+<script setup name="HiddenDisasterPanel">
 import {computed, onMounted, ref} from "vue";
 import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
@@ -78,15 +78,14 @@ watch(() => props, (newProps) => {
   console.log('Props updated:', newProps);
 }, {deep: true});
 
-
 let options = ref([]);
 getHazardOptions().then((res) => {
   options.value = res;
 });
 
-onMounted(() => {
-  console.log('Props received:', props);
-});
+// onMounted(() => {
+//   console.log('Props received:', props);
+// });
 const positionEntity = ref({x: 0, y: 0});
 
 watch(() => props.position.x, (newX) => {

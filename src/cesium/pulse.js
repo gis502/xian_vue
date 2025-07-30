@@ -20,7 +20,7 @@ export class PulseTool {
     this._duration = duration;
 
     // 圆背景图，用于呈现脉冲
-    this._circle = this.#createCircleImage(this._maxRadius);
+    this._circle = this.createCircleImage(this._maxRadius);
   }
 
   /**
@@ -28,41 +28,38 @@ export class PulseTool {
    * @param {array} points - 绘制点的合集
    */
   createPause(points) {
-    for (let i = 0; i < points.length; i++) {
-      // 检测脉冲是否已经存在，如果存在，则清除脉冲
-      if (this._entityPulseMap.hasOwnProperty(points[i].entityId)) {
-        // 删除脉冲对象
-        this.deletePulseEntity(points[i].entityId);
+    if (!Array.isArray(points)) return;
+
+    points.forEach((pt, idx) => {
+      // 跳过无效数据
+      if (!pt?.geologicalDisasterHideDTO || !pt.predict) return;
+
+      const dto = pt.geologicalDisasterHideDTO;
+      const key = `${dto.disasterType}_${dto.id}`; // 唯一 key
+      const level = pt.predict.level;
+
+      if (level !== '高' && level !== '中') return;
+
+      // 如果已有脉冲 -> 先删除
+      if (this._entityPulseMap[key]) {
+        this.deletePulseEntity(key);
       }
-      // 没有预测值，直接返回
-      if (!points[i].predict) continue;
 
-      // 处理预测值
-      if (
-        points[i].predict.level === '高' ||
-        points[i].predict.level === '中'
-      ) {
-        const pulseId = `PULSE_${Math.floor(Math.random() * 10000000)}`;
-        const lon = points[i].geologicalDisasterHideDTO.lon;
-        const lat = points[i].geologicalDisasterHideDTO.lat;
-
-        this.#createOptimizedPulseCircle(
+      // 生成唯一 pulseId
+      const pulseId = `PULSE_${key}_${Date.now()}`;
+      this.createOptimizedPulseCircle(
           pulseId,
-          lon,
-          lat,
+          dto.lon,
+          dto.lat,
           this._maxRadius,
           this._duration,
-          points[i].predict.level === '高'
-            ? Cesium.Color.RED
-            : Cesium.Color.YELLOW
-        );
+          level === '高' ? Cesium.Color.RED : Cesium.Color.YELLOW
+      );
 
-        // 存储实体
-        this._entityPulseMap[points[i].entityId] = pulseId;
-      }
-    }
+      // 记录映射
+      this._entityPulseMap[key] = pulseId;
+    });
   }
-
   /**
    * 创建脉冲实体
    * @param {string} pulseId - 脉冲实体id
@@ -73,10 +70,11 @@ export class PulseTool {
    * @param {Object} color - 颜色
    * @returns
    */
-  #createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
+  createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
+    console.log("createOptimizedPulseCirclecreateOptimizedPulseCircle")
     const startTime = Cesium.JulianDate.now();
 
-    const entity = this._viewer.entities.add({
+    const entity = window.viewer.entities.add({
       id: pulseId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
@@ -113,7 +111,7 @@ export class PulseTool {
    * 生成图形贴图函数
    * @returns
    */
-  #createCircleImage(maxRadius) {
+  createCircleImage(maxRadius) {
     // 创建一个虚拟的canvas
     const canvas = document.createElement('canvas');
     canvas.width = maxRadius * 2;
