@@ -529,7 +529,11 @@ export default {
           console.error("容器元素未找到");
           return;
         }
-
+        //取消双击视角定位
+        viewer.trackedEntity = undefined;
+        viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(
+            Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK
+        );
         // 初始化Viewer，使用影像底图
         // this.viewer = new Cesium.Viewer(container, {
         //   imageryProvider: new Cesium.UrlTemplateImageryProvider({

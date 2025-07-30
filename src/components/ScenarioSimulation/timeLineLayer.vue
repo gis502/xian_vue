@@ -5,12 +5,16 @@
       {{ calculationMessage }}
     </div>
 
+
+<!--    <rainfallPeriodTable-->
+<!--        :currentTime="currentTime"-->
+<!--    />-->
+
+
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
     </div>
-
-
     <div class="universalPanel" v-if="showLayerFeatures">
       <div class="panelTop">
         <h2 class="panelName">多源要素图层</h2>
@@ -30,6 +34,11 @@ import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards
 import {pulseUtils} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
+import {reactive} from "vue";
+import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
+import timeTransfer from "@/cesium/timeTransfer.js";
+import {parsePointString} from "@/cesium/geomTransfer.js";
+
 export default {
   data() {
     return {
@@ -44,6 +53,7 @@ export default {
         {id: '5', name: '风险区域', disabled: false},
         {id: '6', name: '预警点', disabled: false},
         {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
+        // {id: '7', name: '灾害点标签', disabled: true}, // 设置为 true 使其不可取消勾选
       ],
       selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
       prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
@@ -51,27 +61,39 @@ export default {
       warningPoints: null, // 存储预警点结果
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
+
+      realDisasterPoint: null,
+      currentTime: new Date(),
+      rainfallPeriod: null,
     }
   },
   name: "timeLineLayer",
-  props: ['viewer', 'disaterEvent', 'currentTime', 'onceLoadLayer'],
+  props: ['viewer', 'disasterEvent', 'currentTime', 'onceLoadLayer'],
   watch: {
-    viewer() {
-      basicLayers.AddHazardSource()
-      basicLayers.loadLandSlide()
-      basicLayers.AddDangerAreaDataSource()
-      basicLayers.loadAdminData()
+    async viewer() {
+      this.currentTime = viewer.clock.currentTime
+      await Promise.all([
+        basicLayers.Addmudslide(),
+        basicLayers.loadLandSlide(),
+        basicLayers.AddDangerAreaDataSource(),
+        basicLayers.loadAdminData()
+      ]);
     },
     onceLoadLayer() {
-      console.log(this.onceLoadLayer, "onceLoadLayer")
       if (this.onceLoadLayer) {
-        console.log(this.onceLoadLayer, "onceLoadLayer11")
-        this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
-        // this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域',  "灾害点"];
-        this.updateMapLayers();
+        if(this.disasterEvent.trigger=="地震"){
+          this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+          this.updateMapLayers();
+        }
+        else if(this.disasterEvent.trigger=="暴雨"){
+          this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+          this.updateMapLayers();
+        }
 
       }
     }
+  },
+  components: {
   },
   mounted() {
   },
@@ -106,7 +128,7 @@ export default {
         {
           name: '烈度圈',
           add: () => {
-            layers.DrawEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude, this.disaterEvent.disaterName)
+            layers.DrawEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude, this.disasterEvent.disaterName)
           },
           remove: () => {
             layers.removeIsoseismalCircle()
@@ -124,7 +146,7 @@ export default {
         {
           name: '泥石流隐患点',
           add: () => {
-            basicLayers.AddHazardSource()
+            basicLayers.Addmudslide()
           },
           remove: () => {
             basicLayers.removeHazardSource()
@@ -154,40 +176,53 @@ export default {
             if (this.warningPoints) {
               // 如果已经计算过预警点，直接使用存储的结果
               pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
-            }
-            else {
-
+            } else {
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
               this.calculationMessage = '正在计算预警点...';
 
-              let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disaterEvent.longitude, this.disaterEvent.latitude, this.disaterEvent.magnitude);
-              const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+              if (this.disasterEvent.trigger == "地震") {
+                let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
+                const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+                console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                this.$emit("update:hiddenDisasterPoint", probabilityPoints);
+                // 清除全部脉冲实体
+                pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+                // 存储预警点结果
+                this.warningPoints = points;
+                // 添加脉冲实体
+                pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+                // 设置计算完成
+                this.isCalculating = false;
+                this.calculationMessage = '预警点计算完成！';
+                // 3 秒后关闭提示框
+                setTimeout(() => {
+                  this.calculationMessage = '';
+                }, 3000);
 
-              console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+                if (this.onceLoadLayer) {
+                  this.$emit('update:onceLoadLayer', false);
+                  viewer.clockViewModel.shouldAnimate = true;
+                }
+              } else if (this.disasterEvent.trigger == "暴雨") {
+                let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude,this.disasterEvent.latitude);
 
-              // 清除全部脉冲实体
-              pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+                if (adminArea) {
+                  // console.log(`标记点位于行政区划: ${adminArea.name}`);
+                  // 获取该行政区划的经纬度范围
+                  let adminCoordinates = adminArea.geometry.coordinates;
+                  // this.startLoading()
+                  // 检查灾害点是否在该行政区划内
+                  await layers.findDisasterPointsFlash(adminCoordinates);
+                }
+                // else {
+                //   console.log("未找到标记点所在的行政区划");
+                // }
 
-              // 存储预警点结果
-              this.warningPoints = points;
-
-              // 添加脉冲实体
-              pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
-              // 设置计算完成
-              this.isCalculating = false;
-              this.calculationMessage = '预警点计算完成！';
-
-              // 3 秒后关闭提示框
-              setTimeout(() => {
-                this.calculationMessage = '';
-              }, 3000);
-
-              // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-              if (this.onceLoadLayer) {
-                this.$emit('update:onceLoadLayer', false);
-                viewer.clockViewModel.shouldAnimate = true;
               }
+
+
             }
 
           },
@@ -197,127 +232,34 @@ export default {
         },
         {
           name: '灾害点',
-          add: () => {
-
-
-            const landslideEvent1 = {
-              id: 'landslideEvent1',
-              name: '泥石流事件',
-              position: Cesium.Cartesian3.fromDegrees(108.8435, 33.9367),
-              startTime: Cesium.JulianDate.fromIso8601('2025-07-25T15:00:00Z'),
-              stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
-              message: '发生了一个泥石流事件'
-            };
-            const entity1 = viewer.entities.add({
-              id: landslideEvent1.id,
-              name: landslideEvent1.name,
-              position: landslideEvent1.position,
-              point: {
-                pixelSize: 10,
-                color: Cesium.Color.RED,
-              },
-              label: {
-                text: landslideEvent1.message,
-                font: '14px sans-serif',
-                fillColor: Cesium.Color.BLACK,
-                backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                outlineWidth: 2,
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                pixelOffset: new Cesium.Cartesian2(0, -16),
-              },
-              availability: new Cesium.TimeIntervalCollection([
-                new Cesium.TimeInterval({
-                  start: landslideEvent1.startTime,
-                  stop: landslideEvent1.stopTime,
-                }),
-              ]),
-            });
-            const halo1 = viewer.entities.add({
-              position: landslideEvent1.position,
-              point: {
-                pixelSize: 30,
-                color: Cesium.Color.BLACK.withAlpha(0.5),
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 2,
-              },
-              availability: new Cesium.TimeIntervalCollection([
-                new Cesium.TimeInterval({
-                  start: landslideEvent1.startTime,
-                  stop: landslideEvent1.stopTime,
-                }),
-              ]),
-            });
-
-
-            const landslideEvent = {
-              id: 'landslideEvent',
-              name: '滑坡事件',
-              position: Cesium.Cartesian3.fromDegrees(108.9225, 34.02472),
-              startTime: Cesium.JulianDate.fromIso8601('2025-07-27T15:00:00Z'),
-              stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
-              message: '发生了一个滑坡'
-            };
-
-// 添加滑坡事件实体
-            const entity = viewer.entities.add({
-              id: landslideEvent.id,
-              name: landslideEvent.name,
-              position: landslideEvent.position,
-              point: {
-                pixelSize: 10,
-                color: Cesium.Color.RED,
-              },
-              label: {
-                text: landslideEvent.message,
-                font: '14px sans-serif',
-                fillColor: Cesium.Color.BLACK,
-                backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                outlineWidth: 2,
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                pixelOffset: new Cesium.Cartesian2(0, -16),
-              },
-              availability: new Cesium.TimeIntervalCollection([
-                new Cesium.TimeInterval({
-                  start: landslideEvent.startTime,
-                  stop: landslideEvent.stopTime,
-                }),
-              ]),
-            });
-
-// 添加黑色光圈效果
-            const halo = viewer.entities.add({
-              position: landslideEvent.position,
-              point: {
-                pixelSize: 30,
-                color: Cesium.Color.BLACK.withAlpha(0.5),
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 2,
-              },
-              availability: new Cesium.TimeIntervalCollection([
-                new Cesium.TimeInterval({
-                  start: landslideEvent.startTime,
-                  stop: landslideEvent.stopTime,
-                }),
-              ]),
-            });
-
+          add: async () => {
+            console.log(this.disasterEvent, "this.disasterEvent")
+            if(!this.realDisasterPoint){
+              this.realDisasterPoint = await selectDisasterRealByDisasterId({
+                disasterId: this.disasterEvent.disasterId,
+                disasterTrigger: this.disasterEvent.trigger
+              })
+              this.$emit("update:realDisasterPoint", this.realDisasterPoint);
+              layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+            }
+            else{
+              layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+            }
           },
           remove: () => {
             // 移除滑坡事件实体
-            const entity = viewer.entities.getById('landslideEvent');
-            if (entity) {
-              viewer.entities.remove(entity);
-            }
-
-            // 移除黑色光圈效果
-            const halo = viewer.entities.getById('landslideEventHalo');
-            if (halo) {
-              viewer.entities.remove(halo);
-            }
+            // const entity = viewer.entities.getById('landslideEvent');
+            // if (entity) {
+            //   viewer.entities.remove(entity);
+            // }
+            //
+            // // 移除黑色光圈效果
+            // const halo = viewer.entities.getById('landslideEventHalo');
+            // if (halo) {
+            //   viewer.entities.remove(halo);
+            // }
           }
-        }
+        },
       ];
 
       // 构建 map 提升查找效率
@@ -404,10 +346,12 @@ export default {
   align-items: flex-start; /* 使所有选项左对齐 */
   padding-left: 20px; /* 向右移动选项 */
 }
+
 .el-checkbox {
   display: block; /* 将每个 checkbox 设置为块级元素 */
   margin-bottom: 10px; /* 添加一些间距 */
 }
+
 .calculation-message {
   position: fixed;
   top: 60px;
@@ -420,4 +364,6 @@ export default {
   font-size: 14px;
   z-index: 1000;
 }
+
+
 </style>

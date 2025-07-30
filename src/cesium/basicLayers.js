@@ -229,7 +229,7 @@ let basicLayers = {
         toRemove.forEach(ds => window.viewer.dataSources.remove(ds, true))
     },
 
-    async AddHazardSource(){
+    async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
@@ -256,16 +256,17 @@ let basicLayers = {
     },
     async addHiddenDangerPoints(type,hiddenDangerPoints, imageEntity) {
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
+            // console.log(hiddenDangerPoints,"hiddenDangerPoints")
             let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
             let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
 
             // 生成唯一ID (使用隐患点ID或随机生成)
-            const entityId = `HIDDEN_DANGER_${Math.floor(Math.random() * 10000000)}`;
-            hiddenDangerPoint.entityId = entityId;
+            // const entityId = `HIDDEN_DANGER_${Math.floor(Math.random() * 10000000)}`;
+            // hiddenDangerPoint.entityId = entityId;
 
             window.viewer.entities.add({
                 name:type,
-                id: entityId,
+                id: hiddenDangerPoints.entityId,
                 position: Cesium.Cartesian3.fromDegrees(lon, lat),
                 billboard: {
                     // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
