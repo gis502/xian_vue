@@ -123,11 +123,12 @@ import {reactive} from "vue";
 //封装函数
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
+import {PulseTool} from "@/cesium/pulse.js";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
-import {pulseUtils} from "@/cesium/pulse.js";
+
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import Table from "@/components/Earthquake/Table.vue";
@@ -296,7 +297,8 @@ export default {
           data: ["滑坡影响", "泥石流影响", "风险区影响"],
         },
         seriesDatas: [0, 0, 0],
-      }
+      },
+      pulse:null
     }
   },
   computed: {
@@ -315,6 +317,7 @@ export default {
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
+    this.pulse=new PulseTool(window.viewer);
     // this.total = this.tableData.length;
     // this.loadData();
   },
@@ -672,8 +675,6 @@ export default {
         }
         console.log(matchedHuapoData, "matchedHuapoData")
         rainSlideTrigger(matchedHuapoData).then(res => {
-          // let res1 = await rainSlideTrigger(matchedHuapoData)
-          // console.log(res1, "formatAnalyzedData")
           let formatAnalyzedData = res.data
           console.log(formatAnalyzedData, "formatAnalyzedData")
           // this.formatAnalyzedData = res.data;
@@ -691,7 +692,7 @@ export default {
               matchedHuapoEntities.push(item)
             }
           });
-          this.flashDisasterPoints(matchedHuapoEntities);
+          this.flashDisasterPoints(matchedHuapoEntities)
           this.handleHiddenDisasterPointUpdate(matchedHuapoEntities)
           this.stopLoading()
         })
@@ -702,8 +703,8 @@ export default {
       console.log("传输过来的匹配实体是：", entities);
 
       if (!entities || entities.length === 0) return;
-      pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
-      pulseUtils.createPause(entities, useSimulationPointStore(), window.viewer);
+      this.pulse.removePulseEntity();
+      this.pulse.createPause(entities);
       // 若界面已关闭，直接返回
       // if (this.isClosed) return;
 

@@ -20,7 +20,7 @@ export class PulseTool {
     this._duration = duration;
 
     // 圆背景图，用于呈现脉冲
-    this._circle = this.#createCircleImage(this._maxRadius);
+    this._circle = this.createCircleImage(this._maxRadius);
   }
 
   /**
@@ -46,7 +46,7 @@ export class PulseTool {
         const lon = points[i].geologicalDisasterHideDTO.lon;
         const lat = points[i].geologicalDisasterHideDTO.lat;
 
-        this.#createOptimizedPulseCircle(
+        this.createOptimizedPulseCircle(
           pulseId,
           lon,
           lat,
@@ -73,7 +73,7 @@ export class PulseTool {
    * @param {Object} color - 颜色
    * @returns
    */
-  #createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
+  createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
     const startTime = Cesium.JulianDate.now();
 
     const entity = this._viewer.entities.add({
@@ -113,7 +113,7 @@ export class PulseTool {
    * 生成图形贴图函数
    * @returns
    */
-  #createCircleImage(maxRadius) {
+  createCircleImage(maxRadius) {
     // 创建一个虚拟的canvas
     const canvas = document.createElement('canvas');
     canvas.width = maxRadius * 2;

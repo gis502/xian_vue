@@ -31,14 +31,13 @@ import layers from "@/cesium/layers.js";
 import * as Cesium from "cesium";
 import basicLayers from "@/cesium/basicLayers.js";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
-import {pulseUtils} from "@/cesium/pulse.js";
+import {PulseTool} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 import {reactive} from "vue";
 import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
-
 export default {
   data() {
     return {
@@ -61,7 +60,7 @@ export default {
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
-      pulseTool: new PulseTool(window.viewer),
+      pulse:null,
       realDisasterPoint: null,
       currentTime: new Date(),
       showBaseInfo:false,
@@ -96,6 +95,7 @@ export default {
   components: {
   },
   mounted() {
+    this.pulse=new PulseTool(window.viewer);
   },
   methods: {
     toggleLayerFeatures() {
@@ -175,7 +175,7 @@ export default {
           add: async () => {
             if (this.warningPoints) {
               // 如果已经计算过预警点，直接使用存储的结果
-              this.pulseTool.createPause(this.warningPoints);
+              this.pulse.createPause(this.warningPoints);
             } else {
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
@@ -186,12 +186,14 @@ export default {
                 const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
                 console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
+
+
                 // 清除全部脉冲实体
-                pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+                this.pulse.removePulseEntity();
                 // 存储预警点结果
                 this.warningPoints = points;
                 // 添加脉冲实体
-                pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+                this.pulse.createPause(points);
                 // 设置计算完成
                 this.isCalculating = false;
                 this.calculationMessage = '预警点计算完成！';
@@ -225,7 +227,7 @@ export default {
 
           },
           remove: () => {
-            this.pulseTool.removePulseEntity();
+            this.pulse.removePulseEntity();
           }
         },
         {

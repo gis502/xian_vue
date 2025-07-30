@@ -45,12 +45,13 @@
           v-if="displayDisasterCausingFactors"
           :hazardsDatas="hazards"
           :options="options"
+          :pulse="pulse"
       ></Hazards>
     </div>
   </div>
 </template>
 
-<script setup name="BaseInfo">
+<script setup name="HiddenDisasterPanel">
 import {computed, onMounted, ref} from "vue";
 import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
@@ -58,6 +59,7 @@ import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
 import {staticHazardsDatas} from "@/api/earthquake/datas";
 import {getHazardOptions} from "@/api/earthquake/hazards.js";
+import {PulseTool} from "@/cesium/pulse.js";
 
 const emit = defineEmits(["removeBaseInfoBox"]);
 const props = defineProps({
@@ -78,15 +80,15 @@ watch(() => props, (newProps) => {
   console.log('Props updated:', newProps);
 }, {deep: true});
 
-
+let pulse = new PulseTool(window.viewer);
 let options = ref([]);
 getHazardOptions().then((res) => {
   options.value = res;
 });
 
-onMounted(() => {
-  console.log('Props received:', props);
-});
+// onMounted(() => {
+//   console.log('Props received:', props);
+// });
 const positionEntity = ref({x: 0, y: 0});
 
 watch(() => props.position.x, (newX) => {

@@ -25,14 +25,12 @@
         v-if="showBaseInfo"
         :title="baseInfoTitle"
         :position="PanelPosition"
-        :pulse="pulse"
         :showDisasterInformation="showDisasterInformation"
         :disasterInformation="disasterInformation"
         :showdebrisFlowInformation="showdebrisFlowInformation"
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
-        :options="options"
         :trigger="'地震'"
         :rainfall="'0'"
     />
@@ -53,7 +51,6 @@
       :position="earthquakeSimulationPosition"
       :dataTypes="dataTypes"
       :chartDatas="chartDatas"
-      :pulse="pulse"
       @displayTable="displayTable"
       @hideTable="hideTable"
       @displayChart="displayChart"
@@ -73,20 +70,15 @@ import * as Cesium from "cesium";
 
 import { initCesium } from "@/cesium/initLayer.js";
 import { onMounted, reactive, ref } from "vue";
-import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
 import { init_cesium_navigation } from "../../cesium/initLayer";
 import layers from "../../cesium/layers";
-import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
-import { getHazardOptions } from "../../api/earthquake/hazards";
-import { PulseTool } from "../../cesium/pulse";
 
-import {getHazardOptions} from "../../api/earthquake/hazards";
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
@@ -176,15 +168,10 @@ let earthquakeClickHandler = null;
 
 let entityClickHandler = ref(null);
 
-// 脉冲对象
-let pulse = {};
 
-// 下拉列表选项
-let options = ref([]);
 
 onMounted(() => {
   window.viewer = initCesium("cesium-container");
-  pulse = new PulseTool(window.viewer);
 
   // 断裂带
   basicLayers.addFaultZone();
@@ -194,11 +181,6 @@ onMounted(() => {
 
   // 点击隐患点触发
   entitiesClickPonpHandler();
-
-  // 获取致灾因子下拉列表选项
-  getHazardOptions().then((res) => {
-    options.value = res;
-  });
 
   // 罗盘
   init_cesium_navigation(108.948024, 34.263161, 200000, window.viewer);
@@ -249,11 +231,11 @@ function entitiesClickPonpHandler() {
           let entity = window.selectedEntity;
           console.log(entity, "拾取entity")
           // 计算图标的世界坐标
-          selectedEntityPosition.value = this.calculatePosition(click.position);
+          selectedEntityPosition.value = calculatePosition(click.position);
           setTimeout(() => {
             updatePopupPosition();
           }, 10);
-          // this.updatePopupPosition(); // 确保位置已更新
+
 
 
           // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
@@ -331,7 +313,7 @@ function entitiesClickPonpHandler() {
   window.viewer.screenSpaceEventHandler.setInputAction(movement => {
     // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
     if (eqCenterPanelVisible.value || rainCenterPanelVisible.value || showBaseInfo.value) {
-      this.updatePopupPosition();
+      updatePopupPosition();
     }
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
@@ -457,8 +439,6 @@ function removeEarthquakeSimulation() {
   // 清除烈度圈实体
   layers.removeIsoseismalCircle();
 
-  // 清除脉冲
-  pulse.removePulseEntity();
 
   // 隐藏表格
   showTable.value = false;
