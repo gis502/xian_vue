@@ -20,3 +20,10 @@ export function getRisk(){
         method: 'get'
     })
 }
+
+export function getHistoryDisaster(){
+    return request({
+        url: '/association/getHistoryDisaster',
+        method: 'get'
+    })
+}

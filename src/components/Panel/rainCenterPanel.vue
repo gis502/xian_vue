@@ -13,7 +13,7 @@
               </tr>
               <tr>
                 <th>发生时间</th>
-                <td>{{ this.timestampToTimeChinese(rainInfo.occurrenceTime) }}</td>
+                <td>{{ timestampToTimeChinese(rainInfo.occurrenceTime) }}</td>
               </tr>
               <tr>
                 <th>累计降雨量</th>

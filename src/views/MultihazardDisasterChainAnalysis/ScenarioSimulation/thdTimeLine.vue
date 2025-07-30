@@ -26,20 +26,35 @@
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :trigger="disasterEvent.trigger"
+        :rainfall="'0'"
     />
+
 
     <timeLinePlay
         :viewer="viewer"
-        :disaterEvent="disaterEvent"
+        :disasterEvent="disasterEvent"
         :currentTime="currentTimeString"
+        :RealDisasterPlots="realDisasterPoint"
     />
     <timeLineLayer
         :viewer="viewer"
-        :disaterEvent="disaterEvent"
+        :disasterEvent="disasterEvent"
         :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
         @update:onceLoadLayer="onceLoadLayer = $event"
+        @update:realDisasterPoint="handleRealDisasterPointUpdate"
+        @update:hiddenDisasterPoint="handleHiddenDisasterPointUpdate"
     />
+
+    <!--    表格-->
+    <RealDisasterTable
+        :dataTypes="dataTypesRealDisater"
+        :currentTime="currentTime"
+    />
+    <Table :dataTypes="dataTypeHiddenDisaster"></Table>
+    <!-- 图例 -->
+    <Legend></Legend>
   </div>
 </template>
 
@@ -51,6 +66,7 @@ import {getEarthquakeEventById, getDisasterRainById} from '@/api/system/disaster
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
+import basicLayers from "@/cesium/basicLayers.js";
 //面板
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
@@ -58,7 +74,11 @@ import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 //时间轴组件
 import timeLinePlay from "@/components/ScenarioSimulation/timeLinePlay.vue";
 import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
-import basicLayers from "@/cesium/basicLayers.js";
+//组件
+import Legend from "@/components/Earthquake/Legend.vue";
+import RealDisasterTable from "@/components/ScenarioSimulation/RealDisasterTable.vue";
+import Table from "@/components/Earthquake/Table.vue";
+import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 
 export default {
   name: "thdTimeLine",
@@ -67,16 +87,15 @@ export default {
     return {
       viewer: null,
 
-      disaterEvent: null,
+      disasterEvent: null,
       centerpoint: null,
+
       //---信息弹框---
-      hasUpdatedPosition: false,
       selectedEntityPosition: '', //拾取的点的弹框位置
       PanelPosition: {x: 0, y: 0}, // TimeLinePanel弹窗的位置
       PanelData: {}, // TimeLinePanel弹窗的数据
       eqCenterPanelVisible: false,
       rainCenterPanelVisible: false,
-
       baseInfoTitle: false,
       showDisasterInformation: false,
       showdebrisFlowInformation: false,
@@ -84,18 +103,89 @@ export default {
       disasterInformation: null,
       debrisFlowInformation: null,
       riskPointsInformation: null,
-
-
       showBaseInfo: false,
       //鼠标位置经纬度
       coordinateBoxData: {longitude: 108, latitude: 34},
-
-      stopTimePlay: false,
-      isTimeRunning: false,
-      isMarkingLayerLocal: true,
+      //时间尺
+      // stopTimePlay: false,
+      // isTimeRunning: false,
+      // isMarkingLayerLocal: true,
       currentTime: new Date(),
       onceLoadLayer: false,
 
+      //真实发生的灾害点列表
+      realDisasterPoint: null,
+      dataTypesRealDisater: {
+        filterCriteria: [
+          {
+            name: "滑坡点",
+            value: "type1",
+          },
+          {
+            name: "泥石流点",
+            value: "type2",
+          },
+          {
+            name: "风险点",
+            value: "type3",
+          },
+        ],
+        type1: {
+          // headers: ["滑坡灾害名称", "发生时间", "人员伤亡情况","处置阶段"],
+          headers: [{name: "滑坡灾害名称", key: "field1", width: "30%"},
+            {name: "发生时间", key: "field2", width: "30%"},
+            {name: "人员伤亡", key: "field3", width: "15%"},
+            {name: "处置阶段", key: "field4", width: "15%"}],
+          data: [],
+
+        },
+        type2: {
+          // headers: ["泥石流灾害名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [{name: "泥石流灾害名称", key: "field1", width: "30%"},
+            {name: "发生时间", key: "field2", width: "30%"},
+            {name: "人员伤亡", key: "field3", width: "15%"},
+            {name: "处置阶段", key: "field4", width: "15%"}],
+          data: [],
+        },
+        type3: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [{name: "风险区名称", key: "field1", width: "30%"},
+            {name: "发生时间", key: "field2", width: "30%"},
+            {name: "人员伤亡", key: "field3", width: "15%"},
+            {name: "处置阶段", key: "field4", width: "15%"}],
+          data: [],
+        },
+      },
+      //隐患点表格
+      dataTypeHiddenDisaster: {
+        filterCriteria: [
+          {
+            name: "滑坡预警点",
+            value: "type1",
+          },
+          {
+            name: "泥石流预警点",
+            value: "type2",
+          },
+          {
+            name: "风险区预警点",
+            value: "type3",
+          },
+        ],
+        type1: {
+          headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type2: {
+          headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type3: {
+          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
+      },
+      matchedHiddenHighlightEntities:null,
     };
   },
   computed: {
@@ -109,12 +199,18 @@ export default {
     }
   },
   components: {
+    //信息面板
     eqCenterPanel,
     rainCenterPanel,
     HiddenDisasterPanel,
 
     timeLinePlay,
-    timeLineLayer
+    timeLineLayer,
+
+    Legend,
+    //表格
+    RealDisasterTable,
+    Table
   },
   beforeDestroy() {
     // 1. 清空所有图形（点、线、面、标签）
@@ -143,23 +239,23 @@ export default {
     async init() {
       let that = this
       if (this.trigger == "地震") {
-        this.disaterEvent = await getEarthquakeEventById({id: this.id})
-        this.disaterEvent.trigger = "地震"
+        this.disasterEvent = await getEarthquakeEventById({id: this.id})
+        this.disasterEvent.trigger = "地震"
       } else if (this.trigger == "暴雨") {
-        this.disaterEvent = await getDisasterRainById({id: this.id})
-        this.disaterEvent.trigger = "暴雨"
+        this.disasterEvent = await getDisasterRainById({id: this.id})
+        this.disasterEvent.trigger = "暴雨"
       }
 
-      let {longitude, latitude} = parsePointString(this.disaterEvent.geom)
-      this.disaterEvent.longitude = longitude
-      this.disaterEvent.latitude = latitude
+      let {longitude, latitude} = parsePointString(this.disasterEvent.geom)
+      this.disasterEvent.longitude = longitude
+      this.disasterEvent.latitude = latitude
 
-      if (!this.disaterEvent.occurrenceTime) {
-        console.error("Invalid occurrenceTime:", this.disaterEvent.occurrenceTime);
+      if (!this.disasterEvent.occurrenceTime) {
+        console.error("Invalid occurrenceTime:", this.disasterEvent.occurrenceTime);
         return;
       }
 
-      let startTimetmp = new Date(this.disaterEvent.occurrenceTime);
+      let startTimetmp = new Date(this.disasterEvent.occurrenceTime);
       let startTime = Cesium.JulianDate.fromDate(startTimetmp);
       let stopTimetmp = new Date(startTimetmp.getTime() + 10 * 24 * 3600 * 1000);
       let stopTime = Cesium.JulianDate.fromDate(stopTimetmp);
@@ -206,11 +302,11 @@ export default {
         if (clock.currentTime) {
           that.currentTime = clock.currentTime;
         }
-        if (viewer.clockViewModel.shouldAnimate) {
-          that.isTimeRunning = true
-        } else {
-          that.isTimeRunning = false
-        }
+        // if (viewer.clockViewModel.shouldAnimate) {
+        //   that.isTimeRunning = true
+        // } else {
+        //   that.isTimeRunning = false
+        // }
       })
 
 
@@ -240,30 +336,30 @@ export default {
       window.viewer = viewer
       this.viewer = viewer
 
-      init_cesium_navigation(this.disaterEvent.longitude, this.disaterEvent.latitude, viewer)
+      init_cesium_navigation(this.disasterEvent.longitude, this.disasterEvent.latitude, 200000, viewer)
       this.MouseCoordinateHandler = setupMouseCoordinateDisplay(this.viewer, this.coordinateBoxData)
-      this.centerpoint = basicLayers.addCenterPoint(this.disaterEvent)
+      this.centerpoint = basicLayers.addCenterPoint(this.disasterEvent)
       this.locatedCenter()
       this.entitiesClickPonpHandler()
     },
     async locatedCenter() {
-      await timeLine.fly(this.disaterEvent.longitude, this.disaterEvent.latitude, 200000)
+      await timeLine.fly(this.disasterEvent.longitude, this.disasterEvent.latitude, 200000)
       //中心面板闪烁
-      if (this.disaterEvent.trigger == "地震") {
+      if (this.disasterEvent.trigger == "地震") {
         this.eqCenterPanelVisible = true;
-      } else if (this.disaterEvent.trigger == "暴雨") {
+      } else if (this.disasterEvent.trigger == "暴雨") {
         this.rainCenterPanelVisible = true;
       }
-      this.PanelData = this.extractDataForRouter(this.centerpoint)
+      this.PanelData =clickPointsAndShowPanel.extractDataForPanel(this.centerpoint,this.matchedHiddenHighlightEntities)
 
       this.selectedEntity = this.centerpoint
       this.selectedEntityPosition = {
-        x: this.disaterEvent.longitude, // 经度
-        y: this.disaterEvent.latitude,  // 纬度
+        x: this.disasterEvent.longitude, // 经度
+        y: this.disasterEvent.latitude,  // 纬度
         z: 0     // 高度
       };
       let position = this.centerpoint.position.getValue(Cesium.JulianDate.now());
-      let screenPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, position);
+      let screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, position);
       this.PanelPosition = {
         x: screenPosition.x + 10,
         y: screenPosition.y + 10
@@ -271,7 +367,7 @@ export default {
       this.updatePopupPosition(); // 确保位置已更新
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo ) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -300,7 +396,10 @@ export default {
               console.log(entity, "拾取entity")
               // 计算图标的世界坐标
               this.selectedEntityPosition = this.calculatePosition(click.position);
-              this.updatePopupPosition(); // 确保位置已更新
+              setTimeout(() => {
+                this.updatePopupPosition();
+              }, 10);
+              // this.updatePopupPosition(); // 确保位置已更新
 
 
               // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
@@ -314,35 +413,41 @@ export default {
                 this.eqCenterPanelVisible = true;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = false;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
-                this.PanelData = this.extractDataForRouter(entity)
-              } else if (entity.name === "暴雨中心") {
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+              }
+              else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
+                console.log(this.rainCenterPanelVisible, "打开面板啊")
                 this.showBaseInfo = false;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
-                this.PanelData = this.extractDataForRouter(entity)
-              } else if (entity.name === "滑坡隐患点") {
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                console.log(this.PanelData, "显示数据")
+              }
+              else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
-                this.disasterInformation = entity.properties.data._value;
+
+                this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
-              } else if (entity.name === "泥石流隐患点") {
+              }
+              else if (entity.name === "泥石流隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
 
                 this.showDisasterInformation = false;
@@ -350,21 +455,22 @@ export default {
                 this.showRiskPointsInformation = false;
 
                 this.disasterInformation = null
-                this.debrisFlowInformation = entity.properties.data._value;
+                this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.riskPointsInformation = null
-              } else if (entity.name === "风险区域") {
+              }
+              else if (entity.name === "风险区域") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = true;
 
+                this.disasterInformation = null
                 this.debrisFlowInformation = null
-                this.riskPointsInformation = null
-                this.riskPointsInformation = entity.properties.data._value;
+                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else {
                 this.rainCenterPanelVisible = false;
                 this.eqCenterPanelVisible = false;
@@ -375,7 +481,7 @@ export default {
             else {
               this.eqCenterPanelVisible = false;
               this.rainCenterPanelVisible = false;
-              this.showBaseInfo=false;
+              this.showBaseInfo = false;
             }
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK
       );
@@ -415,7 +521,7 @@ export default {
         // 检查是否有选中的实体位置
         if (this.selectedEntityPosition) {
           // 将地理坐标转换为窗口坐标
-          const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+          const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
               window.viewer.scene,
               Cesium.Cartesian3.fromDegrees(this.selectedEntityPosition.x, this.selectedEntityPosition.y, this.selectedEntityPosition.z)
           );
@@ -430,15 +536,87 @@ export default {
       });
     },
 
-    extractDataForRouter(entity) {
-      let properties = {};
-      entity.properties.propertyNames.forEach(name => {
-        properties[name] = entity.properties[name].getValue();
-      });
-      return properties;
-    },
-  },
+    handleRealDisasterPointUpdate(data) {
+      this.realDisasterPoint = data
 
+      this.dataTypesRealDisater.type1.data = [];
+      this.dataTypesRealDisater.type2.data = [];
+      this.dataTypesRealDisater.type3.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
+      this.realDisasterPoint.forEach((item) => {
+        switch (item.disasterType) {
+          case "滑坡":
+            this.dataTypesRealDisater.type1.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5: parsePointString(item.geom).longitude,
+              field6: parsePointString(item.geom).latitude,
+            });
+            break;
+          case "泥石流":
+            this.dataTypesRealDisater.type2.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5: parsePointString(item.geom).longitude,
+              field6: parsePointString(item.geom).latitude,
+            });
+            break;
+          default:
+            this.dataTypesRealDisater.type3.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5: parsePointString(item.geom).longitude,
+              field6: parsePointString(item.geom).latitude,
+            });
+        }
+      });
+    },
+    handleHiddenDisasterPointUpdate(probabilityPoints) {
+      // 清空表格数据
+      this.dataTypeHiddenDisaster.type1.data = [];
+      this.dataTypeHiddenDisaster.type2.data = [];
+      this.dataTypeHiddenDisaster.type3.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
+      probabilityPoints.forEach((item) => {
+        switch (item.geologicalDisasterHideDTO.disasterType) {
+          case "滑坡":
+            this.dataTypeHiddenDisaster.type1.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          case "泥石流":
+            this.dataTypeHiddenDisaster.type2.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          default:
+            this.dataTypeHiddenDisaster.type3.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.inspectorName,
+              field4: item.geologicalDisasterHideDTO.inspectorTele,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+        }
+      });
+    },
 // //子-父-子，控制时间轴暂停与播放
 // handleStopTimePlay() {
 //   this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
@@ -446,7 +624,9 @@ export default {
 // },
 // handleStartTimePlay() {
 //   this.stopTimePlay = false;
-// },
+  },
+
+
 }
 </script>
 
@@ -473,4 +653,10 @@ export default {
   width: 205px;
   z-index: 5;
 }
+
+:deep(.legend) {
+  bottom: 55px;
+  right: 45px;
+}
+
 </style>

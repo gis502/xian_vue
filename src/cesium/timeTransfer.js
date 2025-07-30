@@ -79,6 +79,27 @@ let timeTransfer = {
         mm = mm > 9 ? mm : '0' + mm;
         ss = ss > 9 ? ss : '0' + ss;
         return `${year}年${month}月${day}日 ${hh}:${mm}:${ss}`;
+    },
+    timeChinaToNewDate(dateStr) {
+        // 使用正则表达式匹配日期和时间部分
+        const regex = /(\d{4})年(\d{2})月(\d{2})日 (\d{2}):(\d{2}):(\d{2})/;
+        const match = dateStr.match(regex);
+
+        if (match) {
+            // 提取年、月、日、时、分、秒
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1; // 月份从 0 开始
+            const day = parseInt(match[3], 10);
+            const hours = parseInt(match[4], 10);
+            const minutes = parseInt(match[5], 10);
+            const seconds = parseInt(match[6], 10);
+
+            // 创建一个新的 Date 对象
+            return new Date(year, month, day, hours, minutes, seconds);
+        }
+
+        // 如果格式不匹配，返回 null
+        return null;
     }
 }
 export default timeTransfer;

@@ -77,6 +77,7 @@ import * as Cesium from 'cesium'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
 import {getDisasterRainById, getEarthquakeEventById} from "@/api/system/disasterEvents.js";
+import {parsePointString} from "@/cesium/geomTransfer.js";
 
 export default {
   name: "timeLinePlay",
@@ -84,9 +85,9 @@ export default {
     return {
       // oldCurrentTime: null,
       selectedId: "playStart", // 当前选中的按钮，前进后退，暂停播放
-      currentSpeed: 3600,
+      currentSpeed: 7200,
       showSpeedOptions: false,
-      speedOption: '3600X',
+      speedOption: '7200X',
       speedOptions: ['1X', '60X', '600X', '3600X', '7200X'],
       // plots: [],
       ifNewEq: false, //用于 回到真实时间
@@ -99,11 +100,12 @@ export default {
       // lastRecordContent: '',
 
       startTime: new Date(),
-      endTime: new Date()
+      endTime: new Date(),
+      plots:null,
     }
   },
-  // props: ['viewer','disaterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
-  props: ['viewer', 'disaterEvent', 'currentTime'],
+  // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
+  props: ['viewer', 'disasterEvent', 'currentTime','RealDisasterPlots'],
   watch: {
     currentTime(newVal, oldVal) {
       if (newVal && oldVal && newVal !== oldVal) {
@@ -112,15 +114,18 @@ export default {
         if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
           this.currentTimeLocal = currentTimeLocaltmp
         }
-        this.ifstopandflash(newVal, oldVal);
+        if(this.plots){
+          this.ifstopandflash(newVal, oldVal);
+        }
+
       }
     },
-    disaterEvent(newVal) {
+    disasterEvent(newVal) {
 
       // this.getPlotwithStartandEndTime(this.eqid)
-      this.startTime = new Date(this.disaterEvent.occurrenceTime);
+      this.startTime = new Date(this.disasterEvent.occurrenceTime);
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
-      console.log(this.disaterEvent, "this.startTime,this.endTime,")
+      console.log(this.disasterEvent, "this.startTime,this.endTime,")
       console.log(this.startTime, "this.startTime,this.endTime,")
       console.log(this.endTime, "this.startTime,this.endTime,")
       let realTime = new Date()
@@ -155,6 +160,20 @@ export default {
         this.playEnd(); // 停止时间轴播放
       }
     },
+    RealDisasterPlots(newVal){
+      this.plots=[]
+      this.RealDisasterPlots.forEach(item => {
+        if (!item.endTime ) {
+          // 为没有结束时间的点设置默认结束时间
+          item.endTime =new Date(new Date(item.occurrenceTime).getTime()+10*24*3600  ) //20天 错误时间设置结束时间地震发生20天以后
+        }
+        item.longitude=parsePointString(item.geom).longitude
+        item.latitude=parsePointString(item.geom).latitude
+        this.plots.push(item)
+      })
+
+      console.log(this.plots,"this.plots")
+    }
     // isMarkingLayer(newVal) {
     //   console.log(newVal, "isMarkingLayerLocal watch")
     //   // this.isMarkingLayer=newVal
@@ -167,82 +186,13 @@ export default {
     // }
   },
   mounted() {
-    // this.getPlotwithStartandEndTime(this.eqid)
-    this.getPlotwithStartandEndTime()
+
+    // this.getPlotwithStartandEndTime()
   },
   methods: {
-    getPlotwithStartandEndTime() {
-      this.plots =
-          [
-            {
-              id: 'landslideEvent',
-              name: '滑坡事件',
-              position: Cesium.Cartesian3.fromDegrees(108.9225, 34.02472),
-              startTime: Cesium.JulianDate.fromIso8601('2025-07-27T15:00:00Z'),
-              stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
-              message: '发生了一个滑坡',
-              longitude: 108.9225,
-              latitude: 34.02472,
-            },
-            {
-              id: 'landslideEvent11',
-              name: '泥石流事件',
-              position: Cesium.Cartesian3.fromDegrees(108.8435, 33.9367),
-              startTime: Cesium.JulianDate.fromIso8601('2025-07-25T15:00:00Z'),
-              stopTime: Cesium.JulianDate.fromIso8601('2025-08-27T15:00:00Z'),
-              message: '发生了一个泥石流',
-              longitude: 108.8435,
-              latitude: 33.9367,
-            }
-          ]
-
-
-      //   // 调用接口获取特定设备的绘图信息
-      //   getPlotwithStartandEndTime({eqid: eqid}).then(res => {
-      //     console.log(res, "res")
-      //     this.plots = res
-      //     this.plots.forEach(item => {
-      //       if (!item.endTime || new Date(item.endTime) < new Date(this.startTime) || new Date(item.endTime) <= new Date(item.startTime)) {
-      //         // 为没有结束时间的点设置默认结束时间
-      //         item.endTime = this.endTime  //20天 错误时间设置结束时间地震发生20天以后
-      //       }
-      //       if (!item.startTime) {
-      //         // 为没有开始时间的点设置默认开始时间
-      //         item.startTime = this.startTime;
-      //       }
-      //       // this.timeRecoard.push(new Date(item.startTime).getTime())
-      //     })
-      //     //传值给父组件，用于标绘统计
-      //     this.$emit('updatePlots', this.plots);
-      //     //---点---
-      //     let pointArr = this.plots.filter(e => e.drawtype === 'point')
-      //     console.log(pointArr, "pointArr")
-      //     pointArr.forEach(item => {
-      //       timeLine.addMakerPoint(item, "标绘点")
-      //     })
-      //
-      //     //---线---
-      //     let polylineArr = this.plots.filter(e => e.drawtype === 'polyline')
-      //     console.log(polylineArr, "polylineArr")
-      //     polylineArr.forEach(item => {
-      //       timeLine.addPolyline(item, "标绘点")
-      //     })
-      //
-      //     //---面---
-      //     let polygonArr = this.plots.filter(e => e.drawtype === 'polygon')
-      //     console.log(polygonArr, "polygonArr")
-      //     polygonArr.forEach(item => {
-      //       timeLine.addPolygon(item, "标绘点")
-      //     })
-      //
-      //
-      //     //---箭头绘制---
-      //     let arrowArr = this.plots.filter(e => e.drawtype === 'straight' || e.drawtype === 'attack' || e.drawtype === 'pincer');
-      //     arrowArr.forEach(item => {
-      //       timeLine.addArrow(item, "标绘点")
-      //     })
-      //   })
-    },
+    // getPlotwithStartandEndTime() {
+    //
+    // },
     selectButton(id) {
       this.selectedId = id; // 更新选中的按钮ID
     },
@@ -265,7 +215,7 @@ export default {
     },
     backToStart() {
       window.viewer.clockViewModel.shouldAnimate = false;
-      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disaterEvent.occurrenceTime));
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disasterEvent.occurrenceTime));
       window.viewer.clock.multiplier = this.currentSpeed
       this.flyflag = true
       this.endflag = true;
@@ -335,7 +285,7 @@ export default {
     async flyToPointsSequentially() {
       for (let index = 0; index < this.plotArrinOneTime.length; index++) {
         const item = this.plotArrinOneTime[index];
-        let lastRecordTimeLocaltmp = this.timestampToTimeChina(item.startTime)
+        let lastRecordTimeLocaltmp = this.timestampToTimeChina(item.occurrenceTime)
         if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
           this.lastRecordTimeLocal = lastRecordTimeLocaltmp
         }
@@ -375,7 +325,7 @@ export default {
 
           // 点闪烁
           // await timeLine.blinkMarker(item);
-          console.log("blinkMarker else")
+          // console.log("blinkMarker else")
           // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           // } else {
           //   window.labeldataSource.entities.removeById(item.plotId + "_label");
@@ -399,7 +349,7 @@ export default {
         return;
       }
       this.plotArrinOneTime = this.plots.filter(plot => {
-        return this.ifArriveTime(currentTime, oldCurrentTime, plot.startTime);
+        return this.ifArriveTime(currentTime, oldCurrentTime, plot.occurrenceTime);
       });
       if (this.endflag) {
         window.viewer.clockViewModel.shouldAnimate = false;

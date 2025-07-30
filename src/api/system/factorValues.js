@@ -5,6 +5,6 @@ export function getFactorValueList() {
     return request({
         url: '/factor/type',
         method: 'get',
-        timeout:20000
+        timeout:50000
     });
 }

@@ -4,55 +4,60 @@
       class="cesium-info-window"
       :style="styleObject"
   >
+    <span>
+
+    </span>
     <div class="disaster-popup">
       <div class="popup-header">
         <h3>{{ title }}</h3>
         <el-button
-          type="info"
-          v-text="
+            type="info"
+            v-text="
             displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'
           "
-          @click="displayComponents"
+            @click="displayComponents"
         ></el-button>
-<!--        <button @click="emit('removeBaseInfoBox')" class="close-btn">-->
-<!--          关闭-->
-<!--        </button>-->
+        <!--        <button @click="emit('removeBaseInfoBox')" class="close-btn">-->
+        <!--          关闭-->
+        <!--        </button>-->
       </div>
 
       <!-- 滑坡信息 -->
       <Landslide
-        v-if="!displayDisasterCausingFactors && showDisasterInformation"
-        :info="disasterInformation"
+          v-if="!displayDisasterCausingFactors && showDisasterInformation"
+          :info="disasterInformation"
       ></Landslide>
 
       <!-- 泥石流 -->
       <DebrisFlow
-        v-if="!displayDisasterCausingFactors && showdebrisFlowInformation"
-        :info="debrisFlowInformation"
+          v-if="!displayDisasterCausingFactors && showdebrisFlowInformation"
+          :info="debrisFlowInformation"
       ></DebrisFlow>
 
       <!-- 风险点 -->
       <RiskPoints
-        v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
-        :info="riskPointsInformation"
+          v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
+          :info="riskPointsInformation"
       ></RiskPoints>
 
       <!-- 致灾因子信息 -->
       <Hazards
-        v-if="displayDisasterCausingFactors"
-        :hazardsDatas="hazards"
+          v-if="displayDisasterCausingFactors"
+          :hazardsDatas="hazards"
+          :options="options"
       ></Hazards>
     </div>
   </div>
 </template>
 
 <script setup name="BaseInfo">
-import { computed, onMounted, ref } from "vue";
+import {computed, onMounted, ref} from "vue";
 import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
 import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
-import { staticHazardsDatas } from "@/api/earthquake/datas";
+import {staticHazardsDatas} from "@/api/earthquake/datas";
+import {getHazardOptions} from "@/api/earthquake/hazards.js";
 
 const emit = defineEmits(["removeBaseInfoBox"]);
 const props = defineProps({
@@ -64,13 +69,34 @@ const props = defineProps({
   debrisFlowInformation: Object,
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
+  trigger: String,
+  rainfall: String,
+});
+// 获取致灾因子下拉列表选项
+
+watch(() => props, (newProps) => {
+  console.log('Props updated:', newProps);
+}, {deep: true});
+
+
+let options = ref([]);
+getHazardOptions().then((res) => {
+  options.value = res;
 });
 
-const positionEntity = ref({ x: 0, y: 0 });
+onMounted(() => {
+  console.log('Props received:', props);
+});
+const positionEntity = ref({x: 0, y: 0});
+
+watch(() => props.position.x, (newX) => {
+  positionEntity.value.x = newX;
+  // console.log(props.position,"props.position")
+});
 
 
-watch(() => props.position, (newPosition) => {
-  positionEntity.value = newPosition;
+watch(() => props.position.y, (newY) => {
+  positionEntity.value.y = newY;
 });
 
 const styleObject = computed(() => ({
@@ -79,6 +105,7 @@ const styleObject = computed(() => ({
   top: `${positionEntity.value.y}px`,
 }));
 
+
 const displayDisasterCausingFactors = ref(false);
 
 const hazards = computed(() => {
@@ -86,6 +113,17 @@ const hazards = computed(() => {
     props.disasterInformation.factorVoList.forEach((element) => {
       element.type = element.unit == "" ? "select" : "input:number";
       element.isModified = true;
+      element.isShow = true;
+      if (element.attributeNameAlias == 'rainfall') {
+        console.log(element, props.trigger, props.rainfall, "(props.showDisasterInformation")
+        if (props.trigger == "地震") {
+          element.isShow = false;
+        } else if (props.trigger == "暴雨" && props.disasterInformation.predict.level == '') {
+          element.isShow = false;
+        } else {
+          element.factorValue = props.rainfall
+        }
+      }
     });
     return props.disasterInformation;
   } else if (props.showdebrisFlowInformation) {
@@ -95,7 +133,6 @@ const hazards = computed(() => {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
     return props.riskPointsInformation;
   }
-  return {};
 });
 
 function displayComponents() {
@@ -114,6 +151,7 @@ function displayComponents() {
   max-height: 450px;
   overflow: auto;
 }
+
 .disaster-popup {
   width: 100%;
   border-collapse: collapse;
@@ -131,15 +169,18 @@ function displayComponents() {
   padding: 2px 15px;
   border-bottom: 1px solid #e9ecef;
 }
+
 .popup-header h3 {
   font-size: 14px;
   font-weight: bold;
   font-family: "Source Han Sans CN";
 }
+
 .disaster-info-table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .disaster-info-table th,
 .disaster-info-table td {
   padding: 8px;
@@ -151,13 +192,15 @@ function displayComponents() {
   font-family: "Source Han Sans CN";
   font-size: 13px;
 }
+
 .disaster-info-table .label {
   color: #333;
   width: 30%;
   font-size: 13px;
 }
+
 .close-btn {
-  font-weight: nom;
+  font-weight: normal;
   background: none;
   border: none;
   padding: 5px 10px;

@@ -54,7 +54,7 @@
       <!-- 新闻展示悬浮框 - 列表表格样式 -->
       <div v-if="isNewsBoxVisible" class="news-float-box">
         <div class="news-box-title">新闻信息列表</div>
-        <div class="news-scroll-area">
+        <div class="news-scroll-area fixed-header-table">
           <table class="news-table">
             <thead>
             <tr>
@@ -137,7 +137,7 @@
           </thead>
           <tbody>
           <tr v-for="(item, index) in tableData" :key="item.eqid">
-            <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+            <td>{{ (currentPage - 1) * pageSizeNum + index + 1 }}</td>
             <td>
              <span class="clickable"
                    @click="getData(item)"
@@ -157,8 +157,8 @@
           style="margin-top: 10px; text-align: center;"
           background
           layout="prev, pager, next"
-          :total="total"
-          :page-size="pageSize"
+          :total="disTotal"
+          :page-size="pageSizeNum"
           :current-page="currentPage"
           @current-change="handlePageChangeDisaster"
       />
@@ -238,7 +238,9 @@ const newsDataList = ref([])
 const pageNum = ref(1)
 const pageSize = ref(5)
 const currentPage = ref(1)
+const pageSizeNum=ref(5)
 const total = ref(0)
+const disTotal = ref(0)
 // 控制面板和新闻框显示
 const isPanelShow = ref({ NewsInfo: false })
 // 按钮点击处理
@@ -368,17 +370,18 @@ const lastEqRainId = ref()
 
 const fetchData = async () => {
   try {
-    const res = await getEarthquakeRainPage(currentPage.value, pageSize.value)
+    const res = await getEarthquakeRainPage(currentPage.value, pageSizeNum.value)
     tableData.value = res.data.records
     lastItem= tableData.value[0]
-    total.value = res.data.total
+    disTotal.value = res.data.total
     console.log('最新数据:', tableData.value)
+    console.log('最新数据总数:',  disTotal.value)
 
     await getData(lastItem) // 放这里确保拿到的是最新数据
   } catch (error) {
     console.error('请求数据失败', error)
     tableData.value = []
-    total.value = 0
+    disTotal.value = 0
     lastItem.value = null
   }
 }
@@ -1675,7 +1678,18 @@ onBeforeUnmount(() => {
   max-height: 300px;
   overflow-y: auto;
 }
+.fixed-header-table table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
 
+.fixed-header-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #ccc;
+}
 .news-table {
   min-width: 800px; /* ✅ 设置表格整体宽度，触发横向滚动 */
   width: 100%;

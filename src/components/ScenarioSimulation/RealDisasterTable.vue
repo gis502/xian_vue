@@ -1,10 +1,9 @@
-<!-- 表格组件 -->
 <template>
   <div class="data-table">
     <button @click="toggleTableVisibility" class="toggle-table-btn">
       {{ isTableVisible ? "-" : "+" }}
     </button>
-    <div class="table-title">{{ dataTypes.title || '灾害链影响点列表' }}</div>
+    <div class="table-title">灾害发生点</div>
     <div class="table-header" v-if="isTableVisible">
       <div class="search-box">
         <input
@@ -24,33 +23,32 @@
         </option>
       </select>
     </div>
-
-    <table v-if="isTableVisible" style="table-layout: fixed">
+    <table v-if="isTableVisible" style="table-layout: fixed; width: 100%">
       <thead>
       <tr>
         <th
-            style="text-align: center"
-            v-for="(header, index) in tableHeaders"
+            v-for="(header, index) in tableHeaders.slice(0, 4)"
             :key="index"
+            :style="{ width: header.width }"
+            style="text-align: center"
         >
-          {{ header }}
+          {{ header.name }}
         </th>
       </tr>
       </thead>
-
       <tbody>
       <tr
           v-for="(item, index) in paginatedTableData"
           :key="index"
           @click="handleTableClick(item)"
       >
-        <template v-for="(value, key) in item">
+        <template v-for="(header, headerIndex) in tableHeaders.slice(0, 4)">
           <td
-              v-if="key !== 'field5' && key !== 'field6'"
+              :style="{ width: header.width }"
               style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-              :title="value"
+              :title="item[header.key]"
           >
-            {{ value }}
+            {{ item[header.key] }}
           </td>
         </template>
       </tr>
@@ -62,7 +60,7 @@
       <button @click="nextPage" :disabled="currentPage === totalPages">
         下一页
       </button>
-      <span class="total-items">共 {{ tableData.length }} 条</span>
+      <span class="total-items">共 {{ filteredTableData.length }} 条</span>
     </div>
   </div>
 </template>
@@ -70,11 +68,15 @@
 <script setup name="Table">
 import { ref, watch, computed, onMounted } from "vue";
 import * as Cesium from "cesium";
-
-// 定义 props
+import timeTransfer from "@/cesium/timeTransfer.js";
+import { isEqual, throttle, debounce } from "lodash";
 const props = defineProps({
   dataTypes: {
     type: Object,
+    required: true
+  },
+  currentTime: {
+    type: [String, Object],
     required: true
   }
 });
@@ -85,22 +87,11 @@ const selectedDataType = ref("type1");
 const tableHeaders = ref([]);
 const searchQuery = ref("");
 
-// 表格数据和分页相关状态
 const currentPage = ref(1);
 const pageSize = 5;
 
 // 过滤后的数据
-const filteredTableData = computed(() => {
-  if (!searchQuery.value) {
-    return tableData.value;
-  }
-  const query = searchQuery.value.toLowerCase();
-  return tableData.value.filter((item) => {
-    return Object.values(item).some((value) =>
-        String(value).toLowerCase().includes(query)
-    );
-  });
-});
+const filteredTableData = ref([]);
 
 // 总页数
 const totalPages = computed(() =>
@@ -114,16 +105,15 @@ const paginatedTableData = computed(() => {
   return filteredTableData.value.slice(start, end);
 });
 
-// 切换数据类型
 function changeDataType() {
   const typeData = props.dataTypes[selectedDataType.value];
   tableHeaders.value = typeData.headers;
   tableData.value = typeData.data;
   searchQuery.value = "";
   currentPage.value = 1;
+  updateTableData();
 }
 
-// 下一页
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
@@ -136,60 +126,83 @@ function prevPage() {
   }
 }
 
+const toggleTableVisibility = () => {
+  isTableVisible.value = !isTableVisible.value;
+};
+
+const performSearch = () => {
+  currentPage.value = 1;
+  updateTableData();
+};
+
+// 更新表格数据的函数
+function updateTableData() {
+  const currentTime = new Date(props.currentTime);
+
+    const newData = tableData.value.filter(item => {
+      const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
+      // console.log(occurTime,currentTime,"occurTime,currentTime")
+      if (!occurTime||!currentTime) {
+        console.error(`Invalid date format for field2: ${item.field2}`);
+        return false;
+      }
+      return occurTime < currentTime;
+    });
+    // 只有在数据实际发生变化时才更新 filteredTableData
+    if (!isEqual(filteredTableData.value, newData)) {
+      filteredTableData.value = newData;
+    }
+}
+
 function handleTableClick(item) {
-  // 示例逻辑，根据实际需求调整
-  console.log("Clicked on item:", item);
+  // console.log(item,"handleTableClick")
   const longitude = item.field5; // 获取经度
   const latitude = item.field6; // 获取纬度
   // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
   // if (cesiumViewer) {
   window.viewer.scene.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
-    orientation: {
-      heading: Cesium.Math.toRadians(0.0),
-      pitch: Cesium.Math.toRadians(-90.0),
-      roll: 0.0,
-    },
-    duration: 2, // 飞行动画持续时间（秒）
-  });
+      destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
+      orientation: {
+        heading: Cesium.Math.toRadians(0.0),
+        pitch: Cesium.Math.toRadians(-90.0),
+        roll: 0.0,
+      },
+      duration: 2, // 飞行动画持续时间（秒）
+    });
+  // }
 }
 
-// 显示隐藏
-const toggleTableVisibility = () => {
-  isTableVisible.value = !isTableVisible.value;
-};
-
-// 搜索功能
-const performSearch = () => {
-  currentPage.value = 1;
-};
-
-// 初始化数据
 onMounted(() => {
   changeDataType();
 });
+// 节流后的 updateTableData 函数
+const throttledUpdateTableData = throttle(updateTableData, 1000);
 
-// 监听 dataTypes 数据变化
+// 监听 currentTime 的变化
+watch(() => props.currentTime, () => {
+  throttledUpdateTableData();
+});
+// 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
-  // 当 dataTypes 发生变化时，重新设置表格数据
   changeDataType();
 }, { deep: true });
 </script>
 
 
+
 <style scoped lang="scss">
 .data-table {
   position: absolute;
-  top: 20px; /* 距离顶部20px */
+  top: 52vh; /* 距离顶部20px */
   left: 20px; /* 距离左侧20px */
   background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
   color: white;
   padding: 15px;
   border-radius: 4px;
-  z-index: 1000;
+  z-index: 10;
   width: 550px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
-  font-size: 14px; /* 调整字体大小 */
+  font-size: 12px; /* 调整字体大小 */
   /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
 }
 
@@ -203,7 +216,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   border-radius: 50%; /* 圆形按钮 */
   width: 25px; /* 按钮宽度 */
   height: 25px; /* 按钮高度 */
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1; /* 垂直居中文本 */
   text-align: center;
   cursor: pointer;
@@ -220,7 +233,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 .table-title {
   font-weight: bold;
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: 14px;
   text-align: center;
   margin-top: 0; /* 将 margin-top 设置为0，避免空白区域 */
   padding-top: 20px; /* 增加内边距，为按钮留出空间 */
@@ -237,7 +250,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
   padding: 8px 12px;
   text-align: center;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .data-table th {
@@ -281,7 +294,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 }
 
 .pagination-controls span {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
 }
 

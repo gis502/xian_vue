@@ -2,7 +2,7 @@
   <div class="legend">
     <div class="legend-title">图例</div>
     <div class="legend-item">
-      <span class="legend-color" id="earthquake"></span>震中位置
+      <span class="legend-color" id="earthquake"></span>灾害中心
     </div>
     <div class="legend-item">
       <div class="legend-color" id="landslide"></div>
@@ -19,6 +19,18 @@
     <div class="legend-item">
       <div class="legend-color" id="earthquakeline"></div>
       断裂带
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" id="predictMidDisaster"></div>
+      中风险预警点
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" id="predictHighDisaster"></div>
+      高风险预警点
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" id="realDisaster"></div>
+      灾害点
     </div>
   </div>
 </template>
@@ -75,6 +87,18 @@
 }
 #earthquakeline {
   background-image: url("../../assets/images/earthquakeline.png");
+  background-size: cover;
+}
+#predictHighDisaster {
+  background-image: url("../../assets/images/高风险预警点.png");
+  background-size: cover;
+}
+#predictMidDisaster {
+  background-image: url("../../assets/images/中风险预警点.png");
+  background-size: cover;
+}
+#realDisaster {
+  background-image: url("../../assets/images/灾害点.png");
   background-size: cover;
 }
 </style>

@@ -6,7 +6,7 @@ export function rainSlideTrigger(data) {
         url: '/model/rainSlideTrigger',
         method: 'post',
         data: data,
-        timeout:20000
+        timeout:50000
     });
 }
 
@@ -16,6 +16,6 @@ export function rainSlideFactorUpdata(data) {
         url: '/model/rainSlideFactorUpdata',
         method: 'post',
         data: data,
-        timeout:20000
+        timeout:50000
     });
 }
