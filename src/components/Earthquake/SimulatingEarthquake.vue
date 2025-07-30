@@ -9,13 +9,26 @@
       left: position.x + 'px',
     }"
   >
-    <div class="panel-title">地震信息</div>
+    <div style="padding: 10px">
+      <el-row align="middle" gutter="10">
+        <el-col :span="12" style="text-align: right">
+          {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}</el-col
+        >
+        <el-col :span="12">
+          <el-button type="info" round @click="showBaseInfo = !showBaseInfo"
+            >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息</el-button
+          >
+        </el-col>
+      </el-row>
+    </div>
     <div class="panel-content">
+      <!-- 模拟信息 -->
       <el-form
         ref="ruleFormRef"
         :rules="rules"
         :model="form"
         label-width="auto"
+        v-show="showBaseInfo"
       >
         <el-row gutter="10">
           <el-col :span="24">
@@ -31,7 +44,13 @@
             </el-form-item>
           </el-col>
         </el-row>
-
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="震中位置" prop="position">
+              <el-input v-model="form.position"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-row gutter="10">
           <el-col :span="12">
             <el-form-item label="震级" prop="magnitude">
@@ -86,6 +105,50 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row :gutter="10" justify="center" style="padding-bottom: 10px">
+          <hr class="segmentation" />
+          <el-link type="primary" @click="setMore">
+            点击{{ isShowMore ? "收起" : "查看" }}，更多设置
+            <el-icon v-if="!isShowMore"><ArrowDown /></el-icon>
+            <el-icon v-else><ArrowUp /></el-icon>
+          </el-link>
+        </el-row>
+        <el-row v-show="isShowMore" :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="来源">
+              <el-input v-model="form.source" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="县编码">
+              <el-input v-model="form.countyCode" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-show="isShowMore" :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="乡镇编码">
+              <el-input v-model="form.townshipCode" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="区县">
+              <el-input v-model="form.district" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-show="isShowMore" :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="省份">
+              <el-input v-model="form.province" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="城市">
+              <el-input v-model="form.city" />
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-row :gutter="10">
           <el-col :span="12">
             <el-form-item>
@@ -93,7 +156,7 @@
                 type="success"
                 @click="confirmEarthquake(ruleFormRef)"
                 style="width: 100%"
-                >确认添加</el-button
+                >添加</el-button
               >
             </el-form-item>
           </el-col>
@@ -109,17 +172,42 @@
           </el-col>
         </el-row>
       </el-form>
+
+      <!-- 致灾因子参数信息 -->
+      <el-form :model="form" label-width="auto" v-show="!showBaseInfo">
+        <el-form-item
+          v-for="(param, index) in hazardsParams"
+          :key="index"
+          :label="param.attributeName"
+        >
+          <el-input
+            v-model="hazardsForm[param.attributeNameAlias]"
+            :placeholder="`请输入${param.attributeName}参数`"
+          ></el-input>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
 
 <script setup name="SimulatingEarthquake">
-import { onBeforeMount, reactive } from "vue";
+import { reactive } from "vue";
 import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
-import { pulseUtils } from "../../cesium/pulse";
 import basicLayers from "../../cesium/basicLayers";
+// (hazardsParams)致灾因子后端数据（此处是模拟）
+import { addDisaster, hazardsParams } from "../../api/earthquake/datas";
+import { parseTime } from "../../utils/ruoyi";
+
+// 常量
+const { province, city } = {
+  province: "陕西省",
+  city: "西安市",
+};
+
+// 显示基本信息
+let showBaseInfo = ref(true);
 
 // 表单对象
 const ruleFormRef = ref();
@@ -128,12 +216,36 @@ const ruleFormRef = ref();
 let form = reactive({
   name: "",
   fullName: "",
+  position: `${province}${city}${position.name ? position.name : ""}`,
   magnitude: 6,
   depth: 0,
   longitude: parseFloat(position.longitude.toFixed(4)),
   latitude: parseFloat(position.latitude.toFixed(4)),
   dateTime: "",
   type: "",
+
+  // 下面数据非必须数据
+  source: "",
+  countyCode: "",
+  townshipCode: "",
+  district: position.name,
+  province: province,
+  city: city,
+});
+
+// 致灾因子参数
+let hazardsForm = reactive({
+  elevation: 0,
+  slope: 0,
+  rockType: 0,
+  breakDistance: 0,
+  landUseType: 0,
+  waterDistance: 0,
+  rainfall: 0,
+  vegetationCoverage: 0,
+  slopeCurvature: 0,
+  soilSandDegree: 0,
+  slopeType: 0,
 });
 
 // 验证规则
@@ -149,6 +261,13 @@ const rules = reactive({
     {
       required: true,
       message: "地震全称不能为空",
+      trigger: "blur",
+    },
+  ],
+  position: [
+    {
+      required: true,
+      message: "震中位置不能为空",
       trigger: "blur",
     },
   ],
@@ -200,12 +319,18 @@ const rules = reactive({
 // 显示弹窗
 let isShow = ref(true);
 
+// 是否显示设置更多
+let isShowMore = ref(false);
+
 // 获取位置以及表格中要呈现的内容
-const { position, dataTypes, chartDatas } = defineProps([
+const { position, dataTypes, chartDatas, pulse } = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
+  "pulse",
 ]);
+
+// 接收传递的方法
 const emit = defineEmits([
   "cancelEarthquake",
   "displayTable",
@@ -216,20 +341,22 @@ const emit = defineEmits([
   "stopLoading",
 ]);
 
-onBeforeMount(() => {
-  // 隐藏显示
-  emit("hideTable");
-  emit("hideChart");
-});
-
 // 添加模拟
 async function confirmEarthquake(formEl) {
   if (!formEl) return;
   // 验证
   await formEl.validate(async (valid, fields) => {
     if (valid) {
+      // 隐藏显示
+      emit("hideTable");
+      emit("hideChart");
+
       // 显示加载
       emit("startLoading");
+
+      // 添加记录到灾害列表中
+      form.dateTime = parseTime(form.dateTime); // 修改日期格式
+      // addDisaster(form);
 
       // 隐藏弹窗
       isShow.value = false;
@@ -286,10 +413,10 @@ async function confirmEarthquake(formEl) {
         await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
 
       // 清除全部脉冲实体
-      pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+      pulse.removePulseEntity();
 
       // 添加脉冲实体
-      pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+      pulse.createPause(points);
 
       // 处理表格和chart数据
       addDatasToTableAndChart(probabilityPoints);
@@ -326,8 +453,8 @@ function addDatasToTableAndChart(probabilityPoints) {
         dataTypes.type1.data.push({
           field1: item.geologicalDisasterHideDTO.disasterName,
           field2: item.geologicalDisasterHideDTO.position,
-          field3: item.geologicalDisasterHideDTO.scaleGrade,
-          field4: item.geologicalDisasterHideDTO.riskGrade,
+          field3: item.predict.level,
+          field4: `${item.predict.probability * 100}%`,
           field5: item.geologicalDisasterHideDTO.lon,
           field6: item.geologicalDisasterHideDTO.lat,
         });
@@ -357,6 +484,11 @@ function addDatasToTableAndChart(probabilityPoints) {
     }
   });
 }
+
+// 设置更多信息
+function setMore() {
+  isShowMore.value = !isShowMore.value;
+}
 </script>
 
 <style scoped>
@@ -368,6 +500,8 @@ function addDatasToTableAndChart(probabilityPoints) {
   border-radius: 4px;
   z-index: 1000;
   width: 500px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 .panel-title {
   text-align: center;
@@ -376,5 +510,11 @@ function addDatasToTableAndChart(probabilityPoints) {
 
 ::v-deep .el-form-item__label {
   color: #fff;
+}
+
+.segmentation {
+  border: 0;
+  border-bottom: 1px solid gray;
+  width: 100%;
 }
 </style>

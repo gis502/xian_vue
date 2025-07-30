@@ -1,14 +1,12 @@
 <template>
   <div
-      id="cesium-container"
-      ref="cesiumContainer"
-      v-loading="loading"
-
-      element-loading-svg-view-box="-10, -10, 50, 50"
-      element-loading-background="rgba(122, 122, 122, 0.8)"
+    id="cesium-container"
+    ref="cesiumContainer"
+    v-loading="loading"
+    :element-loading-spinner="svg"
+    element-loading-svg-view-box="-10, -10, 50, 50"
+    element-loading-background="rgba(122, 122, 122, 0.8)"
   >
-
-<!--    :element-loading-spinner="svg"-->
     <!-- 图例 -->
     <Legend></Legend>
 
@@ -27,12 +25,14 @@
         v-if="showBaseInfo"
         :title="baseInfoTitle"
         :position="PanelPosition"
+        :pulse="pulse"
         :showDisasterInformation="showDisasterInformation"
         :disasterInformation="disasterInformation"
         :showdebrisFlowInformation="showdebrisFlowInformation"
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :options="options"
         :trigger="'地震'"
         :rainfall="'0'"
     />
@@ -40,26 +40,27 @@
     <!-- 地震模拟 -->
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation"
-      >地震模拟
+        >地震模拟
       </el-button>
       <el-button type="danger" @click="removeEarthquakeSimulation"
-      >清除地震模拟
+        >清除地震模拟
       </el-button>
     </div>
 
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
-        v-if="showEarthquakeSimulation"
-        :position="earthquakeSimulationPosition"
-        :dataTypes="dataTypes"
-        :chartDatas="chartDatas"
-        @displayTable="displayTable"
-        @hideTable="hideTable"
-        @displayChart="displayChart"
-        @hideChart="hideChart"
-        @cancelEarthquake="cancelEarthquake"
-        @startLoading="startLoading"
-        @stopLoading="stopLoading"
+      v-if="showEarthquakeSimulation"
+      :position="earthquakeSimulationPosition"
+      :dataTypes="dataTypes"
+      :chartDatas="chartDatas"
+      :pulse="pulse"
+      @displayTable="displayTable"
+      @hideTable="hideTable"
+      @displayChart="displayChart"
+      @hideChart="hideChart"
+      @cancelEarthquake="cancelEarthquake"
+      @startLoading="startLoading"
+      @stopLoading="stopLoading"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -70,18 +71,21 @@
 <script setup>
 import * as Cesium from "cesium";
 
-import {initCesium} from "@/cesium/initLayer.js";
-import {onMounted, reactive, ref} from "vue";
+import { initCesium } from "@/cesium/initLayer.js";
+import { onMounted, reactive, ref } from "vue";
+import BaseInfo from "../../components/Earthquake/BaseInfo.vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
-import {init_cesium_navigation} from "../../cesium/initLayer";
+import { init_cesium_navigation } from "../../cesium/initLayer";
 import layers from "../../cesium/layers";
-import {pulseUtils} from "../../cesium/pulse";
-import {useSimulationPointStore} from "../../store/earthquake/simulation_points";
+import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
+import { getHazardOptions } from "../../api/earthquake/hazards";
+import { PulseTool } from "../../cesium/pulse";
+
 import {getHazardOptions} from "../../api/earthquake/hazards";
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
@@ -172,11 +176,15 @@ let earthquakeClickHandler = null;
 
 let entityClickHandler = ref(null);
 
+// 脉冲对象
+let pulse = {};
+
 // 下拉列表选项
 let options = ref([]);
 
 onMounted(() => {
   window.viewer = initCesium("cesium-container");
+  pulse = new PulseTool(window.viewer);
 
   // 断裂带
   basicLayers.addFaultZone();
@@ -383,20 +391,28 @@ function startEarthquakeSimulation() {
 
   // 保存事件处理函数以便后续移除
   earthquakeClickHandler = new Cesium.ScreenSpaceEventHandler(
-      window.viewer.canvas
+    window.viewer.canvas
   );
 
   // 设置事件监听
   earthquakeClickHandler.setInputAction((event) => {
     if (!showEarthquakeSimulation.value) {
+      const pick = window.viewer.scene.pick(event.position);
+      const entity = pick && pick.id;
+
       // 显示弹窗
       showEarthquakeSimulation.value = true;
       earthquakeSimulationPosition.value = event.position;
       const latitudeAndLongitude = getClickedPosition(event.position);
       earthquakeSimulationPosition.value.latitude =
-          latitudeAndLongitude.latitude;
+        latitudeAndLongitude.latitude;
       earthquakeSimulationPosition.value.longitude =
-          latitudeAndLongitude.longitude;
+        latitudeAndLongitude.longitude;
+
+      // 添加地点
+      earthquakeSimulationPosition.value.name = entity && entity._name;
+    } else {
+      cancelEarthquake();
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -426,7 +442,7 @@ function cancelEarthquake() {
   // 如果正在监听则移除事件
   if (isMonitoringEarthquake && earthquakeClickHandler) {
     earthquakeClickHandler.removeInputAction(
-        Cesium.ScreenSpaceEventType.LEFT_CLICK
+      Cesium.ScreenSpaceEventType.LEFT_CLICK
     );
     isMonitoringEarthquake = false;
     earthquakeClickHandler = null;
@@ -442,7 +458,7 @@ function removeEarthquakeSimulation() {
   layers.removeIsoseismalCircle();
 
   // 清除脉冲
-  pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+  pulse.removePulseEntity();
 
   // 隐藏表格
   showTable.value = false;

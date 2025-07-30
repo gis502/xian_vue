@@ -53,7 +53,6 @@ export default {
         {id: '5', name: '风险区域', disabled: false},
         {id: '6', name: '预警点', disabled: false},
         {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
-        // {id: '7', name: '灾害点标签', disabled: true}, // 设置为 true 使其不可取消勾选
       ],
       selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
       prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
@@ -62,9 +61,10 @@ export default {
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
+      pulseTool: new PulseTool(window.viewer),
       realDisasterPoint: null,
       currentTime: new Date(),
-      rainfallPeriod: null,
+      showBaseInfo:false,
     }
   },
   name: "timeLineLayer",
@@ -175,7 +175,7 @@ export default {
           add: async () => {
             if (this.warningPoints) {
               // 如果已经计算过预警点，直接使用存储的结果
-              pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
+              this.pulseTool.createPause(this.warningPoints);
             } else {
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
@@ -221,13 +221,11 @@ export default {
                 // }
 
               }
-
-
             }
 
           },
           remove: () => {
-            pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+            this.pulseTool.removePulseEntity();
           }
         },
         {
