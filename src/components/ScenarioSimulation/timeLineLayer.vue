@@ -38,8 +38,7 @@ import layers from "@/cesium/layers.js";
 import * as Cesium from "cesium";
 import basicLayers from "@/cesium/basicLayers.js";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
-import {pulseUtils} from "@/cesium/pulse.js";
-import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+import {PulseTool} from "@/cesium/pulse.js";
 import Table from "@/components/Earthquake/Table.vue";
 import Legend from "@/components/Earthquake/Legend.vue";
 import {reactive} from "vue";
@@ -65,6 +64,8 @@ export default {
       warningPoints: null, // 存储预警点结果
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
+
+      pulseTool: new PulseTool(window.viewer),
 
       dataTypes: {
         filterCriteria: [
@@ -231,7 +232,7 @@ export default {
           add: async () => {
             if (this.warningPoints) {
               // 如果已经计算过预警点，直接使用存储的结果
-              pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
+              this.pulseTool.createPause(this.warningPoints);
             } else {
 
               // 第一次加载，计算预警点
@@ -245,13 +246,13 @@ export default {
 
               this.pushprobabilityPointsinTable(probabilityPoints)
               // 清除全部脉冲实体
-              pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+              this.pulseTool.removePulseEntity();
 
               // 存储预警点结果
               this.warningPoints = points;
 
               // 添加脉冲实体
-              pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+              this.pulseTool.createPause(points);
               // 设置计算完成
               this.isCalculating = false;
               this.calculationMessage = '预警点计算完成！';
@@ -270,7 +271,7 @@ export default {
 
           },
           remove: () => {
-            pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+            this.pulseTool.removePulseEntity();
           }
         },
         {
