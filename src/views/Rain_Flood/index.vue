@@ -111,6 +111,11 @@
     </div>
     <!-- 自定义弹出面板 -->
     <!-- 点击弹窗 -->
+    <rainCenterPanel
+        v-show="rainCenterPanelVisible"
+        :position="PanelPosition"
+        :popupData="PanelData"
+    />
     <HiddenDisasterPanel
         v-if="showBaseInfo"
         :title="baseInfoTitle"
@@ -178,6 +183,7 @@ import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
+import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 
 export default {
@@ -486,7 +492,8 @@ export default {
   },
   components: {
     Legend,
-    HiddenDisasterPanel
+    HiddenDisasterPanel,
+    rainCenterPanel
   },
   mounted() {
     this.load();
@@ -690,9 +697,6 @@ export default {
         };
       });
     },
-    // // 加载灾害点数据
-
-
 
     toggleAdminLayer() {
       this.showAdminLayer = !this.showAdminLayer;
@@ -750,43 +754,11 @@ export default {
     },
     confirmRainPoint() {
       if (!this.selectedPosition) return;
-      const {longitude, latitude, cartesian} = this.selectedPosition;
+      let {longitude, latitude, cartesian} = this.selectedPosition;
+
       // 计算降雨强度(mm/小时)
       const intensity = this.rainfall / (this.duration || 1);
-      // 创建标记点实体
-      const entity = this.viewer.entities.add({
-        position: cartesian,
-        billboard: {
-          image: centerstar,
-          width: 40,
-          height: 40,
-          eyeOffset: new Cesium.Cartesian3(0, 0, 0),
-          scale: 0.8,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          depthTest: false,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          color: Cesium.Color.WHITE.withAlpha(1),//颜色
-          clampToGround: true,
-        },
-        label: {
-          text: `降雨量: ${this.rainfall}毫米每小时\n已持续: ${this.duration}小时`,
-          font: '14px sans-serif',
-          fillColor: Cesium.Color.WHITE,
-          backgroundColor: Cesium.Color.RED.withAlpha(0.7),
-          padding: new Cesium.Cartesian2(20, 20),
-          showBackground: true,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, -10),
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
-        },
-        rainPoint: {
-          longitude: longitude,
-          latitude: latitude,
-          cartesian: cartesian,
-        }
-      });
 
-      this.rainPoints.push(entity);
       this.showInfoPanel = false;
 
       // 标记后自动开启下雨效果
@@ -801,16 +773,32 @@ export default {
       }
       document.body.style.cursor = '';
 
-      this.viewer.flyTo(entity, {
-        duration: 1.5,
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
-      });
 
       // 新增逻辑：获取标记点所在行政区划
       // const pointCoords = [longitude, latitude]; // 标记点经纬度[lon, lat]
       const adminArea = layers.getAdministrationByPoint(longitude, latitude);
 
+
       if (adminArea) {
+        //显示标记点
+        let entity={
+          position:adminArea.name,
+          longitude:longitude,
+          latitude:latitude,
+          id:"test_rain",
+          trigger:"暴雨",
+          rainfall:this.rainfall+"mm",
+          duration:this.duration+"小时",
+          occurrenceTime:new Date(),
+          disasterName:"降雨量"+ this.rainfall+"毫米每小时,已持续"+this.duration+"小时"
+        }
+        basicLayers.addCenterPoint(entity)
+        this.viewer.flyTo(entity, {
+          duration: 1.5,
+          offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+        });
+        this.rainPoints.push(entity);
+        //计算预警点
         console.log(`标记点位于行政区划: ${adminArea.name}`);
         // 获取该行政区划的经纬度范围
         const adminCoordinates = adminArea.geometry.coordinates;
@@ -1542,11 +1530,13 @@ export default {
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
+                console.log(this.rainCenterPanelVisible,"打开面板啊")
                 this.showBaseInfo = false;
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
                 this.PanelData = this.extractDataForRouter(entity)
+                console.log(this.PanelData,"显示数据")
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
