@@ -28,33 +28,38 @@
     <!-- 风险区表格 - 固定在左下角 -->
     <div v-if="showRiskTable" class="risk-table-container">
       <div class="table-header">
-        <span class="title-text">地质灾害风险区域</span>
+        <span class="title-text">{{ currentTableConfig.title }}</span>
+        <el-select
+            class="title-text"
+            v-model="selectedTableType"
+            placeholder="请选择筛选条件"
+            style="width: 200px;"
+            @change="handleTableTypeChange">
+          <el-option
+              v-for="item in tableTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+          ></el-option>
+        </el-select>
       </div>
       <div class="rf_table">
         <el-table
             :data="displayData"
             border
             style="width: 100%; transition: width 0.3s ease;"
-            height="350"
-            v-loading="loading"
-            element-loading-text="数据加载中..."
-            element-loading-spinner="el-icon-loading"
-            element-loading-background="rgba(0, 0, 0, 0.7)"
+            height="320"
             highlight-current-row
             @row-click="handleRowClick">
-          <!--        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>-->
-          <el-table-column prop="disasterName" label="风险区名称" align="center"
-                           show-overflow-tooltip></el-table-column>
-          <!-- 仅在扩展状态显示的列 -->
-          <el-table-column prop="position" label="地理位置" width="150" align="center"
-                           show-overflow-tooltip></el-table-column>
-          <!--        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>-->
-          <el-table-column prop="inspectorName" label="巡查员" width="70" align="center"></el-table-column>
-          <el-table-column prop="inspectorTele" label="巡查人手机号" width="115" align="center"></el-table-column>
+          <el-table-column
+              v-for="column in currentTableConfig.columns"
+              :key="column.prop"
+              :prop="column.prop"
+              :label="column.label"
+              :width="column.width"
+              :align="column.align || 'center'"
+              :show-overflow-tooltip="column.showOverflowTooltip || false"
+          ></el-table-column>
         </el-table>
         <div class="table-pagination">
           <el-pagination
@@ -68,10 +73,10 @@
           />
         </div>
       </div>
-      <!-- 添加行点击事件 -->
-
     </div>
-
+    <!--表格-->
+    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
+    <!-- 暴雨信息面板 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">暴雨信息</div>
       <div class="panel-content">
@@ -160,6 +165,8 @@ import {
   rainSlideTrigger,
   rainSlideFactorUpdata
 } from '@/api/system/rainModel.js'
+import Chart from "../../components/Earthquake/Chart.vue";
+import {reactive} from "vue";
 //封装函数
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
@@ -173,6 +180,11 @@ import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 
 export default {
   name: 'CesiumRainMap',
+  components: {Chart,
+    Legend,
+    HiddenDisasterPanel,
+    rainCenterPanel
+    },
   data() {
     return {
       viewer: null,
@@ -209,8 +221,7 @@ export default {
       // 暴雨影响区域椭圆相关配置
       rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
       rainEllipseRotation: 70, // 椭圆默认旋转角度
-      // 图例相关
-      districtColors: {}, // 存储各区县的颜色
+      districtColors: {}, // 存储各区县的颜色(图例)
       showDisasterLayer: true, // 控制灾害点显示/隐藏
       disasterStyleConfig: {
         '滑坡': {
@@ -449,8 +460,6 @@ export default {
       // isClosed: false,
       // 新增：存储所有定时器ID
       timers: [],
-      loadingModel: false,
-
       //---信息弹框---
       selectedEntityPosition: '', //拾取的点的弹框位置
       PanelPosition: {x: 0, y: 0}, // TimeLinePanel弹窗的位置
@@ -467,6 +476,58 @@ export default {
       showBaseInfo: false,
 
       matchedHiddenHighlightEntities:[],
+      loadingModel: false,
+      tableTypeOptions: [
+        {label: '灾害风险区域', value: 'risk'},
+        {label: '滑坡隐患点', value: 'slide'},
+        {label: '泥石流隐患点', value: 'flow'}
+      ],
+      selectedTableType: 'risk',
+      // 表格配置
+      tableConfigs: {
+        risk: {
+          title: '地质灾害风险区列表',
+          columns: [
+            {prop: 'disasterName', label: '风险区名称', showOverflowTooltip: true},
+            {prop: 'position', label: '地理位置', width: 150, showOverflowTooltip: true},
+            {prop: 'inspectorName', label: '巡查员', width: 70},
+            {prop: 'inspectorTele', label: '巡查人手机号', width: 115}
+          ]
+        },
+        slide: {
+          title: '滑坡隐患点列表',
+          columns: [
+            {prop: 'disasterName', label: '滑坡名称', showOverflowTooltip: true},
+            {prop: 'position', label: '地理位置', width: 150, showOverflowTooltip: true},
+            {prop: 'scaleGrade', label: '规模等级', width: 100},
+            {prop: 'riskGrade', label: '险情等级', width: 100},
+          ]
+        },
+        flow: {
+          title: '泥石流隐患点列表',
+          columns: [
+            {prop: 'disasterName', label: '泥石流名称', showOverflowTooltip: true},
+            {prop: 'position', label: '地理位置', width: 150, showOverflowTooltip: true},
+            {prop: 'scaleGrade', label: '规模等级', width: 100},
+            {prop: 'riskGrade', label: '险情等级', width: 100},
+          ]
+        }
+      },
+      // 当前表格配置
+      currentTableConfig: {},
+      allData: {
+        risk: [],    // 风险区数据
+        slide: [],  // 滑坡隐患点数据
+        flow: [] // 泥石流隐患点数据
+      },
+      showChart: false,
+      chartDatas: {
+        title: "暴雨灾害链",
+        xAxis: {
+          data: ["滑坡影响", "泥石流影响", "风险区影响"],
+        },
+        seriesDatas: [0, 0, 0],
+      }
     }
   },
   computed: {
@@ -476,11 +537,7 @@ export default {
       return this.tableData.slice(start, end);
     }
   },
-  components: {
-    Legend,
-    HiddenDisasterPanel,
-    rainCenterPanel
-  },
+
   mounted() {
     this.load();
     basicLayers.loadAdminData(); // 加载行政区划数据
@@ -538,7 +595,6 @@ export default {
       }
       this.isLoading = true;
       this.loadingText = '加载湖面数据...';
-      console.log(this.lakeData,"this.lakeData")
 
       this.lakeDataSource = new Cesium.GeoJsonDataSource();
       this.lakeDataSource.load(this.lakeData, {
@@ -596,13 +652,11 @@ export default {
     },
     // 加载河流数据
     loadRiverData() {
-      // console.log("loadRiverData")
       if (!this.riverData) {
         console.error('河流GeoJSON数据加载失败');
         return;
       }
 
-      console.log(this.riverData,"this.riverData")
       this.isLoading = true;
       this.loadingText = '加载河流数据...';
 
@@ -661,7 +715,7 @@ export default {
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, 10),
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          show: true // 初始隐藏，通过toggleRiverLayer控制
+          show: false // 初始隐藏，通过toggleRiverLayer控制
         };
       });
     },
@@ -718,7 +772,6 @@ export default {
         this.selectedPosition = {longitude, latitude, cartesian};
         this.showInfoPanel = true;
       }
-
     },
     confirmRainPoint() {
       if (!this.selectedPosition) return;
@@ -1114,6 +1167,7 @@ export default {
     position: absolute;
     bottom: 20px;
     right: 20px;
+    left : 25%;
     background: rgba(42, 42, 42, 0.8);
     color: white;
     padding: 10px;
@@ -1311,8 +1365,6 @@ export default {
       const longitude = parseFloat(row.lon);
       const latitude = parseFloat(row.lat);
 
-      console.log("====================lon,lat====================", longitude, latitude)
-
       // 设置视角参数
       const height = 1000; // 视角高度(米)
       const heading = 0;   // 方位角(弧度)
@@ -1340,10 +1392,7 @@ export default {
     // },
     handleSizeChange(size) {
       this.pageSize = size;
-      this.currentPage = 1;
-    },
-    handleCurrentChange(page) {
-      this.currentPage = page;
+      this.handlePagination(this.allData[this.selectedTableType] || []);
     },
     loadData() {
       this.loading = true;
@@ -1456,7 +1505,6 @@ export default {
     startLoading() {
       this.loadingModel = true;
     },
-
     // 停止加载
     stopLoading() {
       this.loadingModel = false;
@@ -1620,6 +1668,34 @@ export default {
     //   });
     //   return properties;
     // },
+    },
+    // 表格类型改变时触发
+    handleTableTypeChange(type) {
+      this.selectedTableType = type;
+      this.currentTableConfig = this.tableConfigs[type];
+      this.currentPage = 1; // 重置页码
+      this.loadTableData(type); // 加载对应类型的数据
+    },
+    // 加载表格数据
+    loadTableData(type) {
+      this.loading = true;
+      // 这里根据类型加载不同的数据
+      this.tableData = this.allData[type] || [];
+
+      console.log(this.tableData,"当前的数据是：============")
+
+      this.total = this.tableData.length;
+      this.handlePagination(this.tableData);
+      this.loading = false;
+    },
+    // 处理分页
+    handlePagination(data) {
+      this.displayData = data.slice(
+          (this.currentPage - 1) * this.pageSize,
+          this.currentPage * this.pageSize
+      );
+    },
+
   }
 
 }
@@ -1639,7 +1715,7 @@ export default {
 .controls {
   position: absolute;
   top: 10px;
-  left: 10px;
+  left: 35%;
   z-index: 100;
 }
 
@@ -1984,10 +2060,10 @@ export default {
 /* 风险区表格样式 */
 .risk-table-container {
   position: fixed;
-  top: 12%;
+  top: 7%;
   left: 13%;
-  width: 550px;
-  max-height: 700px;
+  width: 500px;
+  max-height: 500px;
   overflow: hidden;
   z-index: 900;
   transition: all 0.3s ease;
@@ -2015,7 +2091,7 @@ export default {
   color: white;
   text-align: center;
   width: 100%;
-  margin-top: 15px;
+  margin-top: 5px;
 }
 
 /* 修改 el-table 的样式 */
