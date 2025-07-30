@@ -392,10 +392,8 @@ async function confirmEarthquake(formEl) {
           item => item && item.geologicalDisasterHideDTO
       );
       validPoints.forEach((item) => {
-        console.log(item,"useSimulationPointStore().simulationPoints")
+        // console.log(item,"useSimulationPointStore().simulationPoints")
         // 将模拟点的预测值全部清空，重新获取
-
-
         // 判断在不在震圈内
         if (
           layers.isPointInEllipse(
@@ -422,7 +420,7 @@ async function confirmEarthquake(formEl) {
       pulse.removePulseEntity();
 
       // 添加脉冲实体
-      pulse.createPause(points);
+      pulse.createPause(probabilityPoints);
       console.log("addDatasToTableAndChart")
 
       // 处理表格和chart数据

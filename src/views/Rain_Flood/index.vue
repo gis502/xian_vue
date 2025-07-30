@@ -630,7 +630,7 @@ export default {
       let points = window.viewer.entities.values.filter(
           e => e.name === type
       );
-      console.log(points, adminCoordinates, "points")
+      // console.log(points, adminCoordinates, "points")
       points.forEach(item => {
         let point = [item.properties.longitude, item.properties.latitude]
         if (layers.pointInPolygon(point, adminCoordinates)) {
@@ -676,7 +676,7 @@ export default {
         console.log(matchedHuapoData, "matchedHuapoData")
         rainSlideTrigger(matchedHuapoData).then(res => {
           let formatAnalyzedData = res.data
-          console.log(formatAnalyzedData, "formatAnalyzedData")
+          // console.log(formatAnalyzedData, "formatAnalyzedData")
           // this.formatAnalyzedData = res.data;
           let landslideEntities = window.viewer.entities.values.filter(
               e => e.name === "滑坡隐患点"
@@ -854,7 +854,7 @@ export default {
       this.dataTypeHiddenDisaster.type3.data = [];
       // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
-        console.log(item, "probabilityPoints.forEach")
+        // console.log(item, "probabilityPoints.forEach")
         switch (item.geologicalDisasterHideDTO.disasterType) {
           case "滑坡":
             this.dataTypeHiddenDisaster.type1.data.push({

@@ -45,7 +45,6 @@
           v-if="displayDisasterCausingFactors"
           :hazardsDatas="hazards"
           :options="options"
-          :pulse="pulse"
       ></Hazards>
     </div>
   </div>
@@ -59,7 +58,6 @@ import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
 import {staticHazardsDatas} from "@/api/earthquake/datas";
 import {getHazardOptions} from "@/api/earthquake/hazards.js";
-import {PulseTool} from "@/cesium/pulse.js";
 
 const emit = defineEmits(["removeBaseInfoBox"]);
 const props = defineProps({
@@ -80,7 +78,6 @@ watch(() => props, (newProps) => {
   console.log('Props updated:', newProps);
 }, {deep: true});
 
-let pulse = new PulseTool(window.viewer);
 let options = ref([]);
 getHazardOptions().then((res) => {
   options.value = res;
