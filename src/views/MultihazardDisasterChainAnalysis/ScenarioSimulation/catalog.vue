@@ -135,7 +135,7 @@ export default {
       let earthquakeList = await getAllEarthquakeList();
       let disasterRainList = await getAllDisasterRain();
       earthquakeList.forEach((item) => {
-        console.log(item, "earthquakeListforEach")
+        // console.log(item, "earthquakeListforEach")
         let {longitude, latitude} = parsePointString(item.geom)
         this.eventList.push({
           id:item.disasterId,
@@ -148,7 +148,7 @@ export default {
         })
       });
       disasterRainList.forEach((item) => {
-        console.log(item, "disasterRainListforEach")
+        // console.log(item, "disasterRainListforEach")
         let {longitude, latitude} = parsePointString(item.geom)
         this.eventList.push({
           id:item.disasterId,
@@ -168,7 +168,7 @@ export default {
       });
 
       this.tableData = this.getPageArr()
-      console.log(this.tableData)
+      // console.log(this.tableData)
     },
     timestampToTime(timestamp) {
       return timeTransfer.timestampToTime(timestamp)
@@ -214,7 +214,7 @@ export default {
 
 
     go(row, column, cell, event) {
-      console.log(row,"row")
+      // console.log(row,"row")
       this.$router.push({name: 'thdTimeLine', params: {id: row.id,trigger:row.trigger}})
     },
   }

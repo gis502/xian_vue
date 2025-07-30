@@ -11,6 +11,21 @@ import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {parsePointString} from "@/cesium/geomTransfer"
 import timeTransfer from "@/cesium/timeTransfer.js";
+import BaQiaoArea from "@/assets/static/area/BaQiao.json";
+import BeiLin from "@/assets/static/area/BeiLin.json";
+import ChangAn from "@/assets/static/area/ChangAn.json";
+import GaoLing from "@/assets/static/area/GaoLing.json";
+import HuYi from "@/assets/static/area/HuYi.json";
+import LanTIan from "@/assets/static/area/LanTIan.json";
+import LianHu from "@/assets/static/area/LianHu.json";
+import LinTong from "@/assets/static/area/LinTong.json";
+import WeiYang from "@/assets/static/area/WeiYang.json";
+import XinCheng from "@/assets/static/area/XinCheng.json";
+import YanLiang from "@/assets/static/area/YanLiang.json";
+import YanTa from "@/assets/static/area/YanTa.json";
+import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
+import {getGeologicalDisasterHideByLandSlideList} from "@/api/system/disasterHide.js";
+import {rainSlideTrigger} from "@/api/system/rainModel.js";
 // let flashInterval = null;
 // let haloCollection = null;
 // key: 'hazard' | 'landslide' | 'dangerArea'
@@ -25,7 +40,8 @@ let layers = {
         let rotation = this.calculateRotation(longitude, latitude, magnitude)
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
         this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
-    }, calculateRotation(longitude, latitude) {
+    },
+    calculateRotation(longitude, latitude) {
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
         // console.log(min_line,"==================")
         let first_point = min_line.coordinates[0]
@@ -49,7 +65,8 @@ let layers = {
 
         let rotation = Cesium.Math.toRadians(bearing - 90);
         return rotation;
-    }, pointToLineDistance_getMinLine(position, lineData) {
+    },
+    pointToLineDistance_getMinLine(position, lineData) {
         /**
          * point:线外点 longitude latitude height
          * linePoint1, linePoint2：线的两个端点   longitude latitude height
@@ -140,7 +157,8 @@ let layers = {
             }
         })
         return min_line
-    }, DrawCircle(point, rotation, magnitude) {
+    },
+    DrawCircle(point, rotation, magnitude) {
 
         // 地震源位置
         let position = point;
@@ -198,7 +216,8 @@ let layers = {
                 }
             });
         });
-    }, calculateEllipseParams(magnitude) {
+    },
+    calculateEllipseParams(magnitude) {
 
 
         // // 自定义的烈度圈等级与颜色渲染
@@ -253,16 +272,16 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            const semiMinorAxis = calculateRa(magnitude, level.ia) * 1000;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 1000;
 
-            const semiMajorAxis = calculateRb(magnitude, level.ib) * 1000;
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 1000;
 
             // 根据烈度级别设置透明度
-            // const alpha = 0.8 - (level.ia - 5) * 0.3;
+            // let alpha = 0.8 - (level.ia - 5) * 0.3;
             let alpha = plphas[i]
             i++
             // 计算 extrusion height，使较大的椭圆有更高的 extrusion
-            // const extrudedHeight = semiMajorAxis * 0.15;
+            // let extrudedHeight = semiMajorAxis * 0.15;
             return {
                 semiMinorAxis,
                 semiMajorAxis,
@@ -273,14 +292,15 @@ let layers = {
             };
         })
         return params;
-    }, createGradientTexture(width, height) {
-        const canvas = document.createElement('canvas');
+    },
+    createGradientTexture(width, height) {
+        let canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d');
+        let ctx = canvas.getContext('2d');
 
         // 创建径向渐变
-        const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
+        let gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
 
         // 设置渐变颜色 - 从中心的红色到边缘的透明
         gradient.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
@@ -310,9 +330,65 @@ let layers = {
         }
 
 
-    }, //画烈度圈 end
+    },
+    //画烈度圈 end
 
-    //预警点高亮
+    //暴雨
+    getAdministrationByPoint(longitude, latitude) {
+        let point = [longitude, latitude];
+        let administrationData = [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi]
+
+        for (let admin of administrationData) {
+            // 每个行政区划的features数组
+            for (let feature of admin.features) {
+                let geometry = feature.geometry;
+                let coordinates = geometry.coordinates;
+                let ifInPloygon = this.pointInPolygon(point, coordinates)
+                // 判断点是否在当前行政区划范围内
+                if (ifInPloygon) {
+                    return {
+                        name: feature.properties.name,
+                        geometry: geometry
+                    };
+                }
+            }
+        }
+        return null;
+    },
+    pointInPolygon(point, polygonCoords) {
+        let [x, y] = point;
+        let inside = false;
+
+        // 处理多边形坐标的多层嵌套（行政区划坐标可能是[[[lon,lat],...]]结构）
+        let flattenCoords = (coords) => {
+            if (coords.length > 0 && typeof coords[0][0] === 'number') {
+                return [coords]; // 单层坐标
+            } else if (coords.length > 0 && Array.isArray(coords[0][0])) {
+                return flattenCoords(coords[0]); // 多层嵌套取最内层
+            }
+            return [];
+        };
+
+        let polygon = flattenCoords(polygonCoords);
+
+        // 遍历多边形的每条边
+        for (let i = 0, j = polygon[0].length - 1; i < polygon[0].length; j = i++) {
+            let [xi, yi] = polygon[0][i];
+            let [xj, yj] = polygon[0][j];
+
+            // 检查点是否在边的垂直范围内
+            let intersect = ((yi > y) !== (yj > y))
+                // 计算射线与边的交点x坐标
+                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+
+            if (intersect) inside = !inside;
+        }
+
+        return inside;
+    },
+
+
+    //找烈度圈相交点预警点
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
         let allHiddeninEllipse = []
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
@@ -330,7 +406,7 @@ let layers = {
         const point = Cesium.Cartesian3.fromDegrees(Number(pointLon), Number(pointLat));
         let short = Math.min(majorAxis, minorAxis)
         let long = Math.max(majorAxis, minorAxis)
-        
+
         // 构建椭圆边界（用于判断）
         const ellipse = new Cesium.EllipseGeometry({
             center: center, semiMajorAxis: long, semiMinorAxis: short, rotation: rotation, // 旋转角度（弧度）
@@ -342,8 +418,10 @@ let layers = {
 
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
-    }, //预警点高亮结束
+    },
+    //找烈度圈相交点预警点结束
 
+    //真实灾害点
     judgeandaddRealDisasterNewPoint(realDisasterPoints) {
         realDisasterPoints.forEach(item => {
             this.ifaddNewPoint(item)
@@ -351,7 +429,8 @@ let layers = {
             // this.addRealDisasterLabel(item)
             //找是否有同一类型，同一经纬度
         })
-    },
+    }
+    ,
     ifaddNewPoint(item) {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
@@ -438,8 +517,7 @@ let layers = {
                 });
 
             }
-        }
-        else {
+        } else {
             matchentity = window.viewer.entities.values.filter(e => e.name === "风险区域" && Math.abs(e.properties.longitude - lon) < 0.00001 && Math.abs(e.properties.latitude - lat) < 0.00001);
             if (matchentity.length == 0) {
                 item.entityId = '灾害点' + item.id;
@@ -468,11 +546,13 @@ let layers = {
                 });
             }
         }
-    },
+    }
+    ,
     addBlackBreathCircle(item) {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
         item.entityId = '灾害点呼吸圈_' + item.id;
+        let labeltext = timeTransfer.timestampToTimeChina(item.occurrenceTime) + " " + item.disasterName
         const start = Cesium.JulianDate.fromDate(new Date(item.occurrenceTime));
         const stop = Cesium.JulianDate.addDays(start, 10, new Cesium.JulianDate());
 
@@ -484,7 +564,7 @@ let layers = {
             }),]),
             position: Cesium.Cartesian3.fromDegrees(lon, lat),
             label: {
-                text: item.disasterName,
+                text: labeltext,
                 font: '16px sans-serif',
                 fillColor: Cesium.Color.BLACK,
                 backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
@@ -501,7 +581,8 @@ let layers = {
                 outlineWidth: 2,
             },
         });
-    },
+    }
+    ,
 
 }
 export default layers;

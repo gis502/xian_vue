@@ -76,6 +76,10 @@ const props = defineProps({
   dataTypes: {
     type: Object,
     required: true
+  },
+  show:{
+    type: Boolean,
+    default: true // 或 true，根据需求
   }
 });
 
@@ -173,6 +177,10 @@ onMounted(() => {
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   // 当 dataTypes 发生变化时，重新设置表格数据
   changeDataType();
+}, { deep: true });
+
+watch(() => props.show, (newDataTypes, oldDataTypes) => {
+  toggleTableVisibility()
 }, { deep: true });
 </script>
 
