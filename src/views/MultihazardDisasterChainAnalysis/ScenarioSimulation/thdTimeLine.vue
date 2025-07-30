@@ -52,7 +52,7 @@
         :dataTypes="dataTypesRealDisater"
         :currentTime="currentTime"
     />
-    <Table :dataTypes="dataTypeHiddenDisaster"></Table>
+    <Table :show="true" :dataTypes="dataTypeHiddenDisaster"></Table>
     <!-- 图例 -->
     <Legend></Legend>
   </div>

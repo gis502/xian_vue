@@ -26,7 +26,7 @@
       {{ loadingText }}
     </div>
     <!-- 风险区表格 - 固定在左下角 -->
-    <Table :dataTypes="dataTypeHiddenDisaster"></Table>
+    <Table :show="showRiskTable" :dataTypes="dataTypeHiddenDisaster"></Table>
     <!--表格-->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <!-- 暴雨信息面板 -->
@@ -214,7 +214,6 @@ export default {
       popupPosition: {x: 0, y: 0},
       popupVisible: false,
       lastPickedEntity: null,
-      // showRiskTable: false,
       currentPage: 1,
       pageSize: 10,
       total: 0,
@@ -298,7 +297,10 @@ export default {
         },
         seriesDatas: [0, 0, 0],
       },
-      pulse:null
+      pulse:null,
+
+      //预警点表格显示隐藏
+      showRiskTable:true,
     }
   },
   computed: {
@@ -500,6 +502,8 @@ export default {
         basicLayers.removeAdminData()
       }
     },
+    //预警点面板
+    toggleTablePanel(){ this.showRiskTable = !this.showRiskTable;},
     // 开启下雨特效
     toggleRainMode() {
       // 若不允许标记且当前为开启状态，则直接关闭
