@@ -78,6 +78,7 @@ import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
 import Legend from "@/components/Earthquake/Legend.vue";
 import RealDisasterTable from "@/components/ScenarioSimulation/RealDisasterTable.vue";
 import Table from "@/components/Earthquake/Table.vue";
+import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 
 export default {
   name: "thdTimeLine",
@@ -184,6 +185,7 @@ export default {
           data: [],
         },
       },
+      matchedHiddenHighlightEntities:null,
     };
   },
   computed: {
@@ -348,7 +350,7 @@ export default {
       } else if (this.disasterEvent.trigger == "暴雨") {
         this.rainCenterPanelVisible = true;
       }
-      this.PanelData = this.extractDataForRouter(this.centerpoint)
+      this.PanelData =clickPointsAndShowPanel.extractDataForPanel(this.centerpoint,this.matchedHiddenHighlightEntities)
 
       this.selectedEntity = this.centerpoint
       this.selectedEntityPosition = {
@@ -357,7 +359,7 @@ export default {
         z: 0     // 高度
       };
       let position = this.centerpoint.position.getValue(Cesium.JulianDate.now());
-      let screenPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, position);
+      let screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, position);
       this.PanelPosition = {
         x: screenPosition.x + 10,
         y: screenPosition.y + 10
@@ -414,28 +416,34 @@ export default {
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
-                this.PanelData = this.extractDataForRouter(entity)
-              } else if (entity.name === "暴雨中心") {
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+              }
+              else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
+                console.log(this.rainCenterPanelVisible, "打开面板啊")
                 this.showBaseInfo = false;
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
-                this.PanelData = this.extractDataForRouter(entity)
-              } else if (entity.name === "滑坡隐患点") {
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                console.log(this.PanelData, "显示数据")
+              }
+              else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
-                this.disasterInformation = entity.properties.data._value;
+
+                this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
-              } else if (entity.name === "泥石流隐患点") {
+              }
+              else if (entity.name === "泥石流隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
@@ -447,9 +455,10 @@ export default {
                 this.showRiskPointsInformation = false;
 
                 this.disasterInformation = null
-                this.debrisFlowInformation = entity.properties.data._value;
+                this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.riskPointsInformation = null
-              } else if (entity.name === "风险区域") {
+              }
+              else if (entity.name === "风险区域") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
@@ -459,9 +468,9 @@ export default {
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = true;
 
+                this.disasterInformation = null
                 this.debrisFlowInformation = null
-                this.riskPointsInformation = null
-                this.riskPointsInformation = entity.properties.data._value;
+                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else {
                 this.rainCenterPanelVisible = false;
                 this.eqCenterPanelVisible = false;
@@ -512,7 +521,7 @@ export default {
         // 检查是否有选中的实体位置
         if (this.selectedEntityPosition) {
           // 将地理坐标转换为窗口坐标
-          const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+          const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
               window.viewer.scene,
               Cesium.Cartesian3.fromDegrees(this.selectedEntityPosition.x, this.selectedEntityPosition.y, this.selectedEntityPosition.z)
           );
@@ -525,14 +534,6 @@ export default {
           }
         }
       });
-    },
-
-    extractDataForRouter(entity) {
-      let properties = {};
-      entity.properties.propertyNames.forEach(name => {
-        properties[name] = entity.properties[name].getValue();
-      });
-      return properties;
     },
 
     handleRealDisasterPointUpdate(data) {

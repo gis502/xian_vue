@@ -39,8 +39,11 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points){
     // 索引
     let index = entityIds.indexOf(entityId);
     // 点位对应的索引
-    index = pointIndex[index]; 
-    points[index].predict = element.predict;
+    index = pointIndex[index];
+    if(element.predict){
+      points[index].predict = element.predict;
+    }
+
   });
   return [points, res.data];
 };

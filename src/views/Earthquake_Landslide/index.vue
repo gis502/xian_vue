@@ -86,6 +86,7 @@ import {getHazardOptions} from "../../api/earthquake/hazards";
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
+import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 // 加载
 let loading = ref(false);
 
@@ -162,7 +163,7 @@ let debrisFlowInformation = ref({});
 // 风险点
 let showRiskPointsInformation = ref(false);
 let riskPointsInformation = ref({});
-
+let matchedHiddenHighlightEntities=ref([])
 // 模拟地震
 let showEarthquakeSimulation = ref(false);
 let earthquakeSimulationPosition = ref({});
@@ -184,7 +185,7 @@ onMounted(() => {
   basicLayers.loadAdminData();
 
   // 点击隐患点触发
-  setupEntityClickHandler();
+  entitiesClickPonpHandler();
 
   // 获取致灾因子下拉列表选项
   getHazardOptions().then((res) => {
@@ -228,8 +229,7 @@ function hideChart() {
 
 //面板
 //-------信息面板弹框-----
-function setupEntityClickHandler() {
-  // let that = this;
+function entitiesClickPonpHandler() {
   // 在屏幕空间事件处理器中添加左键点击事件的处理逻辑
   window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
         // 检查点击位置是否拾取到实体
@@ -241,13 +241,11 @@ function setupEntityClickHandler() {
           let entity = window.selectedEntity;
           console.log(entity, "拾取entity")
           // 计算图标的世界坐标
-          selectedEntityPosition.value = calculatePosition(click.position);
-          // await nextTick(); // 等待 Vue 下一个更新周期
-          //不加这个面板会卡在左上角，再点击一次才会到正确位置
+          selectedEntityPosition.value = this.calculatePosition(click.position);
           setTimeout(() => {
             updatePopupPosition();
           }, 10);
-          // updatePopupPosition(); // 确保位置已更新
+          // this.updatePopupPosition(); // 确保位置已更新
 
 
           // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
@@ -261,36 +259,30 @@ function setupEntityClickHandler() {
             eqCenterPanelVisible.value = true;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = false;
-            // PanelPosition.value = selectedEntityPosition; // 更新位置
-
-            PanelData.value = {}
-            PanelData.value = extractDataForRouter(entity)
+            PanelData.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else if (entity.name === "暴雨中心") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = true;
             showBaseInfo.value = false;
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
-
-            PanelData.value = {}
-            PanelData.value = extractDataForRouter(entity)
+            PanelData.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else if (entity.name === "滑坡隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
             showDisasterInformation.value = true;
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = false;
-            disasterInformation.value = entity.properties.data._value;
+
+            disasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+
             debrisFlowInformation.value = null
             riskPointsInformation.value = null
           } else if (entity.name === "泥石流隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
-            // updatePopupPosition()
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
+            // this.PanelPosition = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
 
             showDisasterInformation.value = false;
@@ -298,21 +290,21 @@ function setupEntityClickHandler() {
             showRiskPointsInformation.value = false;
 
             disasterInformation.value = null
-            debrisFlowInformation.value = entity.properties.data._value;
+            debrisFlowInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
             riskPointsInformation.value = null
           } else if (entity.name === "风险区域") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
+            // this.PanelPosition = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
             showDisasterInformation.value = false;
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = true;
 
+            disasterInformation.value = null
             debrisFlowInformation.value = null
-            riskPointsInformation.value = null
-            riskPointsInformation.value = entity.properties.data._value;
+            riskPointsInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else {
             rainCenterPanelVisible.value = false;
             eqCenterPanelVisible.value = false;
@@ -331,7 +323,7 @@ function setupEntityClickHandler() {
   window.viewer.screenSpaceEventHandler.setInputAction(movement => {
     // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
     if (eqCenterPanelVisible.value || rainCenterPanelVisible.value || showBaseInfo.value) {
-      updatePopupPosition();
+      this.updatePopupPosition();
     }
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
@@ -363,7 +355,7 @@ function updatePopupPosition() {
   nextTick(() => {
     // console.log('Updating popup position');
     if (selectedEntityPosition.value) {
-      const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+      const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
           window.viewer.scene,
           Cesium.Cartesian3.fromDegrees(selectedEntityPosition.value.x, selectedEntityPosition.value.y, selectedEntityPosition.value.z)
       );
@@ -381,14 +373,6 @@ function updatePopupPosition() {
       // }
     }
   });
-}
-
-function extractDataForRouter(entity) {
-  let properties = {};
-  entity.properties.propertyNames.forEach(name => {
-    properties[name] = entity.properties[name].getValue();
-  });
-  return properties;
 }
 
 

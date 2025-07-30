@@ -84,9 +84,9 @@ getHazardOptions().then((res) => {
   options.value = res;
 });
 
-// onMounted(() => {
-//   console.log('Props received:', props);
-// });
+onMounted(() => {
+  console.log('Props received:', props);
+});
 const positionEntity = ref({x: 0, y: 0});
 
 watch(() => props.position.x, (newX) => {
