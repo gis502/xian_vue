@@ -19,6 +19,9 @@
         <div class="table-btn" @click="toggleTablePanel">
           {{ showRiskTable ? '信息隐藏' : '信息展示' }}
         </div>
+        <div class="table-btn" @click="downloadRainReport">
+          报告下载
+        </div>
       </div>
     </div>
     <!-- 加载状态提示 -->
@@ -77,6 +80,7 @@
 
 <script>
 import * as Cesium from 'cesium';
+import Cookies from 'js-cookie'
 // 引入西安行政区划数据
 import BaQiaoArea from '@/assets/static/area/BaQiao.json';
 import BeiLin from '@/assets/static/area/BeiLin.json';
@@ -108,6 +112,7 @@ import {
   getGeologicalDisasterHideByLandSlideList,
   getGeologicalDisasterHideByFlowList
 } from '@/api/system/disasterHide.js'
+import {saveCanvas, generateRainReport} from '@/api/system/reportDownLoad.js'
 import {
   getGeologicalDisasterRiskList
 } from '@/api/system/disasterRisk.js'
@@ -297,10 +302,10 @@ export default {
         },
         seriesDatas: [0, 0, 0],
       },
-      pulse:null,
+      pulse: null,
 
       //预警点表格显示隐藏
-      showRiskTable:true,
+      showRiskTable: true,
     }
   },
   computed: {
@@ -319,7 +324,7 @@ export default {
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    this.pulse=new PulseTool(window.viewer);
+    this.pulse = new PulseTool(window.viewer);
     // this.total = this.tableData.length;
     // this.loadData();
   },
@@ -503,7 +508,9 @@ export default {
       }
     },
     //预警点面板
-    toggleTablePanel(){ this.showRiskTable = !this.showRiskTable;},
+    toggleTablePanel() {
+      this.showRiskTable = !this.showRiskTable;
+    },
     // 开启下雨特效
     toggleRainMode() {
       // 若不允许标记且当前为开启状态，则直接关闭
@@ -1292,7 +1299,7 @@ export default {
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
     },
-//计算点击位置的经纬度和高度
+    //计算点击位置的经纬度和高度
     calculatePosition(clickPosition) {
       // 根据点击位置获取射线
       let ray = viewer.camera.getPickRay(clickPosition);
@@ -1313,7 +1320,7 @@ export default {
         z: height     // 高度
       };
     },
-//更新弹窗位置
+    //更新弹窗位置
     updatePopupPosition() {
       // 使用$nextTick确保DOM更新后才执行位置计算
       this.$nextTick(() => {
@@ -1335,7 +1342,42 @@ export default {
       });
     },
 
+    downloadRainReport() {
+      const canvas = window.viewer.scene.canvas
+      canvas.toBlob(async blob => {
+        const formData = new FormData()
+        formData.append('file', blob, 'cesium.png')
 
+        // ✅ 正确解析 fetch 返回的 JSON
+        const response = await saveCanvas(formData)
+        const res = await response.json() // 关键：这里也要 await
+        const imgUrl = res.data
+        console.log(imgUrl, "imgUrl")
+
+        // ✅ 继续调用下载 Word 接口
+        const wordRes = await generateRainReport(imgUrl)
+        console.log(wordRes, "wordRes")
+        const wordUrl = wordRes.data
+
+        // const token = localStorage.getItem('Admin-Token') || Cookies.get('Admin-Token');
+        // window.open(`http://localhost:8080/downloadReport/file/report_xxx.docx?token=${token}`);
+        const link = document.createElement('a');
+        link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+        link.download = wordUrl;                         // 强制触发下载
+        link.click();
+
+        // window.open("http://localhost:8080/downloadReport/file/" + wordUrl+`?token=${token}`);
+
+        // window.open("/downloadReport/file/" + wordUrl, "_blank");
+        // console.log(wordUrl, "wordUrl")
+
+        // ✅ 触发下载
+        // window.open(wordUrl, '_blank')
+
+      }, 'image/png', 1.0)
+
+
+    }
   }
 }
 
