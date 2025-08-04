@@ -59,25 +59,26 @@
             <thead>
             <tr>
               <th style="width: 50px">序号</th>
-              <th>来源</th>
-              <th style="width: 100px">标题</th>
-              <th>时间</th>
-              <th style="width: 70px">发布者</th>
+              <th style="width: 80px">来源</th>
+              <th style="width: 120px">标题</th>
+              <th style="width: 160px">时间</th>
+              <th style="width: 80px">发布者</th>
               <th>内容</th>
               <th style="width: 90px">实体分类</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="(news, index) in newsDataList" :key="news.newId">
-              <td>{{ (pageNum - 1) * pageSize + index + 1 }}</td>
-              <td>{{ news.sourceName }}</td>
-              <td>{{ news.title }}</td>
-              <td>{{ formatDate(news.publishTime) }}</td>
-              <td>{{ news.publishName }}</td>
+              <td :title="(pageNum - 1) * pageSize + index + 1">{{ (pageNum - 1) * pageSize + index + 1 }}</td>
+              <td class="truncate-content" :title="news.sourceName">{{ news.sourceName }}</td>
+              <td class="truncate-content" :title="news.title">{{ news.title }}</td>
+              <td class="truncate-content" :title="formatDate(news.publishTime)">{{ formatDate(news.publishTime) }}</td>
+              <td class="truncate-content" :title="news.publishName">{{ news.publishName }}</td>
               <td class="truncate-content" :title="news.content">{{ news.content }}</td>
-              <td >{{ news.newEntity }}</td>
+              <td class="truncate-content" :title="news.newEntity">{{ news.newEntity }}</td>
             </tr>
             </tbody>
+
           </table>
         </div>
         <div style="display: flex; justify-content: center;">
@@ -236,7 +237,7 @@ const list = ref([]);
 const isNewsBoxVisible = ref(true)
 const newsDataList = ref([])
 const pageNum = ref(1)
-const pageSize = ref(5)
+const pageSize = ref(6)
 const currentPage = ref(1)
 const pageSizeNum=ref(5)
 const total = ref(0)
