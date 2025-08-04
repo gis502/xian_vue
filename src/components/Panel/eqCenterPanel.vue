@@ -7,6 +7,7 @@
               <span>震中信息</span>
             </div>
             <table class="earthquake-info-table">
+              <tbody>
               <tr>
                 <th>震中位置</th>
                 <td>{{ earthquakeInfo.position || "无数据" }}</td>
@@ -31,6 +32,7 @@
                 <th>震中经纬</th>
                 <td>经度: {{ earthquakeInfo.longitude || "无数据" }}°E，纬度: {{ earthquakeInfo.latitude || "无数据" }}°N</td>
               </tr>
+              </tbody>
             </table>
           </el-card>
         </div>
