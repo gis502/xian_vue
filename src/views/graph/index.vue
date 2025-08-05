@@ -59,7 +59,7 @@
             <thead>
             <tr>
               <th style="width: 50px">序号</th>
-              <th style="width: 80px">来源</th>
+              <th style="width: 130px">来源</th>
               <th style="width: 120px">标题</th>
               <th style="width: 160px">时间</th>
               <th style="width: 80px">发布者</th>
