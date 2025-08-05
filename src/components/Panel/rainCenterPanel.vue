@@ -7,6 +7,7 @@
               <span>暴雨信息</span>
             </div>
             <table class="earthquake-info-table">
+              <tbody>
               <tr>
                 <th>暴雨位置</th>
                 <td>{{ rainInfo.position || "无数据" }}</td>
@@ -27,7 +28,7 @@
                   {{ rainInfo.duration || "无数据" }}
                 </td>
               </tr>
-
+              </tbody>
             </table>
           </el-card>
         </div>

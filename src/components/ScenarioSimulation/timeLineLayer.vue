@@ -6,9 +6,9 @@
     </div>
 
 
-<!--    <rainfallPeriodTable-->
-<!--        :currentTime="currentTime"-->
-<!--    />-->
+    <!--    <rainfallPeriodTable-->
+    <!--        :currentTime="currentTime"-->
+    <!--    />-->
 
 
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
@@ -38,6 +38,7 @@ import {reactive} from "vue";
 import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
+
 export default {
   data() {
     return {
@@ -60,10 +61,10 @@ export default {
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
-      pulse:null,
+      pulse: null,
       realDisasterPoint: null,
       currentTime: new Date(),
-      showBaseInfo:false,
+      showBaseInfo: false,
     }
   },
   name: "timeLineLayer",
@@ -80,11 +81,10 @@ export default {
     },
     onceLoadLayer() {
       if (this.onceLoadLayer) {
-        if(this.disasterEvent.trigger=="地震"){
+        if (this.disasterEvent.trigger == "地震") {
           this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
           this.updateMapLayers();
-        }
-        else if(this.disasterEvent.trigger=="暴雨"){
+        } else if (this.disasterEvent.trigger == "暴雨") {
           this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
           this.updateMapLayers();
         }
@@ -92,10 +92,9 @@ export default {
       }
     }
   },
-  components: {
-  },
+  components: {},
   mounted() {
-    this.pulse=new PulseTool(window.viewer);
+    this.pulse = new PulseTool(window.viewer);
   },
   methods: {
     toggleLayerFeatures() {
@@ -208,7 +207,7 @@ export default {
                   viewer.clockViewModel.shouldAnimate = true;
                 }
               } else if (this.disasterEvent.trigger == "暴雨") {
-                let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude,this.disasterEvent.latitude);
+                let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude, this.disasterEvent.latitude);
 
                 if (adminArea) {
                   // console.log(`标记点位于行政区划: ${adminArea.name}`);
@@ -234,15 +233,14 @@ export default {
           name: '灾害点',
           add: async () => {
             console.log(this.disasterEvent, "this.disasterEvent")
-            if(!this.realDisasterPoint){
+            if (!this.realDisasterPoint) {
               this.realDisasterPoint = await selectDisasterRealByDisasterId({
                 disasterId: this.disasterEvent.disasterId,
                 disasterTrigger: this.disasterEvent.trigger
               })
               this.$emit("update:realDisasterPoint", this.realDisasterPoint);
               layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            }
-            else{
+            } else {
               layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
             }
           },
@@ -279,6 +277,7 @@ export default {
         }
       });
     },
+
   }
 }
 </script>
