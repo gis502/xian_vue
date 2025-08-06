@@ -7,13 +7,14 @@
               <span>暴雨信息</span>
             </div>
             <table class="earthquake-info-table">
+              <tbody>
               <tr>
                 <th>暴雨位置</th>
                 <td>{{ rainInfo.position || "无数据" }}</td>
               </tr>
               <tr>
                 <th>发生时间</th>
-                <td>{{ this.timestampToTimeChinese(rainInfo.occurrenceTime) }}</td>
+                <td>{{ timestampToTimeChinese(rainInfo.occurrenceTime) }}</td>
               </tr>
               <tr>
                 <th>累计降雨量</th>
@@ -27,7 +28,7 @@
                   {{ rainInfo.duration || "无数据" }}
                 </td>
               </tr>
-
+              </tbody>
             </table>
           </el-card>
         </div>

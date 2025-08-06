@@ -26,52 +26,10 @@
       {{ loadingText }}
     </div>
     <!-- 风险区表格 - 固定在左下角 -->
-    <div v-if="showRiskTable" class="risk-table-container">
-      <div class="table-header">
-        <span class="title-text">地质灾害风险区域</span>
-      </div>
-      <div class="rf_table">
-        <el-table
-            :data="displayData"
-            border
-            style="width: 100%; transition: width 0.3s ease;"
-            height="350"
-            v-loading="loading"
-            element-loading-text="数据加载中..."
-            element-loading-spinner="el-icon-loading"
-            element-loading-background="rgba(0, 0, 0, 0.7)"
-            highlight-current-row
-            @row-click="handleRowClick">
-          <!--        <el-table-column prop="unitCode" label="统一编号" width="170" align="center"></el-table-column>-->
-          <el-table-column prop="disasterName" label="风险区名称" align="center"
-                           show-overflow-tooltip></el-table-column>
-          <!-- 仅在扩展状态显示的列 -->
-          <el-table-column prop="position" label="地理位置" width="150" align="center"
-                           show-overflow-tooltip></el-table-column>
-          <!--        <el-table-column prop="residentCounts" label="居民户数(户)" width="100" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="addressPopulation" label="户籍人口(人)" width="100" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="riskProperty" label="威胁财产(万元)" width="120" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="permanentPopulation" label="常住人口(人)" width="100" align="center"></el-table-column>-->
-          <!--        <el-table-column prop="housing" label="住房(间)" width="80" align="center"></el-table-column>-->
-          <el-table-column prop="inspectorName" label="巡查员" width="70" align="center"></el-table-column>
-          <el-table-column prop="inspectorTele" label="巡查人手机号" width="115" align="center"></el-table-column>
-        </el-table>
-        <div class="table-pagination">
-          <el-pagination
-              v-model:current-page="currentPage"
-              v-model:page-size="pageSize"
-              :page-sizes="[ 10, 20, 50]"
-              layout="total, sizes, prev, pager, next"
-              :total="total"
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-          />
-        </div>
-      </div>
-      <!-- 添加行点击事件 -->
-
-    </div>
-
+    <Table :show="showRiskTable" :dataTypes="dataTypeHiddenDisaster"></Table>
+    <!--表格-->
+    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
+    <!-- 暴雨信息面板 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">暴雨信息</div>
       <div class="panel-content">
@@ -160,19 +118,30 @@ import {
   rainSlideTrigger,
   rainSlideFactorUpdata
 } from '@/api/system/rainModel.js'
+import Chart from "../../components/Earthquake/Chart.vue";
+import {reactive} from "vue";
 //封装函数
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
+import {PulseTool} from "@/cesium/pulse.js";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
-import {pulseUtils} from "@/cesium/pulse.js";
+
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
+import Table from "@/components/Earthquake/Table.vue";
 
 export default {
   name: 'CesiumRainMap',
+  components: {
+    Chart,
+    Legend,
+    HiddenDisasterPanel,
+    rainCenterPanel,
+    Table
+  },
   data() {
     return {
       viewer: null,
@@ -207,37 +176,36 @@ export default {
       isLoading: false,
       loadingText: '加载数据中...',
       // 暴雨影响区域椭圆相关配置
-      rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
-      rainEllipseRotation: 70, // 椭圆默认旋转角度
-      // 图例相关
-      districtColors: {}, // 存储各区县的颜色
-      showDisasterLayer: true, // 控制灾害点显示/隐藏
-      disasterStyleConfig: {
-        '滑坡': {
-          color: Cesium.Color.RED,
-          pixelSize: 10,
-          label: {
-            text: '滑坡滑坡滑坡',
-            font: '16px monospace',
-            fillColor: Cesium.Color.RED,
-            backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-            backgroundPadding: new Cesium.Cartesian2(5, 5),
-            scale: 1.2
-          }
-        },
-        '泥石流': {
-          color: Cesium.Color.ORANGE,
-          pixelSize: 10,
-          label: {
-            text: '泥石流泥石流',
-            font: '16px monospace',
-            fillColor: Cesium.Color.YELLOW,
-            backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
-            backgroundPadding: new Cesium.Cartesian2(5, 5),
-            scale: 1.2
-          }
-        }
-      },
+      // rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
+      // rainEllipseRotation: 70, // 椭圆默认旋转角度
+      // districtColors: {}, // 存储各区县的颜色(图例)
+      // showDisasterLayer: true, // 控制灾害点显示/隐藏
+      // disasterStyleConfig: {
+      //   '滑坡': {
+      //     color: Cesium.Color.RED,
+      //     pixelSize: 10,
+      //     label: {
+      //       text: '滑坡滑坡滑坡',
+      //       font: '16px monospace',
+      //       fillColor: Cesium.Color.RED,
+      //       backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+      //       backgroundPadding: new Cesium.Cartesian2(5, 5),
+      //       scale: 1.2
+      //     }
+      //   },
+      //   '泥石流': {
+      //     color: Cesium.Color.ORANGE,
+      //     pixelSize: 10,
+      //     label: {
+      //       text: '泥石流泥石流',
+      //       font: '16px monospace',
+      //       fillColor: Cesium.Color.YELLOW,
+      //       backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
+      //       backgroundPadding: new Cesium.Cartesian2(5, 5),
+      //       scale: 1.2
+      //     }
+      //   }
+      // },
       clickHandler: null,
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
@@ -246,7 +214,6 @@ export default {
       popupPosition: {x: 0, y: 0},
       popupVisible: false,
       lastPickedEntity: null,
-      showRiskTable: false,
       currentPage: 1,
       pageSize: 10,
       total: 0,
@@ -272,185 +239,10 @@ export default {
         inspectorName: null,
         inspectorTele: null,
       },
-      factorVoList: {
-        attributeId: [],
-        valueIds: [],
-        breakDistance: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        elevation: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        hideId: null,
-        landUseType: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        rainfall: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        rockType: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        slope: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        slopeCurvature: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        slopeType: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        soilSandDegree: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        vegetationCoverage: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-        waterDistance: {
-          attributeName: null,
-          factorValue: null,
-          unit: null,
-        },
-      },
-      factorOptions: { // 致灾因子可选下拉框
-        rock: null,
-        slope: null,
-        landUse: null,
-      },
-      predict: {
-        level: null,
-        probability: null
-      },
       formatAnalyzedData: null,
       formatUpdateAnalyzedData: null,
       formatUpdateAnalyzedDataList: null,
-      attributeMap: [
-        {
-          hideId: 60,
-          attributeId: 1,
-          valueId: 122,
-          attributeName: "高程",
-          factorValue: "1022",
-        },
-        {
-          hideId: 60,
-          attributeId: 2,
-          valueId: 123,
-          attributeName: "坡度",
-          factorValue: "21",
-          unit: "度",
-          attributeNameAlias: "slope"
-        },
-        {
-          hideId: 60,
-          attributeId: 3,
-          valueId: 124,
-          attributeName: "岩土类型",
-          factorValue: "碎石土",
-          unit: "",
-          attributeNameAlias: "rockType"
-        },
-        {
-          hideId: 60,
-          attributeId: 4,
-          valueId: 125,
-          attributeName: "断层距离",
-          factorValue: "800",
-          unit: "米",
-          attributeNameAlias: "breakDistance"
-        },
-        {
-          hideId: 60,
-          attributeId: 5,
-          valueId: 126,
-          attributeName: "土地利用类型",
-          factorValue: "林地",
-          unit: "",
-          attributeNameAlias: "landUseType"
-        },
-        {
-          hideId: 60,
-          attributeId: 6,
-          valueId: 127,
-          attributeName: "水系距离",
-          factorValue: "120",
-          unit: "米",
-          attributeNameAlias: "waterDistance"
-        },
-        {
-          hideId: 60,
-          attributeId: 7,
-          valueId: 128,
-          attributeName: "降雨量",
-          factorValue: "820",
-          unit: "mm",
-          attributeNameAlias: "rainfall"
-        },
-        {
-          hideId: 60,
-          attributeId: 8,
-          valueId: 129,
-          attributeName: "植被覆盖率",
-          factorValue: "60",
-          unit: "%",
-          attributeNameAlias: "vegetationCoverage"
-        },
-        {
-          hideId: 60,
-          attributeId: 9,
-          valueId: 130,
-          attributeName: "坡面曲率",
-          factorValue: "3",
-          unit: "%",
-          attributeNameAlias: "slopeCurvature"
-        },
-        {
-          hideId: 60,
-          attributeId: 10,
-          valueId: 131,
-          attributeName: "坡型",
-          factorValue: "阶梯",
-          unit: "",
-          attributeNameAlias: "slopeType"
-        },
-        {
-          hideId: 60,
-          attributeId: 11,
-          valueId: 132,
-          attributeName: "土壤沙砾度",
-          factorValue: "30",
-          unit: "%",
-          attributeNameAlias: "soilSandDegree"
-        }
-        // 后期新增类型时，直接在这里添加映射关系即可
-      ],
-      flashEntities: [],
-      // 新增：标记界面是否已关闭
-      // isClosed: false,
-      // 新增：存储所有定时器ID
       timers: [],
-      loadingModel: false,
-
       //---信息弹框---
       selectedEntityPosition: '', //拾取的点的弹框位置
       PanelPosition: {x: 0, y: 0}, // TimeLinePanel弹窗的位置
@@ -466,7 +258,49 @@ export default {
       riskPointsInformation: null,
       showBaseInfo: false,
 
-      matchedHiddenHighlightEntities:[],
+      matchedHiddenHighlightEntities: [],
+      loadingModel: false,
+
+      dataTypeHiddenDisaster: {
+        filterCriteria: [
+          {
+            name: "滑坡预警点",
+            value: "type1",
+          },
+          {
+            name: "泥石流预警点",
+            value: "type2",
+          },
+          {
+            name: "风险区预警点",
+            value: "type3",
+          },
+        ],
+        type1: {
+          headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type2: {
+          headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type3: {
+          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
+      },
+      showChart: false,
+      chartDatas: {
+        title: "暴雨灾害链",
+        xAxis: {
+          data: ["滑坡影响", "泥石流影响", "风险区影响"],
+        },
+        seriesDatas: [0, 0, 0],
+      },
+      pulse:null,
+
+      //预警点表格显示隐藏
+      showRiskTable:true,
     }
   },
   computed: {
@@ -476,11 +310,7 @@ export default {
       return this.tableData.slice(start, end);
     }
   },
-  components: {
-    Legend,
-    HiddenDisasterPanel,
-    rainCenterPanel
-  },
+
   mounted() {
     this.load();
     basicLayers.loadAdminData(); // 加载行政区划数据
@@ -489,12 +319,13 @@ export default {
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    this.total = this.tableData.length;
-    this.loadData();
+    this.pulse=new PulseTool(window.viewer);
+    // this.total = this.tableData.length;
+    // this.loadData();
   },
   beforeDestroy() {
     // if (!this.isClosed) {
-      this.releaseAllResources();
+    this.releaseAllResources();
     // }
     // if (this.viewer && this.viewer.entities) {
     //   this.viewer.entities.removeAll();
@@ -538,7 +369,6 @@ export default {
       }
       this.isLoading = true;
       this.loadingText = '加载湖面数据...';
-      console.log(this.lakeData,"this.lakeData")
 
       this.lakeDataSource = new Cesium.GeoJsonDataSource();
       this.lakeDataSource.load(this.lakeData, {
@@ -596,13 +426,11 @@ export default {
     },
     // 加载河流数据
     loadRiverData() {
-      // console.log("loadRiverData")
       if (!this.riverData) {
         console.error('河流GeoJSON数据加载失败');
         return;
       }
 
-      console.log(this.riverData,"this.riverData")
       this.isLoading = true;
       this.loadingText = '加载河流数据...';
 
@@ -661,7 +489,7 @@ export default {
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, 10),
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          show: true // 初始隐藏，通过toggleRiverLayer控制
+          show: false // 初始隐藏，通过toggleRiverLayer控制
         };
       });
     },
@@ -674,6 +502,8 @@ export default {
         basicLayers.removeAdminData()
       }
     },
+    //预警点面板
+    toggleTablePanel(){ this.showRiskTable = !this.showRiskTable;},
     // 开启下雨特效
     toggleRainMode() {
       // 若不允许标记且当前为开启状态，则直接关闭
@@ -718,7 +548,6 @@ export default {
         this.selectedPosition = {longitude, latitude, cartesian};
         this.showInfoPanel = true;
       }
-
     },
     confirmRainPoint() {
       if (!this.selectedPosition) return;
@@ -748,16 +577,16 @@ export default {
 
       if (adminArea) {
         //显示标记点
-        let entity={
-          position:adminArea.name,
-          longitude:longitude,
-          latitude:latitude,
-          id:"test_rain",
-          trigger:"暴雨",
-          rainfall:this.rainfall+"mm",
-          duration:this.duration+"小时",
-          occurrenceTime:new Date(),
-          disasterName:"降雨量"+ this.rainfall+"毫米每小时,已持续"+this.duration+"小时"
+        let entity = {
+          position: adminArea.name,
+          longitude: longitude,
+          latitude: latitude,
+          id: "test_rain",
+          trigger: "暴雨",
+          rainfall: this.rainfall + "mm",
+          duration: this.duration + "小时",
+          occurrenceTime: new Date(),
+          disasterName: "降雨量" + this.rainfall + "毫米每小时,已持续" + this.duration + "小时"
         }
         basicLayers.addCenterPoint(entity)
         this.viewer.flyTo(entity, {
@@ -805,7 +634,7 @@ export default {
       let points = window.viewer.entities.values.filter(
           e => e.name === type
       );
-      console.log(points, adminCoordinates, "points")
+      // console.log(points, adminCoordinates, "points")
       points.forEach(item => {
         let point = [item.properties.longitude, item.properties.latitude]
         if (layers.pointInPolygon(point, adminCoordinates)) {
@@ -826,7 +655,7 @@ export default {
         });
         // 筛选匹配的滑坡点数据
         let matchedHuapoData = []
-        let matchedHuapoEntities=[]
+        let matchedHuapoEntities = []
         //获取滑坡和致灾因子 所有
         let res = await getGeologicalDisasterHideByLandSlideList()
         // console.log(res, "hides")
@@ -850,10 +679,8 @@ export default {
         }
         console.log(matchedHuapoData, "matchedHuapoData")
         rainSlideTrigger(matchedHuapoData).then(res => {
-          // let res1 = await rainSlideTrigger(matchedHuapoData)
-          // console.log(res1, "formatAnalyzedData")
           let formatAnalyzedData = res.data
-          console.log(formatAnalyzedData, "formatAnalyzedData")
+          // console.log(formatAnalyzedData, "formatAnalyzedData")
           // this.formatAnalyzedData = res.data;
           let landslideEntities = window.viewer.entities.values.filter(
               e => e.name === "滑坡隐患点"
@@ -866,21 +693,22 @@ export default {
             let lat = item.geologicalDisasterHideDTO.lat;
             let key = `${lon},${lat}`;
             if (pointSet.has(key)) {
-                  matchedHuapoEntities.push(item)
+              matchedHuapoEntities.push(item)
             }
           });
-          this.flashDisasterPoints(matchedHuapoEntities);
+          this.flashDisasterPoints(matchedHuapoEntities)
+          this.handleHiddenDisasterPointUpdate(matchedHuapoEntities)
           this.stopLoading()
         })
       }
     },
     flashDisasterPoints(entities) {
-      this.matchedHiddenHighlightEntities=entities
+      this.matchedHiddenHighlightEntities = entities
       console.log("传输过来的匹配实体是：", entities);
 
       if (!entities || entities.length === 0) return;
-      pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
-      pulseUtils.createPause(entities, useSimulationPointStore(), window.viewer);
+      this.pulse.removePulseEntity();
+      this.pulse.createPause(entities);
       // 若界面已关闭，直接返回
       // if (this.isClosed) return;
 
@@ -1022,6 +850,49 @@ export default {
       //   });
       // }, 50);
     },
+
+    handleHiddenDisasterPointUpdate(probabilityPoints) {
+      // 清空表格数据
+      this.dataTypeHiddenDisaster.type1.data = [];
+      this.dataTypeHiddenDisaster.type2.data = [];
+      this.dataTypeHiddenDisaster.type3.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
+      probabilityPoints.forEach((item) => {
+        // console.log(item, "probabilityPoints.forEach")
+        switch (item.geologicalDisasterHideDTO.disasterType) {
+          case "滑坡":
+            this.dataTypeHiddenDisaster.type1.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          case "泥石流":
+            this.dataTypeHiddenDisaster.type2.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          default:
+            this.dataTypeHiddenDisaster.type3.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.inspectorName,
+              field4: item.geologicalDisasterHideDTO.inspectorTele,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+        }
+      });
+    },
+
     cancelRainPoint() {
       this.showInfoPanel = false;
     },
@@ -1114,6 +985,7 @@ export default {
     position: absolute;
     bottom: 20px;
     right: 20px;
+    left : 25%;
     background: rgba(42, 42, 42, 0.8);
     color: white;
     padding: 10px;
@@ -1208,155 +1080,6 @@ export default {
         }
       }
     },
-
-    // 计算并显示弹出面板
-    // async calculateAndShowPopup(entity, movementPosition) {
-    //   try {
-    //     const scene = this.viewer.scene;
-    //     const clock = this.viewer.clock;
-    //     // 获取当前时间
-    //     const currentTime = clock.currentTime;
-    //     // 使用当前时间获取位置值
-    //     const position = entity.position.getValue(currentTime);
-    //     // 正确检查位置有效性
-    //     if (!position ||
-    //         isNaN(position.x) || isNaN(position.y) || isNaN(position.z) ||
-    //         !isFinite(position.x) || !isFinite(position.y) || !isFinite(position.z)) {
-    //       console.log('位置无效或未定义');
-    //       return;
-    //     }
-    //     // 转换为窗口坐标
-    //     const windowPosition = scene.cartesianToCanvasCoordinates(position);
-    //     if (windowPosition) {
-    //       // 计算最终位置（添加偏移量）
-    //       this.popupPosition = {
-    //         x: windowPosition.x + 20,
-    //         y: windowPosition.y - 10
-    //       };
-    //       // 检测边界防止面板超出视口
-    //       this.checkPopupBoundary();
-    //       // 显示弹出面板
-    //       this.popupVisible = true;
-    //       // 平滑定位到点击的实体
-    //       await this.viewer.flyTo(entity, {
-    //         duration: 0.5,
-    //         offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
-    //       });
-    //     }
-    //   } catch (error) {
-    //     console.error("计算弹出面板位置出错:", error);
-    //   }
-    // },
-    // // 检测弹出面板边界
-    // checkPopupBoundary() {
-    //   const panelWidth = 280;
-    //   const panelHeight = 200;
-    //   const canvas = this.viewer.canvas;
-    //   const rect = canvas.getBoundingClientRect();
-    //   // 防止面板超出右边界
-    //   if (this.popupPosition.x + panelWidth > rect.right) {
-    //     this.popupPosition.x = rect.right - panelWidth - 10;
-    //   }
-    //   // 防止面板超出下边界
-    //   if (this.popupPosition.y + panelHeight > rect.bottom) {
-    //     this.popupPosition.y = rect.bottom - panelHeight - 10;
-    //   }
-    //   // 防止面板超出左边界
-    //   if (this.popupPosition.x < 10) {
-    //     this.popupPosition.x = 10;
-    //   }
-    //   // 防止面板超出上边界
-    //   if (this.popupPosition.y < 10) {
-    //     this.popupPosition.y = 10;
-    //   }
-    // },
-    // 计算弹出面板左坐标
-    // calculatePopupLeft() {
-    //   return this.popupPosition.x;
-    // },
-    // 计算弹出面板上坐标
-    // calculatePopupTop() {
-    //   return this.popupPosition.y;
-    // },
-    // 关闭弹出面板
-    // closePopup() {
-    //   this.popupVisible = false;
-    //   this.selectedEntityData = null;
-    // },
-    // 阻止事件冒泡
-    // stopPropagation(e) {
-    //   e.stopPropagation();
-    // },
-    // 获取灾害类型名称
-    // getDisasterTypeName(type) {
-    //   const typeMap = {
-    //     'landslide': '滑坡',
-    //     'debrisFlow': '泥石流',
-    //     'secondaryRisk': '次生灾害风险区'
-    //   };
-    //   return typeMap[type] || type;
-    // },
-    toggleRiskTable() {
-      this.showRiskTable = !this.showRiskTable;
-    },
-    // 行点击事件处理
-    handleRowClick(row, event, column) {
-      // console.log('点击行数据:', row);
-      this.jumpToPosition(row);
-    },
-    // 跳转到指定位置
-    jumpToPosition(row) {
-      if (!this.viewer || !row.lon || !row.lat) return;
-      // 从行数据获取经纬度
-      const longitude = parseFloat(row.lon);
-      const latitude = parseFloat(row.lat);
-
-      console.log("====================lon,lat====================", longitude, latitude)
-
-      // 设置视角参数
-      const height = 1000; // 视角高度(米)
-      const heading = 0;   // 方位角(弧度)
-      const pitch = -Math.PI / 4; // 俯仰角(弧度)
-      // 计算目标位置
-      const target = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
-      // 跳转到目标位置
-      this.viewer.camera.setView({
-        destination: target,
-        orientation: {
-          // heading: heading,
-          // pitch: pitch,
-          roll: 0
-        },
-        duration: 2.0 // 动画持续时间(秒)
-      });
-      // 可选：高亮显示该风险区
-      // this.highlightRiskArea(row);
-    },
-    // 高亮显示风险区
-    // highlightRiskArea(row) {
-    //   // 这里可以添加高亮显示逻辑
-    //   // 例如：在地图上标记该风险区位置
-    //   console.log('高亮显示风险区:', row.disasterName);
-    // },
-    handleSizeChange(size) {
-      this.pageSize = size;
-      this.currentPage = 1;
-    },
-    handleCurrentChange(page) {
-      this.currentPage = page;
-    },
-    loadData() {
-      this.loading = true;
-      setTimeout(() => {
-        this.loading = false;
-        this.total = this.tableData.length;
-      }, 500);
-    },
-
-    toggleTablePanel() {
-      this.showRiskTable = !this.showRiskTable;
-    },
-
 
     // 关闭界面的方法（调用此方法时触发资源释放）
     // closeInterface() {
@@ -1456,7 +1179,6 @@ export default {
     startLoading() {
       this.loadingModel = true;
     },
-
     // 停止加载
     stopLoading() {
       this.loadingModel = false;
@@ -1464,7 +1186,7 @@ export default {
 
     //-------信息面板弹框-----
     entitiesClickPonpHandler() {
-      let that = this;
+
       // 在屏幕空间事件处理器中添加左键点击事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
             // 检查点击位置是否拾取到实体
@@ -1497,17 +1219,17 @@ export default {
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
-                this.PanelData = this.extractDataForPanel(entity,this.matchedHiddenHighlightEntities)
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
-                console.log(this.rainCenterPanelVisible,"打开面板啊")
+                console.log(this.rainCenterPanelVisible, "打开面板啊")
                 this.showBaseInfo = false;
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
 
                 this.PanelData = {}
-                this.PanelData = this.extractDataForPanel(entity,this.matchedHiddenHighlightEntities)
-                console.log(this.PanelData,"显示数据")
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                console.log(this.PanelData, "显示数据")
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -1517,7 +1239,7 @@ export default {
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
 
-                this.disasterInformation =clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
 
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
@@ -1533,7 +1255,7 @@ export default {
                 this.showRiskPointsInformation = false;
 
                 this.disasterInformation = null
-                this.disasterInformation =clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.riskPointsInformation = null
               } else if (entity.name === "风险区域") {
                 this.eqCenterPanelVisible = false;
@@ -1545,9 +1267,9 @@ export default {
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = true;
 
+                this.disasterInformation = null
                 this.debrisFlowInformation = null
-                this.riskPointsInformation = null
-                this.disasterInformation =clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else {
                 this.rainCenterPanelVisible = false;
                 this.eqCenterPanelVisible = false;
@@ -1598,7 +1320,7 @@ export default {
         // 检查是否有选中的实体位置
         if (this.selectedEntityPosition) {
           // 将地理坐标转换为窗口坐标
-          const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+          const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
               window.viewer.scene,
               Cesium.Cartesian3.fromDegrees(this.selectedEntityPosition.x, this.selectedEntityPosition.y, this.selectedEntityPosition.z)
           );
@@ -1612,17 +1334,12 @@ export default {
         }
       });
     },
-    //
-    // extractDataForPanel(entity) {
-    //   let properties = {};
-    //   entity.properties.propertyNames.forEach(name => {
-    //     properties[name] = entity.properties[name].getValue();
-    //   });
-    //   return properties;
-    // },
-  }
 
+
+  }
 }
+
+
 </script>
 
 <style scoped>
@@ -1639,7 +1356,7 @@ export default {
 .controls {
   position: absolute;
   top: 10px;
-  left: 10px;
+  left: 35%;
   z-index: 100;
 }
 
@@ -1984,10 +1701,10 @@ export default {
 /* 风险区表格样式 */
 .risk-table-container {
   position: fixed;
-  top: 12%;
+  top: 7%;
   left: 13%;
-  width: 550px;
-  max-height: 700px;
+  width: 500px;
+  max-height: 500px;
   overflow: hidden;
   z-index: 900;
   transition: all 0.3s ease;
@@ -2015,7 +1732,7 @@ export default {
   color: white;
   text-align: center;
   width: 100%;
-  margin-top: 15px;
+  margin-top: 5px;
 }
 
 /* 修改 el-table 的样式 */

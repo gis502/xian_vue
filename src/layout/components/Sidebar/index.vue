@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import Logo from './Logo'
+import Logo from '@/layout/components/Sidebar/Logo.vue';
 import SidebarItem from './SidebarItem'
 import variables from '@/assets/styles/variables.module.scss'
 import useAppStore from '@/store/modules/app'

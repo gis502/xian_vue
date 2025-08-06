@@ -1,14 +1,12 @@
 <template>
   <div
-      id="cesium-container"
-      ref="cesiumContainer"
-      v-loading="loading"
-
-      element-loading-svg-view-box="-10, -10, 50, 50"
-      element-loading-background="rgba(122, 122, 122, 0.8)"
+    id="cesium-container"
+    ref="cesiumContainer"
+    v-loading="loading"
+    :element-loading-spinner="svg"
+    element-loading-svg-view-box="-10, -10, 50, 50"
+    element-loading-background="rgba(122, 122, 122, 0.8)"
   >
-
-<!--    :element-loading-spinner="svg"-->
     <!-- 图例 -->
     <Legend></Legend>
 
@@ -40,26 +38,26 @@
     <!-- 地震模拟 -->
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation"
-      >地震模拟
+        >地震模拟
       </el-button>
       <el-button type="danger" @click="removeEarthquakeSimulation"
-      >清除地震模拟
+        >清除地震模拟
       </el-button>
     </div>
 
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
-        v-if="showEarthquakeSimulation"
-        :position="earthquakeSimulationPosition"
-        :dataTypes="dataTypes"
-        :chartDatas="chartDatas"
-        @displayTable="displayTable"
-        @hideTable="hideTable"
-        @displayChart="displayChart"
-        @hideChart="hideChart"
-        @cancelEarthquake="cancelEarthquake"
-        @startLoading="startLoading"
-        @stopLoading="stopLoading"
+      v-if="showEarthquakeSimulation"
+      :position="earthquakeSimulationPosition"
+      :dataTypes="dataTypes"
+      :chartDatas="chartDatas"
+      @displayTable="displayTable"
+      @hideTable="hideTable"
+      @displayChart="displayChart"
+      @hideChart="hideChart"
+      @cancelEarthquake="cancelEarthquake"
+      @startLoading="startLoading"
+      @stopLoading="stopLoading"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -70,22 +68,21 @@
 <script setup>
 import * as Cesium from "cesium";
 
-import {initCesium} from "@/cesium/initLayer.js";
-import {onMounted, reactive, ref} from "vue";
+import { initCesium } from "@/cesium/initLayer.js";
+import { onMounted, reactive, ref } from "vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
-import {init_cesium_navigation} from "../../cesium/initLayer";
+import { init_cesium_navigation } from "../../cesium/initLayer";
 import layers from "../../cesium/layers";
-import {pulseUtils} from "../../cesium/pulse";
-import {useSimulationPointStore} from "../../store/earthquake/simulation_points";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
-import {getHazardOptions} from "../../api/earthquake/hazards";
+
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
+import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 // 加载
 let loading = ref(false);
 
@@ -162,7 +159,7 @@ let debrisFlowInformation = ref({});
 // 风险点
 let showRiskPointsInformation = ref(false);
 let riskPointsInformation = ref({});
-
+let matchedHiddenHighlightEntities=ref([])
 // 模拟地震
 let showEarthquakeSimulation = ref(false);
 let earthquakeSimulationPosition = ref({});
@@ -171,8 +168,7 @@ let earthquakeClickHandler = null;
 
 let entityClickHandler = ref(null);
 
-// 下拉列表选项
-let options = ref([]);
+
 
 onMounted(() => {
   window.viewer = initCesium("cesium-container");
@@ -184,12 +180,7 @@ onMounted(() => {
   basicLayers.loadAdminData();
 
   // 点击隐患点触发
-  setupEntityClickHandler();
-
-  // 获取致灾因子下拉列表选项
-  getHazardOptions().then((res) => {
-    options.value = res;
-  });
+  entitiesClickPonpHandler();
 
   // 罗盘
   init_cesium_navigation(108.948024, 34.263161, 200000, window.viewer);
@@ -228,8 +219,7 @@ function hideChart() {
 
 //面板
 //-------信息面板弹框-----
-function setupEntityClickHandler() {
-  // let that = this;
+function entitiesClickPonpHandler() {
   // 在屏幕空间事件处理器中添加左键点击事件的处理逻辑
   window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
         // 检查点击位置是否拾取到实体
@@ -242,12 +232,10 @@ function setupEntityClickHandler() {
           console.log(entity, "拾取entity")
           // 计算图标的世界坐标
           selectedEntityPosition.value = calculatePosition(click.position);
-          // await nextTick(); // 等待 Vue 下一个更新周期
-          //不加这个面板会卡在左上角，再点击一次才会到正确位置
           setTimeout(() => {
             updatePopupPosition();
           }, 10);
-          // updatePopupPosition(); // 确保位置已更新
+
 
 
           // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
@@ -261,36 +249,30 @@ function setupEntityClickHandler() {
             eqCenterPanelVisible.value = true;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = false;
-            // PanelPosition.value = selectedEntityPosition; // 更新位置
-
-            PanelData.value = {}
-            PanelData.value = extractDataForRouter(entity)
+            PanelData.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else if (entity.name === "暴雨中心") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = true;
             showBaseInfo.value = false;
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
-
-            PanelData.value = {}
-            PanelData.value = extractDataForRouter(entity)
+            PanelData.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else if (entity.name === "滑坡隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
             showDisasterInformation.value = true;
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = false;
-            disasterInformation.value = entity.properties.data._value;
+
+            disasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+
             debrisFlowInformation.value = null
             riskPointsInformation.value = null
           } else if (entity.name === "泥石流隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
-            // updatePopupPosition()
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
+            // this.PanelPosition = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
 
             showDisasterInformation.value = false;
@@ -298,21 +280,21 @@ function setupEntityClickHandler() {
             showRiskPointsInformation.value = false;
 
             disasterInformation.value = null
-            debrisFlowInformation.value = entity.properties.data._value;
+            debrisFlowInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
             riskPointsInformation.value = null
           } else if (entity.name === "风险区域") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
-            // PanelPosition.value = selectedEntityPosition.value; // 更新位置
+            // this.PanelPosition = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
             showDisasterInformation.value = false;
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = true;
 
+            disasterInformation.value = null
             debrisFlowInformation.value = null
-            riskPointsInformation.value = null
-            riskPointsInformation.value = entity.properties.data._value;
+            riskPointsInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else {
             rainCenterPanelVisible.value = false;
             eqCenterPanelVisible.value = false;
@@ -363,7 +345,7 @@ function updatePopupPosition() {
   nextTick(() => {
     // console.log('Updating popup position');
     if (selectedEntityPosition.value) {
-      const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+      const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
           window.viewer.scene,
           Cesium.Cartesian3.fromDegrees(selectedEntityPosition.value.x, selectedEntityPosition.value.y, selectedEntityPosition.value.z)
       );
@@ -383,14 +365,6 @@ function updatePopupPosition() {
   });
 }
 
-function extractDataForRouter(entity) {
-  let properties = {};
-  entity.properties.propertyNames.forEach(name => {
-    properties[name] = entity.properties[name].getValue();
-  });
-  return properties;
-}
-
 
 // 模拟地震
 function startEarthquakeSimulation() {
@@ -399,20 +373,28 @@ function startEarthquakeSimulation() {
 
   // 保存事件处理函数以便后续移除
   earthquakeClickHandler = new Cesium.ScreenSpaceEventHandler(
-      window.viewer.canvas
+    window.viewer.canvas
   );
 
   // 设置事件监听
   earthquakeClickHandler.setInputAction((event) => {
     if (!showEarthquakeSimulation.value) {
+      const pick = window.viewer.scene.pick(event.position);
+      const entity = pick && pick.id;
+
       // 显示弹窗
       showEarthquakeSimulation.value = true;
       earthquakeSimulationPosition.value = event.position;
       const latitudeAndLongitude = getClickedPosition(event.position);
       earthquakeSimulationPosition.value.latitude =
-          latitudeAndLongitude.latitude;
+        latitudeAndLongitude.latitude;
       earthquakeSimulationPosition.value.longitude =
-          latitudeAndLongitude.longitude;
+        latitudeAndLongitude.longitude;
+
+      // 添加地点
+      earthquakeSimulationPosition.value.name = entity && entity._name;
+    } else {
+      cancelEarthquake();
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -442,7 +424,7 @@ function cancelEarthquake() {
   // 如果正在监听则移除事件
   if (isMonitoringEarthquake && earthquakeClickHandler) {
     earthquakeClickHandler.removeInputAction(
-        Cesium.ScreenSpaceEventType.LEFT_CLICK
+      Cesium.ScreenSpaceEventType.LEFT_CLICK
     );
     isMonitoringEarthquake = false;
     earthquakeClickHandler = null;
@@ -457,8 +439,6 @@ function removeEarthquakeSimulation() {
   // 清除烈度圈实体
   layers.removeIsoseismalCircle();
 
-  // 清除脉冲
-  pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
 
   // 隐藏表格
   showTable.value = false;

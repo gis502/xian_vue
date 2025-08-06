@@ -50,7 +50,7 @@
   </div>
 </template>
 
-<script setup name="BaseInfo">
+<script setup name="HiddenDisasterPanel">
 import {computed, onMounted, ref} from "vue";
 import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
@@ -77,7 +77,6 @@ const props = defineProps({
 watch(() => props, (newProps) => {
   console.log('Props updated:', newProps);
 }, {deep: true});
-
 
 let options = ref([]);
 getHazardOptions().then((res) => {
@@ -125,19 +124,44 @@ const hazards = computed(() => {
         }
       }
     });
-    return props.disasterInformation;
-  } else if (props.showdebrisFlowInformation) {
+    return  {
+      ...props.disasterInformation,
+      title: '滑坡隐患点' // 替换成你需要的标题
+    };
+  }
+  else if (props.showdebrisFlowInformation) {
     props.debrisFlowInformation.factorVoList = staticHazardsDatas;
-    return props.debrisFlowInformation;
+    props.debrisFlowInformation.factorVoList.forEach((element) => {
+      if (element.attributeNameAlias == 'rainfall') {
+
+        console.log(element, props.trigger, props.rainfall, "(props.showDisasterInformation")
+        if (props.trigger == "地震") {
+          element.isShow = false;
+        } else if (props.trigger == "暴雨" && props.disasterInformation.predict.level == '') {
+          element.isShow = false;
+        } else {
+          element.isShow = true;
+          element.factorValue = props.rainfall
+        }
+      }
+    })
+    return  {
+      ...props.debrisFlowInformation,
+      title: '泥石流隐患点' // 替换成你需要的标题
+    };
   } else if (props.showRiskPointsInformation) {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
-    return props.riskPointsInformation;
+    return  {
+      ...props.riskPointsInformation,
+      title: '风险区域' // 替换成你需要的标题
+    };
   }
 });
 
 function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
 }
+
 
 </script>
 <style>

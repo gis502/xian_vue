@@ -6,9 +6,9 @@
     </div>
 
 
-<!--    <rainfallPeriodTable-->
-<!--        :currentTime="currentTime"-->
-<!--    />-->
+    <!--    <rainfallPeriodTable-->
+    <!--        :currentTime="currentTime"-->
+    <!--    />-->
 
 
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
@@ -31,7 +31,7 @@ import layers from "@/cesium/layers.js";
 import * as Cesium from "cesium";
 import basicLayers from "@/cesium/basicLayers.js";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
-import {pulseUtils} from "@/cesium/pulse.js";
+import {PulseTool} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 import {reactive} from "vue";
@@ -53,7 +53,6 @@ export default {
         {id: '5', name: '风险区域', disabled: false},
         {id: '6', name: '预警点', disabled: false},
         {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
-        // {id: '7', name: '灾害点标签', disabled: true}, // 设置为 true 使其不可取消勾选
       ],
       selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
       prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
@@ -62,9 +61,10 @@ export default {
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
+      pulse: null,
       realDisasterPoint: null,
       currentTime: new Date(),
-      rainfallPeriod: null,
+      showBaseInfo: false,
     }
   },
   name: "timeLineLayer",
@@ -81,11 +81,10 @@ export default {
     },
     onceLoadLayer() {
       if (this.onceLoadLayer) {
-        if(this.disasterEvent.trigger=="地震"){
+        if (this.disasterEvent.trigger == "地震") {
           this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
           this.updateMapLayers();
-        }
-        else if(this.disasterEvent.trigger=="暴雨"){
+        } else if (this.disasterEvent.trigger == "暴雨") {
           this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
           this.updateMapLayers();
         }
@@ -93,9 +92,9 @@ export default {
       }
     }
   },
-  components: {
-  },
+  components: {},
   mounted() {
+    this.pulse = new PulseTool(window.viewer);
   },
   methods: {
     toggleLayerFeatures() {
@@ -175,7 +174,7 @@ export default {
           add: async () => {
             if (this.warningPoints) {
               // 如果已经计算过预警点，直接使用存储的结果
-              pulseUtils.createPause(this.warningPoints, useSimulationPointStore(), window.viewer);
+              this.pulse.createPause(this.warningPoints);
             } else {
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
@@ -186,12 +185,14 @@ export default {
                 const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
                 console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
+
+
                 // 清除全部脉冲实体
-                pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+                this.pulse.removePulseEntity();
                 // 存储预警点结果
                 this.warningPoints = points;
                 // 添加脉冲实体
-                pulseUtils.createPause(points, useSimulationPointStore(), window.viewer);
+                this.pulse.createPause(points);
                 // 设置计算完成
                 this.isCalculating = false;
                 this.calculationMessage = '预警点计算完成！';
@@ -206,7 +207,7 @@ export default {
                   viewer.clockViewModel.shouldAnimate = true;
                 }
               } else if (this.disasterEvent.trigger == "暴雨") {
-                let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude,this.disasterEvent.latitude);
+                let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude, this.disasterEvent.latitude);
 
                 if (adminArea) {
                   // console.log(`标记点位于行政区划: ${adminArea.name}`);
@@ -221,28 +222,25 @@ export default {
                 // }
 
               }
-
-
             }
 
           },
           remove: () => {
-            pulseUtils.removePulseEntity(useSimulationPointStore(), window.viewer);
+            this.pulse.removePulseEntity();
           }
         },
         {
           name: '灾害点',
           add: async () => {
             console.log(this.disasterEvent, "this.disasterEvent")
-            if(!this.realDisasterPoint){
+            if (!this.realDisasterPoint) {
               this.realDisasterPoint = await selectDisasterRealByDisasterId({
                 disasterId: this.disasterEvent.disasterId,
                 disasterTrigger: this.disasterEvent.trigger
               })
               this.$emit("update:realDisasterPoint", this.realDisasterPoint);
               layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            }
-            else{
+            } else {
               layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
             }
           },
@@ -279,6 +277,7 @@ export default {
         }
       });
     },
+
   }
 }
 </script>
