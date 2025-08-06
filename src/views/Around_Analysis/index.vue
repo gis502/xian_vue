@@ -9,7 +9,7 @@
     <div class="secondary-panel">
       <div class="panel-title1">控制显示</div>
       <div class="panel-content1">
-        <label><input type="checkbox" v-model="showDisasterLayer" @change="toggleDisasterPoints" /> 显示灾害点 </label>
+        <label><input type="checkbox" v-model="showDisasterPoints" @change="toggleDisasterPoints" /> 显示灾害点 </label>
         <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
         <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示风险源 </label>
         <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
@@ -261,9 +261,19 @@ export default {
   },
   data() {
     return {
+      disasterEntities: [],
+      protectEntities: [],
+      hospitalEntities: [],
+      dangerEntities: [],
+      dangerSourceEntities: [],
+      storePointsEntities: [],
+      saveTeamEntities: [],
+      fireFighterEntities: [],
+      shelterEntities: [],
       showChart: false,
       showTable: false,
       viewer: null,
+      wmsLayer: null,
       currentMapType: 0,
       rainMode: false,
       showInfoPanel: false,
@@ -300,12 +310,12 @@ export default {
       rainEllipseScale: 1000, // 圆半径的缩放系数
       // 图例相关
       districtColors: {}, // 存储各区县的颜色
-      showDisasterLayer: true, // 控制灾害点显示/隐藏
-      showHospital: true, // 控制医院显示/隐藏
-      showDangerSource: true, // 控制风险源显示/隐藏
-      showShelter: true, // 控制避难所显示/隐藏
-      showFire: true, // 控制消防站显示/隐藏
-      showStore: true, // 控制储备点显示/隐藏
+      showDisasterPoints: false, // 控制灾害点显示/隐藏
+      showHospital: false, // 控制医院显示/隐藏
+      showDangerSource: false, // 控制风险源显示/隐藏
+      showShelter: false, // 控制避难所显示/隐藏
+      showFire: false, // 控制消防站显示/隐藏
+      showStore: false, // 控制储备点显示/隐藏
       clickHandler: null,
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
@@ -451,58 +461,41 @@ export default {
       getRisk().then((res) =>{
         this.DangerAreaData = res.data;
         //放在此处确保前面的所有数据都读取到了，再渲染点。
-        this.loadDisasterData();
+        // this.loadDisasterData();
       });
       //获取危险源点
       getDangerous().then((res)=>{
         this.DangerSourceData = res.data;
-        this.loadDangerSource();
+        // this.loadDangerSource();
       });
       //获取医院点
       getHospital().then((res)=>{
         this.HospitalData = res.data;
-        this.loadProtectTarget();
+        // this.loadProtectTarget();
       })
       //获取消防站
       getFire().then((res)=>{
         this.FireFighterData = res.data;
-        this.loadSaveTeams();
+        // this.loadSaveTeams();
       })
       //获取储备点
       getStore().then((res) =>{
         this.StorePointsData = res.data;
-        this.loadStorePoints();
+        // this.loadStorePoints();
       })
       //获取避难所
       getShelter().then((res) =>{
         this.ShelterData = res.data;
-        this.loadShelter();
+        // this.loadShelter();
       })
     },
     load() {
       // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
-      // this.viewer = new Cesium.Viewer(container, {
-      //   imageryProvider: false,
-      //   animation: false,
-      //   homeButton: false,
-      //   navigationHelpButton: false,
-      //   timeline: false,
-      //   selectionIndicator: false,
-      //   sceneModePicker: false,
-      //   infoBox: false,
-      //   geocoder: false,
-      //   vrButton: false,
-      //   fullscreenButton: false,
-      //   baseLayerPicker: false,
-      // });
-      //
-      // this.viewer.cesiumWidget.creditContainer.style.display = "none";
-      // this.loadTDT(0);
 
       this.viewer = initCesium(container)
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
-      window.viewer = this.viewer;//全局绑定viewer
+      window.viewer = this.viewer;//全局绑定viewer，此举是为了点击表格可以跳转对应的点。
 
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
@@ -512,9 +505,46 @@ export default {
           roll: 0.0
         }
       });
+
+      // 添加 GeoServer WMS 图层
+      this.addWmsLayer();
+
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
+    },
+    // 新增方法：加载 WMS 图层
+    addWmsLayer() {
+      this.wmsLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: '/geoserver/test/wms',
+            layers: 'test:xian_people', // 格式：workspace:layername
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            // popup: "all",
+            flyTo: true,
+            show: true,
+          })
+      );
+
+      this.setupLayerClickHandler();
+    },
+    // 隐藏图层
+    hideWmsLayer() {
+      if (this.wmsLayer) {
+        this.wmsLayer.show = false;
+      }
+    },
+    // 显示图层
+    showWmsLayer() {
+      if (this.wmsLayer) {
+        this.wmsLayer.show = true;
+      }
     },
     // 加载湖面数据
     loadLakeData() {
@@ -649,55 +679,55 @@ export default {
       });
     },
     //加载实体
-    loadEntities(longitude, latitude, name){
-      // 创建灾害点实体
-      const entity = this.viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-        // 点
-        billboard: {
-          // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-          image: storePointsIcon,
-          width: 60, // 图片宽度,单位px
-          height: 60, // 图片高度，单位px
-          eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-          color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-          scale: 0.8, // 缩放比例
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-          scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-          depthTest: false, // 禁止深度测试
-          disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-          show: true
-        },
-        // 文字
-        label: {
-          text: `${name}`,
-          font: '12pt Source Han Sans CN',
-          fillColor: Cesium.Color.WHITE,
-          backgroundColor: Cesium.Color.AQUA,
-          showBackground: false,
-          outline: true,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 10,
-          scale: 1.0,
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          verticalOrigin: Cesium.VerticalOrigin.CENTER,
-          horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-          pixelOffset: new Cesium.Cartesian2(-70, -35),
-          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-          show: true
-        },
-        // 添加灾害类型信息，用于弹窗显示
-        // description: this.createDisasterDescription(properties, '滑坡'),
-        // 保存原始样式，用于闪烁恢复
-        originalColor: Cesium.Color.RED,
-        originalPixelSize: 15,
-        // 标记灾害类型
-        disasterType: 'storePoints',
-        disasterData: point,
-      });
-
-      return entity;
-    },
+    // loadEntities(longitude, latitude, name){
+    //   // 创建灾害点实体
+    //   const entity = this.viewer.entities.add({
+    //     position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+    //     // 点
+    //     billboard: {
+    //       // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+    //       image: storePointsIcon,
+    //       width: 60, // 图片宽度,单位px
+    //       height: 60, // 图片高度，单位px
+    //       eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+    //       color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+    //       scale: 0.8, // 缩放比例
+    //       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+    //       scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+    //       depthTest: false, // 禁止深度测试
+    //       disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+    //       show: true
+    //     },
+    //     // 文字
+    //     label: {
+    //       text: `${name}`,
+    //       font: '12pt Source Han Sans CN',
+    //       fillColor: Cesium.Color.WHITE,
+    //       backgroundColor: Cesium.Color.AQUA,
+    //       showBackground: false,
+    //       outline: true,
+    //       outlineColor: Cesium.Color.BLACK,
+    //       outlineWidth: 10,
+    //       scale: 1.0,
+    //       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+    //       verticalOrigin: Cesium.VerticalOrigin.CENTER,
+    //       horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+    //       pixelOffset: new Cesium.Cartesian2(-70, -35),
+    //       distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+    //       show: true
+    //     },
+    //     // 添加灾害类型信息，用于弹窗显示
+    //     // description: this.createDisasterDescription(properties, '滑坡'),
+    //     // 保存原始样式，用于闪烁恢复
+    //     originalColor: Cesium.Color.RED,
+    //     originalPixelSize: 15,
+    //     // 标记灾害类型
+    //     disasterType: 'storePoints',
+    //     disasterData: point,
+    //   });
+    //
+    //   return entity;
+    // },
     //加载避难所
     loadShelter(){
       try{
@@ -1106,7 +1136,7 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: this.showDisasterLayer
+              show: this.showDisasterPoints
             },
             // 文字
             label: {
@@ -1124,7 +1154,7 @@ export default {
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(-70, -35),
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: this.showDisasterLayer
+              show: this.showDisasterPoints
             },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription(properties, '滑坡'),
@@ -1162,7 +1192,7 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: this.showDisasterLayer
+              show: this.showDisasterPoints
             },
             // 文字
             label: {
@@ -1180,7 +1210,7 @@ export default {
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(-70, 35),
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: this.showDisasterLayer
+              show: this.showDisasterPoints
             },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription(properties, '泥石流'),
@@ -1227,7 +1257,7 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: this.showDisasterLayer
+              show: this.showDisasterPoints
             },
             // 文字
             label: {
@@ -1245,7 +1275,7 @@ export default {
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(-70, -35),
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: this.showDisasterLayer
+              show: this.showDisasterPoints
             },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription({position}, '次生灾害风险区'),
@@ -1485,6 +1515,54 @@ export default {
     </div>
 `;
     },
+    // 测试版-图层点处理
+    setupLayerClickHandler() {
+      viewer.screenSpaceEventHandler.setInputAction(async (click) => {
+        // 1. 获取点击位置的经纬度和像素坐标
+        const position = viewer.scene.pickPosition(click.position); // 三维坐标
+        if (!position) return;
+        const ray = this.viewer.camera.getPickRay(click.position);
+        const cartesian = this.viewer.scene.globe.pick(ray, this.viewer.scene);
+
+        if (cartesian) {
+           const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+           const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+           const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+          console.log(111, longitude, latitude);
+
+          // 2. 获取点击位置的屏幕像素坐标
+          const feature = viewer.scene.pick(click.position);
+          if (!feature) return;
+
+          // 3. 发送 GetFeatureInfo 请求
+          const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude);
+          const response = await fetch(infoUrl);
+          const text = await response.text();
+          console.log("属性信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    },
+    //设置请求
+    buildGetFeatureInfoUrl(lon, lat) {
+      const wmsUrl = '/geoserver/test/wms';
+      const params = {
+        service: 'WMS',
+        version: '1.1.1',
+        request: 'GetFeatureInfo',
+        layers: 'test:xian_people',
+        srs: 'EPSG:4490',
+        bbox: `${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}`, // 小范围查询
+        width: 101,  // 必须为奇数（中心点即点击位置）
+        height: 101,
+        query_layers: 'test:xian_people',
+        info_format: 'application/json', // 或 'text/plain'
+        x: 50,  // 点击位置在 bbox 中心的像素坐标
+        y: 50,
+      };
+
+      return `${wmsUrl}?${new URLSearchParams(params).toString()}`;
+    },
     // 设置实体点击事件处理
     setupEntityClickHandler() {
 
@@ -1502,7 +1580,6 @@ export default {
         if (pickedObject.id._disasterData === undefined) {
           return;
         }
-
         // 隐藏之前的弹出面板
         this.closePopup();
 
@@ -1512,7 +1589,6 @@ export default {
           this.selectedEntityData = entity._disasterData || {};
           // 计算弹出框位置并显示面板
           this.calculateAndShowPopup(entity, movement.position);
-
         } else {
           // 如果点击在空白处，隐藏信息框
           this.viewer.selectedEntity = undefined;
@@ -2804,34 +2880,59 @@ export default {
       }
     },
     toggleDisasterPoints() {
-      this.disasterEntities.forEach(entity => {
-        entity.show = this.showDisasterLayer;
-      });
+      if(this.disasterEntities.length == 0 && this.showDisasterPoints){
+        this.loadDisasterData();
+      }else{
+        this.disasterEntities.forEach(entity => {
+          entity.show = this.showDisasterPoints;
+        });
+      }
     },
     toggleHospitalPoints() {
-      this.hospitalEntities.forEach(entity => {
-        entity.show = this.showHospital;
-      });
+      //首次加载
+      if(this.hospitalEntities.length == 0 && this.showHospital){
+        this.loadProtectTarget();
+      }else{
+        this.hospitalEntities.forEach(entity => {
+          entity.show = this.showHospital;
+        });
+      }
     },
     toggleDangerPoints() {
-      this.dangerEntities.forEach(entity => {
-        entity.show = this.showDangerSource;
-      });
+      if(this.dangerEntities.length == 0 && this.showDangerSource){
+        this.loadDangerSource();
+      }else{
+        this.dangerEntities.forEach(entity => {
+          entity.show = this.showDangerSource;
+        });
+      }
     },
     toggleShelterPoints() {
-      this.shelterEntities.forEach(entity => {
-        entity.show = this.showShelter;
-      });
+      if(this.shelterEntities.length == 0 && this.showShelter){
+        this.loadShelter();
+      }else{
+        this.shelterEntities.forEach(entity => {
+          entity.show = this.showShelter;
+        });
+      }
     },
     toggleFirePoints() {
-      this.fireFighterEntities.forEach(entity => {
-        entity.show = this.showFire;
-      });
+      if(this.fireFighterEntities.length == 0 && this.showFire){
+        this.loadSaveTeams();
+      }else{
+        this.fireFighterEntities.forEach(entity => {
+          entity.show = this.showFire;
+        });
+      }
     },
     toggleStorePoints() {
-      this.storePointsEntities.forEach(entity => {
-        entity.show = this.showStore;
-      });
+      if(this.storePointsEntities.length == 0 && this.showStore){
+        this.loadStorePoints();
+      }else{
+        this.storePointsEntities.forEach(entity => {
+          entity.show = this.showStore;
+        });
+      }
     },
   }
 }
