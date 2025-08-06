@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import * as url from "node:url";
 
 /**
  * 获取模拟点风险概率
@@ -88,4 +89,15 @@ export async function getHazardOptions() {
     })
   })
   return options;
+}
+
+
+//获取滑坡影响面积
+export async function getPolieJiao(disasterFactor){
+  const res = await request({
+    url: "/model/getPoliejiao",
+    method: "post",
+    data: disasterFactor,
+  })
+  return res
 }
