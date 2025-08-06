@@ -101,7 +101,7 @@ async function modifyDatas() {
   hazards.hazardsDatas.predict = res.data.predict;
 
   // 设置脉冲
-  hazards.pulse.createPause([hazards.hazardsDatas]);
+  this.pulse.createPause([hazards.hazardsDatas]);
 }
 </script>
 
