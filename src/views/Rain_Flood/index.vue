@@ -73,14 +73,13 @@
         :rainfall="rainfall"
     />
 
-
-    <Legend></Legend>
+    <Legend ref="legendRef"></Legend>
   </div>
 </template>
 
 <script>
 import * as Cesium from 'cesium';
-import Cookies from 'js-cookie'
+import html2canvas from 'html2canvas';
 // 引入西安行政区划数据
 import BaQiaoArea from '@/assets/static/area/BaQiao.json';
 import BeiLin from '@/assets/static/area/BeiLin.json';
@@ -1342,41 +1341,55 @@ export default {
       });
     },
 
-    downloadRainReport() {
-      const canvas = window.viewer.scene.canvas
-      canvas.toBlob(async blob => {
+    async downloadRainReport() {
+      // 1. 截三维画布
+      const canvas3D = window.viewer.scene.canvas
+
+      // 2. 截图例 DOM
+      const legendEl = this.$refs.legendRef.$el
+      const legendCanvas = await html2canvas(legendEl, {
+        backgroundColor: null, // 透明
+        useCORS: true,
+        scale: 1
+      })
+
+      // 3. 合并两个 canvas
+      const finalCanvas = document.createElement('canvas')
+      finalCanvas.width = canvas3D.width
+      finalCanvas.height = canvas3D.height
+      const ctx = finalCanvas.getContext('2d')
+
+      // 三维场景
+      ctx.drawImage(canvas3D, 0, 0)
+      // 图例放右下角（可改）
+      ctx.drawImage(
+          legendCanvas,
+          finalCanvas.width - legendCanvas.width - 20,
+          finalCanvas.height - legendCanvas.height - 20
+      )
+
+      // 4. 转成 blob 并上传
+      finalCanvas.toBlob(async blob => {
         const formData = new FormData()
-        formData.append('file', blob, 'cesium.png')
+        formData.append('file', blob, 'cesium_with_legend.png')
 
-        // ✅ 正确解析 fetch 返回的 JSON
-        const response = await saveCanvas(formData)
-        const res = await response.json() // 关键：这里也要 await
-        const imgUrl = res.data
-        console.log(imgUrl, "imgUrl")
+            // ✅ 正确解析 fetch 返回的 JSON
+            const response = await saveCanvas(formData)
+            const res = await response.json() // 关键：这里也要 await
+            const imgUrl = res.data
+            console.log(imgUrl, "imgUrl")
 
-        // ✅ 继续调用下载 Word 接口
-        const wordRes = await generateRainReport(imgUrl)
-        console.log(wordRes, "wordRes")
-        const wordUrl = wordRes.data
+            // ✅ 生成 Word
+            const wordRes = await generateRainReport(imgUrl)
+            console.log(wordRes, "wordRes")
+            const wordUrl = wordRes.data
 
-        // const token = localStorage.getItem('Admin-Token') || Cookies.get('Admin-Token');
-        // window.open(`http://localhost:8080/downloadReport/file/report_xxx.docx?token=${token}`);
-        const link = document.createElement('a');
-        link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
-        link.download = wordUrl;                         // 强制触发下载
-        link.click();
-
-        // window.open("http://localhost:8080/downloadReport/file/" + wordUrl+`?token=${token}`);
-
-        // window.open("/downloadReport/file/" + wordUrl, "_blank");
-        // console.log(wordUrl, "wordUrl")
-
-        // ✅ 触发下载
-        // window.open(wordUrl, '_blank')
-
-      }, 'image/png', 1.0)
-
-
+            // ✅ 触发下载
+            const link = document.createElement('a');
+            link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+            link.download = wordUrl;                         // 强制触发下载
+            link.click();
+          }, 'image/png', 1.0)
     }
   }
 }
