@@ -1342,6 +1342,7 @@ export default {
     },
 
     async downloadRainReport() {
+      this.startLoading()
       // 1. 截三维画布
       const canvas3D = window.viewer.scene.canvas
 
@@ -1389,6 +1390,8 @@ export default {
             link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
             link.download = wordUrl;                         // 强制触发下载
             link.click();
+
+            this.stopLoading()
           }, 'image/png', 1.0)
     }
   }
