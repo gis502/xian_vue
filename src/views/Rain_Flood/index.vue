@@ -34,7 +34,7 @@
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <!-- 暴雨信息面板 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
-      <div class="panel-title">暴雨信息</div>
+      <div class="panel-title">暴雨信息<button class="factor-button" @click="toggleFactorPanel">致灾因子</button></div>
       <div class="panel-content">
         <div class="form-item">
           <label class="jiangyuliang">降雨量:</label>
@@ -50,6 +50,13 @@
           <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>
           <button @click="cancelRainPoint" style="width: 80px">取消</button>
         </div>
+        <!-- 组件引入，点击后显示 -->
+        <DisasterFactorForm
+            v-if="showFactorPanel"
+            v-model="disasterFactors"
+            @submit="submitFactors"
+            @cancel="cancelFactors"
+        />
       </div>
     </div>
     <!-- 自定义弹出面板 -->
@@ -128,7 +135,7 @@ import {reactive} from "vue";
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
 import {PulseTool} from "@/cesium/pulse.js";
-//组件
+//暴雨触发表格
 import Legend from "@/components/Earthquake/Legend.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
@@ -136,6 +143,7 @@ import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import Table from "@/components/Earthquake/Table.vue";
+import DisasterFactorForm from "@/components/Earthquake/DisasterFactorForm.vue";
 
 export default {
   name: 'CesiumRainMap',
@@ -144,10 +152,20 @@ export default {
     Legend,
     HiddenDisasterPanel,
     rainCenterPanel,
-    Table
+    Table,
+    DisasterFactorForm
   },
   data() {
     return {
+      //暴雨触发参数
+      model:[],
+      showFactorPanel: false,
+      disasterFactors: {
+        terrain: '',
+        soilMoisture: null,
+        vegetation: null
+      },
+
       viewer: null,
       tdtToken: "7f013d0186775b063d6a046977bbefc6",
       currentMapType: 0,
@@ -323,6 +341,7 @@ export default {
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
+    // this.
     this.pulse = new PulseTool(window.viewer);
     // this.total = this.tableData.length;
     // this.loadData();
@@ -1390,6 +1409,19 @@ export default {
             link.download = wordUrl;                         // 强制触发下载
             link.click();
           }, 'image/png', 1.0)
+    },
+
+    //致灾因子面板
+    toggleFactorPanel() {
+      this.showFactorPanel = !this.showFactorPanel;
+    },
+    submitFactors(factors) {
+      console.log('提交致灾因子信息:', factors);
+      this.model= factors;
+      this.showFactorPanel = false;
+    },
+    cancelFactors() {
+      this.showFactorPanel = false;
     }
   }
 }
@@ -1411,7 +1443,7 @@ export default {
 .controls {
   position: absolute;
   top: 10px;
-  left: 35%;
+  left: 40%;
   z-index: 100;
 }
 
@@ -1474,7 +1506,7 @@ export default {
 /* 暴雨信息面板样式优化 */
 .rain-info-panel {
   position: absolute;
-  top: 130px;
+  top: 300px;
   left: 10px;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
@@ -1492,7 +1524,7 @@ export default {
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #444;
-  text-align: center;
+  text-align: left;
 }
 
 .panel-content div {
@@ -1914,6 +1946,15 @@ export default {
   margin-bottom: 10px;
   font-size: 20px;
   color: red;
+}
+.factor-button {
+  background-color: #409eff;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 40px;
 }
 
 
