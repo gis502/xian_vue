@@ -231,12 +231,14 @@ let basicLayers = {
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
+            console.log(res,"dataOnHiddenDangerPointsOfDebrisFlow")
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
 
     },
     async loadLandSlide(){
         landslideHazardPointData().then((res) => {
+            console.log(res,"landslideHazardPointData")
             this.addHiddenDangerPoints("滑坡隐患点",res.data, landslideIcon);
         });
     },
