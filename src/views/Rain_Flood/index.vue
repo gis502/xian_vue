@@ -1395,7 +1395,7 @@ export default {
             console.log("水库信息:", JSON.parse(text));
           }
           //地铁站
-          if(this.showNationalRoad){
+          if(this.showSubway){
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.subwayLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();

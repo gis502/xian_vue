@@ -49,6 +49,7 @@
 </template>
 
 <script setup name="HiddenDisasterPanel">
+import * as WKT from "wkt";
 import {computed, onMounted, ref} from "vue";
 import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
@@ -361,25 +362,174 @@ function landslideImpact(){
       const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);//绘制缓冲区
       const affrctPoint = AffectBuffer(routePoints, bufferWidth);//得到经纬度
 
-
-
       //坐标转换
-      // let ellipsoid=window.viewer.scene.globe.ellipsoid;
-      //
-      // for (let i=0;i<polygonHierarchy.positions.length;i++){
-      //
-      //   let cartographic=ellipsoid.cartesianToCartographic(polygonHierarchy.positions[i]);
-      //
-      //   let lat=Cesium.Math.toDegrees(cartographic.latitude);
-      //   let lon=Cesium.Math.toDegrees(cartographic.longitude);
-      //
-      //   let currentPoint = {
-      //     lat: lat,
-      //     lon: lon,
-      //   };
-      //
-      //   position.push(currentPoint);
-      // }
+      let ellipsoid=window.viewer.scene.globe.ellipsoid;
+
+      for (let i=0;i<affrctPoint.positions.length;i++){
+
+        let cartographic=ellipsoid.cartesianToCartographic(affrctPoint.positions[i]);
+
+        let lat=Cesium.Math.toDegrees(cartographic.latitude);
+        let lon=Cesium.Math.toDegrees(cartographic.longitude);
+
+        let currentPoint = {
+          lat: lat,
+          lon: lon,
+        };
+
+        position.push(currentPoint);
+
+      }
+      //渲染影响点
+      fetchAndLogRoadList(position)
+
+      async function fetchAndLogRoadList(position) {
+        try {
+
+          const data = await getAffectPoint(position); // 等待 Promise 解析
+          console.log(111, data);
+          renderAllAffectedGeometries(viewer, data);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+      //批量处理
+      function renderAllAffectedGeometries(viewer, data, typeColors = {}) {
+        // 默认颜色配置
+        const defaultColors = {
+          roadList: Cesium.Color.RED,
+          highwayList: Cesium.Color.YELLOW,
+          bridgeList: Cesium.Color.BLUE,
+          reservoirList: Cesium.Color.CYAN,
+          waterPipeList: Cesium.Color.GREEN,
+          // 可以继续添加其他类型...
+        };
+
+        // 定义需要跳过的列表类型
+        const SKIP_LIST_TYPES = ['peopleList', 'cropsList']; // 可以扩展其他类型,现在不显示人口与农作物网格。
+        // 合并用户自定义颜色
+        const colors = { ...defaultColors, ...typeColors };
+        // 遍历data中的所有属性
+        Object.entries(data).forEach(([listName, items]) => {
+          // 跳过空数组
+          if (!Array.isArray(items) || items.length === 0 || SKIP_LIST_TYPES.includes(listName)) {
+            return;
+          }
+          // 获取该类型的颜色，如果没有配置则使用随机颜色
+          const color = colors[listName] || Cesium.Color.fromRandom({
+            alpha: 0.7
+          });
+          // 遍历该类型的所有项目
+          items.forEach((item, index) => {
+            if (!item.pointGeom) {
+              console.warn(`Item ${index} in ${listName} has no pointGeom property`);
+              return;
+            }
+            try {
+              // 渲染几何图形
+              renderGeometryToCesium(viewer, item.pointGeom, {
+                color: color,
+                width: 10,
+              });
+              // 可选：添加标签显示名称（如果有name字段）
+              // if (item.roadName || item.qdmc || item.zdmc) {
+              //   viewer.entities.add({
+              //     position: getCenterPositionFromWKT(item.geomGeom),
+              //     label: {
+              //       text: item.roadName || item.qdmc || item.zdmc || listName,
+              //       font: '14px sans-serif',
+              //       fillColor: Cesium.Color.WHITE,
+              //       outlineColor: Cesium.Color.BLACK,
+              //       outlineWidth: 2,
+              //       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              //       verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+              //       pixelOffset: new Cesium.Cartesian2(0, -10)
+              //     }
+              //   });
+              // }
+            } catch (error) {
+              console.error(`Error rendering ${listName}[${index}]:`, error);
+            }
+          });
+        });
+      }
+      //渲染
+      function renderGeometryToCesium(viewer, wktString, options = {}) {
+        const geometry = WKT.parse(wktString);
+        const { color = Cesium.Color.RED, width = 2 } = options;
+        if (geometry.type === 'LineString') {
+          // 渲染线
+          const positions = geometry.coordinates.map(coord =>
+              Cesium.Cartesian3.fromDegrees(coord[0], coord[1])
+          );
+          viewer.entities.add({
+            polyline: {
+              positions: positions,
+              width: width,
+              material: new Cesium.PolylineGlowMaterialProperty({
+                glowPower: 0.2,
+                color: color
+              })
+            }
+          });
+        }
+        else if (geometry.type === 'MultiLineString') {
+          // 多条线（每条线单独渲染）
+          geometry.coordinates.forEach(lineCoords => {
+            const positions = lineCoords.map(coord =>
+                Cesium.Cartesian3.fromDegrees(coord[0], coord[1])
+            );
+            viewer.entities.add({
+              polyline: {
+                positions: positions,
+                width: width,
+                material: new Cesium.PolylineGlowMaterialProperty({
+                  glowPower: 0.2,
+                  color: color
+                })
+              }
+            });
+          });
+        }
+        else if (geometry.type === 'MultiPolygon' || geometry.type === 'Polygon') {
+          // 渲染多边形
+          const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+          polygons.forEach(polygon => {
+            const hierarchy = new Cesium.PolygonHierarchy(
+                polygon[0].map(coord =>
+                    Cesium.Cartesian3.fromDegrees(coord[0], coord[1])
+                )
+            );
+            viewer.entities.add({
+              polygon: {
+                hierarchy: hierarchy,
+                material: color.withAlpha(0.5),
+                outline: true,
+                outlineColor: color,
+                outlineWidth: width
+              }
+            });
+          });
+        }
+        else if (geometry.type === 'Point') {
+          // 渲染点
+          viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(
+                geometry.coordinates[0],
+                geometry.coordinates[1]
+            ),
+            point: {
+              pixelSize: 10,
+              color: color,
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 2
+            }
+          });
+        }
+        else {
+          console.warn('Unsupported geometry type:', geometry.type);
+        }
+      }
 
       //缓冲区画点测试
       // for (let i=0;i<affrctPoint.positions.length;i++){

@@ -105,9 +105,9 @@ export async function getPolieJiao(disasterFactor){
 //获取受影响点
 export async function getAffectPoint(affectPoint){
   const res = await request({
-    url: "/model/getPoliejiao",
+    url: "/model/affectArea",
     method: "post",
     data: affectPoint,
   })
-  return res
+  return res.data
 }
