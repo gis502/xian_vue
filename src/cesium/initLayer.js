@@ -4,9 +4,8 @@ import CesiumNavigation from "cesium-navigation-es6";
 const CesiumIonDefaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDBjZjAxOS0wMDhhLTRmZjEtYjNmOC1iNmM2ZmY2ZmQ1N2IiLCJpZCI6MjAxMDI1LCJpYXQiOjE3MTAxNTgxNjJ9.mdbJYEzXQkBnHNqpozz7MvZjJ_X9a3JZRGPA-ytGhLI'
 // const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
 // const tdtToken = '78234e018ed03fe3bb28de976dcfa6d3'
-// const tdtToken = "72ec1fc9cf0b5783de5bd13f5f85af39"
+const tdtToken = "ca190ab79716f01d331e8a744589b417"
 // const tdtToken = "07f071d2d20098468ee7697112e8fc58"
-const tdtToken = "78234e018ed03fe3bb28de976dcfa6d3"
 
 export function initCesium(container,clock) {
 
@@ -101,7 +100,7 @@ function imageryProvider(type) {
     }
 }
 
-export function init_cesium_navigation(longitude, latitude,height, viewer) {
+export function init_cesium_navigation(longitude, latitude, viewer) {
     let options = {}
     // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
     options.enableCompass = true
@@ -112,7 +111,7 @@ export function init_cesium_navigation(longitude, latitude,height, viewer) {
     // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
     options.enableCompassOuterRing = true
     // 重置按钮
-    options.defaultResetView = new Cartographic(CesiumMath.toRadians(longitude), CesiumMath.toRadians(latitude), height)
+    options.defaultResetView = new Cartographic(CesiumMath.toRadians(longitude), CesiumMath.toRadians(latitude), 6000)
     options.resetTooltip = "重置视图";
     options.zoomInTooltip = "放大";
     options.zoomOutTooltip = "缩小";
@@ -122,7 +121,7 @@ export function init_cesium_navigation(longitude, latitude,height, viewer) {
     compass.addEventListener('dblclick', function () {
         // 设置相机飞行到指北视角
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,height), // 目标位置
+            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, viewer.camera.positionCartographic.height), // 目标位置
             orientation: {
                 heading: Cesium.Math.toRadians(0), // 朝向正北
                 pitch: Cesium.Math.toRadians(-90), // 向下俯视
