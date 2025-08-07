@@ -117,9 +117,12 @@ const hazards = computed(() => {
         console.log(element, props.trigger, props.rainfall, "(props.showDisasterInformation")
         if (props.trigger == "地震") {
           element.isShow = false;
-        } else if (props.trigger == "暴雨" && props.disasterInformation.predict.level == '') {
           element.isShow = false;
-        } else {
+        }
+        // else if (props.trigger == "暴雨"&& props.disasterInformation.predict.level == '') {
+        //     element.isShow = false;
+        // }
+        else {
           element.factorValue = props.rainfall
         }
       }
@@ -133,13 +136,14 @@ const hazards = computed(() => {
     props.debrisFlowInformation.factorVoList = staticHazardsDatas;
     props.debrisFlowInformation.factorVoList.forEach((element) => {
       if (element.attributeNameAlias == 'rainfall') {
-
         console.log(element, props.trigger, props.rainfall, "(props.showDisasterInformation")
         if (props.trigger == "地震") {
           element.isShow = false;
-        } else if (props.trigger == "暴雨" && props.disasterInformation.predict.level == '') {
-          element.isShow = false;
-        } else {
+        }
+        // else if (props.trigger == "暴雨" && props.debrisFlowInformation.predict.level == '') {
+        //   element.isShow = false;
+        // }
+        else {
           element.isShow = true;
           element.factorValue = props.rainfall
         }

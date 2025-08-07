@@ -1,6 +1,6 @@
 import request from "@/utils/request.js";
 
-// ´¥·¢±©Óê
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 export function rainSlideTrigger(data) {
     return request({
         url: '/model/rainSlideTrigger',
@@ -10,7 +10,7 @@ export function rainSlideTrigger(data) {
     });
 }
 
-// ¸üÐÂ²ÎÊý
+// ï¿½ï¿½ï¿½Â²ï¿½ï¿½ï¿½
 export function rainSlideFactorUpdata(data) {
     return request({
         url: '/model/rainSlideFactorUpdata',
