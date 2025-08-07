@@ -15,6 +15,15 @@
         <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
         <label><input type="checkbox" v-model="showFire" @change="toggleFirePoints"> 显示消防站 </label>
         <label><input type="checkbox" v-model="showStore" @change="toggleStorePoints"> 显示储备点 </label>
+        <label><input type="checkbox" v-model="showPeople" @change="togglePeople"> 显示人口网格 </label>
+        <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>
+        <label><input type="checkbox" v-model="showPipe" @change="toggleWaterPipe"> 显示管网系统 </label>
+        <label><input type="checkbox" v-model="showRoad" @change="toggleRoad"> 显示交通道路 </label>
+        <label><input type="checkbox" v-model="showBridge" @change="toggleBridge"> 显示桥梁 </label>
+        <label><input type="checkbox" v-model="showHighway" @change="toggleHighway"> 显示高速 </label>
+        <label><input type="checkbox" v-model="showNationalRoad" @change="toggleNationalRoad"> 显示国道 </label>
+        <label><input type="checkbox" v-model="showReservoir" @change="toggleReservoir"> 显示水库 </label>
+        <label><input type="checkbox" v-model="showSubway" @change="toggleSubway"> 显示地铁站 </label>
       </div>
     </div>
     <!-- 加载状态提示 -->
@@ -45,8 +54,11 @@
   }"
         @click.stop="stopPropagation">
       <div class="popup-header">
-        <h3 v-if="selectedEntityData.properties.disasterName">{{ selectedEntityData.properties.disasterName || '地质灾害风险区' }} </h3>
         <h3 v-if="selectedEntityData.properties.teamName">{{ selectedEntityData.properties.teamName || '消防站' }} </h3>
+        <h3 v-if="selectedEntityData.properties.hospitalName">{{ selectedEntityData.properties.hospitalName || '医院' }} </h3>
+        <h3 v-if="selectedEntityData.properties.dangerName">{{ selectedEntityData.properties.dangerName || '风险源' }} </h3>
+        <h3 v-if="selectedEntityData.properties.storeName">{{ selectedEntityData.properties.storeName || '储备点' }} </h3>
+        <h3 v-if="selectedEntityData.properties.shelterName">{{ selectedEntityData.properties.shelterName || '避难所' }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
@@ -66,7 +78,7 @@
           </tr>
           <tr v-if="selectedEntityData.properties.disasterName">
             <th>风险区名称</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.disasterName) }}</td>
+            <td>{{ selectedEntityData.properties.disasterName}}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.dangerName">
             <th>危险源名称</th>
@@ -84,21 +96,29 @@
             <th>储备站点名称</th>
             <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.shelterName">
+            <th>避难所名称</th>
+            <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.level">
             <th>级别</th>
             <td>{{ getDisasterTypeName(selectedEntityData.properties.level) }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.enterpriseType">
             <th>危险源类型</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.enterpriseType) }}</td>
+            <td>{{ selectedEntityData.properties.enterpriseType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.teamType">
             <th>消防站类型</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.teamType) }}</td>
+            <td>{{ selectedEntityData.properties.teamType}}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.storeType">
             <th>储备站类型</th>
             <td>{{ getDisasterTypeName(selectedEntityData.properties.storeType) }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterType">
+            <th>储备站类型</th>
+            <td>{{ selectedEntityData.properties.shelterType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.position">
             <th>地理位置</th>
@@ -176,9 +196,9 @@
             <th>紧急探照灯数</th>
             <td>{{ selectedEntityData.properties.emergencyLight || '未知' }}</td>
           </tr>
-          <tr v-if="selectedEntityData.properties.shelterVolume">
+          <tr v-if="selectedEntityData.properties.effectiveNumber">
             <th>避难所最大容纳人数</th>
-            <td>{{ selectedEntityData.properties.shelterVolume || '未知' }}</td>
+            <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
           </tr>
 
           <tr v-if="selectedEntityData.properties.username">
@@ -261,6 +281,16 @@ export default {
   },
   data() {
     return {
+      geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
+      peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
+      cropsLayerName: 'test:xian_crops',
+      waterPipeLayerName: 'test:xian_water_pipe',
+      roadLayerName: 'test:xian_road',
+      bridgeLayerName: 'test:xian_bridge_points',
+      highwayLayerName: 'test:xian_highway',
+      nationalRoadLayerName: 'test:xian_national_road',
+      reservoirLayerName: 'test:xian_reservoir_list',
+      subwayLayerName: 'test:xian_subway',
       disasterEntities: [],
       protectEntities: [],
       hospitalEntities: [],
@@ -273,7 +303,7 @@ export default {
       showChart: false,
       showTable: false,
       viewer: null,
-      wmsLayer: null,
+      wmsLayers: [],
       currentMapType: 0,
       rainMode: false,
       showInfoPanel: false,
@@ -305,6 +335,15 @@ export default {
       FireFighterData: null,
       StorePointsData: null,
       ShelterData: null,
+      peopleLayer: null,
+      cropsLayer: null,
+      waterPipeLayer: null,
+      roadLayer: null,
+      bridgeLayer: null,
+      highwayLayer: null,
+      nationalRoadLayer: null,
+      reservoirLayer: null,
+      subwayLayer: null,
       isLoading: false,
       loadingText: '加载数据中...',
       rainEllipseScale: 1000, // 圆半径的缩放系数
@@ -316,7 +355,17 @@ export default {
       showShelter: false, // 控制避难所显示/隐藏
       showFire: false, // 控制消防站显示/隐藏
       showStore: false, // 控制储备点显示/隐藏
+      showPeople: false,
+      showCrops: false,
+      showPipe: false,
+      showRoad: false,
+      showBridge: false,
+      showHighway: false,
+      showNationalRoad: false,
+      showReservoir: false,
+      showSubway: false,
       clickHandler: null,
+      layerHandler: null,
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
       secondaryRiskPoints: [], // 次生灾害风险点
@@ -506,19 +555,16 @@ export default {
         }
       });
 
-      // 添加 GeoServer WMS 图层
-      this.addWmsLayer();
-
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
     },
-    // 新增方法：加载 WMS 图层
-    addWmsLayer() {
-      this.wmsLayer = this.viewer.imageryLayers.addImageryProvider(
+    // 加载人口网格图层
+    addPeopleLayer() {
+      this.peopleLayer = this.viewer.imageryLayers.addImageryProvider(
           new Cesium.WebMapServiceImageryProvider({
-            url: '/geoserver/test/wms',
-            layers: 'test:xian_people', // 格式：workspace:layername
+            url: this.geoUrl,
+            layers: this.peopleLayerName,
             parameters: {
               tiled: true,
               transparent: true,
@@ -526,25 +572,225 @@ export default {
               srs: 'EPSG:4490',
               version: '1.1.1',
             },
-            // popup: "all",
             flyTo: true,
             show: true,
           })
       );
-
       this.setupLayerClickHandler();
     },
-    // 隐藏图层
-    hideWmsLayer() {
-      if (this.wmsLayer) {
-        this.wmsLayer.show = false;
-      }
+    // 加载农作物网格
+    addCropsLayer() {
+      this.cropsLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.cropsLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },// 加载管网系统
+    addWaterPipeLayer() {
+      this.waterPipeLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.waterPipeLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
     },
-    // 显示图层
-    showWmsLayer() {
-      if (this.wmsLayer) {
-        this.wmsLayer.show = true;
+    // 加载交通道路
+    addRoadLayer() {
+      this.roadLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.roadLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载桥梁
+    addBridgeLayer() {
+      this.bridgeLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.bridgeLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载高速
+    addHighway() {
+      this.highwayLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.highwayLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载国道
+    addNationalRoad() {
+      this.nationalRoadLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.nationalRoadLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载水库
+    addReservoir() {
+      this.reservoirLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.reservoirLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载地铁站
+    addSubway() {
+      this.subwayLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.subwayLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 控制人口网格显示
+    togglePeople() {
+      if (this.peopleLayer == null && this.showPeople) {
+        this.addPeopleLayer();
       }
+      this.peopleLayer.show = this.showPeople;
+    },
+    //控制农田显示
+    toggleCrops(){
+      if(this.cropsLayer == null && this.showCrops) {
+        this.addCropsLayer();
+      }
+      this.cropsLayer.show = this.showCrops;
+    },
+    //控制管网系统显示
+    toggleWaterPipe(){
+      if(this.waterPipeLayer == null && this.showPipe) {
+        this.addWaterPipeLayer();
+      }
+      this.waterPipeLayer.show = this.showPipe;
+    },
+    //控制道路显示
+    toggleRoad(){
+      if(this.roadLayer == null && this.showRoad) {
+        this.addRoadLayer();
+      }
+      this.roadLayer.show = this.showRoad;
+    },
+    //控制桥梁显示
+    toggleBridge(){
+      if(this.bridgeLayer == null && this.showBridge) {
+        this.addBridgeLayer();
+      }
+      this.bridgeLayer.show = this.showBridge;
+    },
+    //控制高速显示
+    toggleHighway(){
+      if(this.highwayLayer == null && this.showHighway) {
+        this.addHighway();
+      }
+      this.highwayLayer.show = this.showHighway;
+    },
+    //控制国道显示
+    toggleNationalRoad(){
+      if(this.nationalRoadLayer == null && this.showNationalRoad) {
+        this.addNationalRoad();
+      }
+      this.nationalRoadLayer.show = this.showNationalRoad;
+    },
+    //控制水库显示
+    toggleReservoir(){
+      if(this.reservoirLayer == null && this.showReservoir) {
+        this.addReservoir();
+      }
+      this.reservoirLayer.show = this.showReservoir;
+    },
+    //控制地铁站显示
+    toggleSubway(){
+      if(this.subwayLayer == null && this.showSubway) {
+        this.addSubway();
+      }
+      this.subwayLayer.show = this.showSubway;
     },
     // 加载湖面数据
     loadLakeData() {
@@ -678,56 +924,6 @@ export default {
         };
       });
     },
-    //加载实体
-    // loadEntities(longitude, latitude, name){
-    //   // 创建灾害点实体
-    //   const entity = this.viewer.entities.add({
-    //     position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-    //     // 点
-    //     billboard: {
-    //       // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-    //       image: storePointsIcon,
-    //       width: 60, // 图片宽度,单位px
-    //       height: 60, // 图片高度，单位px
-    //       eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-    //       color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-    //       scale: 0.8, // 缩放比例
-    //       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-    //       scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-    //       depthTest: false, // 禁止深度测试
-    //       disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-    //       show: true
-    //     },
-    //     // 文字
-    //     label: {
-    //       text: `${name}`,
-    //       font: '12pt Source Han Sans CN',
-    //       fillColor: Cesium.Color.WHITE,
-    //       backgroundColor: Cesium.Color.AQUA,
-    //       showBackground: false,
-    //       outline: true,
-    //       outlineColor: Cesium.Color.BLACK,
-    //       outlineWidth: 10,
-    //       scale: 1.0,
-    //       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-    //       verticalOrigin: Cesium.VerticalOrigin.CENTER,
-    //       horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-    //       pixelOffset: new Cesium.Cartesian2(-70, -35),
-    //       distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-    //       show: true
-    //     },
-    //     // 添加灾害类型信息，用于弹窗显示
-    //     // description: this.createDisasterDescription(properties, '滑坡'),
-    //     // 保存原始样式，用于闪烁恢复
-    //     originalColor: Cesium.Color.RED,
-    //     originalPixelSize: 15,
-    //     // 标记灾害类型
-    //     disasterType: 'storePoints',
-    //     disasterData: point,
-    //   });
-    //
-    //   return entity;
-    // },
     //加载避难所
     loadShelter(){
       try{
@@ -1055,26 +1251,6 @@ export default {
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
               show: this.showDangerSource
             },
-            // 文字
-            // label: {
-            //   text: `${dangerNAME}`,
-            //   font: '10pt Source Han Sans CN',
-            //   fillColor: Cesium.Color.WHITE,
-            //   backgroundColor: Cesium.Color.AQUA,
-            //   showBackground: false,
-            //   outline: true,
-            //   outlineColor: Cesium.Color.BLACK,
-            //   outlineWidth: 10,
-            //   scale: 0.8,
-            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
-            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-            //   show: true
-            // },
-            // 添加灾害类型信息，用于弹窗显示
-            // description: this.createDisasterDescription(properties, '滑坡'),
             // 保存原始样式，用于闪烁恢复
             originalColor: Cesium.Color.RED,
             originalPixelSize: 15,
@@ -1298,209 +1474,6 @@ export default {
         console.error('处理灾害数据时出错:', error);
       }
     },
-    // 加入滑坡区域
-    // loadLandSlide(landslide, target) {
-    //   for (let i = 0; i < landslide.length; i++) {
-    //     if(target.includes(i)){
-    //       console.log("所有符合:", landslide[i])
-    //       let lon = landslide[i].lon
-    //       let lat = landslide[i].lat
-    //       this.viewer.entities.add({
-    //         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-    //         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-    //         properties: {
-    //           data: landslide[i]
-    //         }
-    //       })
-    //
-    //       // 根据点路线绘制多边形影响范围，如果没有点路线则绘制圆形
-    //       if (landslide[i].点路线 && landslide[i].点路线.length > 0) {
-    //         const routePoints = [];
-    //         const polylinePositions = []; // 用于存储折线点的数组
-    //         const bufferWidth = 20; // 缓冲区宽度（米），您可以根据需要调整此值
-    //
-    //         // 收集并验证所有有效的路线点
-    //         for (let j = 0; j < landslide[i].点路线.length; j++) {
-    //           const currentPointData = landslide[i].点路线[j];
-    //           if (!Array.isArray(currentPointData) || currentPointData.length === 0 || !Array.isArray(currentPointData[0]) || currentPointData[0].length < 2) {
-    //             console.warn(`无效的点数据结构，索引 ${i}，点路线索引 ${j}:`, currentPointData);
-    //             continue;
-    //           }
-    //
-    //           const point = currentPointData[0];
-    //           const lon = parseFloat(point[0]);
-    //           const lat = parseFloat(point[1]);
-    //
-    //           if (!isNaN(lon) && !isNaN(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
-    //             routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
-    //             polylinePositions.push(lon, lat); // 添加到折线点数组
-    //           } else {
-    //             console.warn(`无效的坐标值，索引 ${i}，点路线索引 ${j}: lon=${point[0]}, lat=${point[1]}`);
-    //           }
-    //         }
-    //         // 绘制原始点路线
-    //         if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
-    //           this.viewer.entities.add({
-    //             polyline: {
-    //               positions: Cesium.Cartesian3.fromDegreesArray(polylinePositions),
-    //               width: 20, // 线条宽度
-    //               material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.YELLOW), // 使用箭头材质
-    //               clampToGround: true // 贴地显示
-    //             },
-    //             properties: {
-    //               data: landslide[i],
-    //               type: 'landslide_route'
-    //             }
-    //           });
-    //         }
-    //
-    //         // 绘制影响范围多边形（缓冲区）
-    //         if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
-    //           // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
-    //           const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
-    //             const interpolatedPoints = [];
-    //             const segmentInterpolationCount = 50; // 每段插值点数
-    //
-    //             // 如果只有一个点，直接生成圆形（360度扇形）
-    //             if (routePoints.length === 1) {
-    //               const centerPoint = routePoints[0];
-    //               const radius = bufferWidth;
-    //               const positions = [];
-    //               const numSegments = 60; // 扇形分段数
-    //
-    //               for (let k = 0; k <= numSegments; k++) {
-    //                 const angle = (k / numSegments) * 360; // 0到360度
-    //                 const radian = Cesium.Math.toRadians(angle);
-    //
-    //                 // 计算扇形边界点，使用更精确的地理坐标计算
-    //                 const cartographic = Cesium.Cartographic.fromCartesian(centerPoint);
-    //                 const longitude = cartographic.longitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(radian);
-    //                 const latitude = cartographic.latitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(radian);
-    //                 positions.push(Cesium.Cartesian3.fromRadians(longitude, latitude));
-    //               }
-    //               return new Cesium.PolygonHierarchy(positions);
-    //             }
-    //
-    //             // 处理多点路线的平滑缓冲区
-    //             const leftPoints = [];
-    //             const rightPoints = [];
-    //
-    //             // 遍历所有线段，生成平滑缓冲区
-    //             for (let j = 0; j < routePoints.length - 1; j++) { // 遍历到倒数第二个点
-    //               const start = routePoints[j];
-    //               const end = routePoints[j + 1];
-    //
-    //               interpolatedPoints.push(start);
-    //
-    //               for (let k = 1; k < segmentInterpolationCount; k++) {
-    //                 const ratio = k / segmentInterpolationCount;
-    //                 const interpolated = Cesium.Cartesian3.lerp(
-    //                     start,
-    //                     end,
-    //                     ratio,
-    //                     new Cesium.Cartesian3()
-    //                 );
-    //                 interpolatedPoints.push(interpolated);
-    //               }
-    //             }
-    //             // 添加最后一个原始点
-    //             interpolatedPoints.push(routePoints[routePoints.length - 1]);
-    //             // 计算平滑的缓冲区边界点
-    //             for (let j = 0; j < interpolatedPoints.length; j++) {
-    //               const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
-    //               const next = j < interpolatedPoints.length - 1 ? interpolatedPoints[j + 1] : interpolatedPoints[j];
-    //
-    //               const forwardVec = Cesium.Cartesian3.subtract(next, prev, new Cesium.Cartesian3());
-    //               Cesium.Cartesian3.normalize(forwardVec, forwardVec);
-    //
-    //               const normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(interpolatedPoints[j], new Cesium.Cartesian3());
-    //               const perpendicular = Cesium.Cartesian3.normalize(Cesium.Cartesian3.cross(normal, forwardVec, new Cesium.Cartesian3()), new Cesium.Cartesian3());
-    //
-    //               const scaledPerpendicular = Cesium.Cartesian3.multiplyByScalar(
-    //                   perpendicular,
-    //                   bufferWidth,
-    //                   new Cesium.Cartesian3()
-    //               );
-    //
-    //               const leftPoint = Cesium.Cartesian3.add(
-    //                   interpolatedPoints[j],
-    //                   scaledPerpendicular,
-    //                   new Cesium.Cartesian3()
-    //               );
-    //               const rightPoint = Cesium.Cartesian3.subtract(
-    //                   interpolatedPoints[j],
-    //                   scaledPerpendicular,
-    //                   new Cesium.Cartesian3()
-    //               );
-    //
-    //               leftPoints.push(leftPoint);
-    //               rightPoints.push(rightPoint);
-    //             }
-    //
-    //             // 组合成闭合多边形：左侧点 + 右侧点（反向）
-    //             const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
-    //
-    //             return new Cesium.PolygonHierarchy(polygonPositions);
-    //           };
-    //
-    //           // 调用新的平滑缓冲区生成方法
-    //           const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);
-    //
-    //           // 如果成功创建了多边形顶点，则添加实体
-    //           if (polygonHierarchy.positions.length > 0) {
-    //             this.viewer.entities.add({
-    //               polygon: {
-    //                 hierarchy: polygonHierarchy,
-    //                 // material: Cesium.Color.BLUE.withAlpha(0.3),
-    //                 material: new Cesium.ImageMaterialProperty({
-    //                   image: landslide_surface01,
-    //                   color: Cesium.Color.WHITE,
-    //                   repeat: new Cesium.Cartesian2(4, 4),
-    //                 }),
-    //                 outline: true,
-    //                 outlineColor: Cesium.Color.BLUE,
-    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    //               },
-    //               properties: {
-    //                 data: landslide[i],
-    //                 type: 'influence_range_polygon'
-    //               }
-    //             });
-    //           }
-    //           // 如果是多点路线，单独为最后一个点绘制圆形缓冲区
-    //           if (routePoints.length > 1) {
-    //             const lastPoint = routePoints[routePoints.length - 1];
-    //             const lastPointBufferRadius = bufferWidth; // 可以根据需要调整这个半径
-    //             this.viewer.entities.add({
-    //               position: lastPoint,
-    //               ellipse: {
-    //                 semiMinorAxis: lastPointBufferRadius,
-    //                 semiMajorAxis: lastPointBufferRadius,
-    //                 material: new Cesium.ImageMaterialProperty({
-    //                   image: landslide_surface01,
-    //                   color: Cesium.Color.WHITE,
-    //                   repeat: new Cesium.Cartesian2(4, 4),
-    //                 }),
-    //                 outline: true,
-    //                 outlineColor: Cesium.Color.BLUE,
-    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    //               },
-    //               properties: {
-    //                 data: landslide[i],
-    //                 type: 'last_point_circular_buffer'
-    //               }
-    //             });
-    //           }
-    //
-    //         } else {
-    //           console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
-    //         }
-    //       } else {
-    //         // ... existing code ...
-    //       }
-    //     }
-    //   }
-    // },
     // // 创建灾害点详情描述
     createDisasterDescription(properties, type) {
 
@@ -1515,9 +1488,16 @@ export default {
     </div>
 `;
     },
-    // 测试版-图层点处理
+    // 图层点击事件处理
     setupLayerClickHandler() {
-      viewer.screenSpaceEventHandler.setInputAction(async (click) => {
+      // 清除之前的点击事件处理程序
+      if (this.layerHandler) {
+        this.layerHandler.destroy();
+      }
+      // 为左键点击添加事件处理程序
+      this.layerHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
+
+      this.layerHandler.setInputAction(async (click) => {
         // 1. 获取点击位置的经纬度和像素坐标
         const position = viewer.scene.pickPosition(click.position); // 三维坐标
         if (!position) return;
@@ -1534,28 +1514,85 @@ export default {
           // 2. 获取点击位置的屏幕像素坐标
           const feature = viewer.scene.pick(click.position);
           if (!feature) return;
-
-          // 3. 发送 GetFeatureInfo 请求
-          const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude);
-          const response = await fetch(infoUrl);
-          const text = await response.text();
-          console.log("属性信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
+          // 3. 发送 GetFeatureInfo 请求,对每个Layer进行判别，若其显示，则请求
+          if(this.showPeople){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.peopleLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("属性信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
+          }
+          //农作物
+          if(this.showCrops){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.cropsLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("农作物信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
+          }
+          //管网
+          if(this.showPipe){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.waterPipeLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("管网信息:", JSON.parse(text));
+          }
+          //道路
+          if(this.showRoad){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.roadLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("道路信息:", JSON.parse(text));
+          }
+          //桥梁
+          if(this.showBridge){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.bridgeLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("桥梁信息:", JSON.parse(text));
+          }
+          //高速
+          if(this.showHighway){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.highwayLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("高速信息:", JSON.parse(text));
+          }
+          //国道
+          if(this.showNationalRoad){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.nationalRoadLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("国道信息:", JSON.parse(text));
+          }
+          //水库
+          if(this.showReservoir){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.reservoirLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("水库信息:", JSON.parse(text));
+          }
+          //地铁站
+          if(this.showNationalRoad){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.subwayLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("地铁站信息:", JSON.parse(text));
+          }
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
     //设置请求
-    buildGetFeatureInfoUrl(lon, lat) {
-      const wmsUrl = '/geoserver/test/wms';
+    buildGetFeatureInfoUrl(lon, lat, layerName) {
+      const wmsUrl = this.geoUrl;
       const params = {
         service: 'WMS',
         version: '1.1.1',
         request: 'GetFeatureInfo',
-        layers: 'test:xian_people',
+        layers: layerName,
         srs: 'EPSG:4490',
         bbox: `${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}`, // 小范围查询
         width: 101,  // 必须为奇数（中心点即点击位置）
         height: 101,
-        query_layers: 'test:xian_people',
+        query_layers: layerName,
         info_format: 'application/json', // 或 'text/plain'
         x: 50,  // 点击位置在 bbox 中心的像素坐标
         y: 50,
@@ -2870,14 +2907,6 @@ export default {
       setTimeout(() => {
         this.loading = false;
       }, 500);
-    },
-    toggleTableExpand() {
-      this.isExpanded = !this.isExpanded;
-
-      // 切换时如果表格处于收缩状态，隐藏分页组件
-      if (!this.isExpanded) {
-        this.currentPage = 1; // 重置到第一页
-      }
     },
     toggleDisasterPoints() {
       if(this.disasterEntities.length == 0 && this.showDisasterPoints){
