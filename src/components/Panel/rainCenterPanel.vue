@@ -19,7 +19,7 @@
               <tr>
                 <th>累计降雨量</th>
                 <td>
-                  {{ rainInfo.rainfall || "无数据" }}
+                  {{ rainInfo.rainfall || "无数据" }}mm
                 </td>
               </tr>
               <tr>
