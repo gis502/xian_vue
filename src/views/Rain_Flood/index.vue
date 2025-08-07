@@ -108,6 +108,7 @@ import lakeData from '@/assets/static/json/lake.json';
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
+import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 // 图标
 import riskArea from '@/assets/images/riskArea.png'
 import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
@@ -135,12 +136,12 @@ import {reactive} from "vue";
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
 import {PulseTool} from "@/cesium/pulse.js";
-//暴雨触发表格
+//组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 
-import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import Table from "@/components/Earthquake/Table.vue";
 import DisasterFactorForm from "@/components/Earthquake/DisasterFactorForm.vue";
@@ -172,7 +173,7 @@ export default {
       rainMode: false,
       showInfoPanel: false,
       selectedPosition: null,
-      rainfall: 150,
+      rainfall: 0,
       duration: 2,
       rainPoints: [],
       weatherActive: false,
@@ -319,7 +320,6 @@ export default {
         },
         seriesDatas: [0, 0, 0],
       },
-      pulse: null,
 
       //预警点表格显示隐藏
       showRiskTable: true,
@@ -337,31 +337,14 @@ export default {
     this.load();
     basicLayers.loadAdminData(); // 加载行政区划数据
     basicLayers.loadLandSlide();
+    basicLayers.Addmudslide();
     basicLayers.AddDangerAreaDataSource();
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    // this.
-    this.pulse = new PulseTool(window.viewer);
-    // this.total = this.tableData.length;
-    // this.loadData();
   },
   beforeDestroy() {
-    // if (!this.isClosed) {
     this.releaseAllResources();
-    // }
-    // if (this.viewer && this.viewer.entities) {
-    //   this.viewer.entities.removeAll();
-    // }
-    //
-    // // 2. 清空所有 GeoJSON / CZML / KML 等数据源
-    // if (this.viewer && this.viewer.dataSources) {
-    //   this.viewer.dataSources.removeAll(true);
-    // }
-    // if (this.viewer) {
-    //   this.viewer.destroy();
-    //   this.viewer = null;
-    // }
   },
   methods: {
     load() {
@@ -575,6 +558,9 @@ export default {
       }
     },
     confirmRainPoint() {
+      // this,rainfall=
+      console.log('rainfall:', this.rainfall); // 调试输出
+      console.log('duration:', this.duration); // 调试输出
       if (!this.selectedPosition) return;
       let {longitude, latitude, cartesian} = this.selectedPosition;
 
@@ -625,68 +611,36 @@ export default {
         const adminCoordinates = adminArea.geometry.coordinates;
         this.startLoading()
         console.log(adminCoordinates, "adminCoordinates")
-        this.findDisasterPointsFlash(adminCoordinates);
-        // 检查灾害点是否在该行政区划内
-        // this.checkDisasterPointsInAdministration(adminCoordinates);
+        this.DisasterPointsFlash(adminCoordinates);
       } else {
         console.log("未找到标记点所在的行政区划");
       }
     },
 
-    async findDisasterPointsFlash(adminCoordinates) {
-
-      let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
-      let mudslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("泥石流隐患点", adminCoordinates)
-      let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates)
-      // 检查所有滑坡点
-
-      let allPointsInside = [
-        ...landslidePointsInside,
-        // ...debrisFlowPointsInside
-      ];
-
-      // let { pointSet, matchedHuapoData } = await this.getGeologicalDisasterHide(landslidePointsInside);
-      this.getGeologicalDisasterHide(landslidePointsInside);
-      // this.replaceLandslidePoints(landslidePointsInside,matchedHuapoData,pointSet)
-      // await this.replaceMudslidePoints(mudslidePointsInside)
-      // await this.replaceRiskVillage(riskVillageInside)
-
-
+    async DisasterPointsFlash(adminCoordinates) {
+      let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
+      console.log(allPointsInside,"allPointsInside")
+      let { matchedHuapoData, pointSet } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+      console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet");
+      let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
+      this.matchedHiddenHighlightEntities = matchedHuapoEntities;
+      layers.flashHiddenDisasterPoints(matchedHuapoEntities);
+      this.handleHiddenDisasterPointUpdate(matchedHuapoEntities);
+      this.stopLoading();
     },
-    //找一个区域里的隐患点
-    findHiddenDisasterPointsInAdminCoordinates(type, adminCoordinates) {
-      let pointsInside = []
-      let points = window.viewer.entities.values.filter(
-          e => e.name === type
-      );
-      // console.log(points, adminCoordinates, "points")
-      points.forEach(item => {
-        let point = [item.properties.longitude, item.properties.latitude]
-        if (layers.pointInPolygon(point, adminCoordinates)) {
-          pointsInside.push(point);
-        }
-      });
-      return pointsInside;
-    },
-    async getGeologicalDisasterHide(landslidePointsInside) {
+    getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
+      console.log(landslidePointsInside,"getHiddenDisasterPointswithCausingFactors")
+      let matchedHuapoData = [];
+      let pointSet = new Set();
       if (landslidePointsInside.length > 0) {
         // 创建经纬度字符串集合用于快速匹配
-        let pointSet = new Set();
         landslidePointsInside.forEach(point => {
           // 使用固定精度的字符串表示经纬度
           let lon = point[0];
           let lat = point[1];
           pointSet.add(`${lon},${lat}`);
         });
-        // 筛选匹配的滑坡点数据
-        let matchedHuapoData = []
-        let matchedHuapoEntities = []
-        //获取滑坡和致灾因子 所有
-        let res = await getGeologicalDisasterHideByLandSlideList()
-        // console.log(res, "hides")
-        let hides = res.data
-        // console.log(hides, "hides")
-        hides.forEach(item => {
+        useSimulationPointStore().simulationPoints.forEach((item) => {
           let lon = item.geologicalDisasterHideDTO.lon;
           let lat = item.geologicalDisasterHideDTO.lat;
           let key = `${lon},${lat}`;
@@ -694,186 +648,43 @@ export default {
             matchedHuapoData.push(item.factorVoList);
           }
         });
-        //降雨量值放到致灾因子里面去
+
+        console.log(matchedHuapoData,pointSet,"matchedHuapoData,pointSet")
+        // 降雨量值放到致灾因子里面去
         for (var i = 0; i < matchedHuapoData.length; i++) {
-          for (var j = 0; j < matchedHuapoData[i].length; j++) {
-            if (matchedHuapoData[i][j].attributeName === "降雨量") {
-              matchedHuapoData[i][j].factorValue = this.rainfall
+          if( matchedHuapoData[i]){
+            for (var j = 0; j < matchedHuapoData[i].length; j++) {
+              if (matchedHuapoData[i][j]&&matchedHuapoData[i][j].attributeName === "降雨量") {
+                matchedHuapoData[i][j].factorValue = this.rainfall;
+              }
             }
           }
+
         }
-        console.log(matchedHuapoData, "matchedHuapoData")
-        rainSlideTrigger(matchedHuapoData).then(res => {
-          let formatAnalyzedData = res.data
-          // console.log(formatAnalyzedData, "formatAnalyzedData")
-          // this.formatAnalyzedData = res.data;
-          let landslideEntities = window.viewer.entities.values.filter(
-              e => e.name === "滑坡隐患点"
-          );
-          console.log(landslideEntities, "landslideEntities")
-          // 格式化
-          formatAnalyzedData.forEach(item => {
-            // let disasterNAME = item.geologicalDisasterHideDTO.disasterName || '未知灾害点';
-            let lon = item.geologicalDisasterHideDTO.lon;
-            let lat = item.geologicalDisasterHideDTO.lat;
-            let key = `${lon},${lat}`;
-            if (pointSet.has(key)) {
-              matchedHuapoEntities.push(item)
-            }
-          });
-          this.flashDisasterPoints(matchedHuapoEntities)
-          this.handleHiddenDisasterPointUpdate(matchedHuapoEntities)
-          this.stopLoading()
-        })
       }
+      return { matchedHuapoData, pointSet }; // 返回一个对象
     },
-    flashDisasterPoints(entities) {
-      this.matchedHiddenHighlightEntities = entities
-      console.log("传输过来的匹配实体是：", entities);
+    async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
+      try {
+        let matchedHuapoEntities = []
+        const res = await rainSlideTrigger(matchedHuapoData);
+        // console.log(res)
+        let formatAnalyzedData = res.data;
 
-      if (!entities || entities.length === 0) return;
-      this.pulse.removePulseEntity();
-      this.pulse.createPause(entities);
-      // 若界面已关闭，直接返回
-      // if (this.isClosed) return;
+        formatAnalyzedData.forEach(item => {
+          let lon = item.geologicalDisasterHideDTO.lon;
+          let lat = item.geologicalDisasterHideDTO.lat;
+          let key = `${lon},${lat}`;
+          if (pointSet.has(key)) {
+            matchedHuapoEntities.push(item);
+          }
+        });
 
-      // 停止之前的闪烁动画
-      // if (this.flashInterval) {
-      //   if (typeof this.flashInterval === 'number') {
-      //     clearInterval(this.flashInterval);
-      //   } else {
-      //     cancelAnimationFrame(this.flashInterval);
-      //   }
-      //   this.flashInterval = null;
-      // }
-      //
-      // // 清除已有的光晕集合
-      // if (this.haloCollection) {
-      //   this.haloCollection.removeAll();
-      //   this.viewer.scene.primitives.remove(this.haloCollection);
-      // }
-
-      // 如果没有需要处理的实体，直接返回
-
-
-      // 创建光晕点集合
-      // this.haloCollection = new Cesium.PointPrimitiveCollection();
-      // this.viewer.scene.primitives.add(this.haloCollection);
-      //
-      // // 存储需要闪烁的实体及其对应的光晕配置
-      // const flashConfigs = [];
-
-      // 处理每个实体
-      // entities.forEach(entity => {
-      //   try {
-      //     // 从实体数据中获取经纬度
-      //     const lon = entity.geologicalDisasterHideDTO.lon;
-      //     const lat = entity.geologicalDisasterHideDTO.lat;
-      //     const level = entity.predict?.level || '低'; // 默认低风险
-      //
-      //     // 将经纬度转换为Cesium可用的坐标
-      //     const position = Cesium.Cartesian3.fromDegrees(lon, lat);
-      //
-      //     // 根据风险等级确定颜色和是否闪烁
-      //     let color, shouldFlash;
-      //     switch (level) {
-      //       case '高':
-      //         color = Cesium.Color.RED;
-      //         shouldFlash = true;
-      //         break;
-      //       case '中':
-      //         color = Cesium.Color.YELLOW;
-      //         shouldFlash = true;
-      //         break;
-      //       case '低':
-      //       default:
-      //         color = Cesium.Color.GREEN.withAlpha(0.5); // 低风险不闪烁，用半透明绿色标识
-      //         shouldFlash = false;
-      //         break;
-      //     }
-      //
-      //     // 创建光晕点
-      //     const halo = this.haloCollection.add({
-      //       position: position,
-      //       pixelSize: 15,
-      //       color: color,
-      //       outlineColor: Cesium.Color.WHITE,
-      //       outlineWidth: 1,
-      //       show: true,
-      //       // 自定义材质用于光晕效果
-      //       material: new Cesium.Material({
-      //         fabric: {
-      //           type: 'Halo',
-      //           uniforms: {
-      //             color: color,
-      //             glowPower: 0.5,
-      //             innerRadius: 0.5,
-      //             outerRadius: 1.0
-      //           },
-      //           source: `
-      //         uniform vec4 color;
-      //         uniform float glowPower;
-      //         uniform float innerRadius;
-      //         uniform float outerRadius;
-      //
-      //         czm_material czm_getMaterial(czm_materialInput materialInput) {
-      //           czm_material material = czm_getDefaultMaterial(materialInput);
-      //           vec2 st = materialInput.st;
-      //           float dist = distance(st, vec2(0.5, 0.5));
-      //           float alpha = smoothstep(outerRadius, innerRadius, dist);
-      //           alpha = pow(alpha, glowPower);
-      //           material.diffuse = color.rgb;
-      //           material.alpha = alpha * color.a;
-      //           return material;
-      //         }
-      //       `
-      //         }
-      //       })
-      //     });
-      //
-      //     // 只对需要闪烁的实体进行动画配置
-      //     if (shouldFlash) {
-      //       flashConfigs.push({
-      //         halo: halo,
-      //         baseColor: color,
-      //         baseSize: 15
-      //       });
-      //     }
-      //   } catch (error) {
-      //     console.error("处理实体时出错:", error, "实体数据:", entity);
-      //   }
-      // });
-      //
-      // // 如果没有需要闪烁的实体，直接返回
-      // if (flashConfigs.length === 0) return;
-      //
-      // // 动画控制变量
-      // let animationTime = 0;
-      // const animationDuration = 2000; // 动画周期，毫秒
-      //
-      // // 启动动画循环
-      // this.flashInterval = setInterval(() => {
-      //   animationTime = (animationTime + 50) % animationDuration;
-      //   const normalizedTime = animationTime / animationDuration;
-      //
-      //   // 更新所有需要闪烁的光晕点
-      //   flashConfigs.forEach(config => {
-      //     const {halo, baseColor, baseSize} = config;
-      //
-      //     // 计算光晕大小（从原始大小到3倍）
-      //     const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
-      //     halo.pixelSize = baseSize * sizeFactor;
-      //
-      //     // 计算光晕透明度（大小最大时透明度最低）
-      //     const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
-      //     halo.color = new Cesium.Color(
-      //         baseColor.red,
-      //         baseColor.green,
-      //         baseColor.blue,
-      //         alphaFactor * 0.8
-      //     );
-      //   });
-      // }, 50);
+        return matchedHuapoEntities;
+      } catch (error) {
+        console.error("Error in rainSlideTrigger:", error);
+        return []; // 返回空数组或其他默认值
+      }
     },
 
     handleHiddenDisasterPointUpdate(probabilityPoints) {
@@ -1159,10 +970,6 @@ export default {
       }
 
       // 4. 清理自定义数据结构
-      this.disasterEntities = [];
-      this.landslideEntities = [];
-      this.debrisFlowEntities = [];
-      this.secondaryRiskEntities = [];
       this.rainPoints = [];
       // this.entityCache.clear(); // 清空实体缓存
 
@@ -1361,6 +1168,7 @@ export default {
     },
 
     async downloadRainReport() {
+      this.startLoading()
       // 1. 截三维画布
       const canvas3D = window.viewer.scene.canvas
 
@@ -1392,25 +1200,26 @@ export default {
         const formData = new FormData()
         formData.append('file', blob, 'cesium_with_legend.png')
 
-            // ✅ 正确解析 fetch 返回的 JSON
-            const response = await saveCanvas(formData)
-            const res = await response.json() // 关键：这里也要 await
-            const imgUrl = res.data
-            console.log(imgUrl, "imgUrl")
+        // ✅ 正确解析 fetch 返回的 JSON
+        const response = await saveCanvas(formData)
+        const res = await response.json() // 关键：这里也要 await
+        const imgUrl = res.data
+        console.log(imgUrl, "imgUrl")
 
-            // ✅ 生成 Word
-            const wordRes = await generateRainReport(imgUrl)
-            console.log(wordRes, "wordRes")
-            const wordUrl = wordRes.data
+        // ✅ 生成 Word
+        const wordRes = await generateRainReport(imgUrl)
+        console.log(wordRes, "wordRes")
+        const wordUrl = wordRes.data
 
-            // ✅ 触发下载
-            const link = document.createElement('a');
-            link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
-            link.download = wordUrl;                         // 强制触发下载
-            link.click();
-          }, 'image/png', 1.0)
+        // ✅ 触发下载
+        const link = document.createElement('a');
+        link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+        link.download = wordUrl;                         // 强制触发下载
+        link.click();
+
+        this.stopLoading()
+      }, 'image/png', 1.0)
     },
-
     //致灾因子面板
     toggleFactorPanel() {
       this.showFactorPanel = !this.showFactorPanel;
