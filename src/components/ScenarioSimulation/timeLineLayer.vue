@@ -181,7 +181,9 @@ export default {
               this.calculationMessage = '正在计算预警点...';
 
               if (this.disasterEvent.trigger == "地震") {
+
                 let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
+                console.log(allHiddeninEllipse,"allHiddeninEllipse")
                 const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
                 console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
@@ -190,9 +192,9 @@ export default {
                 // 清除全部脉冲实体
                 this.pulse.removePulseEntity();
                 // 存储预警点结果
-                this.warningPoints = points;
+                this.warningPoints = probabilityPoints;
                 // 添加脉冲实体
-                this.pulse.createPause(points);
+                this.pulse.createPause(probabilityPoints);
                 // 设置计算完成
                 this.isCalculating = false;
                 this.calculationMessage = '预警点计算完成！';
