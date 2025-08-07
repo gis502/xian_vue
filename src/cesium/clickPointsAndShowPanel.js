@@ -17,6 +17,9 @@ let clickPointsAndShowPanel = {
                 if (matchedEntity) {
                     predictData = matchedEntity.predict;
                 }
+                else {
+                    predictData = {level: '', probability: 0};
+                }
                 console.log(predictData,"predictData")
                 properties = {
                     ...entity.properties.data._value,

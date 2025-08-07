@@ -376,7 +376,7 @@ export default {
       rainMode: false,
       showInfoPanel: false,
       selectedPosition: null,
-      rainfall: 150,
+      rainfall: 0,
       duration: 2,
       rainPoints: [],
       weatherActive: false,
@@ -1615,6 +1615,9 @@ export default {
       }
     },
     confirmRainPoint() {
+      // this,rainfall=
+      console.log('rainfall:', this.rainfall); // 调试输出
+      console.log('duration:', this.duration); // 调试输出
       if (!this.selectedPosition) return;
       let {longitude, latitude, cartesian} = this.selectedPosition;
 
