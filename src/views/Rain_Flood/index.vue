@@ -128,7 +128,6 @@ import {reactive} from "vue";
 //封装函数
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
-import {PulseTool} from "@/cesium/pulse.js";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
@@ -302,7 +301,6 @@ export default {
         },
         seriesDatas: [0, 0, 0],
       },
-      pulse: null,
 
       //预警点表格显示隐藏
       showRiskTable: true,
@@ -320,13 +318,11 @@ export default {
     this.load();
     basicLayers.loadAdminData(); // 加载行政区划数据
     basicLayers.loadLandSlide();
+    basicLayers.Addmudslide();
     basicLayers.AddDangerAreaDataSource();
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    this.pulse = new PulseTool(window.viewer);
-    // this.total = this.tableData.length;
-    // this.loadData();
   },
   beforeDestroy() {
     this.releaseAllResources();
@@ -601,25 +597,57 @@ export default {
 
     async DisasterPointsFlash(adminCoordinates) {
       let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
-      let { matchedHuapoData, pointSet } = layers.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+      console.log(allPointsInside,"allPointsInside")
+      let { matchedHuapoData, pointSet } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
       console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet");
-      let matchedHuapoEntities = this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
+      let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
       this.matchedHiddenHighlightEntities = matchedHuapoEntities;
       layers.flashHiddenDisasterPoints(matchedHuapoEntities);
       this.handleHiddenDisasterPointUpdate(matchedHuapoEntities);
       this.stopLoading();
     },
+    getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
+      console.log(landslidePointsInside,"getHiddenDisasterPointswithCausingFactors")
+      let matchedHuapoData = [];
+      let pointSet = new Set();
+      if (landslidePointsInside.length > 0) {
+        // 创建经纬度字符串集合用于快速匹配
+        landslidePointsInside.forEach(point => {
+          // 使用固定精度的字符串表示经纬度
+          let lon = point[0];
+          let lat = point[1];
+          pointSet.add(`${lon},${lat}`);
+        });
+        useSimulationPointStore().simulationPoints.forEach((item) => {
+          let lon = item.geologicalDisasterHideDTO.lon;
+          let lat = item.geologicalDisasterHideDTO.lat;
+          let key = `${lon},${lat}`;
+          if (pointSet.has(key)) {
+            matchedHuapoData.push(item.factorVoList);
+          }
+        });
 
+        console.log(matchedHuapoData,pointSet,"matchedHuapoData,pointSet")
+        // 降雨量值放到致灾因子里面去
+        for (var i = 0; i < matchedHuapoData.length; i++) {
+          if( matchedHuapoData[i]){
+            for (var j = 0; j < matchedHuapoData[i].length; j++) {
+              if (matchedHuapoData[i][j]&&matchedHuapoData[i][j].attributeName === "降雨量") {
+                matchedHuapoData[i][j].factorValue = this.rainfall;
+              }
+            }
+          }
+
+        }
+      }
+      return { matchedHuapoData, pointSet }; // 返回一个对象
+    },
     async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
       try {
         let matchedHuapoEntities = []
         const res = await rainSlideTrigger(matchedHuapoData);
+        // console.log(res)
         let formatAnalyzedData = res.data;
-
-        let landslideEntities = window.viewer.entities.values.filter(
-            e => e.name === "滑坡隐患点"
-        );
-        console.log(landslideEntities, "landslideEntities");
 
         formatAnalyzedData.forEach(item => {
           let lon = item.geologicalDisasterHideDTO.lon;
@@ -920,10 +948,6 @@ export default {
       }
 
       // 4. 清理自定义数据结构
-      this.disasterEntities = [];
-      this.landslideEntities = [];
-      this.debrisFlowEntities = [];
-      this.secondaryRiskEntities = [];
       this.rainPoints = [];
       // this.entityCache.clear(); // 清空实体缓存
 

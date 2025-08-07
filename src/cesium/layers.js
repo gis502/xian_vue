@@ -22,6 +22,7 @@ import YanLiang from "@/assets/static/area/YanLiang.json";
 import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import {PulseTool} from "@/cesium/pulse.js";
+import {rainSlideTrigger} from "@/api/system/rainModel.js";
 
 let layers = {
     //画烈度圈
@@ -350,15 +351,16 @@ let layers = {
     },
     //找一个区域里的隐患点（区域为json数据）
     findAllHiddenDisasterPointsInAffectedArea(adminCoordinates){
+
+        // console.log(adminCoordinates[0],"adminCoordinates[0]")
         let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
         let mudslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("泥石流隐患点", adminCoordinates)
-        let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates)
+        // let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates[0])
         // 检查所有滑坡点
 
         let allPointsInside = [
             ...landslidePointsInside,
-            // ...mudslidePointsInside
-            // ...riskVillageInside
+            ...mudslidePointsInside
         ];
         return allPointsInside
     },
@@ -407,39 +409,6 @@ let layers = {
 
         return inside;
     },
-    //区域内的数据获取致灾因子
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
-        let matchedHuapoData = [];
-        let pointSet = new Set();
-        if (landslidePointsInside.length > 0) {
-            // 创建经纬度字符串集合用于快速匹配
-            landslidePointsInside.forEach(point => {
-                // 使用固定精度的字符串表示经纬度
-                let lon = point[0];
-                let lat = point[1];
-                pointSet.add(`${lon},${lat}`);
-            });
-            useSimulationPointStore().simulationPoints.forEach((item) => {
-                let lon = item.geologicalDisasterHideDTO.lon;
-                let lat = item.geologicalDisasterHideDTO.lat;
-                let key = `${lon},${lat}`;
-                if (pointSet.has(key)) {
-                    matchedHuapoData.push(item.factorVoList);
-                }
-            });
-
-            // 降雨量值放到致灾因子里面去
-            for (var i = 0; i < matchedHuapoData.length; i++) {
-                for (var j = 0; j < matchedHuapoData[i].length; j++) {
-                    if (matchedHuapoData[i][j].attributeName === "降雨量") {
-                        matchedHuapoData[i][j].factorValue = this.rainfall;
-                    }
-                }
-            }
-        }
-        return { matchedHuapoData, pointSet }; // 返回一个对象
-    },
-
 
     //找烈度圈相交点预警点
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
