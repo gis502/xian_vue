@@ -47,6 +47,11 @@ export default defineConfig(({ mode, command }) => {
           // target: 'http://10.22.245.246:8080',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/prod-api/, '')
+        },
+        '/geoserver': {
+          target: 'http://localhost:8082',
+          changeOrigin: true,
+          // rewrite: (path) => path.replace(/^\/geoserver/, '')
         }
       }
     },

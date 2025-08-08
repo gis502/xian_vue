@@ -38,6 +38,7 @@ import {reactive} from "vue";
 import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
+import {rainSlideTrigger} from "@/api/system/rainModel.js";
 
 export default {
   data() {
@@ -181,18 +182,19 @@ export default {
               this.calculationMessage = '正在计算预警点...';
 
               if (this.disasterEvent.trigger == "地震") {
+
                 let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
-                const [points, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
-                console.log(allHiddeninEllipse, points, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                console.log(allHiddeninEllipse, "allHiddeninEllipse")
+                const [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+                console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                this.pulse.removePulseEntity();
+                this.pulse.createPause(probabilityPoints);
+                // layers.flashHiddenDisasterPoints(probabilityPoints);
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
 
-
-                // 清除全部脉冲实体
-                this.pulse.removePulseEntity();
                 // 存储预警点结果
-                this.warningPoints = points;
-                // 添加脉冲实体
-                this.pulse.createPause(points);
+                this.warningPoints = probabilityPoints;
+
                 // 设置计算完成
                 this.isCalculating = false;
                 this.calculationMessage = '预警点计算完成！';
@@ -208,19 +210,37 @@ export default {
                 }
               } else if (this.disasterEvent.trigger == "暴雨") {
                 let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude, this.disasterEvent.latitude);
-
                 if (adminArea) {
-                  // console.log(`标记点位于行政区划: ${adminArea.name}`);
-                  // 获取该行政区划的经纬度范围
-                  let adminCoordinates = adminArea.geometry.coordinates;
-                  // this.startLoading()
-                  // 检查灾害点是否在该行政区划内
-                  await layers.findDisasterPointsFlash(adminCoordinates);
-                }
-                // else {
-                //   console.log("未找到标记点所在的行政区划");
-                // }
+                  console.log(adminArea.geometry.coordinates, "adminArea.geometry.coordinates")
+                  let allPointsInside = await layers.findAllHiddenDisasterPointsInAffectedArea(adminArea.geometry.coordinates);
+                  console.log(allPointsInside, "allPointsInside")
+                  let {
+                    pointsWithCausingFactors,
+                    pointSet
+                  } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+                  console.log(pointsWithCausingFactors, pointSet, "pointsWithCausingFactors,pointSet");
+                  let probabilityPoints = await this.caculateRainSlideTrigger(pointsWithCausingFactors, pointSet); // 使用 await
+                  console.log(probabilityPoints, "probabilityPoints")
 
+                  this.pulse.removePulseEntity();
+                  this.pulse.createPause(probabilityPoints);
+
+                  this.$emit("update:hiddenDisasterPoint", probabilityPoints);
+                  // 存储预警点结果
+                  this.warningPoints = probabilityPoints;
+                  this.isCalculating = false;
+                  this.calculationMessage = '预警点计算完成！';
+                  // 3 秒后关闭提示框
+                  setTimeout(() => {
+                    this.calculationMessage = '';
+                  }, 3000);
+
+                  // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+                  if (this.onceLoadLayer) {
+                    this.$emit('update:onceLoadLayer', false);
+                    viewer.clockViewModel.shouldAnimate = true;
+                  }
+                }
               }
             }
 
@@ -277,7 +297,59 @@ export default {
         }
       });
     },
+    getHiddenDisasterPointswithCausingFactors(PointsInside) {
+      let pointsWithCausingFactors = [];
+      let pointSet = new Set();
+      if (PointsInside.length > 0) {
+        // 创建经纬度字符串集合用于快速匹配
+        PointsInside.forEach(point => {
+          // 使用固定精度的字符串表示经纬度
+          let lon = point[0];
+          let lat = point[1];
+          pointSet.add(`${lon},${lat}`);
+        });
+        useSimulationPointStore().simulationPoints.forEach((item) => {
+          let lon = item.geologicalDisasterHideDTO.lon;
+          let lat = item.geologicalDisasterHideDTO.lat;
+          let key = `${lon},${lat}`;
+          if (pointSet.has(key)) {
+            pointsWithCausingFactors.push(item.factorVoList);
+          }
+        });
 
+
+        // 降雨量值放到致灾因子里面去
+        for (var i = 0; i < pointsWithCausingFactors.length; i++) {
+          for (var j = 0; j < pointsWithCausingFactors[i].length; j++) {
+            if (pointsWithCausingFactors[i][j].attributeName === "降雨量") {
+              pointsWithCausingFactors[i][j].factorValue = this.disasterEvent.rainfall;
+            }
+          }
+        }
+      }
+      return {pointsWithCausingFactors, pointSet}; // 返回一个对象
+    },
+    async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
+      try {
+        let matchedHuapoEntities = []
+        const res = await rainSlideTrigger(matchedHuapoData);
+        let formatAnalyzedData = res.data;
+
+        formatAnalyzedData.forEach(item => {
+          let lon = item.geologicalDisasterHideDTO.lon;
+          let lat = item.geologicalDisasterHideDTO.lat;
+          let key = `${lon},${lat}`;
+          if (pointSet.has(key)) {
+            matchedHuapoEntities.push(item);
+          }
+        });
+
+        return matchedHuapoEntities;
+      } catch (error) {
+        console.error("Error in rainSlideTrigger:", error);
+        return []; // 返回空数组或其他默认值
+      }
+    },
   }
 }
 </script>
