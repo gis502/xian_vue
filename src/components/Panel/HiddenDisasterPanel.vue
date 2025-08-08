@@ -72,6 +72,7 @@ const props = defineProps({
   riskPointsInformation: Object,
   trigger: String,
   rainfall: String,
+  dataTypeHiddenDisaster: Object,
 });
 // 获取致灾因子下拉列表选项
 
@@ -174,7 +175,6 @@ function landslideImpact(){
     lat,
     lon
   }).then((res) => {
-    console.log(98745,res);
     const routePoints = [];
     const polylinePositions = []; // 用于存储折线点的数组
     const position = [];
@@ -185,7 +185,6 @@ function landslideImpact(){
       routePoints.push(Cesium.Cartesian3.fromDegrees(res.data[i].centerLon, res.data[i].centerLat)); // 存储为Cesium.Cartesian3对象
       polylinePositions.push(res.data[i].centerLon, res.data[i].centerLat);
     }
-    console.log(565656,routePoints,polylinePositions);
     // 绘制原始点路线
     if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
       window.viewer.entities.add({
@@ -197,7 +196,6 @@ function landslideImpact(){
         },
       });
     }
-    console.log(222656454);
     // 绘制影响范围多边形（缓冲区）
     if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
       // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
@@ -250,8 +248,6 @@ function landslideImpact(){
         }
         // 添加最后一个原始点
         interpolatedPoints.push(routePoints[routePoints.length - 1]);
-        console.log(878787,interpolatedPoints)
-
         // 计算平滑的缓冲区边界点
         for (let j = 0; j < interpolatedPoints.length; j++) {
           const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
@@ -282,10 +278,8 @@ function landslideImpact(){
           leftPoints.push(leftPoint);
           rightPoints.push(rightPoint);
         }
-
         // 组合成闭合多边形：左侧点 + 右侧点（反向）
         const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
-
         return new Cesium.PolygonHierarchy(polygonPositions);
       };
       //计算影响范围面的经纬度
@@ -380,6 +374,7 @@ function landslideImpact(){
         position.push(currentPoint);
 
       }
+
       //渲染影响点
       fetchAndLogRoadList(position)
 
@@ -387,10 +382,110 @@ function landslideImpact(){
         try {
 
           const data = await getAffectPoint(position); // 等待 Promise 解析
-          console.log(111, data);
+          console.log(1111, data);
           renderAllAffectedGeometries(viewer, data);
+          pushTable(data);
         } catch (error) {
           console.error("Error:", error);
+        }
+      }
+      function pushTable(data){
+        Object.entries(data).forEach(([listName, items]) => {
+          switch (listName){
+            case 'peopleList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type4.data.push({
+                    field1: item.county,
+                    field2: item.country,
+                    field3: item.peopleNum,
+                  });
+                });
+              }
+              break;
+            case 'cropsList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type5.data.push({
+                    field1: item.countyName,
+                    field2: item.wheatArea,
+                    field3: item.riceArea,
+                    field4: item.maizArea,
+                  });
+                });
+              }
+              break;
+            case 'waterPipeList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type6.data.push({
+                    field1: getDistrictName(item.fxpcXzqh3),
+                    field2: null,
+                  });
+                });
+              }
+              break;
+            case 'roadList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type7.data.push({
+                    field1: item.roadName,
+                    field2: item.qdmc,
+                    field3: item.zdmc,
+                  });
+                });
+              }
+              break;
+            case 'highwayList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type8.data.push({
+                    field1: item.name,
+                    field2: item.shapeLeng,
+                  });
+                });
+              }
+              break;
+            case 'reservoirList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type9.data.push({
+                    field1: item.name,
+                    field2: item.location,
+                  });
+                });
+              }
+              break;
+            case 'bridgeList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type10.data.push({
+                    field1: item.bridgeName,
+                    field2: item.location,
+                    field3: item.bridgeType,
+                  });
+                });
+              }
+              break;
+          }
+        })
+      }
+      function getDistrictName(code) {
+        switch (code) {
+          case '610102': return '新城区';
+          case '610103': return '碑林区';
+          case '610104': return '莲湖区';
+          case '610111': return '灞桥区';
+          case '610112': return '未央区';
+          case '610113': return '雁塔区';
+          case '610114': return '阎良区';
+          case '610115': return '临潼区';
+          case '610116': return '长安区';
+          case '610117': return '高陵区';
+          case '610118': return '鄠邑区';
+          case '610122': return '蓝田县';
+          case '610124': return '周至县';
+          default: return '未知区县';
         }
       }
       //批量处理
