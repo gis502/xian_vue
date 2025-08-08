@@ -21,7 +21,7 @@ export function rainSlideFactorUpdata(data) {
 }
 export function saveRain(data) {
     return request({
-        url: '/XianDisasterRain/save/rain',
+        url: '/XianDisasterRain/saver/rain',
         method: 'post',
         data: data,
     });

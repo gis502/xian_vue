@@ -3,10 +3,9 @@
     <div class="panel-title">暴雨信息</div>
     <div class="panel-content">
       <div v-for="(entry, index) in entries" :key="entry.code" class="form-item">
-        <!-- 为每个label设置特定的类名 -->
         <label :for="'district-' + index" class="form-label district-label">区县:</label>
         <select
-            v-model="entry.code"
+            v-model="entry.name"
             :id="'district-' + index"
             @change="handleDistrictChange(index)"
         >
@@ -15,7 +14,7 @@
             {{ district.name }}
           </option>
         </select>
-        <label :for="'rainfall-' + index" class="form-label rain-label">累计降雨量:</label>
+        <label :for="'rainfall-' + index" class="form-label rain-label">降雨量:</label>
         <input
             v-model.number="entry.rainfall"
             type="number"
@@ -52,8 +51,8 @@
   </div>
 </template>
 
-
 <script>
+
 import layers from "@/cesium/layers.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {rainSlideTrigger, saveRain} from "@/api/system/rainModel.js";
@@ -67,7 +66,7 @@ export default {
     selectedPosition: {
       type: Object,
       required: true
-    }
+    },
   },
   data() {
     return {
@@ -88,12 +87,14 @@ export default {
       ],
       entries: [
         {
-          code: null,
           name: "",
-          rainfall: null,
-          duration: null
+          rainfall: 0, // 初始值为 0
+          duration: 0  // 初始值为 0
         }
       ],
+      positionArry:[],
+      rainfallArry:[],
+      durationArry:[],
     };
   },
   computed: {
@@ -104,7 +105,7 @@ export default {
   },
   methods: {
     handleDistrictChange(index) {
-      const selectedDistrict = this.districts.find((district) => district.code === this.entries[index].code);
+      const selectedDistrict = this.districts.find((district) => district.name === this.entries[index].name);
       if (selectedDistrict) {
         this.entries[index].name = selectedDistrict.name;
       } else {
@@ -113,55 +114,52 @@ export default {
     },
     addEntry() {
       this.entries.push({
-        code: null,
         name: "",
-        rainfall: null,
-        duration: null
+        rainfall: 0,
+        duration: 0
       });
     },
     removeEntry(index) {
+      console.log(index,this.entries)
       this.entries.splice(index, 1);
+      console.log(this.entries)
     },
-    confirmRainPoint() {
+    async confirmRainPoint() {
       console.log("确认添加数据：", this.entries);
+      this.$emit('update:update-rain-info', this.entries);
       if (!this.selectedPosition) return;
       let {longitude, latitude, cartesian} = this.selectedPosition;
 
-      // 计算降雨强度(mm/小时)
-      // const intensity = this.rainfall / (this.duration || 1);
-
       this.$emit('update:show-info-panel', false);
+
       // 标记后自动开启下雨效果
       // 触发事件，传递状态给父组件
-      this.$emit('update:weather-active',true);
-      this.$emit('update:rain-mode', false);
+      this.$emit('update:handleWeather');
 
-
-      // 新增逻辑：获取标记点所在行政区划
+      // 新增逻辑：获取标记点所在行政区划 标记点的位置
       const adminArea = layers.getAdministrationByPoint(longitude, latitude);
 
-      let positionArry = []
-      let rainfallArry = []
-      let durationArry = []
 
       this.entries.forEach(item => {
-        positionArry.push(item.name)
-        rainfallArry.push(item.rainfall)
-        durationArry.push(item.duration)
+        this.positionArry.push(item.name)
+        this.rainfallArry.push(item.rainfall)
+        this.durationArry.push(item.duration)
       })
+
       let requestData = {
-        "rainfall": rainfallArry,
-        "duration": durationArry,
+        "rainfall": this.rainfallArry.join(","), // 将数组转换为逗号分隔的字符串
+        "duration": this.durationArry.join(","),
         "longitude": longitude,
         "latitude": latitude,
-        "position": positionArry,
+        "position": this.positionArry.join(","),
         "disasterName": timeTransfer.timestampToTimeChina(new Date) + adminArea + "暴雨",
-        "occurrenceTime": timeTransfer.timestampToTime(new Date),
-      }
+        "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
+      };
       console.log(requestData, "requestData saveRain")
-      let res = saveRain(requestData)
+      let res =await saveRain(requestData)
       console.log(res, "saveRain")
       if (adminArea) {
+        const matchedIndex =this.positionArry.findIndex((pos) => pos === adminArea.name);
         //显示标记点
         let entity = {
           position: adminArea.name,
@@ -169,28 +167,21 @@ export default {
           latitude: latitude,
           id: "test_rain",
           trigger: "暴雨",
-          rainfall: this.rainfall + "mm",
-          duration: this.duration + "小时",
+          rainfall: this.rainfallArry[matchedIndex], // 使用匹配的索引获取降雨量
+          duration: this.durationArry[matchedIndex], // 使用匹配的索引获取持续时间
           occurrenceTime: new Date(),
-          disasterName: "降雨量" + this.rainfall + "毫米每小时,已持续" + this.duration + "小时"
+          disasterName: timeTransfer.timestampToTimeChina(new Date())+"西安市暴雨"
         }
         basicLayers.addCenterPoint(entity)
-        this.viewer.flyTo(entity, {
-          duration: 1.5,
-          offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
-        });
-        this.rainPoints.push(entity);
-        //计算预警点
-        // console.log(`标记点位于行政区划: ${adminArea.name}`);
-        // 获取该行政区划的经纬度范围
-        const adminCoordinates = adminArea.geometry.coordinates;
-        this.$emit('update:loading-model', true);
-        console.log(adminCoordinates, "adminCoordinates")
-        positionArry.forEach(item => {
-          this.DisasterPointsFlash(item);
-        })
 
-      } else {
+
+        this.$emit('update:loading-model', true);
+        // console.log(adminCoordinates, "adminCoordinates")
+        for (let i=0;i<this.positionArry.length;i++){
+          this.DisasterPointsFlash(i,this.positionArry,this.rainfallArry);
+        }
+      }
+      else {
         console.log("未找到标记点所在的行政区划");
       }
     },
@@ -200,26 +191,27 @@ export default {
         {
           code: null,
           name: "",
-          rainfall: null,
-          duration: null
+          rainfall: 0,
+          duration: 0
         }
       ];
       // 触发事件，传递状态给父组件
-      this.$emit('update:weather-active', false);
-      this.$emit('update:rain-mode', true);
+      // this.$emit('update:weather-active', false);
+      // this.$emit('update:rain-mode', true);
     },
-    async DisasterPointsFlash(adminCoordinates) {
+    async DisasterPointsFlash(i,positionArry,rainfallArry) {
+      const adminCoordinates = layers.getAdminCoordinatesByName(positionArry[i]);
       let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
       console.log(allPointsInside, "allPointsInside")
-      let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+      let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(allPointsInside,i,rainfallArry); // 使用 await
       console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet");
-      let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
-      this.$emit('update:matched-huapo-entities', matchedHuapoEntities);
+      // let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
+      // this.$emit('update:matched-huapo-entities', matchedHuapoEntities);
       // this.matchedHiddenHighlightEntities = matchedHuapoEntities;
-      layers.flashHiddenDisasterPoints(matchedHuapoEntities);
+      // layers.flashHiddenDisasterPoints(matchedHuapoEntities);
       this.$emit('update:loading-model', false);
     },
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
+    getHiddenDisasterPointswithCausingFactors(landslidePointsInside,index,rainfallArry) {
       console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
       let matchedHuapoData = [];
       let pointSet = new Set();
@@ -236,7 +228,6 @@ export default {
           let lat = item.geologicalDisasterHideDTO.lat;
           let key = `${lon},${lat}`;
           if (pointSet.has(key)) {
-            // matchedHuapoData.push(item.factorVoList);
             matchedHuapoData.push(item);
           }
         });
@@ -247,7 +238,7 @@ export default {
           if (matchedHuapoData[i]) {
             for (var j = 0; j < matchedHuapoData[i].length; j++) {
               if (matchedHuapoData[i][j] && matchedHuapoData[i][j].attributeName === "降雨量") {
-                matchedHuapoData[i][j].factorValue = this.rainfall;
+                matchedHuapoData[i][j].factorValue =rainfallArry[index] ;
               }
             }
           }
@@ -375,7 +366,7 @@ export default {
   border: none;
   border-radius: 4px;
   text-align: center;
-  background-color: rgba(255, 255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
   height: 25px; /* 高度与输入框一致 */
   box-sizing: border-box;

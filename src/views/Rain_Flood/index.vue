@@ -75,10 +75,10 @@
         v-if="showInfoPanel"
         :selected-position="selectedPosition"
         @update:show-info-panel="showInfoPanel = $event"
-        @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
         @update:loading-model="loadingModel = $event"
-        @update:weather-active="weatherActive = $event"
-        @update:rain-mode="rainMode = $event"
+        @update:handleWeather="handleWeather"
+        @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
+        @update:update-rain-info="updateRainInfo"
     />
     <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
     <!--      <div class="panel-title">暴雨信息</div>-->
@@ -326,7 +326,7 @@
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
         :trigger="'暴雨'"
-        :rainfall="rainfall"
+        :rainInfo="rainInfo"
     />
 
     <Legend ref="legendRef"></Legend>
@@ -468,9 +468,10 @@ export default {
       //   }
       // ],
       selectedPosition: null,
-      rainfall: 0,
-      duration: 2,
-      rainPoints: [],
+      // rainfall: 0,
+      // duration: 2,
+      // rainPoints: [],
+      rainInfo:[],
       weatherActive: false,
       showAdminLayer: true,
       rainEffect: null,
@@ -1728,7 +1729,20 @@ export default {
     //   this.entries.splice(index, 1);
     // },
 
+    handleWeather(){
+      console.log("handleWeather")
+        // 标记后自动开启下雨效果
+        this.weatherActive = true;
+        this.rainEffect.enabled = this.weatherActive;
 
+        this.rainMode = false;
+
+        if (this.handler) {
+          this.handler.destroy();
+          this.handler = null;
+        }
+        document.body.style.cursor = '';
+    },
     // confirmRainPoint() {
     //   console.log("确认添加数据：", this.entries);
     //   if (!this.selectedPosition) return;
@@ -1968,7 +1982,9 @@ export default {
         }
       });
     },
-
+    updateRainInfo(data){
+      this.rainInfo=data
+    },
     // cancelRainPoint() {
     //   this.showInfoPanel = false;
     // },
@@ -2210,7 +2226,7 @@ export default {
       }
 
       // 4. 清理自定义数据结构
-      this.rainPoints = [];
+      // this.rainPoints = [];
       // this.entityCache.clear(); // 清空实体缓存
 
       // 5. 清理DOM元素
