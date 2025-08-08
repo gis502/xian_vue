@@ -168,37 +168,35 @@ export default {
 <style scoped>
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 20px;
+  left: 20vw;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  justify-content: center; /* 水平居中 */
+  align-items: center;     /* 垂直居中 */
   padding: 10px;
   z-index: 1000;
 }
 
 .factor-panel {
   width: 460px;
-  max-height: 50vh;
+  max-height: 80vh; /* 改成更高的自适应高度 */
   background: rgba(255, 255, 255, 0.95);
   padding: 16px 20px;
   border-radius: 8px;
   overflow-y: auto;
   color: #000;
   font-size: 14px;
-  position: relative;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  margin-top: 80px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .panel-title {
   position: sticky;
   top: 0;
   padding: 8px 0;
-  z-index: 10;  /* 确保在面板其他内容上层 */
+  z-index: 10;
   text-align: center;
   font-size: 18px;
   font-weight: bold;
@@ -280,6 +278,6 @@ export default {
   background-color: #f5f5f5;
   cursor: not-allowed;
 }
-
 </style>
+
 

@@ -2369,7 +2369,7 @@ export default {
         });
       }
     },
-  }
+
 }
 
 
