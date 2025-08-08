@@ -8,9 +8,9 @@ export class PulseTool {
    * 构造器
    * @param {Object} viewer - cesium的viewer对象
    * @param {number} [maxRadius=30] - 脉冲最大半径
-   * @param {number} [duration=3] - 脉冲持续时间
+   * @param {number} [duration=5] - 脉冲持续时间
    */
-  constructor(viewer, maxRadius = 30, duration = 3) {
+  constructor(viewer, maxRadius = 30, duration = 5) {
     this._viewer = viewer;
     // 存储实体与脉冲对应关系
     this._entityPulseMap = {};
