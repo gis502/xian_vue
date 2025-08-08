@@ -656,7 +656,8 @@ export default {
 
 :deep(.legend) {
   bottom: 55px;
-  right: 45px;
+  right: 1vh;
+  z-index: 1;
 }
 
 </style>
