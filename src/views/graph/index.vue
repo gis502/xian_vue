@@ -1442,7 +1442,7 @@ onBeforeUnmount(() => {
     }
 
     .search {
-      width: 15vw;
+      width: 16vw;
       text-align: center;
       margin-bottom: 10px;
       .search-button, .search-input {
