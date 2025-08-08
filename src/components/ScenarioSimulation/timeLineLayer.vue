@@ -213,7 +213,7 @@ export default {
                   let allPointsInside =await layers.findAllHiddenDisasterPointsInAffectedArea(adminArea.geometry.coordinates);
                   console.log(allPointsInside,"allPointsInside")
                   let { pointsWithCausingFactors, pointSet } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
-                  console.log(pointsWithCausingFactors, pointSet, "matchedHuapoData,pointSet");
+                  console.log(pointsWithCausingFactors, pointSet, "pointsWithCausingFactors,pointSet");
                   let probabilityPoints = await this.caculateRainSlideTrigger(pointsWithCausingFactors, pointSet); // 使用 await
                   console.log(probabilityPoints,"probabilityPoints")
 
@@ -289,12 +289,12 @@ export default {
         }
       });
     },
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
-      let matchedHuapoData = [];
+    getHiddenDisasterPointswithCausingFactors(PointsInside) {
+      let pointsWithCausingFactors = [];
       let pointSet = new Set();
-      if (landslidePointsInside.length > 0) {
+      if (PointsInside.length > 0) {
         // 创建经纬度字符串集合用于快速匹配
-        landslidePointsInside.forEach(point => {
+        PointsInside.forEach(point => {
           // 使用固定精度的字符串表示经纬度
           let lon = point[0];
           let lat = point[1];
@@ -305,26 +305,28 @@ export default {
           let lat = item.geologicalDisasterHideDTO.lat;
           let key = `${lon},${lat}`;
           if (pointSet.has(key)) {
-            matchedHuapoData.push(item.factorVoList);
+            pointsWithCausingFactors.push(item.factorVoList);
           }
         });
 
+
         // 降雨量值放到致灾因子里面去
-        for (var i = 0; i < matchedHuapoData.length; i++) {
-          for (var j = 0; j < matchedHuapoData[i].length; j++) {
-            if (matchedHuapoData[i][j].attributeName === "降雨量") {
-              matchedHuapoData[i][j].factorValue = this.rainfall;
+        for (var i = 0; i < pointsWithCausingFactors.length; i++) {
+          for (var j = 0; j < pointsWithCausingFactors[i].length; j++) {
+            if (pointsWithCausingFactors[i][j].attributeName === "降雨量") {
+              pointsWithCausingFactors[i][j].factorValue = this.disasterEvent.rainfall;
             }
           }
         }
       }
-      return { matchedHuapoData, pointSet }; // 返回一个对象
+      // console.log(pointsWithCausingFactors,pointSet,"atchedHuapoData,pointSet getHiddenDisasterPointswithCausingFactors")
+      return { pointsWithCausingFactors, pointSet }; // 返回一个对象
     },
     async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
       try {
         let matchedHuapoEntities = []
         const res = await rainSlideTrigger(matchedHuapoData);
-        // console.log(res)
+        console.log(res,"rainSlideTrigger res")
         let formatAnalyzedData = res.data;
 
         formatAnalyzedData.forEach(item => {
