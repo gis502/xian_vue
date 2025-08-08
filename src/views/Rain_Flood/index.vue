@@ -173,7 +173,7 @@ export default {
       rainMode: false,
       showInfoPanel: false,
       selectedPosition: null,
-      rainfall: 0,
+      rainfall: 100,
       duration: 2,
       rainPoints: [],
       weatherActive: false,
@@ -558,7 +558,6 @@ export default {
       }
     },
     confirmRainPoint() {
-      // this,rainfall=
       console.log('rainfall:', this.rainfall); // 调试输出
       console.log('duration:', this.duration); // 调试输出
       if (!this.selectedPosition) return;
@@ -610,24 +609,28 @@ export default {
         // 获取该行政区划的经纬度范围
         const adminCoordinates = adminArea.geometry.coordinates;
         this.startLoading()
-        console.log(adminCoordinates, "adminCoordinates")
+        console.log("adminCoordinates",adminCoordinates)
         this.DisasterPointsFlash(adminCoordinates);
       } else {
         console.log("未找到标记点所在的行政区划");
       }
     },
-
     async DisasterPointsFlash(adminCoordinates) {
       let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
-      console.log(allPointsInside,"allPointsInside")
+      // 获取该行政区划内所有的隐藏灾害点（滑坡、泥石流）
+      console.log("allPointsInside",allPointsInside)
       let { matchedHuapoData, pointSet } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+      //第一个周至县所有致灾因子属性，第二个所有隐患点
       console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet");
       let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
+      //融合上面数据加概率
+      console.log("matchedHuapoEntities",matchedHuapoEntities)
       this.matchedHiddenHighlightEntities = matchedHuapoEntities;
       layers.flashHiddenDisasterPoints(matchedHuapoEntities);
       this.handleHiddenDisasterPointUpdate(matchedHuapoEntities);
       this.stopLoading();
     },
+    // 获取隐藏灾害点及其致灾因子
     getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
       console.log(landslidePointsInside,"getHiddenDisasterPointswithCausingFactors")
       let matchedHuapoData = [];
@@ -664,10 +667,12 @@ export default {
       }
       return { matchedHuapoData, pointSet }; // 返回一个对象
     },
+    // 计算降雨量触发
     async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
       try {
         let matchedHuapoEntities = []
         const res = await rainSlideTrigger(matchedHuapoData);
+        //计算预警概率
         // console.log(res)
         let formatAnalyzedData = res.data;
 
