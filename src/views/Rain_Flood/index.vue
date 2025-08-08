@@ -1725,7 +1725,7 @@ export default {
       try {
         let matchedHuapoEntities = []
         const res = await rainSlideTrigger(matchedHuapoData);
-        // console.log(res)
+        console.log(res,"rainSlideTrigger")
         let formatAnalyzedData = res.data;
 
         formatAnalyzedData.forEach(item => {
