@@ -32,6 +32,7 @@ import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 
 let basicLayers = {
+    disasterEntities: [],
     addCenterPoint(item) {
         // console.log(item,"addCenterPoint item")
         //点的属性 震中点统用一一个方法
@@ -272,7 +273,7 @@ let basicLayers = {
                 entityId=type+hiddenDangerPoint.geologicalDisasterHideDTO.id
             }
 
-            window.viewer.entities.add({
+            const entity = window.viewer.entities.add({
                 name:type,
                 id: entityId,
                 position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -296,8 +297,12 @@ let basicLayers = {
                     latitude:lat,
                 },
             });
+
+            this.disasterEntities.push(entity);
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
+
+        return Entities;
     },
 
 

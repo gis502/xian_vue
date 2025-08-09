@@ -27,6 +27,7 @@
     <div class="secondary-panel">
       <div class="panel-title1">控制显示</div>
       <div class="panel-content1">
+        <label><input type="checkbox" v-model="showDisaster" @change="toggleDisaster"> 显示灾害点 </label>
         <label><input type="checkbox" v-model="showFlash" @change="toggleFlashFlood"> 显示山洪 </label>
         <label><input type="checkbox" v-model="showWater" @change="toggleWater"> 显示内涝 </label>
         <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
@@ -399,7 +400,6 @@ export default {
       flashFloodEntities: [],
       waterEntities: [],
       viewer: null,
-      wmsLayers: [],
       tdtToken: "7f013d0186775b063d6a046977bbefc6",
       currentMapType: 0,
       rainMode: false,
@@ -486,6 +486,7 @@ export default {
       showSubway: false,
       showFlash: false,
       showWater: false,
+      showDisaster: false,
       // 暴雨影响区域椭圆相关配置
       // rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
       // rainEllipseRotation: 70, // 椭圆默认旋转角度
@@ -683,9 +684,6 @@ export default {
     this.load();
     this.getNum();//从后端读取数据，异步
     basicLayers.loadAdminData(); // 加载行政区划数据
-    basicLayers.loadLandSlide();
-    basicLayers.Addmudslide();
-    basicLayers.AddDangerAreaDataSource();
     basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
@@ -1635,7 +1633,7 @@ export default {
 
       return `${wmsUrl}?${new URLSearchParams(params).toString()}`;
     },
-    //加载点
+    //加载点（别动
     loadEntities(data, icon){
       try{
         //储备站点获取数据
@@ -1684,12 +1682,10 @@ export default {
     },
     // 设置实体点击事件处理
     setupEntityClickHandler() {
-
       // 清除之前的点击事件处理程序
       if (this.clickHandler) {
         this.clickHandler.destroy();
       }
-
       // 为左键点击添加事件处理程序
       this.clickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
       this.clickHandler.setInputAction((movement) => {
@@ -1701,7 +1697,6 @@ export default {
         }
         // 隐藏之前的弹出面板
         this.closePopup();
-
         if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
           const entity = pickedObject.id;
           // 获取实体的灾害数据
@@ -1907,6 +1902,17 @@ export default {
       }
       this.subwayLayer.show = this.showSubway;
     },
+    toggleDisaster(){
+      if(basicLayers.disasterEntities.length === 0 && this.showDisaster){
+        basicLayers.loadLandSlide();
+        basicLayers.Addmudslide();
+        basicLayers.AddDangerAreaDataSource();
+      }else{
+        basicLayers.disasterEntities.forEach(entity => {
+          entity.show = this.showDisaster;
+        });
+      }
+    }
   }
 }
 
