@@ -25,7 +25,7 @@
               <tr>
                 <th>累计持续时间</th>
                 <td>
-                  {{ rainInfo.duration || "无数据" }}
+                  {{ rainInfo.duration || "无数据" }}h
                 </td>
               </tr>
               </tbody>

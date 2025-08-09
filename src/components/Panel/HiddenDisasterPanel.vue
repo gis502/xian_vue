@@ -110,80 +110,50 @@ const displayDisasterCausingFactors = ref(false);
 
 const hazards = computed(() => {
   if (props.showDisasterInformation) {
-    let adminArea = layers.getAdministrationByPoint(props.showDisasterInformation.geologicalDisasterHideDTO.lon, props.showDisasterInformation.geologicalDisasterHideDTO.lat);
-    let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
-    let rainfall = props.rainInfo[matchedIndex].rainfall
-    let duration = props.rainInfo[matchedIndex].duration
-    props.disasterInformation.factorVoList.forEach((element) => {
-      element.type = element.unit == "" ? "select" : "input:number";
-      element.isModified = true;
-      element.isShow = true;
-      console.log(element, "(props.showDisasterInformation")
-      if (element.attributeNameAlias == 'rainfall') {
-        if (props.trigger == "地震") {
-          element.isShow = false;
-        } else {
-          console.log(props.rainInfo, "props.rainInfo")
-          if (props.rainInfo) {
-            element.factorValue = rainfall
-          }
-        }
-      }
-      if (element.attributeNameAlias == 'duration') {
-        if (props.trigger == "地震") {
-          element.isShow = false;
-        } else {
-          if (props.rainInfo) {
-            element.factorValue = duration
-          }
-        }
-      }
-
-    });
+    handleRainfallAndDuration(props.disasterInformation, props.trigger);
     return {
       ...props.disasterInformation,
-      title: '滑坡隐患点' // 替换成你需要的标题
+      title: '滑坡隐患点'
     };
   } else if (props.showdebrisFlowInformation) {
-    let adminArea = layers.getAdministrationByPoint(props.showdebrisFlowInformation.geologicalDisasterHideDTO.lon, props.showDisasterInformation.geologicalDisasterHideDTO.lat);
-    let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
-    let rainfall = props.rainInfo[matchedIndex].rainfall
-    let duration = props.rainInfo[matchedIndex].duration
-    props.debrisFlowInformation.factorVoList = staticHazardsDatas;
-    props.debrisFlowInformation.factorVoList.forEach((element) => {
-      if (element.attributeNameAlias == 'rainfall') {
-        if (props.trigger == "地震") {
-          element.isShow = false;
-        } else {
-          console.log(props.rainInfo, "props.rainInfo")
-          if (props.rainInfo) {
-            element.factorValue = rainfall
-          }
-        }
-      }
-      if (element.attributeNameAlias == 'duration') {
-        if (props.trigger == "地震") {
-          element.isShow = false;
-        } else {
-          if (props.rainInfo) {
-            element.factorValue = duration
-          }
-        }
-      }
-    })
+    handleRainfallAndDuration(props.debrisFlowInformation, props.trigger);
     return {
       ...props.debrisFlowInformation,
-      title: '泥石流隐患点' // 替换成你需要的标题
+      title: '泥石流隐患点'
     };
   } else if (props.showRiskPointsInformation) {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
     return {
       ...props.riskPointsInformation,
-      title: '风险区域' // 替换成你需要的标题
+      title: '风险区域'
     };
   }
 });
 
+function handleRainfallAndDuration(info, trigger) {
+  info.factorVoList.forEach((element) => {
+    element.type = element.unit == "" ? "select" : "input:number";
+    element.isModified = true;
+    if (trigger == "地震") {
+      element.isShow = false;
+    } else {
+      element.isShow = true;
+      if (props.rainInfo.length != 0) {
+        let adminArea = layers.getAdministrationByPoint(info.geologicalDisasterHideDTO.lon, info.geologicalDisasterHideDTO.lat);
+        let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
+        if (matchedIndex !== -1) {
+          let rainfall = props.rainInfo[matchedIndex].rainfall;
+          let duration = props.rainInfo[matchedIndex].duration;
+          if (element.attributeNameAlias == 'rainfall') {
+            element.factorValue = rainfall;
+          } else if (element.attributeNameAlias == 'duration') {
+            element.factorValue = duration;
+          }
+        }
+      }
+    }
+  });
+}
 function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
 }

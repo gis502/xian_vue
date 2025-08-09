@@ -1,5 +1,5 @@
 <template>
-  <div class="rain-info-panel">
+  <div class="rain-info-panel" :style="styleObject">
     <div class="panel-title">暴雨信息</div>
     <div class="panel-content">
       <div v-for="(entry, index) in entries" :key="entry.code" class="form-item">
@@ -63,13 +63,18 @@ import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 export default {
   name: "addRain",
   props: {
-    selectedPosition: {
+    selectedPositionLonAndLat: {
+      type: Object,
+      required: true
+    },
+    PanelPosition: {
       type: Object,
       required: true
     },
   },
   data() {
     return {
+      positionEntity: {x: 0, y: 0},
       districts: [
         {name: "新城区", code: "610102"},
         {name: "碑林区", code: "610103"},
@@ -92,22 +97,60 @@ export default {
           duration: 0  // 初始值为 0
         }
       ],
+      adminArea:'',//标记点所属区域
       positionArry:[],
       rainfallArry:[],
       durationArry:[],
     };
   },
+  watch: {
+    selectedPositionLonAndLat: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal) {
+          this.updateEntryDistrict(newVal);
+        }
+      }
+    },
+    PanelPosition:{
+      immediate: true,
+      handler(newVal) {
+        if (newVal) {
+          this.positionEntity = newVal
+        }
+      }
+    }
+  },
   computed: {
     availableDistricts() {
       const selectedCodes = this.entries.map((entry) => entry.code).filter((code) => code !== null);
       return this.districts.filter((district) => !selectedCodes.includes(district.code));
+    },
+    styleObject() {
+      return {
+        positionEntity: "absolute",
+        left: `${this.positionEntity.x}px`,
+        top: `${this.positionEntity.y}px`
+      };
     }
   },
   methods: {
+    updateEntryDistrict(position) {
+      this.adminArea = layers.getAdministrationByPoint(position.longitude, position.latitude);
+      const district = this.districts.find((d) => d.name === this.adminArea.name);
+      if (district && this.entries.length > 0) {
+        this.entries[0].name = district.name;
+      }
+    },
     handleDistrictChange(index) {
       const selectedDistrict = this.districts.find((district) => district.name === this.entries[index].name);
       if (selectedDistrict) {
-        this.entries[index].name = selectedDistrict.name;
+        if (this.entries.some((entry, i) => entry.name === selectedDistrict.name && i !== index)) {
+          alert("该区县已经填写过，请选择其他区县");
+          this.entries[index].name = "";
+        } else {
+          this.entries[index].name = selectedDistrict.name;
+        }
       } else {
         this.entries[index].name = "";
       }
@@ -127,8 +170,8 @@ export default {
     async confirmRainPoint() {
       console.log("确认添加数据：", this.entries);
       this.$emit('update:update-rain-info', this.entries);
-      if (!this.selectedPosition) return;
-      let {longitude, latitude, cartesian} = this.selectedPosition;
+      if (!this.selectedPositionLonAndLat) return;
+      let {longitude, latitude, cartesian} = this.selectedPositionLonAndLat;
 
       this.$emit('update:show-info-panel', false);
 
@@ -137,8 +180,6 @@ export default {
       this.$emit('update:handleWeather');
 
       // 新增逻辑：获取标记点所在行政区划 标记点的位置
-      const adminArea = layers.getAdministrationByPoint(longitude, latitude);
-
 
       this.entries.forEach(item => {
         this.positionArry.push(item.name)
@@ -152,17 +193,17 @@ export default {
         "longitude": longitude,
         "latitude": latitude,
         "position": this.positionArry.join(","),
-        "disasterName": timeTransfer.timestampToTimeChina(new Date) + adminArea + "暴雨",
+        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea + "暴雨",
         "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
       };
       console.log(requestData, "requestData saveRain")
       let res =await saveRain(requestData)
       console.log(res, "saveRain")
-      if (adminArea) {
-        const matchedIndex =this.positionArry.findIndex((pos) => pos === adminArea.name);
+      if (this.adminArea) {
+        const matchedIndex =this.positionArry.findIndex((pos) => pos === this.adminArea.name);
         //显示标记点
         let entity = {
-          position: adminArea.name,
+          position: this.adminArea.name,
           longitude: longitude,
           latitude: latitude,
           id: "test_rain",
@@ -229,6 +270,8 @@ export default {
           let key = `${lon},${lat}`;
           if (pointSet.has(key)) {
             matchedHuapoData.push(item);
+            console.log(item,"useSimulationPointStore")
+            // item.
           }
         });
 
@@ -309,8 +352,6 @@ export default {
 <style scoped>
 .rain-info-panel {
   position: absolute;
-  top: 20vh;
-  left: 10px;
   background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
   color: white;
   padding: 0;
@@ -321,7 +362,8 @@ export default {
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
 }
-
+/*top: 20vh;*/
+/*left: 10px;*/
 .panel-title {
   font-size: 16px;
   font-weight: bold;
