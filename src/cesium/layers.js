@@ -1,13 +1,10 @@
 import * as Cesium from "cesium";
 import lineData from "@/assets/西安断层数据.json";
 
-import DebrisFlow from "@/assets/西安泥石流灾害点.json";
+
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
-import landslide from '@/assets/landslide/landslide.json'
 import landslideIcon from "@/assets/images/landslide.png";
-import landslide_surface01 from "@/assets/images/landslide_surface01.jpg";
 import riskArea from "@/assets/images/riskArea.png";
-import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {parsePointString} from "@/cesium/geomTransfer"
 import timeTransfer from "@/cesium/timeTransfer.js";
@@ -24,13 +21,9 @@ import XinCheng from "@/assets/static/area/XinCheng.json";
 import YanLiang from "@/assets/static/area/YanLiang.json";
 import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
-import {getGeologicalDisasterHideByLandSlideList} from "@/api/system/disasterHide.js";
+import {PulseTool} from "@/cesium/pulse.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
-// let flashInterval = null;
-// let haloCollection = null;
-// key: 'hazard' | 'landslide' | 'dangerArea'
-const haloCollections = new Map();
-const haloIntervals = new Map();
+
 let layers = {
     //画烈度圈
     DrawEllipse(log, lat, magnitude) {
@@ -334,6 +327,7 @@ let layers = {
     //画烈度圈 end
 
     //暴雨
+    //暴雨影响范围(返回json)
     getAdministrationByPoint(longitude, latitude) {
         let point = [longitude, latitude];
         let administrationData = [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi]
@@ -354,6 +348,35 @@ let layers = {
             }
         }
         return null;
+    },
+    //找一个区域里的隐患点（区域为json数据）
+    findAllHiddenDisasterPointsInAffectedArea(adminCoordinates){
+
+        // console.log(adminCoordinates[0],"adminCoordinates[0]")
+        let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
+        let mudslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("泥石流隐患点", adminCoordinates)
+        // let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates[0])
+        // 检查所有滑坡点
+
+        let allPointsInside = [
+            ...landslidePointsInside,
+            ...mudslidePointsInside
+        ];
+        return allPointsInside
+    },
+    findHiddenDisasterPointsInAdminCoordinates(type, adminCoordinates) {
+        let pointsInside = []
+        let points = window.viewer.entities.values.filter(
+            e => e.name === type
+        );
+        // console.log(points, adminCoordinates, "points")
+        points.forEach(item => {
+            let point = [item.properties.longitude, item.properties.latitude]
+            if (this.pointInPolygon(point, adminCoordinates)) {
+                pointsInside.push(point);
+            }
+        });
+        return pointsInside;
     },
     pointInPolygon(point, polygonCoords) {
         let [x, y] = point;
@@ -387,19 +410,22 @@ let layers = {
         return inside;
     },
 
-
     //找烈度圈相交点预警点
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
-        let allHiddeninEllipse = []
+        let allHiddenDisasterinEllipse = []
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
         const params = layers.calculateEllipseParams(magnitude).at(-1);
-        useSimulationPointStore().simulationPoints.forEach((item) => {
-            // console.log(item, "item useSimulationPointStore")
+        let validPoints = useSimulationPointStore().simulationPoints.filter(
+            item => item && item.geologicalDisasterHideDTO
+        );
+        validPoints.forEach((item) => {
+            console.log(item,item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat,"HiddenDisasterPoints item")
             if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
-                allHiddeninEllipse.push(item)
+                item.predict = null;
+                allHiddenDisasterinEllipse.push(item)
             }
         })
-        return allHiddeninEllipse
+        return allHiddenDisasterinEllipse
     },
     isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation) {
         const center = Cesium.Cartesian3.fromDegrees(Number(centerLon), Number(centerLat));
@@ -420,6 +446,15 @@ let layers = {
         return distance <= boundingSphere.radius;
     },
     //找烈度圈相交点预警点结束
+    //预警点闪烁
+    flashHiddenDisasterPoints(entities) {
+        let pulse = new PulseTool(window.viewer);
+        console.log("传输过来的闪烁预警点实体是：", entities);
+
+        if (!entities || entities.length === 0) return;
+        pulse.removePulseEntity();
+        pulse.createPause(entities);
+    },
 
     //真实灾害点
     judgeandaddRealDisasterNewPoint(realDisasterPoints) {
@@ -429,8 +464,7 @@ let layers = {
             // this.addRealDisasterLabel(item)
             //找是否有同一类型，同一经纬度
         })
-    }
-    ,
+    },
     ifaddNewPoint(item) {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
@@ -546,8 +580,7 @@ let layers = {
                 });
             }
         }
-    }
-    ,
+    },
     addBlackBreathCircle(item) {
         let lon = parsePointString(item.geom).longitude
         let lat = parsePointString(item.geom).latitude
@@ -581,8 +614,7 @@ let layers = {
                 outlineWidth: 2,
             },
         });
-    }
-    ,
+    },
 
 }
 export default layers;

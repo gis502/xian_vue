@@ -6,10 +6,27 @@
           {{ rainMode ? '取消区域分析' : '标记区域分析' }}
         </div>
     </div>
-    <!-- 加载状态提示 -->
-    <div v-if="isLoading" class="loading-indicator">
-      {{ loadingText }}
+    <div class="secondary-panel">
+      <div class="panel-title1">控制显示</div>
+      <div class="panel-content1">
+        <label><input type="checkbox" v-model="showDisasterPoints" @change="toggleDisasterPoints" /> 显示灾害点 </label>
+        <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
+        <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示风险源 </label>
+        <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
+        <label><input type="checkbox" v-model="showFire" @change="toggleFirePoints"> 显示消防站 </label>
+        <label><input type="checkbox" v-model="showStore" @change="toggleStorePoints"> 显示储备点 </label>
+        <label><input type="checkbox" v-model="showPeople" @change="togglePeople"> 显示人口网格 </label>
+        <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>
+        <label><input type="checkbox" v-model="showPipe" @change="toggleWaterPipe"> 显示管网系统 </label>
+        <label><input type="checkbox" v-model="showRoad" @change="toggleRoad"> 显示交通道路 </label>
+        <label><input type="checkbox" v-model="showBridge" @change="toggleBridge"> 显示桥梁 </label>
+        <label><input type="checkbox" v-model="showHighway" @change="toggleHighway"> 显示高速 </label>
+        <label><input type="checkbox" v-model="showNationalRoad" @change="toggleNationalRoad"> 显示国道 </label>
+        <label><input type="checkbox" v-model="showReservoir" @change="toggleReservoir"> 显示水库 </label>
+        <label><input type="checkbox" v-model="showSubway" @change="toggleSubway"> 显示地铁站 </label>
+      </div>
     </div>
+    <!-- 加载状态提示 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">选择区域</div>
       <div class="panel-content">
@@ -37,7 +54,11 @@
   }"
         @click.stop="stopPropagation">
       <div class="popup-header">
-        <h3 v-if="selectedEntityData.properties.disasterName">{{ selectedEntityData.properties.disasterName || '地质灾害风险区' }} </h3>
+        <h3 v-if="selectedEntityData.properties.teamName">{{ selectedEntityData.properties.teamName || '消防站' }} </h3>
+        <h3 v-if="selectedEntityData.properties.hospitalName">{{ selectedEntityData.properties.hospitalName || '医院' }} </h3>
+        <h3 v-if="selectedEntityData.properties.dangerName">{{ selectedEntityData.properties.dangerName || '风险源' }} </h3>
+        <h3 v-if="selectedEntityData.properties.storeName">{{ selectedEntityData.properties.storeName || '储备点' }} </h3>
+        <h3 v-if="selectedEntityData.properties.shelterName">{{ selectedEntityData.properties.shelterName || '避难所' }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
@@ -57,15 +78,27 @@
           </tr>
           <tr v-if="selectedEntityData.properties.disasterName">
             <th>风险区名称</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.disasterName) }}</td>
+            <td>{{ selectedEntityData.properties.disasterName}}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.dangerName">
             <th>危险源名称</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.dangerName) }}</td>
+            <td>{{ selectedEntityData.properties.dangerName || "未知"}}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.hospitalName">
             <th>医院名称</th>
             <td>{{ selectedEntityData.properties.hospitalName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamName">
+            <th>消防站/队名称</th>
+            <td>{{ selectedEntityData.properties.teamName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeName">
+            <th>储备站点名称</th>
+            <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterName">
+            <th>避难所名称</th>
+            <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.level">
             <th>级别</th>
@@ -73,7 +106,19 @@
           </tr>
           <tr v-if="selectedEntityData.properties.enterpriseType">
             <th>危险源类型</th>
-            <td>{{ getDisasterTypeName(selectedEntityData.properties.enterpriseType) }}</td>
+            <td>{{ selectedEntityData.properties.enterpriseType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamType">
+            <th>消防站类型</th>
+            <td>{{ selectedEntityData.properties.teamType}}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeType">
+            <th>储备站类型</th>
+            <td>{{ getDisasterTypeName(selectedEntityData.properties.storeType) }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterType">
+            <th>储备站类型</th>
+            <td>{{ selectedEntityData.properties.shelterType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.position">
             <th>地理位置</th>
@@ -118,6 +163,42 @@
           <tr v-if="selectedEntityData.properties.sumPeople">
             <th>年度诊疗人数</th>
             <td>{{ selectedEntityData.properties.sumPeople || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamSumNum">
+            <th>消防队人数</th>
+            <td>{{ selectedEntityData.properties.teamSumNum || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireCars">
+            <th>消防车数量</th>
+            <td>{{ selectedEntityData.properties.fireCars || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireDevices">
+            <th>消防器材数量</th>
+            <td>{{ selectedEntityData.properties.fireDevices || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeVolume">
+            <th>储备站有效库容</th>
+            <td>{{ selectedEntityData.properties.storeVolume || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.tent">
+            <th>救援帐篷数</th>
+            <td>{{ selectedEntityData.properties.tent || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.rubberBoat">
+            <th>橡皮艇数</th>
+            <td>{{ selectedEntityData.properties.rubberBoat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.egenerator">
+            <th>发电机数</th>
+            <td>{{ selectedEntityData.properties.egenerator || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.emergencyLight">
+            <th>紧急探照灯数</th>
+            <td>{{ selectedEntityData.properties.emergencyLight || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.effectiveNumber">
+            <th>避难所最大容纳人数</th>
+            <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
           </tr>
 
           <tr v-if="selectedEntityData.properties.username">
@@ -180,11 +261,15 @@ import flowIcon from "@/assets/images/DebrisFlow.png"
 import riskAreaIcon from "@/assets/images/riskArea.png"
 import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
+import fireIcon from "@/assets/images/firefighter.png"
+import storePointsIcon from "@/assets/images/storePoints.jpg"
+import shelterIcon from "@/assets/images/emergencyShelter.png"
+import flashFloodIcon from "@/assets/images/flashflood.png"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
-import {getRisk, getSlide, getFlow, getDangerous, getFire, getHospital, getShelter, getStore} from "@/api/system/aroundanalysis.js";
+import {getRisk, getSlide, getFlashFlood, getFlow, getDangerous, getFire, getHospital, getShelter, getStore} from "@/api/system/aroundanalysis.js";
 import {get} from "@vueuse/core";
 import Chart from "../../components/Earthquake/Chart.vue";
 import Table from "../../components/Earthquake/Table.vue";
@@ -197,10 +282,29 @@ export default {
   },
   data() {
     return {
+      geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
+      peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
+      cropsLayerName: 'test:xian_crops',
+      waterPipeLayerName: 'test:xian_water_pipe',
+      roadLayerName: 'test:xian_road',
+      bridgeLayerName: 'test:xian_bridge_points',
+      highwayLayerName: 'test:xian_highway',
+      nationalRoadLayerName: 'test:xian_national_road',
+      reservoirLayerName: 'test:xian_reservoir_list',
+      subwayLayerName: 'test:xian_subway',
+      disasterEntities: [],
+      protectEntities: [],
+      hospitalEntities: [],
+      dangerEntities: [],
+      dangerSourceEntities: [],
+      storePointsEntities: [],
+      saveTeamEntities: [],
+      fireFighterEntities: [],
+      shelterEntities: [],
       showChart: false,
       showTable: false,
       viewer: null,
-      tdtToken: "7f013d0186775b063d6a046977bbefc6",
+      wmsLayers: [],
       currentMapType: 0,
       rainMode: false,
       showInfoPanel: false,
@@ -217,7 +321,6 @@ export default {
       lakeDataSource: null, // 湖面数据数据源
       dataSource: null,
       disasterDataSource: null, // 灾害点数据源
-      // 行政区划数据
       administrationData: [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi],
       adminDataSources: [],
       faultZoneList: [],
@@ -225,27 +328,55 @@ export default {
       riverData: riverData,
       lakeData: lakeData,
       // 灾害点数据
-      // faultZone: faultZone,
       HuapoData: null,
       NishiliuData: null,
+      FlashFloodData: null,
       DangerAreaData: null,
       DangerSourceData: null,//危险源数据
       HospitalData: null,
       FireFighterData: null,
+      StorePointsData: null,
+      ShelterData: null,
+      peopleLayer: null,
+      cropsLayer: null,
+      waterPipeLayer: null,
+      roadLayer: null,
+      bridgeLayer: null,
+      highwayLayer: null,
+      nationalRoadLayer: null,
+      reservoirLayer: null,
+      subwayLayer: null,
       isLoading: false,
       loadingText: '加载数据中...',
-      // 暴雨影响区域椭圆相关配置
-      rainEllipseScale: 1000, // 降雨量到椭圆半径的缩放系数
+      rainEllipseScale: 1000, // 圆半径的缩放系数
       // 图例相关
       districtColors: {}, // 存储各区县的颜色
-      showDisasterLayer: true, // 控制灾害点显示/隐藏
+      showDisasterPoints: false, // 控制灾害点显示/隐藏
+      showHospital: false, // 控制医院显示/隐藏
+      showDangerSource: false, // 控制风险源显示/隐藏
+      showShelter: false, // 控制避难所显示/隐藏
+      showFire: false, // 控制消防站显示/隐藏
+      showStore: false, // 控制储备点显示/隐藏
+      showPeople: false,
+      showCrops: false,
+      showPipe: false,
+      showRoad: false,
+      showBridge: false,
+      showHighway: false,
+      showNationalRoad: false,
+      showReservoir: false,
+      showSubway: false,
       clickHandler: null,
+      layerHandler: null,
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
+      flashFloodPoints: [],
       secondaryRiskPoints: [], // 次生灾害风险点
       dangerSourcePoints: [],
       hospitalPoints: [],
       fireFighterPoints: [],
+      storePoints: [],
+      shelterPoints: [],
       selectedEntityData: null,
       popupPosition: {x: 0, y: 0},
       popupVisible: false,
@@ -257,13 +388,13 @@ export default {
       chartDatas: {
         title: "各点数量统计",
         xAxis: {
-          data: ["滑坡隐患点", "泥石流隐患点", "风险区"],
+          data: ["医院", "风险源", "避难所", "消防站", "物资储备点"],
         },
         attribute: {
           height: '400',
-          width: '400',
+          width: '500',
         },
-        seriesDatas: [0, 0, 0],
+        seriesDatas: [0, 0, 0, 0, 0],
       },
       dataTypes: {
         filterCriteria: [
@@ -279,6 +410,26 @@ export default {
             name: "风险区",
             value: "type3",
           },
+          {
+            name: "医院",
+            value: "type4",
+          },
+          {
+            name: "风险源",
+            value: "type5",
+          },
+          {
+            name: "避难所",
+            value: "type6",
+          },
+          {
+            name: "消防站",
+            value: "type7",
+          },
+          {
+            name: "物资储备点",
+            value: "type8",
+          },
         ],
         type1: {
           headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
@@ -290,6 +441,26 @@ export default {
         },
         type3: {
           headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
+        type4: {
+          headers: ["医院名称", "位置", "医院等级", "所有床位"],
+          data: [],
+        },
+        type5: {
+          headers: ["风险源名称", "位置", "风险源类型", "等级"],
+          data: [],
+        },
+        type6: {
+          headers: ["避难所名称", "位置", "避难所类型", "容纳人数"],
+          data: [],
+        },
+        type7: {
+          headers: ["消防站名称", "位置", "消防站类型", "消防员人数"],
+          data: [],
+        },
+        type8: {
+          headers: ["储备点名称", "位置", "储备点类型", "有效库容"],
           data: [],
         },
       },
@@ -330,50 +501,51 @@ export default {
   },
   methods: {
     getNum(){
+      //获取滑坡点
       getSlide().then((res) =>{
         this.HuapoData = res.data;
       });
+      //获取泥石流点
       getFlow().then((res) =>{
         this.NishiliuData = res.data;
       });
+      //获取风险区点
       getRisk().then((res) =>{
         this.DangerAreaData = res.data;
         //放在此处确保前面的所有数据都读取到了，再渲染点。
-        this.loadDisasterData();
+        // this.loadDisasterData();
       });
+      getFlashFlood().then((res) =>{
+        this.FlashFloodData = res.data;
+      })
+      //获取危险源点
       getDangerous().then((res)=>{
         this.DangerSourceData = res.data;
-        this.loadDangerSource();
       });
+      //获取医院点
       getHospital().then((res)=>{
         this.HospitalData = res.data;
-        this.loadProtectTarget();
+      })
+      //获取消防站
+      getFire().then((res)=>{
+        this.FireFighterData = res.data;
+      })
+      //获取储备点
+      getStore().then((res) =>{
+        this.StorePointsData = res.data;
+      })
+      //获取避难所
+      getShelter().then((res) =>{
+        this.ShelterData = res.data;
       })
     },
     load() {
       // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
-      // this.viewer = new Cesium.Viewer(container, {
-      //   imageryProvider: false,
-      //   animation: false,
-      //   homeButton: false,
-      //   navigationHelpButton: false,
-      //   timeline: false,
-      //   selectionIndicator: false,
-      //   sceneModePicker: false,
-      //   infoBox: false,
-      //   geocoder: false,
-      //   vrButton: false,
-      //   fullscreenButton: false,
-      //   baseLayerPicker: false,
-      // });
-      //
-      // this.viewer.cesiumWidget.creditContainer.style.display = "none";
-      // this.loadTDT(0);
 
       this.viewer = initCesium(container)
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
-      window.viewer = this.viewer;
+      window.viewer = this.viewer;//全局绑定viewer，此举是为了点击表格可以跳转对应的点。
 
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
@@ -383,9 +555,243 @@ export default {
           roll: 0.0
         }
       });
+
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
+    },
+    // 加载人口网格图层
+    addPeopleLayer() {
+      this.peopleLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.peopleLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载农作物网格
+    addCropsLayer() {
+      this.cropsLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.cropsLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },// 加载管网系统
+    addWaterPipeLayer() {
+      this.waterPipeLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.waterPipeLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载交通道路
+    addRoadLayer() {
+      this.roadLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.roadLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载桥梁
+    addBridgeLayer() {
+      this.bridgeLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.bridgeLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载高速
+    addHighway() {
+      this.highwayLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.highwayLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载国道
+    addNationalRoad() {
+      this.nationalRoadLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.nationalRoadLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载水库
+    addReservoir() {
+      this.reservoirLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.reservoirLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载地铁站
+    addSubway() {
+      this.subwayLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.subwayLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 控制人口网格显示
+    togglePeople() {
+      if (this.peopleLayer == null && this.showPeople) {
+        this.addPeopleLayer();
+      }
+      this.peopleLayer.show = this.showPeople;
+    },
+    //控制农田显示
+    toggleCrops(){
+      if(this.cropsLayer == null && this.showCrops) {
+        this.addCropsLayer();
+      }
+      this.cropsLayer.show = this.showCrops;
+    },
+    //控制管网系统显示
+    toggleWaterPipe(){
+      if(this.waterPipeLayer == null && this.showPipe) {
+        this.addWaterPipeLayer();
+      }
+      this.waterPipeLayer.show = this.showPipe;
+    },
+    //控制道路显示
+    toggleRoad(){
+      if(this.roadLayer == null && this.showRoad) {
+        this.addRoadLayer();
+      }
+      this.roadLayer.show = this.showRoad;
+    },
+    //控制桥梁显示
+    toggleBridge(){
+      if(this.bridgeLayer == null && this.showBridge) {
+        this.addBridgeLayer();
+      }
+      this.bridgeLayer.show = this.showBridge;
+    },
+    //控制高速显示
+    toggleHighway(){
+      if(this.highwayLayer == null && this.showHighway) {
+        this.addHighway();
+      }
+      this.highwayLayer.show = this.showHighway;
+    },
+    //控制国道显示
+    toggleNationalRoad(){
+      if(this.nationalRoadLayer == null && this.showNationalRoad) {
+        this.addNationalRoad();
+      }
+      this.nationalRoadLayer.show = this.showNationalRoad;
+    },
+    //控制水库显示
+    toggleReservoir(){
+      if(this.reservoirLayer == null && this.showReservoir) {
+        this.addReservoir();
+      }
+      this.reservoirLayer.show = this.showReservoir;
+    },
+    //控制地铁站显示
+    toggleSubway(){
+      if(this.subwayLayer == null && this.showSubway) {
+        this.addSubway();
+      }
+      this.subwayLayer.show = this.showSubway;
     },
     // 加载湖面数据
     loadLakeData() {
@@ -519,28 +925,241 @@ export default {
         };
       });
     },
+    //加载避难所
+    loadShelter(){
+      try{
+        //避难点
+        const shelterFeatures = this.ShelterData?.features || [];
+        this.shelterEntities = [];
+        //添加避难点
+        shelterFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const shelterName = properties.shelterName || '未知危险源';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入避难点到数组
+          this.shelterPoints.push([longitude, latitude])
+
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: shelterIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showShelter
+            },
+            // 文字
+            label: {
+              text: `${shelterName}`,
+              font: '12pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+              show: this.showShelter
+            },
+            // 添加灾害类型信息，用于弹窗显示
+            // description: this.createDisasterDescription(properties, '滑坡'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'emergencyShelter',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.shelterEntities.push(entity);
+        })
+        //设置点击事件监听
+        this.setupEntityClickHandler();
+      }catch(error){
+        console.error("处理避难所点数据失败.")
+      }
+    },
+    //加载储备站点
+    loadStorePoints(){
+      try{
+        //储备站点获取数据
+        const storePointsFeatures = this.StorePointsData?.features || [];
+        this.storePointsEntities = [];
+        //添加储备站点
+        storePointsFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const storeName = properties.storeName || '未知危险源';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入储备点到数组
+          this.storePoints.push([longitude, latitude])
+
+          // 创建实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: storePointsIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showStore
+            },
+            // 文字
+            label: {
+              text: `${storeName}`,
+              font: '12pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+              show: this.showStore
+            },
+            // 添加灾害类型信息，用于弹窗显示
+            // description: this.createDisasterDescription(properties, '滑坡'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'storePoints',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.storePointsEntities.push(entity);
+        })
+        //设置点击事件监听
+        this.setupEntityClickHandler();
+      }catch(error){
+        console.error("处理储备站点数据失败.")
+      }
+    },
+    //加载救援队伍
+    loadSaveTeams(){
+      try{
+        //消防队伍
+        const fireFeatures = this.FireFighterData?.features || [];
+
+        this.saveTeamEntities = [];
+        this.fireFighterEntities = [];
+
+        //添加消防站点
+        fireFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const teamName = properties.teamName || '未知危险源';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入消防队到数组
+          this.fireFighterPoints.push([longitude, latitude])
+
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: fireIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showFire
+            },
+            // 文字
+            label: {
+              text: `${teamName}`,
+              font: '12pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+              show: this.showFire
+            },
+            // 添加灾害类型信息，用于弹窗显示
+            // description: this.createDisasterDescription(properties, '滑坡'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'saveTeam',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.saveTeamEntities.push(entity);
+          this.fireFighterEntities.push(entity);
+        })
+
+        this.setupEntityClickHandler();
+
+      }catch(error){
+        console.error("处理消防站数据失败.")
+      }
+    },
     // 加载医院(保护目标
     loadProtectTarget(){
-      this.isLoading = true;
-      this.loadingText = '加载保护目标数据...'
 
       try{
         const hospitalFeatures = this.HospitalData?.features || [];
 
         this.protectEntities = [];
-        this.HospitalEntities = [];
+        this.hospitalEntities = [];
 
-        // 添加危险源点
+        // 添加医院
         hospitalFeatures.forEach(point => {
           const properties = point.properties || {};
           const hospitalName = properties.hospitalName || '未知危险源';
           const longitude = point.geometry.coordinates[0];
           const latitude = point.geometry.coordinates[1];
 
-          // 加入危险源到数组
+          // 加入医院到数组
           this.hospitalPoints.push([longitude, latitude])
 
-          // 创建灾害点实体
+          // 创建实体
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
             // 点
@@ -556,26 +1175,26 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: this.showHospital
             },
             // 文字
-            // label: {
-            //   text: `${hospitalName}`,
-            //   font: '12pt Source Han Sans CN',
-            //   fillColor: Cesium.Color.WHITE,
-            //   backgroundColor: Cesium.Color.AQUA,
-            //   showBackground: false,
-            //   outline: true,
-            //   outlineColor: Cesium.Color.BLACK,
-            //   outlineWidth: 10,
-            //   scale: 1.0,
-            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
-            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-            //   show: true
-            // },
+            label: {
+              text: `${hospitalName}`,
+              font: '12pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+              show: this.showHospital
+            },
             // 添加灾害类型信息，用于弹窗显示
             // description: this.createDisasterDescription(properties, '滑坡'),
             // 保存原始样式，用于闪烁恢复
@@ -587,28 +1206,22 @@ export default {
           });
           // 保存实体引用
           this.protectEntities.push(entity);
-          this.HospitalEntities.push(entity);
+          this.hospitalEntities.push(entity);
         });
 
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-        this.isLoading = false;
-
       }catch (error) {
-        this.isLoading = false;
         console.error('处理保护目标数据时出错:', error);
       }
     },
     // 加载风险源
     loadDangerSource(){
-      this.isLoading = true;
-      this.loadingText = '加载风险源数据...'
-
       try{
         const dangerSourceFeatures = this.DangerSourceData?.features || [];
 
-        this.disasterEntities = [];
+        this.dangerEntities = [];
         this.dangerSourceEntities = [];
 
         // 添加危险源点
@@ -621,7 +1234,7 @@ export default {
           // 加入危险源到数组
           this.dangerSourcePoints.push([longitude, latitude])
 
-          // 创建灾害点实体
+          // 创建实体
           const entity = this.viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
             // 点
@@ -637,28 +1250,8 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: this.showDangerSource
             },
-            // 文字
-            // label: {
-            //   text: `${dangerNAME}`,
-            //   font: '10pt Source Han Sans CN',
-            //   fillColor: Cesium.Color.WHITE,
-            //   backgroundColor: Cesium.Color.AQUA,
-            //   showBackground: false,
-            //   outline: true,
-            //   outlineColor: Cesium.Color.BLACK,
-            //   outlineWidth: 10,
-            //   scale: 0.8,
-            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
-            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-            //   show: true
-            // },
-            // 添加灾害类型信息，用于弹窗显示
-            // description: this.createDisasterDescription(properties, '滑坡'),
             // 保存原始样式，用于闪烁恢复
             originalColor: Cesium.Color.RED,
             originalPixelSize: 15,
@@ -667,25 +1260,19 @@ export default {
             disasterData: point,
           });
           // 保存实体引用
-          this.disasterEntities.push(entity);
+          this.dangerEntities.push(entity);
           this.dangerSourceEntities.push(entity);
         });
 
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-        this.isLoading = false;
-
       }catch (error) {
-        this.isLoading = false;
         console.error('处理风险源数据时出错:', error);
       }
     },
     // 加载灾害点数据
     loadDisasterData() {
-      this.isLoading = true;
-      this.loadingText = '加载灾害点数据...';
-
       try {
         // 确保数据存在且格式正确
         // const huapoFeatures = JSON.parse(JSON.stringify(this.HuapoData))[0] || [];
@@ -693,12 +1280,14 @@ export default {
         const huapoFeatures = this.HuapoData?.features || [];
         const nishiliuFeatures = this.NishiliuData?.features || [];
         const dangerAreaFeatures = this.DangerAreaData?.features || [];
+        const flashFloodFeatures = this.FlashFloodData?.features || [];
 
         // 存储所有添加的实体，用于事件处理
         this.disasterEntities = [];
         // 分别存储不同类型灾害点的实体引用
         this.landslideEntities = [];
         this.debrisFlowEntities = [];
+        this.flashFloodEntities = [];
         this.secondaryRiskEntities = [];
         // 加载滑坡点
         huapoFeatures.forEach(point => {
@@ -726,7 +1315,7 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: this.showDisasterPoints
             },
             // 文字
             label: {
@@ -744,7 +1333,7 @@ export default {
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(-70, -35),
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
+              show: this.showDisasterPoints
             },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription(properties, '滑坡'),
@@ -782,7 +1371,7 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: this.showDisasterPoints
             },
             // 文字
             label: {
@@ -800,7 +1389,7 @@ export default {
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(-70, 35),
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
+              show: this.showDisasterPoints
             },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription(properties, '泥石流'),
@@ -823,12 +1412,6 @@ export default {
           const position = point.properties.position; // 位置
           const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
           const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
-          const area = point.properties.area || {};   // 面积
-          const residentCounts = point.properties.residentCounts; // 居民户数（户）
-          const addressPopulation = point.properties.addressPopulation; // 户籍人口（人）
-          const riskProperty = point.properties.riskProperty; // 威胁财产（万元）
-          const permanentPopulation = point.properties.permanentPopulation; // 长居住人口（人）
-          const housing = point.properties.housing; // 住房（间）
 
           // 加入次生灾害点
           this.secondaryRiskPoints.push([longitude, latitude])
@@ -847,7 +1430,7 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
+              show: this.showDisasterPoints
             },
             // 文字
             label: {
@@ -865,7 +1448,7 @@ export default {
               horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
               pixelOffset: new Cesium.Cartesian2(-70, -35),
               distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
+              show: this.showDisasterPoints
             },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription({position}, '次生灾害风险区'),
@@ -880,219 +1463,70 @@ export default {
           this.disasterEntities.push(entity);
           this.secondaryRiskEntities.push(entity);
         });
+        // 添加山洪点
+        flashFloodFeatures.forEach(point => {
+          const position = point.properties.position; // 位置
+          const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
+          const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
+
+          // 加入山洪点
+          this.flashFloodPoints.push([longitude, latitude])
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: flashFloodIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showDisasterPoints
+            },
+            // 文字
+            label: {
+              text: `${position}`,
+              font: '15pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+              show: this.showDisasterPoints
+            },
+            // 添加灾害类型信息，用于弹窗显示
+            description: this.createDisasterDescription({position}, '山洪'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.ORANGE,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'flashFlood',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.disasterEntities.push(entity);
+          this.flashFloodEntities.push(entity);
+        });
 
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-        this.isLoading = false;
       } catch (error) {
-        this.isLoading = false;
         console.error('处理灾害数据时出错:', error);
       }
     },
-    // 加入滑坡区域
-    // loadLandSlide(landslide, target) {
-    //   for (let i = 0; i < landslide.length; i++) {
-    //     if(target.includes(i)){
-    //       console.log("所有符合:", landslide[i])
-    //       let lon = landslide[i].lon
-    //       let lat = landslide[i].lat
-    //       this.viewer.entities.add({
-    //         // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
-    //         position: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat)),
-    //         properties: {
-    //           data: landslide[i]
-    //         }
-    //       })
-    //
-    //       // 根据点路线绘制多边形影响范围，如果没有点路线则绘制圆形
-    //       if (landslide[i].点路线 && landslide[i].点路线.length > 0) {
-    //         const routePoints = [];
-    //         const polylinePositions = []; // 用于存储折线点的数组
-    //         const bufferWidth = 20; // 缓冲区宽度（米），您可以根据需要调整此值
-    //
-    //         // 收集并验证所有有效的路线点
-    //         for (let j = 0; j < landslide[i].点路线.length; j++) {
-    //           const currentPointData = landslide[i].点路线[j];
-    //           if (!Array.isArray(currentPointData) || currentPointData.length === 0 || !Array.isArray(currentPointData[0]) || currentPointData[0].length < 2) {
-    //             console.warn(`无效的点数据结构，索引 ${i}，点路线索引 ${j}:`, currentPointData);
-    //             continue;
-    //           }
-    //
-    //           const point = currentPointData[0];
-    //           const lon = parseFloat(point[0]);
-    //           const lat = parseFloat(point[1]);
-    //
-    //           if (!isNaN(lon) && !isNaN(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
-    //             routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
-    //             polylinePositions.push(lon, lat); // 添加到折线点数组
-    //           } else {
-    //             console.warn(`无效的坐标值，索引 ${i}，点路线索引 ${j}: lon=${point[0]}, lat=${point[1]}`);
-    //           }
-    //         }
-    //         // 绘制原始点路线
-    //         if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
-    //           this.viewer.entities.add({
-    //             polyline: {
-    //               positions: Cesium.Cartesian3.fromDegreesArray(polylinePositions),
-    //               width: 20, // 线条宽度
-    //               material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.YELLOW), // 使用箭头材质
-    //               clampToGround: true // 贴地显示
-    //             },
-    //             properties: {
-    //               data: landslide[i],
-    //               type: 'landslide_route'
-    //             }
-    //           });
-    //         }
-    //
-    //         // 绘制影响范围多边形（缓冲区）
-    //         if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
-    //           // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
-    //           const generateSmoothBuffer = (routePoints, bufferWidth) => { // 移除 fanAngle 参数
-    //             const interpolatedPoints = [];
-    //             const segmentInterpolationCount = 50; // 每段插值点数
-    //
-    //             // 如果只有一个点，直接生成圆形（360度扇形）
-    //             if (routePoints.length === 1) {
-    //               const centerPoint = routePoints[0];
-    //               const radius = bufferWidth;
-    //               const positions = [];
-    //               const numSegments = 60; // 扇形分段数
-    //
-    //               for (let k = 0; k <= numSegments; k++) {
-    //                 const angle = (k / numSegments) * 360; // 0到360度
-    //                 const radian = Cesium.Math.toRadians(angle);
-    //
-    //                 // 计算扇形边界点，使用更精确的地理坐标计算
-    //                 const cartographic = Cesium.Cartographic.fromCartesian(centerPoint);
-    //                 const longitude = cartographic.longitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.sin(radian);
-    //                 const latitude = cartographic.latitude + (radius / Cesium.Ellipsoid.WGS84.maximumRadius) * Math.cos(radian);
-    //                 positions.push(Cesium.Cartesian3.fromRadians(longitude, latitude));
-    //               }
-    //               return new Cesium.PolygonHierarchy(positions);
-    //             }
-    //
-    //             // 处理多点路线的平滑缓冲区
-    //             const leftPoints = [];
-    //             const rightPoints = [];
-    //
-    //             // 遍历所有线段，生成平滑缓冲区
-    //             for (let j = 0; j < routePoints.length - 1; j++) { // 遍历到倒数第二个点
-    //               const start = routePoints[j];
-    //               const end = routePoints[j + 1];
-    //
-    //               interpolatedPoints.push(start);
-    //
-    //               for (let k = 1; k < segmentInterpolationCount; k++) {
-    //                 const ratio = k / segmentInterpolationCount;
-    //                 const interpolated = Cesium.Cartesian3.lerp(
-    //                     start,
-    //                     end,
-    //                     ratio,
-    //                     new Cesium.Cartesian3()
-    //                 );
-    //                 interpolatedPoints.push(interpolated);
-    //               }
-    //             }
-    //             // 添加最后一个原始点
-    //             interpolatedPoints.push(routePoints[routePoints.length - 1]);
-    //             // 计算平滑的缓冲区边界点
-    //             for (let j = 0; j < interpolatedPoints.length; j++) {
-    //               const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
-    //               const next = j < interpolatedPoints.length - 1 ? interpolatedPoints[j + 1] : interpolatedPoints[j];
-    //
-    //               const forwardVec = Cesium.Cartesian3.subtract(next, prev, new Cesium.Cartesian3());
-    //               Cesium.Cartesian3.normalize(forwardVec, forwardVec);
-    //
-    //               const normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(interpolatedPoints[j], new Cesium.Cartesian3());
-    //               const perpendicular = Cesium.Cartesian3.normalize(Cesium.Cartesian3.cross(normal, forwardVec, new Cesium.Cartesian3()), new Cesium.Cartesian3());
-    //
-    //               const scaledPerpendicular = Cesium.Cartesian3.multiplyByScalar(
-    //                   perpendicular,
-    //                   bufferWidth,
-    //                   new Cesium.Cartesian3()
-    //               );
-    //
-    //               const leftPoint = Cesium.Cartesian3.add(
-    //                   interpolatedPoints[j],
-    //                   scaledPerpendicular,
-    //                   new Cesium.Cartesian3()
-    //               );
-    //               const rightPoint = Cesium.Cartesian3.subtract(
-    //                   interpolatedPoints[j],
-    //                   scaledPerpendicular,
-    //                   new Cesium.Cartesian3()
-    //               );
-    //
-    //               leftPoints.push(leftPoint);
-    //               rightPoints.push(rightPoint);
-    //             }
-    //
-    //             // 组合成闭合多边形：左侧点 + 右侧点（反向）
-    //             const polygonPositions = [...leftPoints, ...rightPoints.reverse()];
-    //
-    //             return new Cesium.PolygonHierarchy(polygonPositions);
-    //           };
-    //
-    //           // 调用新的平滑缓冲区生成方法
-    //           const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);
-    //
-    //           // 如果成功创建了多边形顶点，则添加实体
-    //           if (polygonHierarchy.positions.length > 0) {
-    //             this.viewer.entities.add({
-    //               polygon: {
-    //                 hierarchy: polygonHierarchy,
-    //                 // material: Cesium.Color.BLUE.withAlpha(0.3),
-    //                 material: new Cesium.ImageMaterialProperty({
-    //                   image: landslide_surface01,
-    //                   color: Cesium.Color.WHITE,
-    //                   repeat: new Cesium.Cartesian2(4, 4),
-    //                 }),
-    //                 outline: true,
-    //                 outlineColor: Cesium.Color.BLUE,
-    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    //               },
-    //               properties: {
-    //                 data: landslide[i],
-    //                 type: 'influence_range_polygon'
-    //               }
-    //             });
-    //           }
-    //           // 如果是多点路线，单独为最后一个点绘制圆形缓冲区
-    //           if (routePoints.length > 1) {
-    //             const lastPoint = routePoints[routePoints.length - 1];
-    //             const lastPointBufferRadius = bufferWidth; // 可以根据需要调整这个半径
-    //             this.viewer.entities.add({
-    //               position: lastPoint,
-    //               ellipse: {
-    //                 semiMinorAxis: lastPointBufferRadius,
-    //                 semiMajorAxis: lastPointBufferRadius,
-    //                 material: new Cesium.ImageMaterialProperty({
-    //                   image: landslide_surface01,
-    //                   color: Cesium.Color.WHITE,
-    //                   repeat: new Cesium.Cartesian2(4, 4),
-    //                 }),
-    //                 outline: true,
-    //                 outlineColor: Cesium.Color.BLUE,
-    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    //               },
-    //               properties: {
-    //                 data: landslide[i],
-    //                 type: 'last_point_circular_buffer'
-    //               }
-    //             });
-    //           }
-    //
-    //         } else {
-    //           console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
-    //         }
-    //       } else {
-    //         // ... existing code ...
-    //       }
-    //     }
-    //   }
-    // },
     // // 创建灾害点详情描述
     createDisasterDescription(properties, type) {
 
@@ -1106,6 +1540,118 @@ export default {
       <p><strong>坐标:</strong> ${properties.longitude || '未知'}, ${properties.latitude || '未知'}</p>
     </div>
 `;
+    },
+    // 图层点击事件处理
+    setupLayerClickHandler() {
+      // 清除之前的点击事件处理程序
+      if (this.layerHandler) {
+        this.layerHandler.destroy();
+      }
+      // 为左键点击添加事件处理程序
+      this.layerHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
+
+      this.layerHandler.setInputAction(async (click) => {
+        // 1. 获取点击位置的经纬度和像素坐标
+        const position = viewer.scene.pickPosition(click.position); // 三维坐标
+        if (!position) return;
+        const ray = this.viewer.camera.getPickRay(click.position);
+        const cartesian = this.viewer.scene.globe.pick(ray, this.viewer.scene);
+
+        if (cartesian) {
+           const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+           const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+           const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+          console.log(111, longitude, latitude);
+
+          // 2. 获取点击位置的屏幕像素坐标
+          const feature = viewer.scene.pick(click.position);
+          if (!feature) return;
+          // 3. 发送 GetFeatureInfo 请求,对每个Layer进行判别，若其显示，则请求
+          if(this.showPeople){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.peopleLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("属性信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
+          }
+          //农作物
+          if(this.showCrops){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.cropsLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("农作物信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
+          }
+          //管网
+          if(this.showPipe){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.waterPipeLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("管网信息:", JSON.parse(text));
+          }
+          //道路
+          if(this.showRoad){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.roadLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("道路信息:", JSON.parse(text));
+          }
+          //桥梁
+          if(this.showBridge){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.bridgeLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("桥梁信息:", JSON.parse(text));
+          }
+          //高速
+          if(this.showHighway){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.highwayLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("高速信息:", JSON.parse(text));
+          }
+          //国道
+          if(this.showNationalRoad){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.nationalRoadLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("国道信息:", JSON.parse(text));
+          }
+          //水库
+          if(this.showReservoir){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.reservoirLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("水库信息:", JSON.parse(text));
+          }
+          //地铁站
+          if(this.showNationalRoad){
+            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.subwayLayerName);
+            const response = await fetch(infoUrl);
+            const text = await response.text();
+            console.log("地铁站信息:", JSON.parse(text));
+          }
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    },
+    //设置请求
+    buildGetFeatureInfoUrl(lon, lat, layerName) {
+      const wmsUrl = this.geoUrl;
+      const params = {
+        service: 'WMS',
+        version: '1.1.1',
+        request: 'GetFeatureInfo',
+        layers: layerName,
+        srs: 'EPSG:4490',
+        bbox: `${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}`, // 小范围查询
+        width: 101,  // 必须为奇数（中心点即点击位置）
+        height: 101,
+        query_layers: layerName,
+        info_format: 'application/json', // 或 'text/plain'
+        x: 50,  // 点击位置在 bbox 中心的像素坐标
+        y: 50,
+      };
+
+      return `${wmsUrl}?${new URLSearchParams(params).toString()}`;
     },
     // 设置实体点击事件处理
     setupEntityClickHandler() {
@@ -1124,7 +1670,6 @@ export default {
         if (pickedObject.id._disasterData === undefined) {
           return;
         }
-
         // 隐藏之前的弹出面板
         this.closePopup();
 
@@ -1134,7 +1679,6 @@ export default {
           this.selectedEntityData = entity._disasterData || {};
           // 计算弹出框位置并显示面板
           this.calculateAndShowPopup(entity, movement.position);
-
         } else {
           // 如果点击在空白处，隐藏信息框
           this.viewer.selectedEntity = undefined;
@@ -1465,7 +2009,7 @@ export default {
           Radius,
       );
 
-      // 创建椭圆实体
+      // 创建圆实体
       const ellipseEntity = this.viewer.entities.add({
         position: centerCartesian,
         ellipse: {
@@ -1527,8 +2071,6 @@ export default {
     },
     // 检查灾害点是否在圆范围内
     checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, majorRadius) {
-      // 获取圆中心点的经纬度
-      const centerCartographic = Cesium.Cartographic.fromCartesian(centerCartesian);
       // 存储在圆内的灾害点坐标
       const landslidePointsInside = [];
       const debrisFlowPointsInside = [];
@@ -1562,7 +2104,7 @@ export default {
         // 直接传递坐标数组到闪烁函数
         this.flashDisasterPoints(allPointsInside);
 
-        console.log(`在椭圆内的灾害点数量: ${allPointsInside.length}`);
+        console.log(`在圆内的灾害点数量: ${allPointsInside.length}`);
         console.log(`滑坡点: ${landslidePointsInside.length}`);
         console.log(`泥石流点: ${debrisFlowPointsInside.length}`);
         console.log(`次生灾害风险点: ${secondaryRiskPointsInside.length}`);
@@ -1593,7 +2135,7 @@ export default {
           const coordsStr1 = entityCoords1.join(',');
           // 检查坐标字符串是否存在于集合中
           if (dangerA.has(coordsStr1)) {
-            console.log("找到了匹配的坐标:", entityCoords1);
+            // console.log("找到了匹配的坐标:", entityCoords1);
             this.dataTypes.type3.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1610,7 +2152,7 @@ export default {
           const coordsStr2 = entityCoords2.join(',');
           // 检查坐标字符串是否存在于集合中
           if (slideA.has(coordsStr2)) {
-            console.log("找到了匹配的坐标:", entityCoords2);
+            // console.log("找到了匹配的坐标:", entityCoords2);
             this.dataTypes.type1.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1627,7 +2169,7 @@ export default {
           const coordsStr3 = entityCoords3.join(',');
           // 检查坐标字符串是否存在于集合中
           if (flowA.has(coordsStr3)) {
-            console.log("找到了匹配的坐标:", entityCoords3);
+            // console.log("找到了匹配的坐标:", entityCoords3);
             this.dataTypes.type2.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1639,16 +2181,205 @@ export default {
           }
         });
 
+        this.checkOtherPointsInEllipse(ellipseEntity, centerCartesian, majorRadius);
+        // 更新椭圆描述，显示检测结果
+//         const description = ellipseEntity.description.getValue();
+//         ellipseEntity.description = description + `
+//   <p><strong>影响灾害点:</strong> ${allPointsInside.length}个</p>
+//   <p><strong>滑坡:</strong> ${landslidePointsInside.length}个</p>
+//   <p><strong>泥石流:</strong> ${debrisFlowPointsInside.length}个</p>
+//   <p><strong>次生灾害风险点:</strong> ${secondaryRiskPointsInside.length}个</p>
+// `;
+      }
+    },
+    //检查其他店是否在圆内
+    checkOtherPointsInEllipse(ellipseEntity, centerCartesian, radius){
+      //储存各点坐标
+      const hospitalPointsInside = [];
+      const dangerSourcePointsInside = [];
+      const shelterPointsInside = [];
+      const storePointsInside = [];
+      const fireFighterPointsInside = [];
+
+      this.hospitalPoints.forEach(point =>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          hospitalPointsInside.push(point);
+        }
+      })
+
+      this.dangerSourcePoints.forEach(point=>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          dangerSourcePointsInside.push(point);
+        }
+      })
+
+      this.shelterPoints.forEach(point=>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          shelterPointsInside.push(point);
+        }
+      })
+
+      this.storePoints.forEach(point=>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          storePointsInside.push(point);
+        }
+      })
+
+      this.fireFighterPoints.forEach(point=>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          fireFighterPointsInside.push(point);
+        }
+      })
+
+      const allPointsInside = [
+          ...fireFighterPointsInside,
+          ...dangerSourcePointsInside,
+          ...shelterPointsInside,
+          ...storePointsInside,
+          ...hospitalPointsInside
+      ];
+
+      if(allPointsInside.length > 0){
+        console.log(`在圆内的其他点数量: ${allPointsInside.length}`);
+        console.log(`医院: ${hospitalPointsInside.length}`);
+        console.log(`危险源 ${dangerSourcePointsInside.length}`);
+        console.log(`避难所: ${shelterPointsInside.length}`);
+        console.log(`消防站: ${fireFighterPointsInside.length}`);
+        console.log(`物资储备点: ${storePointsInside.length}`);
+
+        // 预处理：将坐标数组转换为字符串集合
+        const hospital = new Set();
+        hospitalPointsInside.forEach(coords => {
+          hospital.add(coords.join(','));
+        });
+
+        const danger = new Set();
+        dangerSourcePointsInside.forEach(coords => {
+          danger.add(coords.join(','));
+        });
+
+        const shelter = new Set();
+        shelterPointsInside.forEach(coords => {
+          shelter.add(coords.join(','));
+        });
+
+        const fire = new Set();
+        fireFighterPointsInside.forEach(coords => {
+          fire.add(coords.join(','));
+        });
+
+        const store = new Set();
+        storePointsInside.forEach(coords => {
+          store.add(coords.join(','));
+        });
+
+        // 主逻辑
+        const hospitalDates = this.HospitalData.features;
+        const dangerSourceDates = this.DangerSourceData.features;
+        const shelterDates = this.ShelterData.features;
+        const fireDates = this.FireFighterData.features;
+        const storeDates = this.StorePointsData.features;
+
+        //医院表数据加载
+        hospitalDates.forEach(entity => {
+          const entityCoords1 = entity.geometry.coordinates;
+          const coordsStr1 = entityCoords1.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (hospital.has(coordsStr1)) {
+            console.log("找到了匹配的坐标:", entityCoords1);
+            this.dataTypes.type4.data.push({
+              field1: entity.properties.hospitalName,
+              field2: entity.properties.position,
+              field3: entity.properties.level,
+              field4: entity.properties.beds,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
+        //风险源表数据加载
+        dangerSourceDates.forEach(entity => {
+          const entityCoords2 = entity.geometry.coordinates;
+          const coordsStr2 = entityCoords2.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (danger.has(coordsStr2)) {
+            console.log("找到了匹配的坐标:", entityCoords2);
+            this.dataTypes.type5.data.push({
+              field1: entity.properties.dangerName,
+              field2: entity.properties.position,
+              field3: entity.properties.enterpriseType,
+              field4: entity.properties.level,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
+        //避难所表数据加载
+        shelterDates.forEach(entity => {
+          const entityCoords3 = entity.geometry.coordinates;
+          const coordsStr3 = entityCoords3.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (shelter.has(coordsStr3)) {
+            console.log("找到了匹配的坐标:", entityCoords3);
+            this.dataTypes.type6.data.push({
+              field1: entity.properties.shelterName,
+              field2: entity.properties.position,
+              field3: entity.properties.shelterType,
+              field4: entity.properties.shelterVolume,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
+
+        //消防站表数据加载
+        fireDates.forEach(entity => {
+          const entityCoords4 = entity.geometry.coordinates;
+          const coordsStr4 = entityCoords4.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (fire.has(coordsStr4)) {
+            console.log("找到了匹配的坐标:", entityCoords4);
+            this.dataTypes.type7.data.push({
+              field1: entity.properties.teamName,
+              field2: entity.properties.position,
+              field3: entity.properties.fireType,
+              field4: entity.properties.teamSumNum,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
+
+        //储备点表数据加载
+        storeDates.forEach(entity => {
+          const entityCoords5 = entity.geometry.coordinates;
+          const coordsStr5 = entityCoords5.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (store.has(coordsStr5)) {
+            console.log("找到了匹配的坐标:", entityCoords5);
+            this.dataTypes.type8.data.push({
+              field1: entity.properties.storeName,
+              field2: entity.properties.position,
+              field3: entity.properties.storeType,
+              field4: entity.properties.storeVolume,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
+
         this.showTable = true;
         // 更新椭圆描述，显示检测结果
-        const description = ellipseEntity.description.getValue();
-        ellipseEntity.description = description + `
-  <p><strong>影响灾害点:</strong> ${allPointsInside.length}个</p>
-  <p><strong>滑坡:</strong> ${landslidePointsInside.length}个</p>
-  <p><strong>泥石流:</strong> ${debrisFlowPointsInside.length}个</p>
-  <p><strong>次生灾害风险点:</strong> ${secondaryRiskPointsInside.length}个</p>
-`;
-        this.initColumGraph(landslidePointsInside, debrisFlowPointsInside, secondaryRiskPointsInside);
+//         const description = ellipseEntity.description.getValue();
+//         ellipseEntity.description = description + `
+//   <p><strong>其他点:</strong> ${allPointsInside.length}个</p>
+//   <p><strong>医院:</strong> ${hospitalPointsInside.length}个</p>
+//   <p><strong>风险源:</strong> ${dangerSourcePointsInside.length}个</p>
+//   <p><strong>避难所:</strong> ${shelterPointsInside.length}个</p>
+//   <p><strong>消防站:</strong> ${fireFighterPointsInside.length}个</p>
+//   <p><strong>储备点:</strong> ${storePointsInside.length}个</p>
+// `;
+        this.initColumGraph(hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside);
       }
     },
     // 判断点是否在圆内（圆形是椭圆的特例，无需旋转参数）
@@ -1776,18 +2507,16 @@ export default {
       }, 50); // 每50ms更新一次
     },
     //加载柱状图
-    initColumGraph(landslide, flow, risk){
-      this.isLoading = true;
+    initColumGraph(hospital, danger, shelter, fire, store){
+      this.chartDatas.seriesDatas = [0, 0, 0, 0, 0];
 
-      this.chartDatas.seriesDatas = [0, 0, 0];
-
-      this.chartDatas.seriesDatas[0] = landslide.length;
-      this.chartDatas.seriesDatas[1] = flow.length;
-      this.chartDatas.seriesDatas[2] = risk.length;
+      this.chartDatas.seriesDatas[0] = hospital.length;
+      this.chartDatas.seriesDatas[1] = danger.length;
+      this.chartDatas.seriesDatas[2] = shelter.length;
+      this.chartDatas.seriesDatas[3] = fire.length;
+      this.chartDatas.seriesDatas[4] = store.length;
 
       this.showChart = true;
-
-      this.isLoading = false;
     },
     // 创建图例（再版，更改了图例图像和元素
     createLegend() {
@@ -2016,6 +2745,78 @@ export default {
       hospitalItem.appendChild(hospitalColorDiv);
       hospitalItem.appendChild(hospitalTextDiv);
       container.appendChild(hospitalItem);
+
+      // 避难所图例
+      const shelterItem = document.createElement('div');
+      shelterItem.className = 'legend-item';
+      shelterItem.style.display = 'flex';
+      shelterItem.style.alignItems = 'center';
+      shelterItem.style.marginBottom = '10px';
+
+      const shelterColorDiv = document.createElement('img');
+      shelterColorDiv.className = 'legend-point';
+      shelterColorDiv.src = shelterIcon;
+      shelterColorDiv.style.width = '16px';
+      shelterColorDiv.style.height = '16px';
+      shelterColorDiv.style.marginRight = '10px';
+
+      const shelterTextDiv = document.createElement('div');
+      shelterTextDiv.className = 'legend-text';
+      shelterTextDiv.textContent = '避难所';
+      shelterTextDiv.style.fontSize = '14px';
+      shelterTextDiv.style.lineHeight = '20px';
+
+      shelterItem.appendChild(shelterColorDiv);
+      shelterItem.appendChild(shelterTextDiv);
+      container.appendChild(shelterItem);
+
+      // 消防队图例
+      const fireItem = document.createElement('div');
+      fireItem.className = 'legend-item';
+      fireItem.style.display = 'flex';
+      fireItem.style.alignItems = 'center';
+      fireItem.style.marginBottom = '10px';
+
+      const fireColorDiv = document.createElement('img');
+      fireColorDiv.className = 'legend-point';
+      fireColorDiv.src = fireIcon;
+      fireColorDiv.style.width = '16px';
+      fireColorDiv.style.height = '16px';
+      fireColorDiv.style.marginRight = '10px';
+
+      const fireTextDiv = document.createElement('div');
+      fireTextDiv.className = 'legend-text';
+      fireTextDiv.textContent = '消防队';
+      fireTextDiv.style.fontSize = '14px';
+      fireTextDiv.style.lineHeight = '20px';
+
+      fireItem.appendChild(fireColorDiv);
+      fireItem.appendChild(fireTextDiv);
+      container.appendChild(fireItem);
+
+      // 物资储备点图例
+      const storePointsItem = document.createElement('div');
+      storePointsItem.className = 'legend-item';
+      storePointsItem.style.display = 'flex';
+      storePointsItem.style.alignItems = 'center';
+      storePointsItem.style.marginBottom = '10px';
+
+      const storeColorDiv = document.createElement('img');
+      storeColorDiv.className = 'legend-point';
+      storeColorDiv.src = storePointsIcon;
+      storeColorDiv.style.width = '16px';
+      storeColorDiv.style.height = '16px';
+      storeColorDiv.style.marginRight = '10px';
+
+      const storeTextDiv = document.createElement('div');
+      storeTextDiv.className = 'legend-text';
+      storeTextDiv.textContent = '物资储备点';
+      storeTextDiv.style.fontSize = '14px';
+      storeTextDiv.style.lineHeight = '20px';
+
+      storePointsItem.appendChild(storeColorDiv);
+      storePointsItem.appendChild(storeTextDiv);
+      container.appendChild(storePointsItem);
     },
     // 更新图例
     updateLegend() {
@@ -2160,12 +2961,59 @@ export default {
         this.loading = false;
       }, 500);
     },
-    toggleTableExpand() {
-      this.isExpanded = !this.isExpanded;
-
-      // 切换时如果表格处于收缩状态，隐藏分页组件
-      if (!this.isExpanded) {
-        this.currentPage = 1; // 重置到第一页
+    toggleDisasterPoints() {
+      if(this.disasterEntities.length == 0 && this.showDisasterPoints){
+        this.loadDisasterData();
+      }else{
+        this.disasterEntities.forEach(entity => {
+          entity.show = this.showDisasterPoints;
+        });
+      }
+    },
+    toggleHospitalPoints() {
+      //首次加载
+      if(this.hospitalEntities.length == 0 && this.showHospital){
+        this.loadProtectTarget();
+      }else{
+        this.hospitalEntities.forEach(entity => {
+          entity.show = this.showHospital;
+        });
+      }
+    },
+    toggleDangerPoints() {
+      if(this.dangerEntities.length == 0 && this.showDangerSource){
+        this.loadDangerSource();
+      }else{
+        this.dangerEntities.forEach(entity => {
+          entity.show = this.showDangerSource;
+        });
+      }
+    },
+    toggleShelterPoints() {
+      if(this.shelterEntities.length == 0 && this.showShelter){
+        this.loadShelter();
+      }else{
+        this.shelterEntities.forEach(entity => {
+          entity.show = this.showShelter;
+        });
+      }
+    },
+    toggleFirePoints() {
+      if(this.fireFighterEntities.length == 0 && this.showFire){
+        this.loadSaveTeams();
+      }else{
+        this.fireFighterEntities.forEach(entity => {
+          entity.show = this.showFire;
+        });
+      }
+    },
+    toggleStorePoints() {
+      if(this.storePointsEntities.length == 0 && this.showStore){
+        this.loadStorePoints();
+      }else{
+        this.storePointsEntities.forEach(entity => {
+          entity.show = this.showStore;
+        });
       }
     },
   }
@@ -2186,7 +3034,7 @@ export default {
 .controls {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 190px;
   z-index: 100;
 }
 
@@ -2210,6 +3058,39 @@ export default {
   background-color: rgba(33, 158, 188, 1);
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.secondary-panel {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background-color: rgba(40, 40, 40, 0.8);
+  color: white;
+  padding: 10px; /* 缩小内边距 */
+  border-radius: 4px;
+  z-index: 1000;
+  width: 160px; /* 缩小面板宽度 */
+}
+
+.panel-title1 {
+  font-weight: bold;
+  margin-bottom: 6px; /* 缩小标题与内容间距 */
+  font-size: 12px; /* 缩小字体 */
+}
+
+.panel-content1 {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px; /* 缩小字体 */
+  gap: 6px; /* 缩小子元素间距 */
+}
+
+.panel-content1 label {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* 缩小标签内元素间距 */
+  font-size: 12px; /* 缩小字体 */
+  cursor: pointer;
 }
 
 

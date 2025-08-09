@@ -371,6 +371,7 @@ import {
 } from '@/api/system/rainModel.js'
 import Chart from "../../components/Earthquake/Chart.vue";
 import {reactive} from "vue";
+import {dataOnHiddenDangerPointsOfDebrisFlow} from "@/api/earthquake/datas.js";
 
 export default {
   name: 'CesiumFlowMap',
@@ -2024,7 +2025,7 @@ export default {
 
         // 检查坐标字符串是否存在于集合中
         if (coordinateSet.has(coordsStr)) {
-          console.log("找到了匹配的坐标:", entityCoords);
+          // console.log("找到了匹配的坐标:", entityCoords);
           this.allData.risk.push(entity.properties);
         }
       });
@@ -2068,7 +2069,9 @@ export default {
         // 筛选匹配的滑坡点数据
         const matchedHuapoData = []
         const matchedHuapoEntities = []
-        getGeologicalDisasterHideByLandSlideList().then(res => {
+        //滑坡的
+        dataOnHiddenDangerPointsOfDebrisFlow().then(res => {
+          console.log(res,"getGeologicalDisasterHideByLandSlideList")
           const hides = res.data;
           hides.forEach(item => {
             const lon = item.geologicalDisasterHideDTO.lon;
@@ -2078,6 +2081,7 @@ export default {
               matchedHuapoData.push(item.factorVoList);
             }
           });
+          console.log(matchedHuapoData,"matchedHuapoData")
           for (var i = 0; i < matchedHuapoData.length; i++) {
             for (var j = 0; j < matchedHuapoData[i].length; j++) {
               if (matchedHuapoData[i][j].attributeName === "降雨量") {

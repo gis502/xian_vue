@@ -109,5 +109,5 @@ export async function getAffectPoint(affectArea){
     method: "post",
     data: affectArea,
   })
-  return res
+  return res.data
 }

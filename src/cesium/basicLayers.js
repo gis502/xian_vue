@@ -21,11 +21,13 @@ import lineData from "@/assets/西安断层数据.json";
 import landslideIcon from "@/assets/images/landslide.png";
 import riskArea from "@/assets/images/riskArea.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
+import flashFloodIcon from "@/assets/images/flashflood.png"
 import {
     dataOnHiddenDangerPointsOfDebrisFlow,
     landslideHazardPointData,
     riskVillageData,
 } from "@/api/earthquake/datas";
+import {getFlashFlood} from "@/api/system/aroundanalysis.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 
@@ -231,12 +233,14 @@ let basicLayers = {
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
+            console.log(res,"dataOnHiddenDangerPointsOfDebrisFlow")
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
 
     },
     async loadLandSlide(){
         landslideHazardPointData().then((res) => {
+            console.log(res,"landslideHazardPointData")
             this.addHiddenDangerPoints("滑坡隐患点",res.data, landslideIcon);
         });
     },
