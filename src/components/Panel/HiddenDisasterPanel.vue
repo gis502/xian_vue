@@ -360,22 +360,25 @@ function landslideImpact(){
 
 
       //坐标转换
-      // let ellipsoid=window.viewer.scene.globe.ellipsoid;
-      //
-      // for (let i=0;i<polygonHierarchy.positions.length;i++){
-      //
-      //   let cartographic=ellipsoid.cartesianToCartographic(polygonHierarchy.positions[i]);
-      //
-      //   let lat=Cesium.Math.toDegrees(cartographic.latitude);
-      //   let lon=Cesium.Math.toDegrees(cartographic.longitude);
-      //
-      //   let currentPoint = {
-      //     lat: lat,
-      //     lon: lon,
-      //   };
-      //
-      //   position.push(currentPoint);
-      // }
+      let ellipsoid=window.viewer.scene.globe.ellipsoid;
+
+      for (let i=0;i<affrctPoint.positions.length;i++){
+
+        let cartographic=ellipsoid.cartesianToCartographic(polygonHierarchy.positions[i]);
+
+        let lat=Cesium.Math.toDegrees(cartographic.latitude);
+        let lon=Cesium.Math.toDegrees(cartographic.longitude);
+
+        let currentPoint = {
+          lat: lat,
+          lon: lon,
+        };
+
+        position.push(currentPoint);
+      }
+      getAffectPoint(position).then((res) => {
+        console.log(63245,res )
+      })
 
       //缓冲区画点测试
       // for (let i=0;i<affrctPoint.positions.length;i++){
