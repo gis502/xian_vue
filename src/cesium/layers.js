@@ -349,8 +349,21 @@ let layers = {
         }
         return null;
     },
+    getAdminCoordinatesByName(areaName){
+        let administrationData = [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi]
+
+        for (let admin of administrationData) {
+            // console.log(admin.features,"admin.features")
+            // console.log(admin.features[0].properties,"admin.features.properties")
+            if (areaName == admin.features[0].properties.name) {
+                return admin.features[0].geometry.coordinates
+            }
+        }
+        return null;
+    },
     //找一个区域里的隐患点（区域为json数据）
     findAllHiddenDisasterPointsInAffectedArea(adminCoordinates){
+        console.log(adminCoordinates,"findAllHiddenDisasterPointsInAffectedArea")
 
         // console.log(adminCoordinates[0],"adminCoordinates[0]")
         let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
@@ -362,6 +375,7 @@ let layers = {
             ...landslidePointsInside,
             ...mudslidePointsInside
         ];
+        console.log(allPointsInside,"allPointsInside")
         return allPointsInside
     },
     findHiddenDisasterPointsInAdminCoordinates(type, adminCoordinates) {

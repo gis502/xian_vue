@@ -231,14 +231,14 @@ let basicLayers = {
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
-            console.log(res,"dataOnHiddenDangerPointsOfDebrisFlow")
+            console.log(res.data,"dataOnHiddenDangerPointsOfDebrisFlow")
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
 
     },
     async loadLandSlide(){
         landslideHazardPointData().then((res) => {
-            console.log(res,"landslideHazardPointData")
+            console.log(res.data,"landslideHazardPointData")
             this.addHiddenDangerPoints("滑坡隐患点",res.data, landslideIcon);
         });
     },
@@ -258,17 +258,21 @@ let basicLayers = {
     },
     async addHiddenDangerPoints(type,hiddenDangerPoints, imageEntity) {
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
-            // console.log(hiddenDangerPoints,"hiddenDangerPoints")
+            console.log(hiddenDangerPoints,"hiddenDangerPoints")
             let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
             let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
 
-            // 生成唯一ID (使用隐患点ID或随机生成)
-            // const entityId = `HIDDEN_DANGER_${Math.floor(Math.random() * 10000000)}`;
-            // hiddenDangerPoint.entityId = entityId;
+            let entityId = '';
+            if(type=="风险区域"){
+                entityId=type+hiddenDangerPoint.geologicalDisasterHideDTO.unitCode
+            }
+            else {
+                entityId=type+hiddenDangerPoint.geologicalDisasterHideDTO.id
+            }
 
             window.viewer.entities.add({
                 name:type,
-                id: hiddenDangerPoints.entityId,
+                id: entityId,
                 position: Cesium.Cartesian3.fromDegrees(lon, lat),
                 billboard: {
                     // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
