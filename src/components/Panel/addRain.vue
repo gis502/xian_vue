@@ -172,7 +172,7 @@ export default {
       this.$emit('update:update-rain-info', this.entries);
       if (!this.selectedPositionLonAndLat) return;
       let {longitude, latitude, cartesian} = this.selectedPositionLonAndLat;
-      this.$emit('update:show-info-panel', false);
+      // this.$emit('update:show-info-panel', false);
       // 标记后自动开启下雨效果
       this.$emit('update:handleWeather');
       // 新增逻辑：获取标记点所在行政区划 标记点的位置
@@ -212,6 +212,7 @@ export default {
         // 核心修改：汇总所有区县数据后一次性请求接口
         await this.processAllDistricts();
         this.$emit('update:loading-model', false);
+        this.$emit('update:show-info-panel', false);
       } else {
         console.log("未找到标记点所在的行政区划");
       }
