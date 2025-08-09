@@ -995,21 +995,18 @@ export default {
         console.error("处理避难所点数据失败.")
       }
     },
-    //加载储备站点
-    loadStorePoints(){
+    //加载点
+    loadEntities(data, icon){
       try{
         //储备站点获取数据
-        const storePointsFeatures = this.StorePointsData?.features || [];
-        this.storePointsEntities = [];
+        const Features = data?.features || [];
+        const suchEntities = [];
         //添加储备站点
-        storePointsFeatures.forEach(point => {
-          const properties = point.properties || {};
-          const storeName = properties.storeName || '未知危险源';
+        Features.forEach(point => {
           const longitude = point.geometry.coordinates[0];
           const latitude = point.geometry.coordinates[1];
-
           // 加入储备点到数组
-          this.storePoints.push([longitude, latitude])
+          this.suchPoints.push([longitude, latitude])
 
           // 创建实体
           const entity = this.viewer.entities.add({
@@ -1017,9 +1014,9 @@ export default {
             // 点
             billboard: {
               // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-              image: storePointsIcon,
-              width: 60, // 图片宽度,单位px
-              height: 60, // 图片高度，单位px
+              image: icon,
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
               eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
               color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
               scale: 0.8, // 缩放比例
@@ -1027,42 +1024,23 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: this.showStore
+              show: true
             },
-            // 文字
-            label: {
-              text: `${storeName}`,
-              font: '12pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, -35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-              show: this.showStore
-            },
-            // 添加灾害类型信息，用于弹窗显示
-            // description: this.createDisasterDescription(properties, '滑坡'),
-            // 保存原始样式，用于闪烁恢复
             originalColor: Cesium.Color.RED,
             originalPixelSize: 15,
             // 标记灾害类型
-            disasterType: 'storePoints',
+            disasterType: 'disaster',
             disasterData: point,
           });
           // 保存实体引用
-          this.storePointsEntities.push(entity);
+          suchEntities.push(entity);
         })
+
+        return suchEntities;
         //设置点击事件监听
         this.setupEntityClickHandler();
       }catch(error){
-        console.error("处理储备站点数据失败.")
+        console.error("处理点数据失败.")
       }
     },
     //加载救援队伍
@@ -3009,7 +2987,7 @@ export default {
     },
     toggleStorePoints() {
       if(this.storePointsEntities.length == 0 && this.showStore){
-        this.loadStorePoints();
+        this.storePointsEntities = this.loadEntities(this.ShelterData, shelterIcon);
       }else{
         this.storePointsEntities.forEach(entity => {
           entity.show = this.showStore;
