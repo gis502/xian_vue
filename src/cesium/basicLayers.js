@@ -258,7 +258,7 @@ let basicLayers = {
     },
     async addHiddenDangerPoints(type,hiddenDangerPoints, imageEntity) {
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
-            // console.log(hiddenDangerPoints,"hiddenDangerPoints")
+            console.log(hiddenDangerPoints,"hiddenDangerPoints")
             let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
             let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
 

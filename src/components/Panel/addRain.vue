@@ -270,6 +270,7 @@ export default {
           let key = `${lon},${lat}`;
           if (pointSet.has(key)) {
             matchedHuapoData.push(item);
+            factorVoList
             console.log(item,"useSimulationPointStore")
             // item.
           }
