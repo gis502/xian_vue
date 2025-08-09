@@ -283,7 +283,6 @@
         :trigger="'暴雨'"
         :rainInfo="rainInfo"
     />
-
     <Legend ref="legendRef"></Legend>
   </div>
 </template>
@@ -1963,9 +1962,6 @@ export default {
     updateRainInfo(data){
       this.rainInfo=data
     },
-    // cancelRainPoint() {
-    //   this.showInfoPanel = false;
-    // },
     onKeyDown(event) {
       if (event.key === 'Escape' && this.rainMode) {
         this.toggleRainMode();
@@ -2386,7 +2382,7 @@ export default {
         // 检查是否有选中的实体位置
         if (this.selectedEntityPosition) {
           // 将地理坐标转换为窗口坐标
-          const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
+          const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
               window.viewer.scene,
               Cesium.Cartesian3.fromDegrees(this.selectedEntityPosition.x, this.selectedEntityPosition.y, this.selectedEntityPosition.z)
           );

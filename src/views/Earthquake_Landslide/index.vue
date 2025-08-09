@@ -165,11 +165,7 @@ let showEarthquakeSimulation = ref(false);
 let earthquakeSimulationPosition = ref({});
 let isMonitoringEarthquake = false;
 let earthquakeClickHandler = null;
-
 let entityClickHandler = ref(null);
-
-
-
 onMounted(() => {
   window.viewer = initCesium("cesium-container");
 
@@ -345,7 +341,7 @@ function updatePopupPosition() {
   nextTick(() => {
     // console.log('Updating popup position');
     if (selectedEntityPosition.value) {
-      const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
+      const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
           window.viewer.scene,
           Cesium.Cartesian3.fromDegrees(selectedEntityPosition.value.x, selectedEntityPosition.value.y, selectedEntityPosition.value.z)
       );
