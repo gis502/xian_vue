@@ -58,6 +58,7 @@ import {staticHazardsDatas} from "@/api/earthquake/datas";
 import {getAffectPoint, getHazardOptions, getPolieJiao} from "@/api/earthquake/hazards.js";
 import * as Cesium from 'cesium';
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
+import layers from "@/cesium/layers.js";
 
 const emit = defineEmits(["removeBaseInfoBox"]);
 const props = defineProps({
@@ -70,7 +71,7 @@ const props = defineProps({
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
   trigger: String,
-  rainfall: String,
+  rainInfo: Object,
 });
 // 获取致灾因子下拉列表选项
 
@@ -109,53 +110,74 @@ const displayDisasterCausingFactors = ref(false);
 
 const hazards = computed(() => {
   if (props.showDisasterInformation) {
+    let adminArea = layers.getAdministrationByPoint(props.showDisasterInformation.geologicalDisasterHideDTO.lon, props.showDisasterInformation.geologicalDisasterHideDTO.lat);
+    let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
+    let rainfall = props.rainInfo[matchedIndex].rainfall
+    let duration = props.rainInfo[matchedIndex].duration
     props.disasterInformation.factorVoList.forEach((element) => {
       element.type = element.unit == "" ? "select" : "input:number";
       element.isModified = true;
       element.isShow = true;
+      console.log(element, "(props.showDisasterInformation")
       if (element.attributeNameAlias == 'rainfall') {
-        console.log(element, props.trigger, props.rainfall, "(props.showDisasterInformation")
         if (props.trigger == "地震") {
           element.isShow = false;
-          element.isShow = false;
-        }
-        // else if (props.trigger == "暴雨"&& props.disasterInformation.predict.level == '') {
-        //     element.isShow = false;
-        // }
-        else {
-          element.factorValue = props.rainfall
+        } else {
+          console.log(props.rainInfo, "props.rainInfo")
+          if (props.rainInfo) {
+            element.factorValue = rainfall
+          }
         }
       }
+      if (element.attributeNameAlias == 'duration') {
+        if (props.trigger == "地震") {
+          element.isShow = false;
+        } else {
+          if (props.rainInfo) {
+            element.factorValue = duration
+          }
+        }
+      }
+
     });
-    return  {
+    return {
       ...props.disasterInformation,
       title: '滑坡隐患点' // 替换成你需要的标题
     };
-  }
-  else if (props.showdebrisFlowInformation) {
+  } else if (props.showdebrisFlowInformation) {
+    let adminArea = layers.getAdministrationByPoint(props.showdebrisFlowInformation.geologicalDisasterHideDTO.lon, props.showDisasterInformation.geologicalDisasterHideDTO.lat);
+    let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
+    let rainfall = props.rainInfo[matchedIndex].rainfall
+    let duration = props.rainInfo[matchedIndex].duration
     props.debrisFlowInformation.factorVoList = staticHazardsDatas;
     props.debrisFlowInformation.factorVoList.forEach((element) => {
       if (element.attributeNameAlias == 'rainfall') {
-        console.log(element, props.trigger, props.rainfall, "(props.showDisasterInformation")
         if (props.trigger == "地震") {
           element.isShow = false;
+        } else {
+          console.log(props.rainInfo, "props.rainInfo")
+          if (props.rainInfo) {
+            element.factorValue = rainfall
+          }
         }
-        // else if (props.trigger == "暴雨" && props.debrisFlowInformation.predict.level == '') {
-        //   element.isShow = false;
-        // }
-        else {
-          element.isShow = true;
-          element.factorValue = props.rainfall
+      }
+      if (element.attributeNameAlias == 'duration') {
+        if (props.trigger == "地震") {
+          element.isShow = false;
+        } else {
+          if (props.rainInfo) {
+            element.factorValue = duration
+          }
         }
       }
     })
-    return  {
+    return {
       ...props.debrisFlowInformation,
       title: '泥石流隐患点' // 替换成你需要的标题
     };
   } else if (props.showRiskPointsInformation) {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
-    return  {
+    return {
       ...props.riskPointsInformation,
       title: '风险区域' // 替换成你需要的标题
     };
@@ -166,25 +188,25 @@ function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
 }
 
-function landslideImpact(){
+function landslideImpact() {
   let lon = hazards.value.geologicalDisasterHideDTO.lon;
   let lat = hazards.value.geologicalDisasterHideDTO.lat;
   getPolieJiao({
     lat,
     lon
   }).then((res) => {
-    console.log(98745,res);
+    console.log(98745, res);
     const routePoints = [];
     const polylinePositions = []; // 用于存储折线点的数组
     const position = [];
     const bufferWidth = 20;
     routePoints.push(Cesium.Cartesian3.fromDegrees(lon, lat)); // 存储为Cesium.Cartesian3对象
     polylinePositions.push(lon, lat);
-    for (let i = 1;i<res.data.length;i++){
+    for (let i = 1; i < res.data.length; i++) {
       routePoints.push(Cesium.Cartesian3.fromDegrees(res.data[i].centerLon, res.data[i].centerLat)); // 存储为Cesium.Cartesian3对象
       polylinePositions.push(res.data[i].centerLon, res.data[i].centerLat);
     }
-    console.log(565656,routePoints,polylinePositions);
+    console.log(565656, routePoints, polylinePositions);
     // 绘制原始点路线
     if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
       window.viewer.entities.add({
@@ -249,7 +271,7 @@ function landslideImpact(){
         }
         // 添加最后一个原始点
         interpolatedPoints.push(routePoints[routePoints.length - 1]);
-        console.log(878787,interpolatedPoints)
+        console.log(878787, interpolatedPoints)
 
         // 计算平滑的缓冲区边界点
         for (let j = 0; j < interpolatedPoints.length; j++) {
@@ -320,7 +342,7 @@ function landslideImpact(){
         }
         // 添加最后一个原始点
         initialPoint.push(routePoints[routePoints.length - 1]);
-        console.log(868686,initialPoint)
+        console.log(868686, initialPoint)
 
         // 计算平滑的缓冲区边界点
         for (let q = 0; q < initialPoint.length; q++) {
@@ -360,7 +382,6 @@ function landslideImpact(){
       // 调用新的平滑缓冲区生成方法
       const polygonHierarchy = generateSmoothBuffer(routePoints, bufferWidth);//绘制缓冲区
       const affrctPoint = AffectBuffer(routePoints, bufferWidth);//得到经纬度
-
 
 
       //坐标转换
@@ -463,8 +484,8 @@ function landslideImpact(){
         });
 
       }
-      console.log(96321,routePolygon)
-    }else {
+      console.log(96321, routePolygon)
+    } else {
       console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
     }
   })

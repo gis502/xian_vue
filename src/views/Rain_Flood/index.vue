@@ -27,7 +27,7 @@
     <div class="secondary-panel">
       <div class="panel-title1">控制显示</div>
       <div class="panel-content1">
-        <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
+        <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints"/> 显示医院 </label>
         <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示风险源 </label>
         <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
         <label><input type="checkbox" v-model="showFire" @change="toggleFirePoints"> 显示消防站 </label>
@@ -52,32 +52,83 @@
     <!--表格-->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <!-- 暴雨信息面板 -->
-    <div v-if="showInfoPanel" class="rain-info-panel">
-      <div class="panel-title">暴雨信息<button class="factor-button" @click="toggleFactorPanel">致灾因子</button></div>
-      <div class="panel-content">
-        <div class="form-item">
-          <label class="jiangyuliang">降雨量:</label>
-          <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/>
-          <span>毫米</span>
-        </div>
-        <div class="form-item">
-          <label>持续时间:</label>
-          <input v-model.number="duration" type="number" min="0" max="72" step="1"/>
-          <span>小时</span>
-        </div>
-        <div class="button-group">
-          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>
-          <button @click="cancelRainPoint" style="width: 80px">取消</button>
-        </div>
-        <!-- 组件引入，点击后显示 -->
-        <DisasterFactorForm
-            v-if="showFactorPanel"
-            v-model="disasterFactors"
-            @submit="submitFactors"
-            @cancel="cancelFactors"
-        />
-      </div>
-    </div>
+    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+    <!--      <div class="panel-title">暴雨信息</div>-->
+    <!--      <div class="panel-content">-->
+    <!--        <div class="form-item">-->
+    <!--          <label class="jiangyuliang">降雨量:</label>-->
+    <!--          <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/>-->
+    <!--          <span>毫米</span>-->
+    <!--        </div>-->
+    <!--        <div class="form-item">-->
+    <!--          <label>持续时间:</label>-->
+    <!--          <input v-model.number="duration" type="number" min="0" max="72" step="1"/>-->
+    <!--          <span>小时</span>-->
+    <!--        </div>-->
+    <!--        <div class="button-group">-->
+    <!--          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
+    <!--          <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
+    <AddRain
+        v-if="showInfoPanel"
+        :selected-position="selectedPosition"
+        @update:show-info-panel="showInfoPanel = $event"
+        @update:loading-model="loadingModel = $event"
+        @update:handleWeather="handleWeather"
+        @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
+        @update:update-rain-info="updateRainInfo"
+    />
+    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
+    <!--      <div class="panel-title">暴雨信息</div>-->
+    <!--      <div class="panel-content">-->
+    <!--        <div v-for="(entry, index) in entries" :key="entry.code" class="form-item">-->
+    <!--          <label :for="'district-' + index">区县：</label>-->
+    <!--          <select-->
+    <!--              v-model="entry.code"-->
+    <!--              :id="'district-' + index"-->
+    <!--              @change="handleDistrictChange(index)"-->
+    <!--          >-->
+    <!--            <option v-for="district in availableDistricts" :key="district.code" :value="district.code">-->
+    <!--              {{ district.name }}-->
+    <!--            </option>-->
+    <!--          </select>-->
+    <!--          <label :for="'rainfall-' + index">{{ entry.name }}降雨量：</label>-->
+    <!--          <input-->
+    <!--              v-model.number="entry.rainfall"-->
+    <!--              type="number"-->
+    <!--              min="0"-->
+    <!--              max="500"-->
+    <!--              step="1"-->
+    <!--              :id="'rainfall-' + index"-->
+    <!--          />-->
+    <!--          <span>毫米</span>-->
+    <!--          <label :for="'duration-' + index">持续时间：</label>-->
+    <!--          <input-->
+    <!--              v-model.number="entry.duration"-->
+    <!--              type="number"-->
+    <!--              min="0"-->
+    <!--              max="72"-->
+    <!--              step="1"-->
+    <!--              :id="'duration-' + index"-->
+    <!--          />-->
+    <!--          <span>小时</span>-->
+    <!--          <button v-if="index > 0" @click="removeEntry(index)" style="width: 80px; margin-left: 10px">删除</button>-->
+    <!--        </div>-->
+    <!--        <button @click="addEntry" style="width: 80px; margin-top: 10px">增加</button>-->
+    <!--        <div class="button-group">-->
+    <!--          <button-->
+    <!--              @click="confirmRainPoint"-->
+    <!--              :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall || !entry.duration)"-->
+    <!--              style="width: 80px"-->
+    <!--          >-->
+    <!--            确认添加-->
+    <!--          </button>-->
+    <!--          <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <!-- 自定义弹出面板 -->
     <div
         v-if="selectedEntityData"
@@ -92,10 +143,18 @@
         @click.stop="stopPropagation">
       <div class="popup-header">
         <h3 v-if="selectedEntityData.properties.teamName">{{ selectedEntityData.properties.teamName || '消防站' }} </h3>
-        <h3 v-if="selectedEntityData.properties.hospitalName">{{ selectedEntityData.properties.hospitalName || '医院' }} </h3>
-        <h3 v-if="selectedEntityData.properties.dangerName">{{ selectedEntityData.properties.dangerName || '风险源' }} </h3>
-        <h3 v-if="selectedEntityData.properties.storeName">{{ selectedEntityData.properties.storeName || '储备点' }} </h3>
-        <h3 v-if="selectedEntityData.properties.shelterName">{{ selectedEntityData.properties.shelterName || '避难所' }} </h3>
+        <h3 v-if="selectedEntityData.properties.hospitalName">{{
+            selectedEntityData.properties.hospitalName || '医院'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.dangerName">{{
+            selectedEntityData.properties.dangerName || '风险源'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.storeName">{{
+            selectedEntityData.properties.storeName || '储备点'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.shelterName">{{
+            selectedEntityData.properties.shelterName || '避难所'
+          }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
@@ -115,7 +174,7 @@
           </tr>
           <tr v-if="selectedEntityData.properties.dangerName">
             <th>危险源名称</th>
-            <td>{{ selectedEntityData.properties.dangerName || "未知"}}</td>
+            <td>{{ selectedEntityData.properties.dangerName || "未知" }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.hospitalName">
             <th>医院名称</th>
@@ -135,11 +194,11 @@
           </tr>
           <tr v-if="selectedEntityData.properties.level">
             <th>级别</th>
-            <td>{{selectedEntityData.properties.level}}</td>
+            <td>{{ selectedEntityData.properties.level }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.enterpriseType">
             <th>危险源类型</th>
-            <td>{{selectedEntityData.properties.enterpriseType}}</td>
+            <td>{{ selectedEntityData.properties.enterpriseType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.teamType">
             <th>消防站类型</th>
@@ -147,7 +206,7 @@
           </tr>
           <tr v-if="selectedEntityData.properties.storeType">
             <th>储备站类型</th>
-            <td>{{ selectedEntityData.properties.storeType}}</td>
+            <td>{{ selectedEntityData.properties.storeType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.shelterType">
             <th>避难所类型</th>
@@ -267,7 +326,7 @@
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
         :trigger="'暴雨'"
-        :rainfall="rainfall"
+        :rainInfo="rainInfo"
     />
 
     <Legend ref="legendRef"></Legend>
@@ -323,7 +382,7 @@ import {
 } from '@/api/system/factorValues.js'
 import {
   rainSlideTrigger,
-  rainSlideFactorUpdata
+  rainSlideFactorUpdata, saveRain
 } from '@/api/system/rainModel.js'
 import Chart from "../../components/Earthquake/Chart.vue";
 import {reactive} from "vue";
@@ -346,29 +405,21 @@ import {
   getShelter,
   getStore
 } from "@/api/system/aroundanalysis.js";
-import DisasterFactorForm from "@/components/Earthquake/DisasterFactorForm.vue";
+import timeTransfer from "@/cesium/timeTransfer.js";
+import AddRain from "@/components/Panel/addRain.vue";
 
 export default {
   name: 'CesiumRainMap',
   components: {
+    AddRain,
     Chart,
     Legend,
     HiddenDisasterPanel,
     rainCenterPanel,
-    Table,
-    DisasterFactorForm
+    Table
   },
   data() {
     return {
-      //暴雨触发参数
-      model:[],
-      showFactorPanel: false,
-      disasterFactors: {
-        terrain: '',
-        soilMoisture: null,
-        vegetation: null
-      },
-
       geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
       peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
       cropsLayerName: 'test:xian_crops',
@@ -393,10 +444,34 @@ export default {
       currentMapType: 0,
       rainMode: false,
       showInfoPanel: false,
+      // districts: [
+      //   { name: "新城区", code: "610102" },
+      //   { name: "碑林区", code: "610103" },
+      //   { name: "莲湖区", code: "610104" },
+      //   { name: "雁塔区", code: "610113" },
+      //   { name: "灞桥区", code: "610111" },
+      //   { name: "未央区", code: "610112" },
+      //   { name: "阎良区", code: "610114" },
+      //   { name: "临潼区", code: "610115" },
+      //   { name: "长安区", code: "610116" },
+      //   { name: "高陵区", code: "610117" },
+      //   { name: "鄠邑区", code: "610118" },
+      //   { name: "蓝田县", code: "610122" },
+      //   { name: "周至县", code: "610124" }
+      // ],
+      // entries: [
+      //   {
+      //     code: null,
+      //     name: "",
+      //     rainfall: null,
+      //     duration: null
+      //   }
+      // ],
       selectedPosition: null,
-      rainfall: 0,
-      duration: 2,
-      rainPoints: [],
+      // rainfall: 0,
+      // duration: 2,
+      // rainPoints: [],
+      rainInfo:[],
       weatherActive: false,
       showAdminLayer: true,
       rainEffect: null,
@@ -585,7 +660,11 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
       return this.tableData.slice(start, end);
-    }
+    },
+    // availableDistricts() {
+    //   const selectedCodes = this.entries.map((entry) => entry.code);
+    //   return this.districts.filter((district) => !selectedCodes.includes(district.code));
+    // }
   },
 
   mounted() {
@@ -603,29 +682,29 @@ export default {
     this.releaseAllResources();
   },
   methods: {
-    getNum(){
+    getNum() {
       //获取危险源点
-      getDangerous().then((res)=>{
+      getDangerous().then((res) => {
         this.DangerSourceData = res.data;
         // this.loadDangerSource();
       });
       //获取医院点
-      getHospital().then((res)=>{
+      getHospital().then((res) => {
         this.HospitalData = res.data;
         // this.loadProtectTarget();
       })
       //获取消防站
-      getFire().then((res)=>{
+      getFire().then((res) => {
         this.FireFighterData = res.data;
         // this.loadSaveTeams();
       })
       //获取储备点
-      getStore().then((res) =>{
+      getStore().then((res) => {
         this.StorePointsData = res.data;
         // this.loadStorePoints();
       })
       //获取避难所
-      getShelter().then((res) =>{
+      getShelter().then((res) => {
         this.ShelterData = res.data;
         // this.loadShelter();
       })
@@ -830,64 +909,64 @@ export default {
       this.peopleLayer.show = this.showPeople;
     },
     //控制农田显示
-    toggleCrops(){
-      if(this.cropsLayer == null && this.showCrops) {
+    toggleCrops() {
+      if (this.cropsLayer == null && this.showCrops) {
         this.addCropsLayer();
       }
       this.cropsLayer.show = this.showCrops;
     },
     //控制管网系统显示
-    toggleWaterPipe(){
-      if(this.waterPipeLayer == null && this.showPipe) {
+    toggleWaterPipe() {
+      if (this.waterPipeLayer == null && this.showPipe) {
         this.addWaterPipeLayer();
       }
       this.waterPipeLayer.show = this.showPipe;
     },
     //控制道路显示
-    toggleRoad(){
-      if(this.roadLayer == null && this.showRoad) {
+    toggleRoad() {
+      if (this.roadLayer == null && this.showRoad) {
         this.addRoadLayer();
       }
       this.roadLayer.show = this.showRoad;
     },
     //控制桥梁显示
-    toggleBridge(){
-      if(this.bridgeLayer == null && this.showBridge) {
+    toggleBridge() {
+      if (this.bridgeLayer == null && this.showBridge) {
         this.addBridgeLayer();
       }
       this.bridgeLayer.show = this.showBridge;
     },
     //控制高速显示
-    toggleHighway(){
-      if(this.highwayLayer == null && this.showHighway) {
+    toggleHighway() {
+      if (this.highwayLayer == null && this.showHighway) {
         this.addHighway();
       }
       this.highwayLayer.show = this.showHighway;
     },
     //控制国道显示
-    toggleNationalRoad(){
-      if(this.nationalRoadLayer == null && this.showNationalRoad) {
+    toggleNationalRoad() {
+      if (this.nationalRoadLayer == null && this.showNationalRoad) {
         this.addNationalRoad();
       }
       this.nationalRoadLayer.show = this.showNationalRoad;
     },
     //控制水库显示
-    toggleReservoir(){
-      if(this.reservoirLayer == null && this.showReservoir) {
+    toggleReservoir() {
+      if (this.reservoirLayer == null && this.showReservoir) {
         this.addReservoir();
       }
       this.reservoirLayer.show = this.showReservoir;
     },
     //控制地铁站显示
-    toggleSubway(){
-      if(this.subwayLayer == null && this.showSubway) {
+    toggleSubway() {
+      if (this.subwayLayer == null && this.showSubway) {
         this.addSubway();
       }
       this.subwayLayer.show = this.showSubway;
     },
     //加载避难所
-    loadShelter(){
-      try{
+    loadShelter() {
+      try {
         //避难点
         const shelterFeatures = this.ShelterData?.features || [];
         this.shelterEntities = [];
@@ -951,13 +1030,13 @@ export default {
         })
         //设置点击事件监听
         this.setupEntityClickHandler();
-      }catch(error){
+      } catch (error) {
         console.error("处理避难所点数据失败.")
       }
     },
     //加载储备站点
-    loadStorePoints(){
-      try{
+    loadStorePoints() {
+      try {
         //储备站点获取数据
         const storePointsFeatures = this.StorePointsData?.features || [];
         this.storePointsEntities = [];
@@ -1021,13 +1100,13 @@ export default {
         })
         //设置点击事件监听
         this.setupEntityClickHandler();
-      }catch(error){
+      } catch (error) {
         console.error("处理储备站点数据失败.")
       }
     },
     //加载救援队伍
-    loadSaveTeams(){
-      try{
+    loadSaveTeams() {
+      try {
         //消防队伍
         const fireFeatures = this.FireFighterData?.features || [];
 
@@ -1096,14 +1175,14 @@ export default {
 
         this.setupEntityClickHandler();
 
-      }catch(error){
+      } catch (error) {
         console.error("处理消防站数据失败.")
       }
     },
     // 加载医院(保护目标
-    loadProtectTarget(){
+    loadProtectTarget() {
 
-      try{
+      try {
         const hospitalFeatures = this.HospitalData?.features || [];
 
         this.protectEntities = [];
@@ -1172,13 +1251,13 @@ export default {
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-      }catch (error) {
+      } catch (error) {
         console.error('处理保护目标数据时出错:', error);
       }
     },
     // 加载风险源
-    loadDangerSource(){
-      try{
+    loadDangerSource() {
+      try {
         const dangerSourceFeatures = this.DangerSourceData?.features || [];
 
         this.dangerEntities = [];
@@ -1227,7 +1306,7 @@ export default {
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-      }catch (error) {
+      } catch (error) {
         console.error('处理风险源数据时出错:', error);
       }
     },
@@ -1357,63 +1436,63 @@ export default {
           if (!feature) return;
           // 3. 发送 GetFeatureInfo 请求,对每个Layer进行判别，若其显示，则请求
           //人口
-          if(this.showPeople){
+          if (this.showPeople) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.peopleLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("人口信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
           }
           //农作物
-          if(this.showCrops){
+          if (this.showCrops) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.cropsLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("农作物信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
           }
           //管网
-          if(this.showPipe){
+          if (this.showPipe) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.waterPipeLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("管网信息:", JSON.parse(text));
           }
           //道路
-          if(this.showRoad){
+          if (this.showRoad) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.roadLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("道路信息:", JSON.parse(text));
           }
           //桥梁
-          if(this.showBridge){
+          if (this.showBridge) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.bridgeLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("桥梁信息:", JSON.parse(text));
           }
           //高速
-          if(this.showHighway){
+          if (this.showHighway) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.highwayLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("高速信息:", JSON.parse(text));
           }
           //国道
-          if(this.showNationalRoad){
+          if (this.showNationalRoad) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.nationalRoadLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("国道信息:", JSON.parse(text));
           }
           //水库
-          if(this.showReservoir){
+          if (this.showReservoir) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.reservoirLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("水库信息:", JSON.parse(text));
           }
           //地铁站
-          if(this.showNationalRoad){
+          if (this.showNationalRoad) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.subwayLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
@@ -1432,7 +1511,7 @@ export default {
         request: 'GetFeatureInfo',
         layers: layerName,
         srs: 'EPSG:4490',
-        bbox: `${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}`, // 小范围查询
+        bbox: `${lon - 0.01},${lat - 0.01},${lon + 0.01},${lat + 0.01}`, // 小范围查询
         width: 101,  // 必须为奇数（中心点即点击位置）
         height: 101,
         query_layers: layerName,
@@ -1632,137 +1711,237 @@ export default {
         this.showInfoPanel = true;
       }
     },
-    confirmRainPoint() {
-      // this,rainfall=
-      console.log('rainfall:', this.rainfall); // 调试输出
-      console.log('duration:', this.duration); // 调试输出
-      if (!this.selectedPosition) return;
-      let {longitude, latitude, cartesian} = this.selectedPosition;
+    // handleDistrictChange(index) {
+    //   const selectedDistrict = this.districts.find((district) => district.code === this.entries[index].code);
+    //   if (selectedDistrict) {
+    //     this.entries[index].name = selectedDistrict.name;
+    //   }
+    // },
+    // addEntry() {
+    //   this.entries.push({
+    //     code: null,
+    //     name: "",
+    //     rainfall: null,
+    //     duration: null
+    //   });
+    // },
+    // removeEntry(index) {
+    //   this.entries.splice(index, 1);
+    // },
 
-      // 计算降雨强度(mm/小时)
-      const intensity = this.rainfall / (this.duration || 1);
+    handleWeather(){
+      console.log("handleWeather")
+        // 标记后自动开启下雨效果
+        this.weatherActive = true;
+        this.rainEffect.enabled = this.weatherActive;
 
-      this.showInfoPanel = false;
+        this.rainMode = false;
 
-      // 标记后自动开启下雨效果
-      this.weatherActive = true;
-      this.rainEffect.enabled = this.weatherActive;
-
-      this.rainMode = false;
-
-      if (this.handler) {
-        this.handler.destroy();
-        this.handler = null;
-      }
-      document.body.style.cursor = '';
-
-
-      // 新增逻辑：获取标记点所在行政区划
-      const adminArea = layers.getAdministrationByPoint(longitude, latitude);
-
-
-      if (adminArea) {
-        //显示标记点
-        let entity = {
-          position: adminArea.name,
-          longitude: longitude,
-          latitude: latitude,
-          id: "test_rain",
-          trigger: "暴雨",
-          rainfall: this.rainfall + "mm",
-          duration: this.duration + "小时",
-          occurrenceTime: new Date(),
-          disasterName: "降雨量" + this.rainfall + "毫米每小时,已持续" + this.duration + "小时"
+        if (this.handler) {
+          this.handler.destroy();
+          this.handler = null;
         }
-        basicLayers.addCenterPoint(entity)
-        this.viewer.flyTo(entity, {
-          duration: 1.5,
-          offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
-        });
-        this.rainPoints.push(entity);
-        //计算预警点
-        // console.log(`标记点位于行政区划: ${adminArea.name}`);
-        // 获取该行政区划的经纬度范围
-        const adminCoordinates = adminArea.geometry.coordinates;
-        this.startLoading()
-        console.log(adminCoordinates, "adminCoordinates")
-        this.DisasterPointsFlash(adminCoordinates);
-      } else {
-        console.log("未找到标记点所在的行政区划");
-      }
+        document.body.style.cursor = '';
     },
+    // confirmRainPoint() {
+    //   console.log("确认添加数据：", this.entries);
+    //   if (!this.selectedPosition) return;
+    //   let {longitude, latitude, cartesian} = this.selectedPosition;
+    //
+    //   // 计算降雨强度(mm/小时)
+    //   const intensity = this.rainfall / (this.duration || 1);
+    //
+    //   this.showInfoPanel = false;
+    //
+    //   // 标记后自动开启下雨效果
+    //   this.weatherActive = true;
+    //   this.rainEffect.enabled = this.weatherActive;
+    //
+    //   this.rainMode = false;
+    //
+    //   if (this.handler) {
+    //     this.handler.destroy();
+    //     this.handler = null;
+    //   }
+    //   document.body.style.cursor = '';
+    //
+    //
+    //   // 新增逻辑：获取标记点所在行政区划
+    //   const adminArea = layers.getAdministrationByPoint(longitude, latitude);
+    //
+    //   let positionArry=[]
+    //   let rainfallArry=[]
+    //   let durationArry=[]
+    //
+    //   this.entries.forEach(item=>{
+    //     positionArry.push(item.name)
+    //     rainfallArry.push(item.rainfall)
+    //     durationArry.push(item.duration)
+    //   })
+    //   let requestData={
+    //     "rainfall":rainfallArry,
+    //     "duration":durationArry,
+    //     "longitude":longitude,
+    //     "latitude":latitude,
+    //     "position":positionArry,
+    //     "disasterName":timeTransfer.timestampToTimeChina(new Date)+adminArea+"暴雨",
+    //     "occurrenceTime":timeTransfer.timestampToTime(new Date),
+    //   }
+    //   console.log(requestData,"requestData saveRain")
+    //   let res=saveRain(requestData)
+    //   console.log(res,"saveRain")
+    //
+    //   if (adminArea) {
+    //     //显示标记点
+    //     let entity = {
+    //       position: adminArea.name,
+    //       longitude: longitude,
+    //       latitude: latitude,
+    //       id: "test_rain",
+    //       trigger: "暴雨",
+    //       rainfall: this.rainfall + "mm",
+    //       duration: this.duration + "小时",
+    //       occurrenceTime: new Date(),
+    //       disasterName: "降雨量" + this.rainfall + "毫米每小时,已持续" + this.duration + "小时"
+    //     }
+    //     basicLayers.addCenterPoint(entity)
+    //     this.viewer.flyTo(entity, {
+    //       duration: 1.5,
+    //       offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+    //     });
+    //     this.rainPoints.push(entity);
+    //     //计算预警点
+    //     // console.log(`标记点位于行政区划: ${adminArea.name}`);
+    //     // 获取该行政区划的经纬度范围
+    //     const adminCoordinates = adminArea.geometry.coordinates;
+    //     this.startLoading()
+    //     console.log(adminCoordinates, "adminCoordinates")
+    //     positionArry.forEach(item=>{
+    //       this.DisasterPointsFlash(item);
+    //     })
+    //
+    //   } else {
+    //     console.log("未找到标记点所在的行政区划");
+    //   }
+    // },
+    // cancelRainPoint() {
+    //   this.showInfoPanel = false;
+    //   this.entries = [
+    //     {
+    //       code: null,
+    //       name: "",
+    //       rainfall: null,
+    //       duration: null
+    //     }
+    //   ];
+    // },
 
-    async DisasterPointsFlash(adminCoordinates) {
-      let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
-      console.log(allPointsInside,"allPointsInside")
-      let { matchedHuapoData, pointSet } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
-      console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet");
-      let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
-      this.matchedHiddenHighlightEntities = matchedHuapoEntities;
-      layers.flashHiddenDisasterPoints(matchedHuapoEntities);
-      this.handleHiddenDisasterPointUpdate(matchedHuapoEntities);
-      this.stopLoading();
-    },
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
-      console.log(landslidePointsInside,"getHiddenDisasterPointswithCausingFactors")
-      let matchedHuapoData = [];
-      let pointSet = new Set();
-      if (landslidePointsInside.length > 0) {
-        // 创建经纬度字符串集合用于快速匹配
-        landslidePointsInside.forEach(point => {
-          // 使用固定精度的字符串表示经纬度
-          let lon = point[0];
-          let lat = point[1];
-          pointSet.add(`${lon},${lat}`);
-        });
-        useSimulationPointStore().simulationPoints.forEach((item) => {
-          let lon = item.geologicalDisasterHideDTO.lon;
-          let lat = item.geologicalDisasterHideDTO.lat;
-          let key = `${lon},${lat}`;
-          if (pointSet.has(key)) {
-            matchedHuapoData.push(item.factorVoList);
-          }
-        });
-
-        console.log(matchedHuapoData,pointSet,"matchedHuapoData,pointSet")
-        // 降雨量值放到致灾因子里面去
-        for (var i = 0; i < matchedHuapoData.length; i++) {
-          if( matchedHuapoData[i]){
-            for (var j = 0; j < matchedHuapoData[i].length; j++) {
-              if (matchedHuapoData[i][j]&&matchedHuapoData[i][j].attributeName === "降雨量") {
-                matchedHuapoData[i][j].factorValue = this.rainfall;
-              }
-            }
-          }
-
-        }
-      }
-      return { matchedHuapoData, pointSet }; // 返回一个对象
-    },
-    async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
-      try {
-        let matchedHuapoEntities = []
-        const res = await rainSlideTrigger(matchedHuapoData);
-        console.log(res,"rainSlideTrigger")
-        let formatAnalyzedData = res.data;
-
-        formatAnalyzedData.forEach(item => {
-          let lon = item.geologicalDisasterHideDTO.lon;
-          let lat = item.geologicalDisasterHideDTO.lat;
-          let key = `${lon},${lat}`;
-          if (pointSet.has(key)) {
-            matchedHuapoEntities.push(item);
-          }
-        });
-
-        return matchedHuapoEntities;
-      } catch (error) {
-        console.error("Error in rainSlideTrigger:", error);
-        return []; // 返回空数组或其他默认值
-      }
-    },
-
+    // async DisasterPointsFlash(adminCoordinates) {
+    //   let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
+    //   console.log(allPointsInside, "allPointsInside")
+    //   let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+    //   console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet");
+    //   let matchedHuapoEntities = await this.caculateRainSlideTrigger(matchedHuapoData, pointSet); // 使用 await
+    //   this.matchedHiddenHighlightEntities = matchedHuapoEntities;
+    //   layers.flashHiddenDisasterPoints(matchedHuapoEntities);
+    //   this.handleHiddenDisasterPointUpdate(matchedHuapoEntities);
+    //   this.stopLoading();
+    // },
+    // getHiddenDisasterPointswithCausingFactors(landslidePointsInside) {
+    //   console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
+    //   let matchedHuapoData = [];
+    //   let pointSet = new Set();
+    //   if (landslidePointsInside.length > 0) {
+    //     // 创建经纬度字符串集合用于快速匹配
+    //     landslidePointsInside.forEach(point => {
+    //       // 使用固定精度的字符串表示经纬度
+    //       let lon = point[0];
+    //       let lat = point[1];
+    //       pointSet.add(`${lon},${lat}`);
+    //     });
+    //     useSimulationPointStore().simulationPoints.forEach((item) => {
+    //       let lon = item.geologicalDisasterHideDTO.lon;
+    //       let lat = item.geologicalDisasterHideDTO.lat;
+    //       let key = `${lon},${lat}`;
+    //       if (pointSet.has(key)) {
+    //         // matchedHuapoData.push(item.factorVoList);
+    //         matchedHuapoData.push(item);
+    //       }
+    //     });
+    //
+    //     console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet")
+    //     // 降雨量值放到致灾因子里面去
+    //     for (var i = 0; i < matchedHuapoData.length; i++) {
+    //       if (matchedHuapoData[i]) {
+    //         for (var j = 0; j < matchedHuapoData[i].length; j++) {
+    //           if (matchedHuapoData[i][j] && matchedHuapoData[i][j].attributeName === "降雨量") {
+    //             matchedHuapoData[i][j].factorValue = this.rainfall;
+    //           }
+    //         }
+    //       }
+    //
+    //     }
+    //   }
+    //   return {matchedHuapoData, pointSet}; // 返回一个对象
+    // },
+    // async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
+    //   // console.log(matchedHuapoData,"matchedHuapoData")
+    //   let requestData = {
+    //     data: []
+    //   };
+    //
+    //   matchedHuapoData.forEach(item => {
+    //     let entityId = '';
+    //     if (item.geologicalDisasterHideDTO.disasterType == "风险区域") {
+    //       entityId = "风险区域" + item.geologicalDisasterHideDTO.unitCode;
+    //     } else if (item.geologicalDisasterHideDTO.disasterType == "滑坡") {
+    //       entityId = "滑坡隐患点" + item.geologicalDisasterHideDTO.id;
+    //     } else {
+    //       entityId = "泥石流隐患点" + item.geologicalDisasterHideDTO.id;
+    //     }
+    //
+    //     // 确保 factors 是一个数组
+    //     let factors = Array.isArray(item.factorVoList) ? item.factorVoList : [item.factorVoList];
+    //
+    //     let itemFormat = {
+    //       entityId: entityId,
+    //       probability: [],
+    //       level: [],
+    //       disaster: [],
+    //       disasterType: item.geologicalDisasterHideDTO.disasterType, // 添加 disasterType 字段
+    //       factors: factors // 确保 factors 是一个数组
+    //     };
+    //
+    //     requestData.data.push(itemFormat);
+    //   });
+    //
+    //
+    //   console.log(requestData, "requestData");
+    //
+    //   try {
+    //     let matchedHuapoEntities = []
+    //     const res = await rainSlideTrigger(requestData);
+    //     console.log(res, "rainSlideTrigger")
+    //     let formatAnalyzedData = res.data;
+    //
+    //     formatAnalyzedData.forEach(item => {
+    //       let lon = item.geologicalDisasterHideDTO.lon;
+    //       let lat = item.geologicalDisasterHideDTO.lat;
+    //       let key = `${lon},${lat}`;
+    //       if (pointSet.has(key)) {
+    //         matchedHuapoEntities.push(item);
+    //       }
+    //     });
+    //
+    //     return matchedHuapoEntities;
+    //   } catch (error) {
+    //     console.error("Error in rainSlideTrigger:", error);
+    //     return []; // 返回空数组或其他默认值
+    //   }
+    // },
+    //
     handleHiddenDisasterPointUpdate(probabilityPoints) {
+      this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
       this.dataTypeHiddenDisaster.type1.data = [];
       this.dataTypeHiddenDisaster.type2.data = [];
@@ -1803,10 +1982,12 @@ export default {
         }
       });
     },
-
-    cancelRainPoint() {
-      this.showInfoPanel = false;
+    updateRainInfo(data){
+      this.rainInfo=data
     },
+    // cancelRainPoint() {
+    //   this.showInfoPanel = false;
+    // },
     onKeyDown(event) {
       if (event.key === 'Escape' && this.rainMode) {
         this.toggleRainMode();
@@ -2045,7 +2226,7 @@ export default {
       }
 
       // 4. 清理自定义数据结构
-      this.rainPoints = [];
+      // this.rainPoints = [];
       // this.entityCache.clear(); // 清空实体缓存
 
       // 5. 清理DOM元素
@@ -2295,19 +2476,6 @@ export default {
         this.stopLoading()
       }, 'image/png', 1.0)
     },
-    //致灾因子面板
-    toggleFactorPanel() {
-      this.showFactorPanel = !this.showFactorPanel;
-    },
-    submitFactors(factors) {
-      console.log('提交致灾因子信息:', factors);
-      this.model= factors;
-      this.showFactorPanel = false;
-    },
-    cancelFactors() {
-      this.showFactorPanel = false;
-    }
-    },
     // 计算弹出面板左坐标（带过渡动画）
     calculatePopupLeft() {
       return this.popupPosition.x;
@@ -2322,51 +2490,51 @@ export default {
     },
     toggleHospitalPoints() {
       //首次加载
-      if(this.hospitalEntities.length == 0 && this.showHospital){
+      if (this.hospitalEntities.length == 0 && this.showHospital) {
         this.loadProtectTarget();
-      }else{
+      } else {
         this.hospitalEntities.forEach(entity => {
           entity.show = this.showHospital;
         });
       }
     },
     toggleDangerPoints() {
-      if(this.dangerEntities.length == 0 && this.showDangerSource){
+      if (this.dangerEntities.length == 0 && this.showDangerSource) {
         this.loadDangerSource();
-      }else{
+      } else {
         this.dangerEntities.forEach(entity => {
           entity.show = this.showDangerSource;
         });
       }
     },
     toggleShelterPoints() {
-      if(this.shelterEntities.length == 0 && this.showShelter){
+      if (this.shelterEntities.length == 0 && this.showShelter) {
         this.loadShelter();
-      }else{
+      } else {
         this.shelterEntities.forEach(entity => {
           entity.show = this.showShelter;
         });
       }
     },
     toggleFirePoints() {
-      if(this.fireFighterEntities.length == 0 && this.showFire){
+      if (this.fireFighterEntities.length == 0 && this.showFire) {
         this.loadSaveTeams();
-      }else{
+      } else {
         this.fireFighterEntities.forEach(entity => {
           entity.show = this.showFire;
         });
       }
     },
     toggleStorePoints() {
-      if(this.storePointsEntities.length == 0 && this.showStore){
+      if (this.storePointsEntities.length == 0 && this.showStore) {
         this.loadStorePoints();
-      }else{
+      } else {
         this.storePointsEntities.forEach(entity => {
           entity.show = this.showStore;
         });
       }
     },
-
+  }
 }
 
 
@@ -2386,7 +2554,7 @@ export default {
 .controls {
   position: absolute;
   top: 10px;
-  left: 40%;
+  left: 35%;
   z-index: 100;
 }
 
@@ -2446,186 +2614,98 @@ export default {
   z-index: 100;
 }
 
-/* 暴雨信息面板样式优化 */
-.rain-info-panel {
-  position: absolute;
-  top: 300px;
-  left: 10px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 15px;
-  border-radius: 6px;
-  width: 240px;
-  height: 190px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
+/*!* 暴雨信息面板样式优化 *!*/
+/*.rain-info-panel {*/
+/*  position: absolute;*/
+/*  top: 20vh;*/
+/*  left: 10px;*/
+/*  background-color: rgba(0, 0, 0, 0.8);*/
+/*  color: white;*/
+/*  padding: 15px;*/
+/*  border-radius: 6px;*/
+/*  width: 65vh;*/
+/*  height: 190px;*/
+/*  z-index: 100;*/
+/*  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);*/
+/*}*/
 
-.panel-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #444;
-  text-align: left;
-}
+/*.panel-title {*/
+/*  font-size: 16px;*/
+/*  font-weight: bold;*/
+/*  margin-bottom: 10px;*/
+/*  padding-bottom: 8px;*/
+/*  border-bottom: 1px solid #444;*/
+/*  text-align: center;*/
+/*}*/
 
-.panel-content div {
-  margin-bottom: 12px;
-  display: flex;
+/*.panel-content div {*/
+/*  margin-bottom: 12px;*/
+/*  display: flex;*/
 
-}
+/*}*/
 
-.panel-content label {
-  width: 70px;
-  /* text-align: right; 标签文本右对齐 */
-  font-weight: 500;
-  flex-shrink: 0; /* 防止标签宽度被压缩 */
-  display: inline-block; /* 确保宽度生效 */
-}
+/*.panel-content label {*/
+/*  width: 90px;*/
+/*  !* text-align: right; 标签文本右对齐 *!*/
+/*  font-weight: 500;*/
+/*  flex-shrink: 0; !* 防止标签宽度被压缩 *!*/
+/*  display: inline-block; !* 确保宽度生效 *!*/
+/*}*/
 
-.jiangyuliang {
-  text-align-last: justify;
-}
+/*.jiangyuliang {*/
+/*  text-align-last: justify;*/
+/*}*/
 
-.panel-content input {
-  width: 60px;
-  padding: 6px 8px;
-  border: none;
-  border-radius: 4px;
-  text-align: center;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  height: 30px; /* 固定高度确保垂直居中 */
-  box-sizing: border-box; /* 包含内边距 */
-}
+/*.panel-content input {*/
+/*  width: 60px;*/
+/*  padding: 6px 8px;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  text-align: center;*/
+/*  background-color: rgba(255, 255, 255, 0.2);*/
+/*  color: white;*/
+/*  height: 30px; !* 固定高度确保垂直居中 *!*/
+/*  box-sizing: border-box; !* 包含内边距 *!*/
+/*}*/
 
-/* 优化单位文本样式，确保与输入框垂直对齐 */
-.panel-content span {
-  width: auto; /* 固定单位宽度，实现对齐 */
-  text-align: left; /* 单位文本左对齐 */
-  display: inline-block; /* 转为行内块元素便于设置宽度 */
-  height: 30px; /* 与输入框等高，确保垂直对齐 */
-  line-height: 30px; /* 垂直居中 */
-}
+/*!* 优化单位文本样式，确保与输入框垂直对齐 *!*/
+/*.panel-content span {*/
+/*  width: auto; !* 固定单位宽度，实现对齐 *!*/
+/*  text-align: left; !* 单位文本左对齐 *!*/
+/*  display: inline-block; !* 转为行内块元素便于设置宽度 *!*/
+/*  height: 30px; !* 与输入框等高，确保垂直对齐 *!*/
+/*  line-height: 30px; !* 垂直居中 *!*/
+/*}*/
 
-/* 按钮组样式优化，确保按钮对齐 */
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
+/*!* 按钮组样式优化，确保按钮对齐 *!*/
+/*.button-group {*/
+/*  display: flex;*/
+/*  gap: 10px;*/
+/*  margin-top: 10px;*/
+/*}*/
 
-.panel-content button {
-  padding: 6px 12px;
-  background-color: #386641;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  height: 32px; /* 固定按钮高度，确保对齐 */
-  line-height: normal; /* 重置行高 */
-}
+/*.panel-content button {*/
+/*  padding: 6px 12px;*/
+/*  background-color: #386641;*/
+/*  color: white;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*  transition: background-color 0.3s;*/
+/*  height: 32px; !* 固定按钮高度，确保对齐 *!*/
+/*  line-height: normal; !* 重置行高 *!*/
+/*}*/
 
-.panel-content button:last-child {
-  background-color: #bc4749;
-  margin-left: 10px;
-}
+/*.panel-content button:last-child {*/
+/*  background-color: #bc4749;*/
+/*  margin-left: 10px;*/
+/*}*/
 
-.panel-content button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
+/*.panel-content button:hover {*/
+/*  opacity: 0.9;*/
+/*  transform: translateY(-1px);*/
+/*}*/
 
-/* 图例面板样式 */
-.legend-panel {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
-  padding: 10px;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  max-height: 70%;
-  overflow-y: auto;
-}
-
-.legend-title {
-  font-size: 17px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.legend-content {
-  font-size: 12px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-
-  margin-right: 6px;
-  border-radius: 2px;
-}
-
-.legend-text {
-  white-space: nowrap;
-}
-
-.legend-panel {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
-  padding: 10px;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  max-height: 70%;
-  overflow-y: auto;
-  max-width: 300px; /* 新增：限制图例最大宽度 */
-}
-
-.legend-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.legend-content {
-  font-size: 12px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  border-radius: 2px;
-}
-
-.legend-text {
-  white-space: nowrap;
-}
 
 .disaster-popup {
   position: absolute;
@@ -2889,15 +2969,6 @@ export default {
   margin-bottom: 10px;
   font-size: 20px;
   color: red;
-}
-.factor-button {
-  background-color: #409eff;
-  color: white;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-left: 40px;
 }
 
 .secondary-panel {
