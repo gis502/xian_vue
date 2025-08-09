@@ -466,6 +466,7 @@ function landslideImpact() {
           }
         })
       }
+      //判别区县代码
       function getDistrictName(code) {
         switch (code) {
           case '610102': return '新城区';

@@ -15,6 +15,20 @@ export function getFlow() {
     })
 }
 
+export function getFlashFlood() {
+    return request({
+        url: '/hide/getFlashFlood',
+        method: 'get'
+    })
+}
+
+export function getWater() {
+    return request({
+        url: '/hide/getWater',
+        method: 'get'
+    })
+}
+
 export function getRisk() {
     return request({
         url: '/risk/villages',
