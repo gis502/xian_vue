@@ -27,6 +27,8 @@
     <div class="secondary-panel">
       <div class="panel-title1">控制显示</div>
       <div class="panel-content1">
+        <label><input type="checkbox" v-model="showFlash" @change="toggleFlashFlood"> 显示山洪 </label>
+        <label><input type="checkbox" v-model="showWater" @change="toggleWater"> 显示内涝 </label>
         <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
         <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示风险源 </label>
         <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
@@ -303,6 +305,8 @@ import riskArea from '@/assets/images/riskArea.png'
 import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
 import landslideIcon from '@/assets/images/landslide.png'
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
+import flashIcon from "@/assets/images/flashflood.png"
+import waterIcon from "@/assets/images/water.jpg"
 // api
 import {
   getGeologicalDisasterHideByLandSlideList,
@@ -338,7 +342,9 @@ import {
   getFire,
   getHospital,
   getShelter,
-  getStore
+  getStore,
+  getFlashFlood,
+  getWater
 } from "@/api/system/aroundanalysis.js";
 
 export default {
@@ -370,6 +376,8 @@ export default {
       saveTeamEntities: [],
       fireFighterEntities: [],
       shelterEntities: [],
+      flashFloodEntities: [],
+      waterEntities: [],
       viewer: null,
       wmsLayers: [],
       tdtToken: "7f013d0186775b063d6a046977bbefc6",
@@ -400,6 +408,8 @@ export default {
       NishiliuData: [],
       // faultZone: faultZone,
       DangerAreaData: [],
+      FlashFloodData: null,
+      WaterLoggingData: null,
       DangerSourceData: null,//危险源数据
       HospitalData: null,
       FireFighterData: null,
@@ -430,6 +440,8 @@ export default {
       showNationalRoad: false,
       showReservoir: false,
       showSubway: false,
+      showFlash: false,
+      showWater: false,
       // 暴雨影响区域椭圆相关配置
       // rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
       // rainEllipseRotation: 70, // 椭圆默认旋转角度
@@ -463,6 +475,8 @@ export default {
       // },
       clickHandler: null,
       layerHandler: null,
+      flashFloodPoints: [],
+      waterPoints: [],
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
       secondaryRiskPoints: [], // 次生灾害风险点
@@ -643,6 +657,14 @@ export default {
   },
   methods: {
     getNum(){
+      //内涝
+      getWater().then((res)=>{
+        this.WaterLoggingData = res.data;
+      })
+      //山洪
+      getFlashFlood().then((res)=>{
+        this.FlashFloodData = res.data;
+      })
       //获取危险源点
       getDangerous().then((res)=>{
         this.DangerSourceData = res.data;
@@ -861,12 +883,32 @@ export default {
       );
       this.setupLayerClickHandler();
     },
-    // 控制人口网格显示
+    // 控制人口
     togglePeople() {
       if (this.peopleLayer == null && this.showPeople) {
         this.addPeopleLayer();
       }
       this.peopleLayer.show = this.showPeople;
+    },
+    // 控制内涝
+    toggleWater() {
+      if (this.waterEntities.length === 0 && this.showWater) {
+        this.loadWaterLogging();
+      }else{
+        this.waterEntities.forEach(water => {
+          water.show = this.showWater;
+        })
+      }
+    },
+    // 控制山洪
+    toggleFlashFlood() {
+      if (this.flashFloodEntities.length === 0 && this.showFlash) {
+        this.loadFlashFlood();
+      }else{
+        this.flashFloodEntities.forEach(floor => {
+          floor.show = this.showFlash;
+        })
+      }
     },
     //控制农田显示
     toggleCrops(){
@@ -923,6 +965,142 @@ export default {
         this.addSubway();
       }
       this.subwayLayer.show = this.showSubway;
+    },
+    //加载内涝
+    loadWaterLogging(){
+      try{
+        //内涝
+        const waterFeatures = this.WaterLoggingData?.features || [];
+        this.waterEntities = [];
+        //添加山洪
+        waterFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const waterName = properties.disasterName || '未知隐患点';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入避难点到数组
+          this.waterPoints.push([longitude, latitude])
+
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: waterIcon,
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showWater
+            },
+            // 文字
+            label: {
+              text: `${waterName}`,
+              font: '12pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+              show: this.showWater
+            },
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'water',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.waterEntities.push(entity);
+        })
+        //设置点击事件监听
+        this.setupEntityClickHandler();
+      }catch(error){
+        console.error("处理内涝隐患点数据失败.")
+      }
+    },
+    //加载山洪
+    loadFlashFlood(){
+      try{
+        //山洪
+        const flashFloodFeatures = this.FlashFloodData?.features || [];
+        this.flashFloodEntities = [];
+        //添加山洪
+        flashFloodFeatures.forEach(point => {
+          const properties = point.properties || {};
+          const flashName = properties.disasterName || '未知隐患点';
+          const longitude = point.geometry.coordinates[0];
+          const latitude = point.geometry.coordinates[1];
+
+          // 加入避难点到数组
+          this.flashFloodPoints.push([longitude, latitude])
+
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            // 点
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: flashIcon,
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showFlash
+            },
+            // 文字
+            label: {
+              text: `${flashName}`,
+              font: '12pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
+              show: this.showFlash
+            },
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'flashFlood',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.flashFloodEntities.push(entity);
+        })
+        //设置点击事件监听
+        this.setupEntityClickHandler();
+      }catch(error){
+        console.error("处理山洪隐患点数据失败.")
+      }
     },
     //加载避难所
     loadShelter(){
@@ -2919,34 +3097,34 @@ export default {
 
 .secondary-panel {
   position: absolute;
-  top: 20px;
+  top: 10px;
   right: 20px;
   background-color: rgba(40, 40, 40, 0.8);
   color: white;
-  padding: 15px;
+  padding: 10px; /* 缩小内边距 */
   border-radius: 4px;
   z-index: 1000;
-  width: 200px;
+  width: 160px; /* 缩小面板宽度 */
 }
 
 .panel-title1 {
   font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-bottom: 6px; /* 缩小标题与内容间距 */
+  font-size: 12px; /* 缩小字体 */
 }
 
 .panel-content1 {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
-  gap: 8px;
+  font-size: 12px; /* 缩小字体 */
+  gap: 6px; /* 缩小子元素间距 */
 }
 
 .panel-content1 label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px; /* 缩小标签内元素间距 */
+  font-size: 12px; /* 缩小字体 */
   cursor: pointer;
 }
 
