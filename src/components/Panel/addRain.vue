@@ -231,7 +231,8 @@ export default {
         let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(
             allPointsInside,
             i,
-            this.rainfallArry
+            this.rainfallArry[i],
+            this.durationArry[i],
         );
         // 合并到总数据集
         allMatchedHuapoData.push(...matchedHuapoData);
@@ -241,7 +242,6 @@ export default {
       // 一次性发送所有数据到接口
       let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData, allPointSet);
       this.$emit('update:matched-huapo-entities', matchedHuapoEntities);
-      this.matchedHiddenHighlightEntities = matchedHuapoEntities;
       console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
       console.log(this.matchedHiddenHighlightEntities, "this.matchedHiddenHighlightEntities这是匹配的所有点")
       layers.flashHiddenDisasterPoints(matchedHuapoEntities);
@@ -257,7 +257,7 @@ export default {
         }
       ];
     },
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside, index, rainfallArry) {
+    getHiddenDisasterPointswithCausingFactors(landslidePointsInside, index, rainfall,duration) {
       console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
       let matchedHuapoData = [];
       let pointSet = new Set();
@@ -274,9 +274,14 @@ export default {
           let key = `${lon},${lat}`;
           if (pointSet.has(key)) {
             matchedHuapoData.push(item);
-            // factorVoList
-            // console.log(item,"useSimulationPointStore")
-            // item.
+            item.factorVoList.forEach(factor => {
+              if (factor.attributeName === "降雨量") {
+                factor.factorValue = rainfall;
+              }
+              if (factor.attributeName === "持续时间") {
+                factor.factorValue = duration;
+              }
+            });
           }
         });
 
@@ -287,7 +292,10 @@ export default {
           if (Array.isArray(huapoItem.factorVoList)) {
             huapoItem.factorVoList.forEach(factor => {
               if (factor.attributeName === "降雨量") {
-                factor.factorValue = rainfallArry[index];
+                factor.factorValue = rainfall;
+              }
+              if (factor.attributeName === "持续时间") {
+                factor.factorValue = duration;
               }
             });
           }

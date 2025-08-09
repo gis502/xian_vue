@@ -51,7 +51,7 @@ export default {
   watch: {
     popupData() {
       this.rainInfo=this.popupData
-      console.log(this.rainInfo,"this.rainInfo")
+      // console.log(this.rainInfo,"this.rainInfo")
     },
     position() {
       this.positionEntity = this.position

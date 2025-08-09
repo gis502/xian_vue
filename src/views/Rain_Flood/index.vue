@@ -51,26 +51,7 @@
     <Table :show="showRiskTable" :dataTypes="dataTypeHiddenDisaster"></Table>
     <!--表格-->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
-    <!-- 暴雨信息面板 -->
-    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
-    <!--      <div class="panel-title">暴雨信息</div>-->
-    <!--      <div class="panel-content">-->
-    <!--        <div class="form-item">-->
-    <!--          <label class="jiangyuliang">降雨量:</label>-->
-    <!--          <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/>-->
-    <!--          <span>毫米</span>-->
-    <!--        </div>-->
-    <!--        <div class="form-item">-->
-    <!--          <label>持续时间:</label>-->
-    <!--          <input v-model.number="duration" type="number" min="0" max="72" step="1"/>-->
-    <!--          <span>小时</span>-->
-    <!--        </div>-->
-    <!--        <div class="button-group">-->
-    <!--          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
-    <!--          <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
-    <!--        </div>-->
-    <!--      </div>-->
-    <!--    </div>-->
+
     <AddRain
         v-if="showInfoPanel"
         :selectedPositionLonAndLat="selectedPosition"
@@ -422,7 +403,7 @@ export default {
       // rainfall: 0,
       // duration: 2,
       // rainPoints: [],
-      rainInfo:[],
+      rainInfo: [],
       weatherActive: false,
       showAdminLayer: true,
       rainEffect: null,
@@ -1664,26 +1645,26 @@ export default {
         this.showInfoPanel = true;
         window.viewer.screenSpaceEventHandler.setInputAction(movement => {
           // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-          if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo||this.showInfoPanel) {
+          if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo || this.showInfoPanel) {
             this.updatePopupPosition();
           }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       }
     },
 
-    handleWeather(){
+    handleWeather() {
       console.log("handleWeather")
-        // 标记后自动开启下雨效果
-        this.weatherActive = true;
-        this.rainEffect.enabled = this.weatherActive;
+      // 标记后自动开启下雨效果
+      this.weatherActive = true;
+      this.rainEffect.enabled = this.weatherActive;
 
-        this.rainMode = false;
+      this.rainMode = false;
 
-        if (this.handler) {
-          this.handler.destroy();
-          this.handler = null;
-        }
-        document.body.style.cursor = '';
+      if (this.handler) {
+        this.handler.destroy();
+        this.handler = null;
+      }
+      document.body.style.cursor = '';
     },
 
     handleHiddenDisasterPointUpdate(probabilityPoints) {
@@ -1728,8 +1709,8 @@ export default {
         }
       });
     },
-    updateRainInfo(data){
-      this.rainInfo=data
+    updateRainInfo(data) {
+      this.rainInfo = data
     },
     onKeyDown(event) {
       if (event.key === 'Escape' && this.rainMode) {
@@ -2047,20 +2028,14 @@ export default {
                 this.eqCenterPanelVisible = true;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = false;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
-
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
-                console.log(this.rainCenterPanelVisible, "打开面板啊")
                 this.showBaseInfo = false;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
-
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
-                console.log(this.PanelData, "显示数据")
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -2069,22 +2044,17 @@ export default {
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
-
                 this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
-
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
               } else if (entity.name === "泥石流隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
-
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = true;
                 this.showRiskPointsInformation = false;
-
                 this.disasterInformation = null
                 this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.riskPointsInformation = null
@@ -2092,7 +2062,6 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;
@@ -2106,6 +2075,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.showBaseInfo = false;
               }
+              console.log(this.PanelData, "this.PanelData")
             }
             //没有拾取到实体
             else {
@@ -2118,7 +2088,7 @@ export default {
 // 在屏幕空间事件处理器中添加鼠标移动事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo||this.showInfoPanel) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo || this.showInfoPanel) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);

@@ -5,7 +5,6 @@
       :style="styleObject"
   >
     <span>
-
     </span>
     <div class="disaster-popup">
       <div class="popup-header">
@@ -73,20 +72,42 @@ const props = defineProps({
   trigger: String,
   rainInfo: Object,
 });
-// 获取致灾因子下拉列表选项
 
 watch(() => props, (newProps) => {
   console.log('Props updated:', newProps);
 }, {deep: true});
+onMounted(() => {
+  console.log('Initial props:', props);
+});
+
+watch(() => props.disasterInformation, (newVal, oldVal) => {
+  console.log('disasterInformation updated:', newVal);
+});
+
+watch(() => props.debrisFlowInformation, (newVal, oldVal) => {
+  console.log('debrisFlowInformation updated:', newVal);
+});
+
+watch(() => props.riskPointsInformation, (newVal, oldVal) => {
+  console.log('riskPointsInformation updated:', newVal);
+});
+
+watch(() => props.position, (newVal, oldVal) => {
+  console.log('position updated:', newVal);
+});
+
+watch(() => props.position.y, (newY) => {
+  positionEntity.value.y = newY;
+});
 
 let options = ref([]);
 getHazardOptions().then((res) => {
   options.value = res;
+
+  console.log(props,"props")
 });
 
-// onMounted(() => {
-//   console.log('Props received:', props);
-// });
+
 const positionEntity = ref({x: 0, y: 0});
 
 watch(() => props.position.x, (newX) => {
@@ -107,53 +128,35 @@ const styleObject = computed(() => ({
 
 
 const displayDisasterCausingFactors = ref(false);
-
 const hazards = computed(() => {
   if (props.showDisasterInformation) {
-    handleRainfallAndDuration(props.disasterInformation, props.trigger);
+    props.disasterInformation.factorVoList.forEach((element) => {
+      element.type = element.unit == "" ? "select" : "input:number";
+      element.isModified = true;
+      element.isShow = true;
+    });
     return {
       ...props.disasterInformation,
-      title: '滑坡隐患点'
+      title: '滑坡隐患点' // 替换成你需要的标题
     };
   } else if (props.showdebrisFlowInformation) {
-    handleRainfallAndDuration(props.debrisFlowInformation, props.trigger);
+    props.debrisFlowInformation.factorVoList.forEach((element) => {
+      element.type = element.unit == "" ? "select" : "input:number";
+      element.isModified = true;
+      element.isShow = true;
+    })
     return {
       ...props.debrisFlowInformation,
-      title: '泥石流隐患点'
+      title: '泥石流隐患点' // 替换成你需要的标题
     };
   } else if (props.showRiskPointsInformation) {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
     return {
       ...props.riskPointsInformation,
-      title: '风险区域'
+      title: '风险区域' // 替换成你需要的标题
     };
   }
 });
-
-function handleRainfallAndDuration(info, trigger) {
-  info.factorVoList.forEach((element) => {
-    element.type = element.unit == "" ? "select" : "input:number";
-    element.isModified = true;
-    if (trigger == "地震") {
-      element.isShow = false;
-    } else {
-      element.isShow = true;
-      if (props.rainInfo.length != 0) {
-        let adminArea = layers.getAdministrationByPoint(info.geologicalDisasterHideDTO.lon, info.geologicalDisasterHideDTO.lat);
-        let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
-        if (matchedIndex !== -1) {
-          let rainfall = props.rainInfo[matchedIndex].rainfall;
-          let duration = props.rainInfo[matchedIndex].duration;
-          if (element.attributeNameAlias == 'rainfall') {
-            element.factorValue = rainfall;
-          } else if (element.attributeNameAlias == 'duration') {
-            element.factorValue = duration;
-          }
-        }
-      }
-    }
-  });
-}
 function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
 }
