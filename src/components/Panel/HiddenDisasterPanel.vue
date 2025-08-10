@@ -9,6 +9,7 @@
     <div class="disaster-popup">
       <div class="popup-header">
         <h3>{{ title }}</h3>
+
         <el-button
             type="info"
             v-text="

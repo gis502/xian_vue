@@ -31,7 +31,7 @@ import layers from "@/cesium/layers.js";
 import * as Cesium from "cesium";
 import basicLayers from "@/cesium/basicLayers.js";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
-import {PulseTool} from "@/cesium/pulse.js";
+// import {PulseTool} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 import {reactive} from "vue";
@@ -55,14 +55,22 @@ export default {
         {id: '6', name: '预警点', disabled: false},
         {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
       ],
+      firstLoad: {
+        '行政区划': false,
+        '烈度圈': true,
+        '断裂带': true,
+        '泥石流隐患点': false,
+        '滑坡隐患点': false,
+        '风险区域': false,
+        '预警点': true,
+        '灾害点': true,
+      },
       selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
       prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
-
-      warningPoints: null, // 存储预警点结果
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
-      pulse: null,
+      // pulse: null,
       realDisasterPoint: null,
       currentTime: new Date(),
       showBaseInfo: false,
@@ -108,9 +116,9 @@ export default {
     }
   },
   components: {},
-  mounted() {
-    this.pulse = new PulseTool(window.viewer);
-  },
+  // mounted() {
+  //   this.pulse = new PulseTool(window.viewer);
+  // },
   methods: {
     toggleLayerFeatures() {
       this.showLayerFeatures = !this.showLayerFeatures;
@@ -126,88 +134,116 @@ export default {
 
       // 更新记录（保存为下一次比对）
       this.prevSelectedLayers = [...currentSelected];
-
       // 图层映射：添加与移除图层逻辑
       // name: 图层名；add：添加图层；remove：移除图层
       const layerActions = [
         {
           name: '行政区划',
           add: () => {
-            basicLayers.loadAdminData()
+            if (this.firstLoad.行政区划==false) {
+              basicLayers.showAdminData()
+            }else {
+              basicLayers.loadAdminData()
+              this.firstLoad.行政区划=false
+            }
           },
           remove: () => {
-            basicLayers.removeAdminData()
+            basicLayers.hideAdminData()
           }
         },
         {
           name: '烈度圈',
           add: () => {
-            layers.DrawEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude, this.disasterEvent.disaterName)
+            if (this.disasterEvent.trigger == "地震") {
+              layers.DrawEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude, this.disasterEvent.disaterName)
+            }
           },
           remove: () => {
-            layers.removeIsoseismalCircle()
+            if (this.disasterEvent.trigger == "地震") {
+              layers.removeIsoseismalCircle()
+            }
           }
         },
         {
           name: '断裂带',
           add: () => {
-            basicLayers.addFaultZone()
+            if (this.disasterEvent.trigger == "地震") {
+              basicLayers.addFaultZone()
+            }
           },
           remove: () => {
-            basicLayers.removeFaultZone()
+            if (this.disasterEvent.trigger == "地震") {
+              basicLayers.removeFaultZone()
+            }
           }
         },
         {
           name: '泥石流隐患点',
           add: () => {
-            basicLayers.Addmudslide()
+            console.log(this.firstLoad.泥石流隐患点,"this.firstLoad.泥石流隐患点")
+            if (this.firstLoad.泥石流隐患点==false) {
+              basicLayers.showHazardSource()
+            }
+            else {
+              basicLayers.Addmudslide()
+              this.firstLoad.泥石流隐患点=false
+            }
           },
           remove: () => {
-            basicLayers.removeHazardSource()
+            basicLayers.hideHazardSource()
           }
         },
         {
           name: '滑坡隐患点',
           add: () => {
-            basicLayers.loadLandSlide()
+            if (this.firstLoad.滑坡隐患点==false) {
+              basicLayers.showLandSlide()
+            }
+            else{
+              basicLayers.loadLandSlide()
+              this.firstLoad.滑坡隐患点=false
+            }
           },
           remove: () => {
-            basicLayers.removeLandSlide()
+            basicLayers.hideLandSlide()
           }
         },
         {
           name: '风险区域',
           add: () => {
-            basicLayers.AddDangerAreaDataSource()
+            console.log(this.firstLoad.风险区域,"this.firstLoad.风险区域")
+            if (this.firstLoad.风险区域==false) {
+              basicLayers.showDangerAreaDataSource()
+            }
+            else{
+              basicLayers.AddDangerAreaDataSource()
+              this.firstLoad.风险区域=false
+            }
           },
           remove: () => {
-            basicLayers.removeDangerAreaDataSource()
+            basicLayers.hideDangerAreaDataSource()
           }
         },
         {
           name: '预警点',
           add: async () => {
-            if (this.warningPoints) {
-              // 如果已经计算过预警点，直接使用存储的结果
-              this.pulse.createPause(this.warningPoints);
+            if (this.firstLoad.预警点==false) {
+              layers.showHiddenBreathCircle()
             } else {
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
               this.calculationMessage = '正在计算预警点...';
-
               if (this.disasterEvent.trigger == "地震") {
 
                 let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
                 console.log(allHiddeninEllipse, "allHiddeninEllipse")
                 const [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
                 console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
-                this.pulse.removePulseEntity();
-                this.pulse.createPause(probabilityPoints);
+                // this.pulse.removePulseEntity();
+                layers.addHiddenBreathCircle(probabilityPoints)
+                // this.pulse.createPause(probabilityPoints);
                 // layers.flashHiddenDisasterPoints(probabilityPoints);
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
-
-                // 存储预警点结果
-                this.warningPoints = probabilityPoints;
 
                 // 设置计算完成
                 this.isCalculating = false;
@@ -233,7 +269,7 @@ export default {
                   const adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
                   let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
                   // 获取当前区县的匹配数据
-                  let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(
+                  let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
                       allPointsInside,
                       i,
                       this.rainfallArry[i],
@@ -241,35 +277,31 @@ export default {
                   );
                   // 合并到总数据集
                   allMatchedHuapoData.push(...matchedHuapoData);
-                  // Array.from(pointSet).forEach(key => allPointSet.add(key));
                 }
                 console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
                 // 一次性发送所有数据到接口
                 let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
                 console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
-                layers.flashHiddenDisasterPoints(matchedHuapoEntities);
-
-
+                layers.addHiddenBreathCircle(matchedHuapoEntities)
                 this.$emit("update:hiddenDisasterPoint", matchedHuapoEntities);
                 // 存储预警点结果
-                this.warningPoints = matchedHuapoEntities;
                 this.isCalculating = false;
                 this.calculationMessage = '预警点计算完成！';
                 // 3 秒后关闭提示框
                 setTimeout(() => {
                   this.calculationMessage = '';
                 }, 3000);
-
                 // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
                 if (this.onceLoadLayer) {
                   this.$emit('update:onceLoadLayer', false);
                   viewer.clockViewModel.shouldAnimate = true;
                 }
               }
+              this.firstLoad.预警点=false
             }
           },
           remove: () => {
-            this.pulse.removePulseEntity();
+            layers.notShowHiddenBreathCircle()
           }
         },
         {
@@ -393,7 +425,7 @@ export default {
           factors: factors,
           lon: item.geologicalDisasterHideDTO.lon,
           lat: item.geologicalDisasterHideDTO.lat,
-          geologicalDisasterHideDTO:item.geologicalDisasterHideDTO,
+          geologicalDisasterHideDTO: item.geologicalDisasterHideDTO,
         };
 
         requestData.data.push(itemFormat);

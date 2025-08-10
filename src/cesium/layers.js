@@ -349,7 +349,7 @@ let layers = {
         }
         return null;
     },
-    getAdminCoordinatesByName(areaName){
+    getAdminCoordinatesByName(areaName) {
         let administrationData = [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi]
 
         for (let admin of administrationData) {
@@ -362,8 +362,8 @@ let layers = {
         return null;
     },
     //找一个区域里的隐患点（区域为json数据）
-    findAllHiddenDisasterPointsInAffectedArea(adminCoordinates){
-        console.log(adminCoordinates,"findAllHiddenDisasterPointsInAffectedArea")
+    findAllHiddenDisasterPointsInAffectedArea(adminCoordinates) {
+        console.log(adminCoordinates, "findAllHiddenDisasterPointsInAffectedArea")
 
         // console.log(adminCoordinates[0],"adminCoordinates[0]")
         let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
@@ -375,7 +375,7 @@ let layers = {
             ...landslidePointsInside,
             ...mudslidePointsInside
         ];
-        console.log(allPointsInside,"allPointsInside")
+        console.log(allPointsInside, "allPointsInside")
         return allPointsInside
     },
     findHiddenDisasterPointsInAdminCoordinates(type, adminCoordinates) {
@@ -433,7 +433,7 @@ let layers = {
             item => item && item.geologicalDisasterHideDTO
         );
         validPoints.forEach((item) => {
-            console.log(item,item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat,"HiddenDisasterPoints item")
+            console.log(item, item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, "HiddenDisasterPoints item")
             if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
                 item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
@@ -474,10 +474,8 @@ let layers = {
     judgeandaddRealDisasterNewPoint(realDisasterPoints) {
         realDisasterPoints.forEach(item => {
             this.ifaddNewPoint(item)
-            this.addBlackBreathCircle(item)
-            // this.addRealDisasterLabel(item)
-            //找是否有同一类型，同一经纬度
         })
+        this.addBlackBreathCircle(realDisasterPoints)
     },
     ifaddNewPoint(item) {
         let lon = parsePointString(item.geom).longitude
@@ -595,39 +593,124 @@ let layers = {
             }
         }
     },
-    addBlackBreathCircle(item) {
-        let lon = parsePointString(item.geom).longitude
-        let lat = parsePointString(item.geom).latitude
-        item.entityId = '灾害点呼吸圈_' + item.id;
-        let labeltext = timeTransfer.timestampToTimeChina(item.occurrenceTime) + " " + item.disasterName
-        const start = Cesium.JulianDate.fromDate(new Date(item.occurrenceTime));
-        const stop = Cesium.JulianDate.addDays(start, 10, new Cesium.JulianDate());
+    addBlackBreathCircle(realDisasterPoints) {
+        realDisasterPoints.forEach(item => {
+            let lon = parsePointString(item.geom).longitude
+            let lat = parsePointString(item.geom).latitude
+            item.entityId = '灾害点呼吸圈_' + item.id;
+            let labeltext = timeTransfer.timestampToTimeChina(item.occurrenceTime) + " " + item.disasterName
+            const start = Cesium.JulianDate.fromDate(new Date(item.occurrenceTime));
+            const stop = Cesium.JulianDate.addDays(start, 10, new Cesium.JulianDate());
 
-        viewer.entities.add({
-            name: '灾害点呼吸圈',
-            id: item.entityId,
-            availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-                start: start, stop: stop
-            }),]),
-            position: Cesium.Cartesian3.fromDegrees(lon, lat),
-            label: {
-                text: labeltext,
-                font: '16px sans-serif',
-                fillColor: Cesium.Color.BLACK,
-                backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-                showBackground: true,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                outlineWidth: 2,
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                pixelOffset: new Cesium.Cartesian2(0, -16),
-            },
-            point: {
-                pixelSize: 30,
-                color: Cesium.Color.BLACK.withAlpha(0.5),
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 2,
-            },
-        });
+            viewer.entities.add({
+                name: '灾害点呼吸圈',
+                id: item.entityId,
+                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start: start, stop: stop
+                }),]),
+                position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                label: {
+                    text: labeltext,
+                    font: '16px sans-serif',
+                    fillColor: Cesium.Color.BLACK,
+                    backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+                    showBackground: true,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    outlineWidth: 2,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -16),
+                },
+                point: {
+                    pixelSize: 30,
+                    color: Cesium.Color.BLACK.withAlpha(0.5),
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                },
+            });
+        })
+    },
+    addHiddenBreathCircle(probabilityPoints) {
+        const disasterTypeMap = {
+            "滑坡": "landslide",
+            "泥石流": "debris_flow",
+            "暴雨洪水": "torrential_flood",
+            "内涝": "water_logging",
+            "堰塞湖": "barrier_lake"
+        };
+        if (!probabilityPoints || probabilityPoints.length === 0) return;
+        console.log(probabilityPoints, "probabilityPoints addHiddenBreathCircle")
+        probabilityPoints.forEach(item => {
+            // 跳过无效数据（检查必要字段是否存在）
+            if (!item?.disasterType || !Array.isArray(item.disaster) ||
+                !Array.isArray(item.level) || !Array.isArray(item.probability)) {
+                return;
+            }
+
+            // 获取当前disasterType对应的disaster数组元素
+            const disasterKey = disasterTypeMap[item.disasterType];
+            if (!disasterKey) {
+                console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
+                return;
+            }
+
+            // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+            const index = item.disaster.indexOf(disasterKey);
+            if (index === -1 || index >= item.level.length || index >= item.probability.length) {
+                console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+                return;
+            }
+
+            // 获取对应的等级和概率
+            const level = item.level[index];
+
+            let lon = item.geologicalDisasterHideDTO.lon
+            let lat = item.geologicalDisasterHideDTO.lat
+            item.entityId = '隐患点呼吸圈_' + item.entityId
+            if (level == '高') {
+                viewer.entities.add({
+                    name: '隐患点呼吸圈',
+                    id: item.entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 30,
+                        color: Cesium.Color.RED(0.5),
+                    },
+                });
+            } else if (level == "中") {
+                viewer.entities.add({
+                    name: '隐患点呼吸圈',
+                    id: item.entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 30,
+                        color: Cesium.Color.YELLOW.withAlpha(0.5),
+                    },
+                });
+            }
+
+        })
+    },
+    notShowHiddenBreathCircle() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '隐患点呼吸圈'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = false
+            });
+        }
+    },
+    showHiddenBreathCircle() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '隐患点呼吸圈'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = true
+            });
+        }
     },
 
 }

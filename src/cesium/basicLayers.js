@@ -228,6 +228,24 @@ let basicLayers = {
         )
         toRemove.forEach(ds => window.viewer.dataSources.remove(ds, true))
     },
+    hideAdminData() {
+        // 遍历当前所有数据源
+        const toHide = window.viewer.dataSources._dataSources.filter(
+            ds => ds.name && ds.name.startsWith('区县-')
+        );
+        toHide.forEach(ds => {
+            ds.show = false; // 隐藏数据源
+        });
+    },
+    showAdminData() {
+        // 遍历当前所有数据源
+        const toShow = window.viewer.dataSources._dataSources.filter(
+            ds => ds.name && ds.name.startsWith('区县-')
+        );
+        toShow.forEach(ds => {
+            ds.show = true; // 显示数据源
+        });
+    },
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
@@ -310,6 +328,28 @@ let basicLayers = {
             });
         }
     },
+    hideHazardSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '泥石流隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=false
+            });
+        }
+    },
+    showHazardSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '泥石流隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=true
+            });
+        }
+    },
 
     removeLandSlide() {
         let toRemove = window.viewer.entities.values.filter(
@@ -319,6 +359,28 @@ let basicLayers = {
             // 2. 逐个删除
             toRemove.forEach(entity => {
                 window.viewer.entities.remove(entity);
+            });
+        }
+    },
+    hideLandSlide() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '滑坡隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=false
+            });
+        }
+    },
+    showLandSlide() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '滑坡隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=true
             });
         }
     },
@@ -335,7 +397,28 @@ let basicLayers = {
             });
         }
     },
-
+    hideDangerAreaDataSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '风险区域'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=false
+            });
+        }
+    },
+    showDangerAreaDataSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '风险区域'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=true
+            });
+        }
+    },
 
 }
 export default basicLayers;

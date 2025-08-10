@@ -231,7 +231,7 @@ export default {
         const adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
         let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
         // 获取当前区县的匹配数据
-        let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(
+        let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
             allPointsInside,
             i,
             this.rainfallArry[i],
@@ -239,7 +239,6 @@ export default {
         );
         // 合并到总数据集
         allMatchedHuapoData.push(...matchedHuapoData);
-        Array.from(pointSet).forEach(key => allPointSet.add(key));
       }
       console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
       // 一次性发送所有数据到接口
@@ -304,7 +303,7 @@ export default {
           }
         });
       }
-      return {matchedHuapoData, pointSet};
+      return {matchedHuapoData};
     },
     // 获取区县所有数据
     async caculateRainSlideTrigger(matchedHuapoData) {
