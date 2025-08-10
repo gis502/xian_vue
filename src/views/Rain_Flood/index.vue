@@ -1694,8 +1694,8 @@ export default {
       this.dataTypeHiddenDisaster.type3.data = [];
       // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
-        // console.log(item, "probabilityPoints.forEach")
-        switch (item.geologicalDisasterHideDTO.disasterType) {
+        console.log(item, "probabilityPoints.forEach")
+        switch (item.disasterType) {
           case "滑坡":
             this.dataTypeHiddenDisaster.type1.data.push({
               field1: item.geologicalDisasterHideDTO.disasterName,
@@ -2283,6 +2283,7 @@ export default {
 
 </script>
 
+
 <style scoped>
 .cesium-container {
   width: 100%;
@@ -2356,99 +2357,6 @@ export default {
   font-size: 14px;
   z-index: 100;
 }
-
-/*!* 暴雨信息面板样式优化 *!*/
-/*.rain-info-panel {*/
-/*  position: absolute;*/
-/*  top: 20vh;*/
-/*  left: 10px;*/
-/*  background-color: rgba(0, 0, 0, 0.8);*/
-/*  color: white;*/
-/*  padding: 15px;*/
-/*  border-radius: 6px;*/
-/*  width: 65vh;*/
-/*  height: 190px;*/
-/*  z-index: 100;*/
-/*  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);*/
-/*}*/
-
-/*.panel-title {*/
-/*  font-size: 16px;*/
-/*  font-weight: bold;*/
-/*  margin-bottom: 10px;*/
-/*  padding-bottom: 8px;*/
-/*  border-bottom: 1px solid #444;*/
-/*  text-align: center;*/
-/*}*/
-
-/*.panel-content div {*/
-/*  margin-bottom: 12px;*/
-/*  display: flex;*/
-
-/*}*/
-
-/*.panel-content label {*/
-/*  width: 90px;*/
-/*  !* text-align: right; 标签文本右对齐 *!*/
-/*  font-weight: 500;*/
-/*  flex-shrink: 0; !* 防止标签宽度被压缩 *!*/
-/*  display: inline-block; !* 确保宽度生效 *!*/
-/*}*/
-
-/*.jiangyuliang {*/
-/*  text-align-last: justify;*/
-/*}*/
-
-/*.panel-content input {*/
-/*  width: 60px;*/
-/*  padding: 6px 8px;*/
-/*  border: none;*/
-/*  border-radius: 4px;*/
-/*  text-align: center;*/
-/*  background-color: rgba(255, 255, 255, 0.2);*/
-/*  color: white;*/
-/*  height: 30px; !* 固定高度确保垂直居中 *!*/
-/*  box-sizing: border-box; !* 包含内边距 *!*/
-/*}*/
-
-/*!* 优化单位文本样式，确保与输入框垂直对齐 *!*/
-/*.panel-content span {*/
-/*  width: auto; !* 固定单位宽度，实现对齐 *!*/
-/*  text-align: left; !* 单位文本左对齐 *!*/
-/*  display: inline-block; !* 转为行内块元素便于设置宽度 *!*/
-/*  height: 30px; !* 与输入框等高，确保垂直对齐 *!*/
-/*  line-height: 30px; !* 垂直居中 *!*/
-/*}*/
-
-/*!* 按钮组样式优化，确保按钮对齐 *!*/
-/*.button-group {*/
-/*  display: flex;*/
-/*  gap: 10px;*/
-/*  margin-top: 10px;*/
-/*}*/
-
-/*.panel-content button {*/
-/*  padding: 6px 12px;*/
-/*  background-color: #386641;*/
-/*  color: white;*/
-/*  border: none;*/
-/*  border-radius: 4px;*/
-/*  cursor: pointer;*/
-/*  transition: background-color 0.3s;*/
-/*  height: 32px; !* 固定按钮高度，确保对齐 *!*/
-/*  line-height: normal; !* 重置行高 *!*/
-/*}*/
-
-/*.panel-content button:last-child {*/
-/*  background-color: #bc4749;*/
-/*  margin-left: 10px;*/
-/*}*/
-
-/*.panel-content button:hover {*/
-/*  opacity: 0.9;*/
-/*  transform: translateY(-1px);*/
-/*}*/
-
 
 .disaster-popup {
   position: absolute;
@@ -2713,37 +2621,46 @@ export default {
   font-size: 20px;
   color: red;
 }
+.factor-button {
+  background-color: #409eff;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 40px;
+}
 
 .secondary-panel {
   position: absolute;
-  top: 20px;
+  top: 10px;
   right: 20px;
   background-color: rgba(40, 40, 40, 0.8);
   color: white;
-  padding: 15px;
+  padding: 10px; /* 缩小内边距 */
   border-radius: 4px;
   z-index: 1000;
-  width: 200px;
+  width: 160px; /* 缩小面板宽度 */
 }
 
 .panel-title1 {
   font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-bottom: 6px; /* 缩小标题与内容间距 */
+  font-size: 12px; /* 缩小字体 */
 }
 
 .panel-content1 {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
-  gap: 8px;
+  font-size: 12px; /* 缩小字体 */
+  gap: 6px; /* 缩小子元素间距 */
 }
 
 .panel-content1 label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px; /* 缩小标签内元素间距 */
+  font-size: 12px; /* 缩小字体 */
   cursor: pointer;
 }
 

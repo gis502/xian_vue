@@ -21,10 +21,7 @@
       </div>
 
       <!-- 滑坡信息 -->
-      <Landslide
-          v-if="!displayDisasterCausingFactors && showDisasterInformation"
-          :info="disasterInformation"
-      ></Landslide>
+      <Landslide v-if="!displayDisasterCausingFactors && showDisasterInformation" :info="disasterInformation"></Landslide>
 
       <!-- 泥石流 -->
       <DebrisFlow
@@ -76,7 +73,7 @@ const props = defineProps({
 // 获取致灾因子下拉列表选项
 
 watch(() => props, (newProps) => {
-  console.log('Props updated:', newProps);
+  //console.log('Props updated:', newProps);
 }, {deep: true});
 
 let options = ref([]);
