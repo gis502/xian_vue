@@ -382,12 +382,12 @@ async function confirmEarthquake(formEl) {
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
 
       // 获取各个点的风险概率
-      const [points, probabilityPoints] =
-        await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-      console.log(points, probabilityPoints,"points, probabilityPoints")
-      layers.flashHiddenDisasterPoints(probabilityPoints)
+      // const [points, probabilityPoints] =
+      //   await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
+      // console.log(points, probabilityPoints,"points, probabilityPoints")
+      // layers.flashHiddenDisasterPoints(probabilityPoints)
       // 处理表格和chart数据
-      addDatasToTableAndChart(probabilityPoints);
+      // addDatasToTableAndChart(probabilityPoints);
 
       // 显示表格和chart
       emit("displayTable");

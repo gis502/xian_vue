@@ -56,8 +56,8 @@ let layers = {
         let bearing = Cesium.Math.toDegrees(Math.atan2(y, x));
         bearing = (bearing + 360) % 360;
 
-        let rotation = Cesium.Math.toRadians(bearing - 90);
-        return rotation;
+        // let rotation = Cesium.Math.toRadians(bearing-90);
+        return bearing;
     },
     pointToLineDistance_getMinLine(position, lineData) {
         /**
@@ -79,7 +79,6 @@ let layers = {
         // let longitude = Cesium.Math.toDegrees(cartographic.longitude);
         // let height = cartographic.height;
         point = {x: position.longitude, y: position.latitude}
-
         //计算点到线的距离
         const distancePointToLine = (point, linePoint1, linePoint2) => {
             let p = Cesium.Cartesian3.fromDegrees(point.x, point.y)
@@ -149,6 +148,7 @@ let layers = {
                 min_line = lonlat
             }
         })
+
         return min_line
     },
     DrawCircle(point, rotation, magnitude) {
@@ -156,7 +156,7 @@ let layers = {
         // 地震源位置
         let position = point;
         // 根据断裂带计算的角度
-        // let strikeDirection = bearing;
+        let strikeDirection = rotation;
 
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
@@ -166,6 +166,8 @@ let layers = {
         ellipseParams.forEach(params => {
             let short = Math.min(params.semiMinorAxis, params.semiMajorAxis)
             let long = Math.max(params.semiMajorAxis, params.semiMinorAxis)
+            const adjustedDegrees = -(strikeDirection - 90);
+            const bearing = Cesium.Math.toRadians(adjustedDegrees);
             let ellipse = new Cesium.Entity({
                 position: Cesium.Cartesian3.fromDegrees(position.x, position.y), name: "地震影响区域", ellipse: {
                     // semiMinorAxis: params.semiMinorAxis,
@@ -177,7 +179,7 @@ let layers = {
                     outline: true,
                     outlineColor: Cesium.Color.RED,
                     outlineWidth: 3,
-                    rotation: rotation, // 设置椭圆旋转角度
+                    rotation: bearing, // 设置椭圆旋转角度
                 }
             });
             window.viewer.entities.add(ellipse);
@@ -242,16 +244,24 @@ let layers = {
             return 1.3003 * M + 0.3844;
         }
         const calculateRa = (M, Ia) => {
-            const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10);
-            // console.log(a, "=============================")
-            return a;
+            // const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10);
+            // // console.log(a, "=============================")
+            // return a;
+            // 按照公式计算指数部分，Ia 对应公式里的 I
+            const exponent = (3.04 + 1.27 * M - Ia) / 0.92;
+            // 计算 e 的 exponent 次方，再减去 8.65 得到 Ra
+            const Ra = Math.exp(exponent) - 8.65;
+            return Ra;
         }
 
         const calculateRb = (M, Ib) => {
-            const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5);
-            // console.log(b, "=============================")
-
-            return b;
+            // const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5);
+            // // console.log(b, "=============================")
+            //
+            // return b;
+            const exponent = (2.57 + 1.23 * M - Ib) / 0.86;
+            const Rb = Math.exp(exponent) - 4.86;
+            return Rb;
         }
         let sum = Math.floor(Math.min(Number(IaWhenAIsZero(magnitude)), Number(IbWhenBIsZero(magnitude))));
         let intensityLevels = [];
@@ -265,9 +275,11 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 1000;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 1000;
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
+
+            console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
 
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;
@@ -419,7 +431,7 @@ let layers = {
             item => item && item.geologicalDisasterHideDTO
         );
         validPoints.forEach((item) => {
-            console.log(item,item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat,"HiddenDisasterPoints item")
+            // console.log(item,item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat,"HiddenDisasterPoints item")
             if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
                 item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
