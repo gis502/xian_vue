@@ -24,28 +24,6 @@
         </div>
       </div>
     </div>
-    <div class="secondary-panel">
-      <div class="panel-title1">控制显示</div>
-      <div class="panel-content1">
-        <label><input type="checkbox" v-model="showDisaster" @change="toggleDisaster"> 显示灾害点 </label>
-        <label><input type="checkbox" v-model="showFlash" @change="toggleFlashFlood"> 显示山洪 </label>
-        <label><input type="checkbox" v-model="showWater" @change="toggleWater"> 显示内涝 </label>
-        <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
-        <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示风险源 </label>
-        <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
-        <label><input type="checkbox" v-model="showFire" @change="toggleFirePoints"> 显示消防站 </label>
-        <label><input type="checkbox" v-model="showStore" @change="toggleStorePoints"> 显示储备点 </label>
-        <label><input type="checkbox" v-model="showPeople" @change="togglePeople"> 显示人口网格 </label>
-        <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>
-        <label><input type="checkbox" v-model="showPipe" @change="toggleWaterPipe"> 显示管网系统 </label>
-        <label><input type="checkbox" v-model="showRoad" @change="toggleRoad"> 显示交通道路 </label>
-        <label><input type="checkbox" v-model="showBridge" @change="toggleBridge"> 显示桥梁 </label>
-        <label><input type="checkbox" v-model="showHighway" @change="toggleHighway"> 显示高速 </label>
-        <label><input type="checkbox" v-model="showNationalRoad" @change="toggleNationalRoad"> 显示国道 </label>
-        <label><input type="checkbox" v-model="showReservoir" @change="toggleReservoir"> 显示水库 </label>
-        <label><input type="checkbox" v-model="showSubway" @change="toggleSubway"> 显示地铁站 </label>
-      </div>
-    </div>
     <!-- 加载状态提示 -->
     <div v-if="isLoading" class="loading-indicator">
       {{ loadingText }}
@@ -284,6 +262,10 @@
         :trigger="'暴雨'"
         :rainInfo="rainInfo"
     />
+    <rain-layer-control
+        :viewer="viewer"
+        :setupEntityClickHandler="setupEntityClickHandler"
+    />
     <Legend ref="legendRef"></Legend>
   </div>
 </template>
@@ -311,20 +293,8 @@ import lakeData from '@/assets/static/json/lake.json';
 // 引入滑坡，泥石流灾害点数据
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
-import dangerSourceIcon from "@/assets/images/gasstation.png"
-import hospitalIcon from "@/assets/images/hospital.png"
-import fireIcon from "@/assets/images/firefighter.png"
-import storePointsIcon from "@/assets/images/storePoints.jpg"
-import shelterIcon from "@/assets/images/emergencyShelter.png"
 import {initCesium} from '@/cesium/initLayer.js'
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
-// 图标
-import riskArea from '@/assets/images/riskArea.png'
-import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
-import landslideIcon from '@/assets/images/landslide.png'
-import centerstar from "@/assets/icons/TimeLine/黄点点.png";
-import flashIcon from "@/assets/images/flashflood.png"
-import waterIcon from "@/assets/images/water.jpg"
 // api
 import {
   getGeologicalDisasterHideByLandSlideList,
@@ -354,22 +324,14 @@ import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import Table from "@/components/Earthquake/Table.vue";
-//获取其他点数据
-import {
-  getDangerous,
-  getFire,
-  getHospital,
-  getShelter,
-  getStore,
-  getFlashFlood,
-  getWater
-} from "@/api/system/aroundanalysis.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
 import AddRain from "@/components/Panel/addRain.vue";
+import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
 
 export default {
   name: 'CesiumRainMap',
   components: {
+    RainLayerControl,
     AddRain,
     Chart,
     Legend,
@@ -380,25 +342,6 @@ export default {
   data() {
     return {
       geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
-      peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
-      cropsLayerName: 'test:xian_crops',
-      waterPipeLayerName: 'test:xian_water_pipe',
-      roadLayerName: 'test:xian_road',
-      bridgeLayerName: 'test:xian_bridge_points',
-      highwayLayerName: 'test:xian_highway',
-      nationalRoadLayerName: 'test:xian_national_road',
-      reservoirLayerName: 'test:xian_reservoir_list',
-      subwayLayerName: 'test:xian_subway',
-      suchEntities: [],
-      hospitalEntities: [],
-      dangerEntities: [],
-      dangerSourceEntities: [],
-      storePointsEntities: [],
-      saveTeamEntities: [],
-      fireFighterEntities: [],
-      shelterEntities: [],
-      flashFloodEntities: [],
-      waterEntities: [],
       viewer: null,
       tdtToken: "7f013d0186775b063d6a046977bbefc6",
       currentMapType: 0,
@@ -452,41 +395,8 @@ export default {
       NishiliuData: [],
       // faultZone: faultZone,
       DangerAreaData: [],
-      FlashFloodData: null,
-      WaterLoggingData: null,
-      DangerSourceData: null,//危险源数据
-      HospitalData: null,
-      FireFighterData: null,
-      StorePointsData: null,
-      ShelterData: null,
-      peopleLayer: null,
-      cropsLayer: null,
-      waterPipeLayer: null,
-      roadLayer: null,
-      bridgeLayer: null,
-      highwayLayer: null,
-      nationalRoadLayer: null,
-      reservoirLayer: null,
-      subwayLayer: null,
       isLoading: false,
       loadingText: '加载数据中...',
-      showHospital: false, // 控制医院显示/隐藏
-      showDangerSource: false, // 控制风险源显示/隐藏
-      showShelter: false, // 控制避难所显示/隐藏
-      showFire: false, // 控制消防站显示/隐藏
-      showStore: false, // 控制储备点显示/隐藏
-      showPeople: false,
-      showCrops: false,
-      showPipe: false,
-      showRoad: false,
-      showBridge: false,
-      showHighway: false,
-      showNationalRoad: false,
-      showReservoir: false,
-      showSubway: false,
-      showFlash: false,
-      showWater: false,
-      showDisaster: false,
       // 暴雨影响区域椭圆相关配置
       // rainEllipseScale: 100, // 降雨量到椭圆半径的缩放系数
       // rainEllipseRotation: 70, // 椭圆默认旋转角度
@@ -682,9 +592,7 @@ export default {
 
   mounted() {
     this.load();
-    this.getNum();//从后端读取数据，异步
     basicLayers.loadAdminData(); // 加载行政区划数据
-    basicLayers.loadAdminData();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
   },
@@ -692,36 +600,6 @@ export default {
     this.releaseAllResources();
   },
   methods: {
-    getNum(){
-      //内涝
-      getWater().then((res)=>{
-        this.WaterLoggingData = res.data;
-      })
-      //山洪
-      getFlashFlood().then((res)=>{
-        this.FlashFloodData = res.data;
-      })
-      //获取危险源点
-      getDangerous().then((res)=>{
-        this.DangerSourceData = res.data;
-      });
-      //获取医院点
-      getHospital().then((res)=>{
-        this.HospitalData = res.data;
-      })
-      //获取消防站
-      getFire().then((res)=>{
-        this.FireFighterData = res.data;
-      })
-      //获取储备点
-      getStore().then((res) =>{
-        this.StorePointsData = res.data;
-      })
-      //获取避难所
-      getShelter().then((res) =>{
-        this.ShelterData = res.data;
-      })
-    },
     load() {
       const container = this.$refs.cesiumContainer;
 
@@ -1489,6 +1367,7 @@ export default {
         this.stopLoading()
       }, 'image/png', 1.0)
     },
+    //--------------------------
     // 计算弹出面板左坐标（带过渡动画）
     calculatePopupLeft() {
       return this.popupPosition.x;
@@ -1501,185 +1380,6 @@ export default {
     stopPropagation(e) {
       e.stopPropagation();
     },
-    // 加载图层
-    addLayers(name) {
-      const layer = this.viewer.imageryLayers.addImageryProvider(
-          new Cesium.WebMapServiceImageryProvider({
-            url: this.geoUrl,
-            layers: name,
-            parameters: {
-              tiled: true,
-              transparent: true,
-              format: 'image/png',
-              srs: 'EPSG:4490',
-              version: '1.1.1',
-            },
-            flyTo: true,
-            show: true,
-          })
-      );
-      this.setupLayerClickHandler();
-      return layer;
-    },
-    // 图层点击事件处理
-    setupLayerClickHandler() {
-      // 清除之前的点击事件处理程序
-      if (this.layerHandler) {
-        this.layerHandler.destroy();
-      }
-      // 为左键点击添加事件处理程序
-      this.layerHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
-
-      this.layerHandler.setInputAction(async (click) => {
-        // 1. 获取点击位置的经纬度和像素坐标
-        const position = viewer.scene.pickPosition(click.position); // 三维坐标
-        if (!position) return;
-        const ray = this.viewer.camera.getPickRay(click.position);
-        const cartesian = this.viewer.scene.globe.pick(ray, this.viewer.scene);
-
-        if (cartesian) {
-          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-          const longitude = Cesium.Math.toDegrees(cartographic.longitude);
-          const latitude = Cesium.Math.toDegrees(cartographic.latitude);
-
-          console.log(111, longitude, latitude);
-
-          // 2. 获取点击位置的屏幕像素坐标
-          const feature = viewer.scene.pick(click.position);
-          if (!feature) return;
-          // 3. 发送 GetFeatureInfo 请求,对每个Layer进行判别，若其显示，则请求
-          if(this.showPeople){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.peopleLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("属性信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
-          }
-          //农作物
-          if(this.showCrops){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.cropsLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("农作物信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
-          }
-          //管网
-          if(this.showPipe){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.waterPipeLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("管网信息:", JSON.parse(text));
-          }
-          //道路
-          if(this.showRoad){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.roadLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("道路信息:", JSON.parse(text));
-          }
-          //桥梁
-          if(this.showBridge){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.bridgeLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("桥梁信息:", JSON.parse(text));
-          }
-          //高速
-          if(this.showHighway){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.highwayLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("高速信息:", JSON.parse(text));
-          }
-          //国道
-          if(this.showNationalRoad){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.nationalRoadLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("国道信息:", JSON.parse(text));
-          }
-          //水库
-          if(this.showReservoir){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.reservoirLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("水库信息:", JSON.parse(text));
-          }
-          //地铁站
-          if(this.showNationalRoad){
-            const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.subwayLayerName);
-            const response = await fetch(infoUrl);
-            const text = await response.text();
-            console.log("地铁站信息:", JSON.parse(text));
-          }
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    },
-    //设置请求
-    buildGetFeatureInfoUrl(lon, lat, layerName) {
-      const wmsUrl = this.geoUrl;
-      const params = {
-        service: 'WMS',
-        version: '1.1.1',
-        request: 'GetFeatureInfo',
-        layers: layerName,
-        srs: 'EPSG:4490',
-        bbox: `${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}`, // 小范围查询
-        width: 101,  // 必须为奇数（中心点即点击位置）
-        height: 101,
-        query_layers: layerName,
-        info_format: 'application/json', // 或 'text/plain'
-        x: 50,  // 点击位置在 bbox 中心的像素坐标
-        y: 50,
-      };
-
-      return `${wmsUrl}?${new URLSearchParams(params).toString()}`;
-    },
-    //加载点（别动
-    loadEntities(data, icon){
-      try{
-        //储备站点获取数据
-        const Features = data?.features || [];
-        const suchEntities = [];
-        //添加储备站点
-        Features.forEach(point => {
-          const longitude = point.geometry.coordinates[0];
-          const latitude = point.geometry.coordinates[1];
-          // 加入储备点到数组
-          this.suchPoints.push([longitude, latitude])
-
-          // 创建实体
-          const entity = this.viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-            // 点
-            billboard: {
-              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-              image: icon,
-              width: 40, // 图片宽度,单位px
-              height: 40, // 图片高度，单位px
-              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-              scale: 0.8, // 缩放比例
-              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-              depthTest: false, // 禁止深度测试
-              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
-            },
-            originalColor: Cesium.Color.RED,
-            originalPixelSize: 15,
-            // 标记灾害类型
-            disasterType: 'disaster',
-            disasterData: point,
-          });
-          // 保存实体引用
-          suchEntities.push(entity);
-        })
-        //设置点击事件监听
-        this.setupEntityClickHandler();
-        return suchEntities;
-      }catch(error){
-        console.error("处理点数据失败.")
-      }
-    },
     // 设置实体点击事件处理
     setupEntityClickHandler() {
       // 清除之前的点击事件处理程序
@@ -1691,8 +1391,7 @@ export default {
       this.clickHandler.setInputAction((movement) => {
         // 检查点击是否在实体上
         const pickedObject = this.viewer.scene.pick(movement.position);
-        // 判断是否有disasterName属性
-        if (pickedObject.id._disasterData === undefined) {
+        if (pickedObject.id.disasterData === undefined) {
           return;
         }
         // 隐藏之前的弹出面板
@@ -1700,7 +1399,7 @@ export default {
         if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
           const entity = pickedObject.id;
           // 获取实体的灾害数据
-          this.selectedEntityData = entity._disasterData || {};
+          this.selectedEntityData = entity.disasterData || {};
           // 计算弹出框位置并显示面板
           this.calculateAndShowPopup(entity, movement.position);
         } else {
@@ -1774,144 +1473,6 @@ export default {
     closePopup() {
       this.popupVisible = false;
       this.selectedEntityData = null;
-    },
-    toggleHospitalPoints() {
-      //首次加载
-      if(this.hospitalEntities.length === 0 && this.showHospital){
-        this.hospitalEntities = this.loadEntities(this.HospitalData, hospitalIcon);
-      }else{
-        this.hospitalEntities.forEach(entity => {
-          entity.show = this.showHospital;
-        });
-      }
-    },
-    toggleDangerPoints() {
-      if(this.dangerEntities.length === 0 && this.showDangerSource){
-        this.dangerEntities = this.loadEntities(this.DangerSourceData, dangerSourceIcon);
-      }else{
-        this.dangerEntities.forEach(entity => {
-          entity.show = this.showDangerSource;
-        });
-      }
-    },
-    toggleShelterPoints() {
-      if(this.shelterEntities.length === 0 && this.showShelter){
-        this.shelterEntities = this.loadEntities(this.ShelterData, shelterIcon);
-      }else{
-        this.shelterEntities.forEach(entity => {
-          entity.show = this.showShelter;
-        });
-      }
-    },
-    toggleFirePoints() {
-      if(this.fireFighterEntities.length === 0 && this.showFire){
-        this.fireFighterEntities = this.loadEntities(this.FireFighterData, fireIcon);
-      }else{
-        this.fireFighterEntities.forEach(entity => {
-          entity.show = this.showFire;
-        });
-      }
-    },
-    toggleStorePoints() {
-      if(this.storePointsEntities.length === 0 && this.showStore){
-        this.storePointsEntities = this.loadEntities(this.StorePointsData, storePointsIcon);
-      }else{
-        this.storePointsEntities.forEach(entity => {
-          entity.show = this.showStore;
-        });
-      }
-    },
-    toggleWater() {
-      if(this.waterEntities.length === 0 && this.showWater){
-        this.waterEntities = this.loadEntities(this.WaterLoggingData, waterIcon);
-      }else{
-        this.waterEntities.forEach(entity => {
-          entity.show = this.showWater;
-        });
-      }
-    },
-    toggleFlashFlood() {
-      if(this.flashFloodEntities.length === 0 && this.showFlash){
-        this.flashFloodEntities = this.loadEntities(this.FlashFloodData, flashIcon);
-      }else{
-        this.flashFloodEntities.forEach(entity => {
-          entity.show = this.showFlash;
-        });
-      }
-    },
-    // 控制人口网格显示
-    togglePeople() {
-      if (this.peopleLayer == null && this.showPeople) {
-        this.peopleLayer = this.addLayers(this.peopleLayerName);
-      }
-      this.peopleLayer.show = this.showPeople;
-    },
-    //控制农田显示
-    toggleCrops(){
-      if(this.cropsLayer == null && this.showCrops) {
-        this.cropsLayer = this.addLayers(this.cropsLayerName);
-      }
-      this.cropsLayer.show = this.showCrops;
-    },
-    //控制管网系统显示
-    toggleWaterPipe(){
-      if(this.waterPipeLayer == null && this.showPipe) {
-        this.waterPipeLayer = this.addLayers(this.waterPipeLayerName);
-      }
-      this.waterPipeLayer.show = this.showPipe;
-    },
-    //控制道路显示
-    toggleRoad(){
-      if(this.roadLayer == null && this.showRoad) {
-        this.roadLayer = this.addLayers(this.roadLayerName);
-      }
-      this.roadLayer.show = this.showRoad;
-    },
-    //控制桥梁显示
-    toggleBridge(){
-      if(this.bridgeLayer == null && this.showBridge) {
-        this.bridgeLayer = this.addLayers(this.bridgeLayerName);
-      }
-      this.bridgeLayer.show = this.showBridge;
-    },
-    //控制高速显示
-    toggleHighway(){
-      if(this.highwayLayer == null && this.showHighway) {
-        this.highwayLayer = this.addLayers(this.highwayLayerName);
-      }
-      this.highwayLayer.show = this.showHighway;
-    },
-    //控制国道显示
-    toggleNationalRoad(){
-      if(this.nationalRoadLayer == null && this.showNationalRoad) {
-        this.nationalRoadLayer = this.addLayers(this.nationalRoadLayerName);
-      }
-      this.nationalRoadLayer.show = this.showNationalRoad;
-    },
-    //控制水库显示
-    toggleReservoir(){
-      if(this.reservoirLayer == null && this.showReservoir) {
-        this.reservoirLayer = this.addLayers(this.reservoirLayerName);
-      }
-      this.reservoirLayer.show = this.showReservoir;
-    },
-    //控制地铁站显示
-    toggleSubway(){
-      if(this.subwayLayer == null && this.showSubway) {
-        this.subwayLayer = this.addLayers(this.subwayLayerName);
-      }
-      this.subwayLayer.show = this.showSubway;
-    },
-    toggleDisaster(){
-      if(basicLayers.disasterEntities.length === 0 && this.showDisaster){
-        basicLayers.loadLandSlide();
-        basicLayers.Addmudslide();
-        basicLayers.AddDangerAreaDataSource();
-      }else{
-        basicLayers.disasterEntities.forEach(entity => {
-          entity.show = this.showDisaster;
-        });
-      }
     }
   }
 }
@@ -2446,39 +2007,5 @@ export default {
   cursor: pointer;
   margin-left: 40px;
 }
-
-.secondary-panel {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  background-color: rgba(40, 40, 40, 0.8);
-  color: white;
-  padding: 10px; /* 缩小内边距 */
-  border-radius: 4px;
-  z-index: 1000;
-  width: 160px; /* 缩小面板宽度 */
-}
-
-.panel-title1 {
-  font-weight: bold;
-  margin-bottom: 6px; /* 缩小标题与内容间距 */
-  font-size: 12px; /* 缩小字体 */
-}
-
-.panel-content1 {
-  display: flex;
-  flex-direction: column;
-  font-size: 12px; /* 缩小字体 */
-  gap: 6px; /* 缩小子元素间距 */
-}
-
-.panel-content1 label {
-  display: flex;
-  align-items: center;
-  gap: 6px; /* 缩小标签内元素间距 */
-  font-size: 12px; /* 缩小字体 */
-  cursor: pointer;
-}
-
 
 </style>
