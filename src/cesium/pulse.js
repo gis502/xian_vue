@@ -8,17 +8,15 @@ export class PulseTool {
    * 构造器
    * @param {Object} viewer - cesium的viewer对象
    * @param {number} [maxRadius=30] - 脉冲最大半径
-   * @param {number} [duration=3] - 脉冲持续时间
+   * @param {number} [duration=5] - 脉冲持续时间
    */
-  constructor(viewer, maxRadius = 30, duration = 3) {
+  constructor(viewer, maxRadius = 30, duration = 5) {
     this._viewer = viewer;
     // 存储实体与脉冲对应关系
     this._entityPulseMap = {};
-
     // 变量
     this._maxRadius = maxRadius;
     this._duration = duration;
-
     // 圆背景图，用于呈现脉冲
     this._circle = this.createCircleImage(this._maxRadius);
   }
@@ -30,34 +28,69 @@ export class PulseTool {
   createPause(points) {
     if (!Array.isArray(points)) return;
 
-    points.forEach((pt, idx) => {
-      // 跳过无效数据
-      if (!pt?.geologicalDisasterHideDTO || !pt.predict) return;
+    // 建立disasterType与disaster数组元素的映射关系
+    const disasterTypeMap = {
+      "滑坡": "landslide",
+      "泥石流": "debris_flow",
+      "暴雨洪水": "torrential_flood",
+      "内涝": "water_logging",
+      "堰塞湖": "barrier_lake"
+    };
 
-      const dto = pt.geologicalDisasterHideDTO;
-      const key = `${dto.disasterType}_${dto.id}`; // 唯一 key
-      const level = pt.predict.level;
+    points.forEach((pt) => {
+      // 跳过无效数据（检查必要字段是否存在）
+      if (!pt?.disasterType || !Array.isArray(pt.disaster) ||
+          !Array.isArray(pt.level) || !Array.isArray(pt.probability)) {
+        return;
+      }
 
+      // 获取当前disasterType对应的disaster数组元素
+      const disasterKey = disasterTypeMap[pt.disasterType];
+      if (!disasterKey) {
+        console.warn(`未找到与disasterType "${pt.disasterType}" 匹配的映射`);
+        return;
+      }
+
+      // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+      const index = pt.disaster.indexOf(disasterKey);
+      if (index === -1 || index >= pt.level.length || index >= pt.probability.length) {
+        console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+        return;
+      }
+
+      // 获取对应的等级和概率
+      const level = pt.level[index];
+      const probability = pt.probability[index];
+      // 只处理等级为"高"或"中"的情况
       if (level !== '高' && level !== '中') return;
+
+      // 生成唯一key（结合entityId和灾害类型确保唯一性）
+      const key = `${pt.disasterType}_${pt.entityId}_${disasterKey}`;
 
       // 如果已有脉冲 -> 先删除
       if (this._entityPulseMap[key]) {
         this.deletePulseEntity(key);
       }
 
-      // 生成唯一 pulseId
-      const pulseId = `PULSE_${key}_${Date.now()}`;
+      // 生成唯一 pulseId，可包含概率信息
+      const pulseId = `PULSE_${key}_${Date.now()}_prob${probability}`;
+
+      // 创建脉冲圆圈，根据等级设置颜色
       this.createOptimizedPulseCircle(
           pulseId,
-          dto.lon,
-          dto.lat,
+          pt.lon,  // 假设经纬度字段为lon和lat
+          pt.lat,
           this._maxRadius,
           this._duration,
           level === '高' ? Cesium.Color.RED : Cesium.Color.YELLOW
       );
 
-      // 记录映射
-      this._entityPulseMap[key] = pulseId;
+      // 记录映射关系，可同时存储概率信息
+      this._entityPulseMap[key] = {
+        pulseId,
+        probability,
+        level
+      };
     });
   }
   /**

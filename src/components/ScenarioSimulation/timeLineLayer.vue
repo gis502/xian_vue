@@ -184,10 +184,12 @@ export default {
               if (this.disasterEvent.trigger == "地震") {
 
                 let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
-                console.log(allHiddeninEllipse,"allHiddeninEllipse")
+                console.log(allHiddeninEllipse, "allHiddeninEllipse")
                 const [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
                 console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
-                layers.flashHiddenDisasterPoints(probabilityPoints);
+                this.pulse.removePulseEntity();
+                this.pulse.createPause(probabilityPoints);
+                // layers.flashHiddenDisasterPoints(probabilityPoints);
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
 
                 // 存储预警点结果
@@ -209,17 +211,23 @@ export default {
               } else if (this.disasterEvent.trigger == "暴雨") {
                 let adminArea = layers.getAdministrationByPoint(this.disasterEvent.longitude, this.disasterEvent.latitude);
                 if (adminArea) {
-                  console.log(adminArea.geometry.coordinates,"adminArea.geometry.coordinates")
-                  let allPointsInside =await layers.findAllHiddenDisasterPointsInAffectedArea(adminArea.geometry.coordinates);
-                  console.log(allPointsInside,"allPointsInside")
-                  let { pointsWithCausingFactors, pointSet } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
+                  console.log(adminArea.geometry.coordinates, "adminArea.geometry.coordinates")
+                  let allPointsInside = await layers.findAllHiddenDisasterPointsInAffectedArea(adminArea.geometry.coordinates);
+                  console.log(allPointsInside, "allPointsInside")
+                  let {
+                    pointsWithCausingFactors,
+                    pointSet
+                  } = this.getHiddenDisasterPointswithCausingFactors(allPointsInside); // 使用 await
                   console.log(pointsWithCausingFactors, pointSet, "pointsWithCausingFactors,pointSet");
                   let probabilityPoints = await this.caculateRainSlideTrigger(pointsWithCausingFactors, pointSet); // 使用 await
-                  console.log(probabilityPoints,"probabilityPoints")
+                  console.log(probabilityPoints, "probabilityPoints")
 
-                  layers.flashHiddenDisasterPoints(probabilityPoints);
+                  this.pulse.removePulseEntity();
+                  this.pulse.createPause(probabilityPoints);
+
                   this.$emit("update:hiddenDisasterPoint", probabilityPoints);
-
+                  // 存储预警点结果
+                  this.warningPoints = probabilityPoints;
                   this.isCalculating = false;
                   this.calculationMessage = '预警点计算完成！';
                   // 3 秒后关闭提示框
@@ -319,14 +327,12 @@ export default {
           }
         }
       }
-      // console.log(pointsWithCausingFactors,pointSet,"atchedHuapoData,pointSet getHiddenDisasterPointswithCausingFactors")
-      return { pointsWithCausingFactors, pointSet }; // 返回一个对象
+      return {pointsWithCausingFactors, pointSet}; // 返回一个对象
     },
     async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
       try {
         let matchedHuapoEntities = []
         const res = await rainSlideTrigger(matchedHuapoData);
-        console.log(res,"rainSlideTrigger res")
         let formatAnalyzedData = res.data;
 
         formatAnalyzedData.forEach(item => {
@@ -351,8 +357,8 @@ export default {
 <style scoped>
 .positionFlyToButton {
   position: absolute;
-  right: 1vh;
-  bottom: 6vh;
+  right: 3vh;
+  top: 2vh;
   width: 32px;
   height: 32px;
   background-color: #303336;
@@ -374,7 +380,7 @@ export default {
 .universalPanel {
   position: absolute;
   right: 5vh;
-  bottom: 6vh;
+  top: 2vh;
   width: 220px;
   border-radius: 5px;
   background: rgb(0, 195, 255);
@@ -382,7 +388,7 @@ export default {
   color: #fff;
   z-index: 5;
   background-color: rgba(53, 59, 67, 0.8);
-  height: 80.8vh;
+  height: 87vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
