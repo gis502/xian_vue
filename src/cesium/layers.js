@@ -675,6 +675,10 @@ let layers = {
                         pixelSize: 30,
                         color: Cesium.Color.RED(0.5),
                     },
+                    properties: {
+                        longitude:lon,
+                        latitude:lat,
+                    },
                 });
             } else if (level == "中") {
                 viewer.entities.add({
@@ -684,6 +688,10 @@ let layers = {
                     point: {
                         pixelSize: 30,
                         color: Cesium.Color.YELLOW.withAlpha(0.5),
+                    },
+                    properties: {
+                        longitude:lon,
+                        latitude:lat,
                     },
                 });
             }
@@ -712,6 +720,59 @@ let layers = {
             });
         }
     },
+    flashHiddenBreathCircle(item) {
+        // 将经纬度转换为Cesium的Cartesian3坐标
+        const longitude = item.field5;
+        const latitude = item.field6;
+        // const position = Cesium.Cartesian3.fromDegrees(longitude, latitude);
+
+        // 筛选出与给定经纬度匹配的实体
+        const entities = window.viewer.entities.values.filter(e => {
+            console.log(e.properties.longitude._value)
+            let entityLongitude=e.properties.longitude._value
+            let entityLatitude=e.properties.latitude._value
+            let matchesName = e.name === '隐患点呼吸圈';
+            let matchesPosition = entityLongitude === longitude && entityLatitude === latitude;
+            if (matchesName && matchesPosition) {
+                console.log('匹配的实体：', e.name, entityLongitude); // 打印匹配的实体的名称和位置
+            } else {
+                console.log('不匹配的实体：', e.name, entityLongitude); // 打印不匹配的实体的名称和位置
+            }
+
+            return matchesName && matchesPosition;
+        });
+        console.log(entities,"flash match")
+
+
+        if (entities.length === 0) {
+            console.log('没有找到与给定经纬度匹配的 “隐患点呼吸圈” 实体');
+            return;
+        }
+
+        let flashCount = 0; // 记录闪烁次数
+        const maxFlashCount = 10; // 最大闪烁次数
+        const flashDuration = 500; // 每次闪烁的持续时间（毫秒）
+
+        // 闪烁函数
+        const flash = () => {
+            entities.forEach(entity => {
+                entity.show = !entity.show; // 切换实体的显示状态
+            });
+            flashCount++;
+            if (flashCount <= maxFlashCount) {
+                setTimeout(flash, flashDuration); // 继续闪烁
+            }else {
+                // 闪烁结束后，将所有实体的show属性设置为true
+                entities.forEach(entity => {
+                    entity.show = true;
+                });
+                console.log('闪烁结束，所有实体显示');
+            }
+        };
+
+        // 开始闪烁
+        flash();
+    }
 
 }
 export default layers;

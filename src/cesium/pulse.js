@@ -108,6 +108,11 @@ export class PulseTool {
     const startTime = Cesium.JulianDate.now();
 
     const entity = window.viewer.entities.add({
+      name: '隐患点呼吸圈',
+      properties: {
+        longitude:lon,
+        latitude:lat,
+      },
       id: pulseId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
