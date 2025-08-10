@@ -188,13 +188,16 @@ export default {
         "longitude": longitude,
         "latitude": latitude,
         "position": this.positionArry.join(","),
-        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea + "暴雨",
+        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea.name + "暴雨",
         "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
       };
       console.log(requestData, "requestData saveRain")
       let res = await saveRain(requestData);
       console.log(res, "saveRain")
       if (this.adminArea) {
+
+
+
         //显示标记点
         let entity = {
           position: this.adminArea.name,
@@ -240,7 +243,7 @@ export default {
       }
       console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
       // 一次性发送所有数据到接口
-      let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData, allPointSet);
+      let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
       this.$emit('update:matched-huapo-entities', matchedHuapoEntities);
       console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
       console.log(this.matchedHiddenHighlightEntities, "this.matchedHiddenHighlightEntities这是匹配的所有点")
@@ -304,7 +307,7 @@ export default {
       return {matchedHuapoData, pointSet};
     },
     // 获取区县所有数据
-    async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
+    async caculateRainSlideTrigger(matchedHuapoData) {
       console.log(matchedHuapoData, "汇总后的matchedHuapoData")
       let requestData = {
         data: []
@@ -330,6 +333,7 @@ export default {
           factors: factors,
           lon: item.geologicalDisasterHideDTO.lon,
           lat: item.geologicalDisasterHideDTO.lat,
+          geologicalDisasterHideDTO:item.geologicalDisasterHideDTO,
         };
 
         requestData.data.push(itemFormat);
