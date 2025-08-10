@@ -6,19 +6,12 @@
     </div>
 
 
-    <!--    <rainfallPeriodTable-->
-    <!--        :currentTime="currentTime"-->
-    <!--    />-->
-
-
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
     </div>
     <div class="universalPanel" v-if="showLayerFeatures">
-      <div class="panelTop">
-        <h2 class="panelName">多源要素图层</h2>
-      </div>
+      <div class="panel-title1">多源要素图层</div>
       <el-checkbox-group v-model="selectedlayers" @change="updateMapLayers" class="grid-container">
         <el-checkbox v-for="item in layeritems" :key="item.id" :label="item.name">{{ item.name }}</el-checkbox>
       </el-checkbox-group>
@@ -47,24 +40,66 @@ export default {
       showLayerFeatures: false,
       layeritems: [
         {id: '0', name: '行政区划', disabled: false},
-        {id: '1', name: '烈度圈', disabled: false},
-        {id: '2', name: '断裂带', disabled: false},
+        {id: '1', name: '预警点', disabled: false},
+        {id: '2', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
+
+
         {id: '3', name: '泥石流隐患点', disabled: false},
         {id: '4', name: '滑坡隐患点', disabled: false},
-        {id: '5', name: '风险区域', disabled: false},
-        {id: '6', name: '预警点', disabled: false},
-        {id: '7', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
+        {id: '5', name: '山洪隐患点', disabled: false},
+        {id: '6', name: '内涝隐患点', disabled: false},
+        {id: '7', name: '风险区域', disabled: false},
+
+
+        {id: '8', name: '烈度圈', disabled: false},
+        {id: '9', name: '断裂带', disabled: false},
+
+        {id: '10', name: '医院', disabled: false},
+        {id: '11', name: '风险源', disabled: false},
+        {id: '12', name: '避难所', disabled: false},
+        {id: '13', name: '消防站', disabled: false},
+        {id: '14', name: '储备点', disabled: false},
+        {id: '15', name: '人口网格', disabled: false},
+        {id: '16', name: '农田网格', disabled: false},
+        {id: '17', name: '管网系统', disabled: false},
+        {id: '18', name: '交通道路', disabled: false},
+        {id: '19', name: '桥梁', disabled: false},
+        {id: '20', name: '高速', disabled: false},
+        {id: '21', name: '国道', disabled: false},
+        {id: '22', name: '水库', disabled: false},
+        {id: '23', name: '地铁站', disabled: false},
       ],
+      //是否第一次加载，进入页面就加载的，默认值为true.第一次add加载，之后显示隐藏
       firstLoad: {
         '行政区划': false,
-        '烈度圈': true,
-        '断裂带': true,
-        '泥石流隐患点': false,
-        '滑坡隐患点': false,
-        '风险区域': false,
         '预警点': true,
         '灾害点': true,
+
+        '泥石流隐患点': false,
+        '滑坡隐患点': false,
+        '山洪隐患点': true,
+        '内涝隐患点': true,
+        '风险区域': false,
+
+        '烈度圈': true,
+        '断裂带': true,
+
+        '医院': false,
+        '风险源': false,
+        '避难所': false,
+        '消防站': false,
+        '储备点': false,
+        '人口网格': false,
+        '农田网格': false,
+        '管网系统': false,
+        '交通道路': false,
+        '桥梁': false,
+        '高速': false,
+        '国道': false,
+        '水库': false,
+        '地铁站': false,
       },
+
       selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
       prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
       isCalculating: false, // 消息提示框显示隐藏
@@ -472,54 +507,41 @@ export default {
   border-color: #aef;
   box-shadow: 0 0 8px 3px #48b; /* 添加发光特效 */
 }
-
-
 .universalPanel {
   position: absolute;
-  right: 5vh;
   top: 2vh;
-  width: 220px;
-  border-radius: 5px;
-  background: rgb(0, 195, 255);
-  background: linear-gradient(90deg, rgb(22 105 179 / 9%) 25%, rgb(10 33 75 / 76%) 88%);
-  color: #fff;
-  z-index: 5;
-  background-color: rgba(53, 59, 67, 0.8);
+  right: 7vh;
+  background-color: rgba(40, 40, 40,1);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  z-index: 1000;
+  width: 15vh;
   height: 87vh;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
-
-.panelTop {
-  top: 0.5%;
-  height: 3.8vh;
-  position: relative;
-  background-image: url("@/assets/icons/TimeLine/标题底图.png");
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
+.panel-title1 {
+  font-weight: bold;
+  margin-bottom: 6px; /* 缩小标题与内容间距 */
+  font-size: 12px; /* 缩小字体 */
 }
-
-.panelName {
-  color: #FFFFFF;
-  font-size: 1.1rem;
-  font-weight: 550;
-  position: relative;
-  top: 26%;
-  left: 7%;
-}
-
-.el-checkbox-group {
+.grid-container {
   display: flex;
-  flex-direction: column; /* 使选项垂直排列 */
-  align-items: flex-start; /* 使所有选项左对齐 */
-  padding-left: 20px; /* 向右移动选项 */
+  flex-direction: column; /* 设置为列方向 */
+  align-items: flex-start; /* 选项靠左对齐 */
 }
-
-.el-checkbox {
-  display: block; /* 将每个 checkbox 设置为块级元素 */
-  margin-bottom: 10px; /* 添加一些间距 */
+/* 减小字体大小 */
+.el-checkbox__label {
+  display: inline-block;
+  font-size: 8px; /* 直接设置字体大小 */
+  line-height: 1;
+  padding-left: 8px;
 }
-
+/* 减小选项之间的间隔 */
+.grid-container .el-checkbox {
+  margin-bottom: 0px; /* 调整选项之间的垂直间隔 */
+  margin-right: 10px; /* 调整选项之间的水平间隔 */
+  font-size: 8px; /* 根据需要调整大小 */
+}
 .calculation-message {
   position: fixed;
   top: 60px;

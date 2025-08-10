@@ -6,11 +6,11 @@
         :position="PanelPosition"
         :popupData="PanelData"
     />
-    <rainCenterPanel
-        v-show="rainCenterPanelVisible"
-        :position="PanelPosition"
-        :popupData="PanelData"
-    />
+<!--    <rainCenterPanel-->
+<!--        v-show="rainCenterPanelVisible"-->
+<!--        :position="PanelPosition"-->
+<!--        :popupData="PanelData"-->
+<!--    />-->
     <!-- 鼠标悬停时显示的经纬度坐标 -->
     <div class="coordinate-box">
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}

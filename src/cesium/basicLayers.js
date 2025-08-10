@@ -290,30 +290,33 @@ let basicLayers = {
                 entityId=type+hiddenDangerPoint.geologicalDisasterHideDTO.id
             }
 
-            window.viewer.entities.add({
-                name:type,
-                id: entityId,
-                position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                billboard: {
-                    // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-                    image: imageEntity,
-                    width: 50, // 图片宽度,单位px
-                    height: 50, // 图片高度，单位px
-                    eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-                    color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-                    scale: 0.8, // 缩放比例
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-                    scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-                    depthTest: false, // 禁止深度测试
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-                    show: true,
-                },
-                properties: {
-                    data: hiddenDangerPoint,
-                    longitude:lon,
-                    latitude:lat,
-                },
-            });
+            if(!window.viewer.entities.getById(entityId)){
+                window.viewer.entities.add({
+                    name:type,
+                    id: entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    billboard: {
+                        // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                        image: imageEntity,
+                        width: 50, // 图片宽度,单位px
+                        height: 50, // 图片高度，单位px
+                        eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                        color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                        scale: 0.8, // 缩放比例
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                        scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                        depthTest: false, // 禁止深度测试
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                        show: true,
+                    },
+                    properties: {
+                        data: hiddenDangerPoint,
+                        longitude:lon,
+                        latitude:lat,
+                    },
+                });
+            }
+
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
     },

@@ -666,35 +666,38 @@ let layers = {
             let lon = item.geologicalDisasterHideDTO.lon
             let lat = item.geologicalDisasterHideDTO.lat
             item.entityId = '隐患点呼吸圈_' + item.entityId
-            if (level == '高') {
-                viewer.entities.add({
-                    name: '隐患点呼吸圈',
-                    id: item.entityId,
-                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                    point: {
-                        pixelSize: 30,
-                        color: Cesium.Color.RED(0.5),
-                    },
-                    properties: {
-                        longitude:lon,
-                        latitude:lat,
-                    },
-                });
-            } else if (level == "中") {
-                viewer.entities.add({
-                    name: '隐患点呼吸圈',
-                    id: item.entityId,
-                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                    point: {
-                        pixelSize: 30,
-                        color: Cesium.Color.YELLOW.withAlpha(0.5),
-                    },
-                    properties: {
-                        longitude:lon,
-                        latitude:lat,
-                    },
-                });
+            if (!window.viewer.entities.getById(item.entityId)) {
+                if (level == '高') {
+                    viewer.entities.add({
+                        name: '隐患点呼吸圈',
+                        id: item.entityId,
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: 30,
+                            color: Cesium.Color.RED(0.5),
+                        },
+                        properties: {
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                } else if (level == "中") {
+                    viewer.entities.add({
+                        name: '隐患点呼吸圈',
+                        id: item.entityId,
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: 30,
+                            color: Cesium.Color.YELLOW.withAlpha(0.5),
+                        },
+                        properties: {
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                }
             }
+
 
         })
     },
@@ -729,8 +732,8 @@ let layers = {
         // 筛选出与给定经纬度匹配的实体
         const entities = window.viewer.entities.values.filter(e => {
             console.log(e.properties.longitude._value)
-            let entityLongitude=e.properties.longitude._value
-            let entityLatitude=e.properties.latitude._value
+            let entityLongitude = e.properties.longitude._value
+            let entityLatitude = e.properties.latitude._value
             let matchesName = e.name === '隐患点呼吸圈';
             let matchesPosition = entityLongitude === longitude && entityLatitude === latitude;
             if (matchesName && matchesPosition) {
@@ -741,7 +744,7 @@ let layers = {
 
             return matchesName && matchesPosition;
         });
-        console.log(entities,"flash match")
+        console.log(entities, "flash match")
 
 
         if (entities.length === 0) {
@@ -761,7 +764,7 @@ let layers = {
             flashCount++;
             if (flashCount <= maxFlashCount) {
                 setTimeout(flash, flashDuration); // 继续闪烁
-            }else {
+            } else {
                 // 闪烁结束后，将所有实体的show属性设置为true
                 entities.forEach(entity => {
                     entity.show = true;
