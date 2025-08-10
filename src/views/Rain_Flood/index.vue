@@ -272,6 +272,7 @@
         :title="baseInfoTitle"
         :position="PanelPosition"
         :showDisasterInformation="showDisasterInformation"
+        :dataTypeHiddenDisaster="dataTypeHiddenDisaster"
         :disasterInformation="disasterInformation"
         :showdebrisFlowInformation="showdebrisFlowInformation"
         :debrisFlowInformation="debrisFlowInformation"
@@ -422,7 +423,7 @@ export default {
       // rainfall: 0,
       // duration: 2,
       // rainPoints: [],
-      rainInfo:[],
+      rainInfo: [],
       weatherActive: false,
       showAdminLayer: true,
       rainEffect: null,
@@ -514,6 +515,7 @@ export default {
       fireFighterPoints: [],
       storePoints: [],
       shelterPoints: [],
+      suchPoints: [],
       selectedEntityData: null,
       popupPosition: {x: 0, y: 0},
       popupVisible: false,
@@ -579,6 +581,34 @@ export default {
             name: "风险区预警点",
             value: "type3",
           },
+          {
+            name: "人口数据",
+            value: "type4",
+          },
+          {
+            name: "农作物数据",
+            value: "type5",
+          },
+          {
+            name: "管网数据",
+            value: "type6",
+          },
+          {
+            name: "道路数据",
+            value: "type7",
+          },
+          {
+            name: "高速数据",
+            value: "type8",
+          },
+          {
+            name: "水库数据",
+            value: "type9",
+          },
+          {
+            name: "桥梁数据",
+            value: "type10",
+          }
         ],
         type1: {
           headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
@@ -592,6 +622,34 @@ export default {
           headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
           data: [],
         },
+        type4: {
+          headers: ["区县", "街道", "人口数量"],
+          data: [],
+        },
+        type5: {
+          headers: ["区县", "小麦", "水稻", "玉米"],
+          data: [],
+        },
+        type6: {
+          headers: ["区县", "预留位置"],
+          data: [],
+        },
+        type7: {
+          headers: ["道路名称", "起点名称", "终点名称"],
+          data: [],
+        },
+        type8: {
+          headers: ["高速名称", "高速长度"],
+          data: [],
+        },
+        type9: {
+          headers: ["水库名称", "位置"],
+          data: [],
+        },
+        type10: {
+          headers: ["桥梁名称", "位置", "类型"],
+          data: [],
+        }
       },
       showChart: false,
       chartDatas: {
@@ -1664,26 +1722,26 @@ export default {
         this.showInfoPanel = true;
         window.viewer.screenSpaceEventHandler.setInputAction(movement => {
           // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-          if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo||this.showInfoPanel) {
+          if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo || this.showInfoPanel) {
             this.updatePopupPosition();
           }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       }
     },
 
-    handleWeather(){
+    handleWeather() {
       console.log("handleWeather")
-        // 标记后自动开启下雨效果
-        this.weatherActive = true;
-        this.rainEffect.enabled = this.weatherActive;
+      // 标记后自动开启下雨效果
+      this.weatherActive = true;
+      this.rainEffect.enabled = this.weatherActive;
 
-        this.rainMode = false;
+      this.rainMode = false;
 
-        if (this.handler) {
-          this.handler.destroy();
-          this.handler = null;
-        }
-        document.body.style.cursor = '';
+      if (this.handler) {
+        this.handler.destroy();
+        this.handler = null;
+      }
+      document.body.style.cursor = '';
     },
 
     handleHiddenDisasterPointUpdate(probabilityPoints) {
@@ -1728,8 +1786,8 @@ export default {
         }
       });
     },
-    updateRainInfo(data){
-      this.rainInfo=data
+    updateRainInfo(data) {
+      this.rainInfo = data
     },
     onKeyDown(event) {
       if (event.key === 'Escape' && this.rainMode) {
@@ -2118,7 +2176,7 @@ export default {
 // 在屏幕空间事件处理器中添加鼠标移动事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo||this.showInfoPanel) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo || this.showInfoPanel) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -2282,7 +2340,6 @@ export default {
 
 
 </script>
-
 
 <style scoped>
 .cesium-container {

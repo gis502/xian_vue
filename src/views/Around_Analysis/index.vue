@@ -264,11 +264,12 @@ import hospitalIcon from "@/assets/images/hospital.png"
 import fireIcon from "@/assets/images/firefighter.png"
 import storePointsIcon from "@/assets/images/storePoints.jpg"
 import shelterIcon from "@/assets/images/emergencyShelter.png"
+import flashFloodIcon from "@/assets/images/flashflood.png"
 import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
-import {getRisk, getSlide, getFlow, getDangerous, getFire, getHospital, getShelter, getStore} from "@/api/system/aroundanalysis.js";
+import {getRisk, getSlide, getFlashFlood, getFlow, getDangerous, getFire, getHospital, getShelter, getStore} from "@/api/system/aroundanalysis.js";
 import {get} from "@vueuse/core";
 import Chart from "../../components/Earthquake/Chart.vue";
 import Table from "../../components/Earthquake/Table.vue";
@@ -329,6 +330,7 @@ export default {
       // 灾害点数据
       HuapoData: null,
       NishiliuData: null,
+      FlashFloodData: null,
       DangerAreaData: null,
       DangerSourceData: null,//危险源数据
       HospitalData: null,
@@ -368,6 +370,7 @@ export default {
       layerHandler: null,
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
+      flashFloodPoints: [],
       secondaryRiskPoints: [], // 次生灾害风险点
       dangerSourcePoints: [],
       hospitalPoints: [],
@@ -512,30 +515,28 @@ export default {
         //放在此处确保前面的所有数据都读取到了，再渲染点。
         // this.loadDisasterData();
       });
+      getFlashFlood().then((res) =>{
+        this.FlashFloodData = res.data;
+      })
       //获取危险源点
       getDangerous().then((res)=>{
         this.DangerSourceData = res.data;
-        // this.loadDangerSource();
       });
       //获取医院点
       getHospital().then((res)=>{
         this.HospitalData = res.data;
-        // this.loadProtectTarget();
       })
       //获取消防站
       getFire().then((res)=>{
         this.FireFighterData = res.data;
-        // this.loadSaveTeams();
       })
       //获取储备点
       getStore().then((res) =>{
         this.StorePointsData = res.data;
-        // this.loadStorePoints();
       })
       //获取避难所
       getShelter().then((res) =>{
         this.ShelterData = res.data;
-        // this.loadShelter();
       })
     },
     load() {
@@ -994,21 +995,18 @@ export default {
         console.error("处理避难所点数据失败.")
       }
     },
-    //加载储备站点
-    loadStorePoints(){
+    //加载点
+    loadEntities(data, icon){
       try{
         //储备站点获取数据
-        const storePointsFeatures = this.StorePointsData?.features || [];
-        this.storePointsEntities = [];
+        const Features = data?.features || [];
+        const suchEntities = [];
         //添加储备站点
-        storePointsFeatures.forEach(point => {
-          const properties = point.properties || {};
-          const storeName = properties.storeName || '未知危险源';
+        Features.forEach(point => {
           const longitude = point.geometry.coordinates[0];
           const latitude = point.geometry.coordinates[1];
-
           // 加入储备点到数组
-          this.storePoints.push([longitude, latitude])
+          this.suchPoints.push([longitude, latitude])
 
           // 创建实体
           const entity = this.viewer.entities.add({
@@ -1016,9 +1014,9 @@ export default {
             // 点
             billboard: {
               // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-              image: storePointsIcon,
-              width: 60, // 图片宽度,单位px
-              height: 60, // 图片高度，单位px
+              image: icon,
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
               eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
               color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
               scale: 0.8, // 缩放比例
@@ -1026,42 +1024,23 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: this.showStore
+              show: true
             },
-            // 文字
-            label: {
-              text: `${storeName}`,
-              font: '12pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, -35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20000),
-              show: this.showStore
-            },
-            // 添加灾害类型信息，用于弹窗显示
-            // description: this.createDisasterDescription(properties, '滑坡'),
-            // 保存原始样式，用于闪烁恢复
             originalColor: Cesium.Color.RED,
             originalPixelSize: 15,
             // 标记灾害类型
-            disasterType: 'storePoints',
+            disasterType: 'disaster',
             disasterData: point,
           });
           // 保存实体引用
-          this.storePointsEntities.push(entity);
+          suchEntities.push(entity);
         })
+
+        return suchEntities;
         //设置点击事件监听
         this.setupEntityClickHandler();
       }catch(error){
-        console.error("处理储备站点数据失败.")
+        console.error("处理点数据失败.")
       }
     },
     //加载救援队伍
@@ -1279,12 +1258,14 @@ export default {
         const huapoFeatures = this.HuapoData?.features || [];
         const nishiliuFeatures = this.NishiliuData?.features || [];
         const dangerAreaFeatures = this.DangerAreaData?.features || [];
+        const flashFloodFeatures = this.FlashFloodData?.features || [];
 
         // 存储所有添加的实体，用于事件处理
         this.disasterEntities = [];
         // 分别存储不同类型灾害点的实体引用
         this.landslideEntities = [];
         this.debrisFlowEntities = [];
+        this.flashFloodEntities = [];
         this.secondaryRiskEntities = [];
         // 加载滑坡点
         huapoFeatures.forEach(point => {
@@ -1409,12 +1390,6 @@ export default {
           const position = point.properties.position; // 位置
           const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
           const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
-          const area = point.properties.area || {};   // 面积
-          const residentCounts = point.properties.residentCounts; // 居民户数（户）
-          const addressPopulation = point.properties.addressPopulation; // 户籍人口（人）
-          const riskProperty = point.properties.riskProperty; // 威胁财产（万元）
-          const permanentPopulation = point.properties.permanentPopulation; // 长居住人口（人）
-          const housing = point.properties.housing; // 住房（间）
 
           // 加入次生灾害点
           this.secondaryRiskPoints.push([longitude, latitude])
@@ -1465,6 +1440,62 @@ export default {
           // 保存实体引用
           this.disasterEntities.push(entity);
           this.secondaryRiskEntities.push(entity);
+        });
+        // 添加山洪点
+        flashFloodFeatures.forEach(point => {
+          const position = point.properties.position; // 位置
+          const longitude = parseFloat(point.geometry.coordinates[0]);  //经度
+          const latitude = parseFloat(point.geometry.coordinates[1]);   //纬度
+
+          // 加入山洪点
+          this.flashFloodPoints.push([longitude, latitude])
+          // 创建灾害点实体
+          const entity = this.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+            billboard: {
+              // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+              image: flashFloodIcon,
+              width: 60, // 图片宽度,单位px
+              height: 60, // 图片高度，单位px
+              eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+              color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+              scale: 0.8, // 缩放比例
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+              scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+              depthTest: false, // 禁止深度测试
+              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+              show: this.showDisasterPoints
+            },
+            // 文字
+            label: {
+              text: `${position}`,
+              font: '15pt Source Han Sans CN',
+              fillColor: Cesium.Color.WHITE,
+              backgroundColor: Cesium.Color.AQUA,
+              showBackground: false,
+              outline: true,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 10,
+              scale: 1.0,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+              pixelOffset: new Cesium.Cartesian2(-70, -35),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+              show: this.showDisasterPoints
+            },
+            // 添加灾害类型信息，用于弹窗显示
+            description: this.createDisasterDescription({position}, '山洪'),
+            // 保存原始样式，用于闪烁恢复
+            originalColor: Cesium.Color.ORANGE,
+            originalPixelSize: 15,
+            // 标记灾害类型
+            disasterType: 'flashFlood',
+            disasterData: point,
+          });
+          // 保存实体引用
+          this.disasterEntities.push(entity);
+          this.flashFloodEntities.push(entity);
         });
 
         // 设置实体点击事件
@@ -2956,7 +2987,7 @@ export default {
     },
     toggleStorePoints() {
       if(this.storePointsEntities.length == 0 && this.showStore){
-        this.loadStorePoints();
+        this.storePointsEntities = this.loadEntities(this.ShelterData, shelterIcon);
       }else{
         this.storePointsEntities.forEach(entity => {
           entity.show = this.showStore;
@@ -2981,7 +3012,7 @@ export default {
 .controls {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 190px;
   z-index: 100;
 }
 
@@ -3009,34 +3040,34 @@ export default {
 
 .secondary-panel {
   position: absolute;
-  top: 70px;
+  top: 10px;
   right: 20px;
   background-color: rgba(40, 40, 40, 0.8);
   color: white;
-  padding: 15px;
+  padding: 10px; /* 缩小内边距 */
   border-radius: 4px;
   z-index: 1000;
-  width: 200px;
+  width: 160px; /* 缩小面板宽度 */
 }
 
 .panel-title1 {
   font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-bottom: 6px; /* 缩小标题与内容间距 */
+  font-size: 12px; /* 缩小字体 */
 }
 
 .panel-content1 {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
-  gap: 8px;
+  font-size: 12px; /* 缩小字体 */
+  gap: 6px; /* 缩小子元素间距 */
 }
 
 .panel-content1 label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px; /* 缩小标签内元素间距 */
+  font-size: 12px; /* 缩小字体 */
   cursor: pointer;
 }
 
