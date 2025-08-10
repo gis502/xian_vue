@@ -49,6 +49,7 @@
 </template>
 
 <script setup name="HiddenDisasterPanel">
+import * as WKT from "wkt";
 import {computed, onMounted, ref} from "vue";
 import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
@@ -71,6 +72,8 @@ const props = defineProps({
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
   trigger: String,
+  rainfall: String,
+  dataTypeHiddenDisaster: Object,
   rainInfo: Object,
 });
 
@@ -169,7 +172,6 @@ function landslideImpact() {
     lat,
     lon
   }).then((res) => {
-    console.log(98745, res);
     const routePoints = [];
     const polylinePositions = []; // 用于存储折线点的数组
     const position = [];
@@ -180,7 +182,6 @@ function landslideImpact() {
       routePoints.push(Cesium.Cartesian3.fromDegrees(res.data[i].centerLon, res.data[i].centerLat)); // 存储为Cesium.Cartesian3对象
       polylinePositions.push(res.data[i].centerLon, res.data[i].centerLat);
     }
-    console.log(565656, routePoints, polylinePositions);
     // 绘制原始点路线
     if (polylinePositions.length >= 4) { // 至少需要两个点（4个坐标值）才能绘制线
       window.viewer.entities.add({
@@ -192,7 +193,6 @@ function landslideImpact() {
         },
       });
     }
-    console.log(222656454);
     // 绘制影响范围多边形（缓冲区）
     if (routePoints.length >= 1) { // 至少一个点才能考虑扇形或圆形
       // 将 generateSmoothBuffer 函数定义移动到此处，作为 loadLandSlide 的内部函数
@@ -245,8 +245,6 @@ function landslideImpact() {
         }
         // 添加最后一个原始点
         interpolatedPoints.push(routePoints[routePoints.length - 1]);
-        console.log(878787, interpolatedPoints)
-
         // 计算平滑的缓冲区边界点
         for (let j = 0; j < interpolatedPoints.length; j++) {
           const prev = j > 0 ? interpolatedPoints[j - 1] : interpolatedPoints[j];
@@ -316,7 +314,7 @@ function landslideImpact() {
         }
         // 添加最后一个原始点
         initialPoint.push(routePoints[routePoints.length - 1]);
-        console.log(868686, initialPoint)
+        console.log(868686,initialPoint)
 
         // 计算平滑的缓冲区边界点
         for (let q = 0; q < initialPoint.length; q++) {
@@ -359,22 +357,275 @@ function landslideImpact() {
 
 
       //坐标转换
-      // let ellipsoid=window.viewer.scene.globe.ellipsoid;
-      //
-      // for (let i=0;i<polygonHierarchy.positions.length;i++){
-      //
-      //   let cartographic=ellipsoid.cartesianToCartographic(polygonHierarchy.positions[i]);
-      //
-      //   let lat=Cesium.Math.toDegrees(cartographic.latitude);
-      //   let lon=Cesium.Math.toDegrees(cartographic.longitude);
-      //
-      //   let currentPoint = {
-      //     lat: lat,
-      //     lon: lon,
-      //   };
-      //
-      //   position.push(currentPoint);
-      // }
+      let ellipsoid=window.viewer.scene.globe.ellipsoid;
+
+      for (let i=0;i<affrctPoint.positions.length;i++){
+
+        let cartographic=ellipsoid.cartesianToCartographic(affrctPoint.positions[i]);
+
+        let lat=Cesium.Math.toDegrees(cartographic.latitude);
+        let lon=Cesium.Math.toDegrees(cartographic.longitude);
+
+        let currentPoint = {
+          lat: lat,
+          lon: lon,
+        };
+
+        position.push(currentPoint);
+
+      }
+
+      //渲染影响点
+      fetchAndLogRoadList(position)
+
+      async function fetchAndLogRoadList(position) {
+        try {
+
+          const data = await getAffectPoint(position); // 等待 Promise 解析
+          console.log(1111, data);
+          renderAllAffectedGeometries(viewer, data);
+          pushTable(data);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+      function pushTable(data){
+        Object.entries(data).forEach(([listName, items]) => {
+          switch (listName){
+            case 'peopleList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type4.data.push({
+                    field1: item.county,
+                    field2: item.country,
+                    field3: item.peopleNum,
+                  });
+                });
+              }
+              break;
+            case 'cropsList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type5.data.push({
+                    field1: item.countyName,
+                    field2: item.wheatArea,
+                    field3: item.riceArea,
+                    field4: item.maizArea,
+                  });
+                });
+              }
+              break;
+            case 'waterPipeList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type6.data.push({
+                    field1: getDistrictName(item.fxpcXzqh3),
+                    field2: null,
+                  });
+                });
+              }
+              break;
+            case 'roadList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type7.data.push({
+                    field1: item.roadName,
+                    field2: item.qdmc,
+                    field3: item.zdmc,
+                  });
+                });
+              }
+              break;
+            case 'highwayList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type8.data.push({
+                    field1: item.name,
+                    field2: item.shapeLeng,
+                  });
+                });
+              }
+              break;
+            case 'reservoirList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type9.data.push({
+                    field1: item.name,
+                    field2: item.location,
+                  });
+                });
+              }
+              break;
+            case 'bridgeList':
+              if(items.length > 0){
+                items.forEach(item => {
+                  props.dataTypeHiddenDisaster.type10.data.push({
+                    field1: item.bridgeName,
+                    field2: item.location,
+                    field3: item.bridgeType,
+                  });
+                });
+              }
+              break;
+          }
+        })
+      }
+      //判别区县代码
+      function getDistrictName(code) {
+        switch (code) {
+          case '610102': return '新城区';
+          case '610103': return '碑林区';
+          case '610104': return '莲湖区';
+          case '610111': return '灞桥区';
+          case '610112': return '未央区';
+          case '610113': return '雁塔区';
+          case '610114': return '阎良区';
+          case '610115': return '临潼区';
+          case '610116': return '长安区';
+          case '610117': return '高陵区';
+          case '610118': return '鄠邑区';
+          case '610122': return '蓝田县';
+          case '610124': return '周至县';
+          default: return '未知区县';
+        }
+      }
+      //批量处理
+      function renderAllAffectedGeometries(viewer, data, typeColors = {}) {
+        // 默认颜色配置
+        const defaultColors = {
+          roadList: Cesium.Color.RED,
+          highwayList: Cesium.Color.YELLOW,
+          bridgeList: Cesium.Color.BLUE,
+          reservoirList: Cesium.Color.CYAN,
+          waterPipeList: Cesium.Color.GREEN,
+          // 可以继续添加其他类型...
+        };
+
+        // 定义需要跳过的列表类型
+        const SKIP_LIST_TYPES = ['peopleList', 'cropsList']; // 可以扩展其他类型,现在不显示人口与农作物网格。
+        // 合并用户自定义颜色
+        const colors = { ...defaultColors, ...typeColors };
+        // 遍历data中的所有属性
+        Object.entries(data).forEach(([listName, items]) => {
+          // 跳过空数组
+          if (!Array.isArray(items) || items.length === 0 || SKIP_LIST_TYPES.includes(listName)) {
+            return;
+          }
+          // 获取该类型的颜色，如果没有配置则使用随机颜色
+          const color = colors[listName] || Cesium.Color.fromRandom({
+            alpha: 0.7
+          });
+          // 遍历该类型的所有项目
+          items.forEach((item, index) => {
+            if (!item.pointGeom) {
+              console.warn(`Item ${index} in ${listName} has no pointGeom property`);
+              return;
+            }
+            try {
+              // 渲染几何图形
+              renderGeometryToCesium(viewer, item.pointGeom, {
+                color: color,
+                width: 10,
+              });
+              // 可选：添加标签显示名称（如果有name字段）
+              // if (item.roadName || item.qdmc || item.zdmc) {
+              //   viewer.entities.add({
+              //     position: getCenterPositionFromWKT(item.geomGeom),
+              //     label: {
+              //       text: item.roadName || item.qdmc || item.zdmc || listName,
+              //       font: '14px sans-serif',
+              //       fillColor: Cesium.Color.WHITE,
+              //       outlineColor: Cesium.Color.BLACK,
+              //       outlineWidth: 2,
+              //       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              //       verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+              //       pixelOffset: new Cesium.Cartesian2(0, -10)
+              //     }
+              //   });
+              // }
+            } catch (error) {
+              console.error(`Error rendering ${listName}[${index}]:`, error);
+            }
+          });
+        });
+      }
+      //渲染
+      function renderGeometryToCesium(viewer, wktString, options = {}) {
+        const geometry = WKT.parse(wktString);
+        const { color = Cesium.Color.RED, width = 2 } = options;
+        if (geometry.type === 'LineString') {
+          // 渲染线
+          const positions = geometry.coordinates.map(coord =>
+              Cesium.Cartesian3.fromDegrees(coord[0], coord[1])
+          );
+          viewer.entities.add({
+            polyline: {
+              positions: positions,
+              width: width,
+              material: new Cesium.PolylineGlowMaterialProperty({
+                glowPower: 0.2,
+                color: color
+              })
+            }
+          });
+        }
+        else if (geometry.type === 'MultiLineString') {
+          // 多条线（每条线单独渲染）
+          geometry.coordinates.forEach(lineCoords => {
+            const positions = lineCoords.map(coord =>
+                Cesium.Cartesian3.fromDegrees(coord[0], coord[1])
+            );
+            viewer.entities.add({
+              polyline: {
+                positions: positions,
+                width: width,
+                material: new Cesium.PolylineGlowMaterialProperty({
+                  glowPower: 0.2,
+                  color: color
+                })
+              }
+            });
+          });
+        }
+        else if (geometry.type === 'MultiPolygon' || geometry.type === 'Polygon') {
+          // 渲染多边形
+          const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+          polygons.forEach(polygon => {
+            const hierarchy = new Cesium.PolygonHierarchy(
+                polygon[0].map(coord =>
+                    Cesium.Cartesian3.fromDegrees(coord[0], coord[1])
+                )
+            );
+            viewer.entities.add({
+              polygon: {
+                hierarchy: hierarchy,
+                material: color.withAlpha(0.5),
+                outline: true,
+                outlineColor: color,
+                outlineWidth: width
+              }
+            });
+          });
+        }
+        else if (geometry.type === 'Point') {
+          // 渲染点
+          viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(
+                geometry.coordinates[0],
+                geometry.coordinates[1]
+            ),
+            point: {
+              pixelSize: 10,
+              color: color,
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 2
+            }
+          });
+        }
+        else {
+          console.warn('Unsupported geometry type:', geometry.type);
+        }
+      }
 
       //缓冲区画点测试
       // for (let i=0;i<affrctPoint.positions.length;i++){
@@ -458,8 +709,8 @@ function landslideImpact() {
         });
 
       }
-      console.log(96321, routePolygon)
-    } else {
+      console.log(96321,routePolygon)
+    }else {
       console.warn(`点路线点数不足，无法创建影响范围多边形，索引 ${i}`);
     }
   })
