@@ -359,7 +359,7 @@ export default {
         z: 0     // 高度
       };
       let position = this.centerpoint.position.getValue(Cesium.JulianDate.now());
-      let screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, position);
+      let screenPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, position);
       this.PanelPosition = {
         x: screenPosition.x + 10,
         y: screenPosition.y + 10
@@ -521,7 +521,7 @@ export default {
         // 检查是否有选中的实体位置
         if (this.selectedEntityPosition) {
           // 将地理坐标转换为窗口坐标
-          const canvasPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
+          const canvasPosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
               window.viewer.scene,
               Cesium.Cartesian3.fromDegrees(this.selectedEntityPosition.x, this.selectedEntityPosition.y, this.selectedEntityPosition.z)
           );
@@ -656,7 +656,8 @@ export default {
 
 :deep(.legend) {
   bottom: 55px;
-  right: 45px;
+  right: 1vh;
+  z-index: 1;
 }
 
 </style>
