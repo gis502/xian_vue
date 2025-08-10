@@ -43,6 +43,7 @@
         <label><input type="checkbox" v-model="showNationalRoad" @change="toggleNationalRoad"> 显示国道 </label>
         <label><input type="checkbox" v-model="showReservoir" @change="toggleReservoir"> 显示水库 </label>
         <label><input type="checkbox" v-model="showSubway" @change="toggleSubway"> 显示地铁站 </label>
+        <label><input type="checkbox" v-model="showFlashFloods" @change="toggleflashFlood"> 显示山洪隐患点 </label>
       </div>
     </div>
     <!-- 加载状态提示 -->
@@ -378,16 +379,17 @@ export default {
   },
   data() {
     return {
-      geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
-      peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
-      cropsLayerName: 'test:xian_crops',
-      waterPipeLayerName: 'test:xian_water_pipe',
-      roadLayerName: 'test:xian_road',
-      bridgeLayerName: 'test:xian_bridge_points',
-      highwayLayerName: 'test:xian_highway',
-      nationalRoadLayerName: 'test:xian_national_road',
-      reservoirLayerName: 'test:xian_reservoir_list',
-      subwayLayerName: 'test:xian_subway',
+      geoUrl: '/geoserver/xian/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
+      peopleLayerName: 'xian:xian_people', // 格式：工作空间名:图层名
+      cropsLayerName: 'xian:xian_crops',
+      waterPipeLayerName: 'xian:xian_water_pipe',
+      roadLayerName: 'xian:xian_road',
+      bridgeLayerName: 'xian:xian_bridge_points',
+      highwayLayerName: 'xian:xian_highway',
+      nationalRoadLayerName: 'xian:xian_national_road',
+      reservoirLayerName: 'xian:xian_reservoir_list',
+      subwayLayerName: 'xian:xian_subway_stations_have_attributes',
+      flashFloodsName:'xian:xian_dangerous_points_flash_floods',
       protectEntities: [],
       hospitalEntities: [],
       dangerEntities: [],
@@ -468,6 +470,7 @@ export default {
       nationalRoadLayer: null,
       reservoirLayer: null,
       subwayLayer: null,
+      flashFloodLayer: null,
       isLoading: false,
       loadingText: '加载数据中...',
       showHospital: false, // 控制医院显示/隐藏
@@ -484,6 +487,7 @@ export default {
       showNationalRoad: false,
       showReservoir: false,
       showSubway: false,
+      showFlashFloods: false,
       showFlash: false,
       showWater: false,
       // 暴雨影响区域椭圆相关配置
@@ -710,27 +714,27 @@ export default {
         this.FlashFloodData = res.data;
       })
       //获取危险源点
-      getDangerous().then((res)=>{
+      getDangerous().then((res) => {
         this.DangerSourceData = res.data;
         // this.loadDangerSource();
       });
       //获取医院点
-      getHospital().then((res)=>{
+      getHospital().then((res) => {
         this.HospitalData = res.data;
         // this.loadProtectTarget();
       })
       //获取消防站
-      getFire().then((res)=>{
+      getFire().then((res) => {
         this.FireFighterData = res.data;
         // this.loadSaveTeams();
       })
       //获取储备点
-      getStore().then((res) =>{
+      getStore().then((res) => {
         this.StorePointsData = res.data;
         // this.loadStorePoints();
       })
       //获取避难所
-      getShelter().then((res) =>{
+      getShelter().then((res) => {
         this.ShelterData = res.data;
         // this.loadShelter();
       })
@@ -838,6 +842,25 @@ export default {
           new Cesium.WebMapServiceImageryProvider({
             url: this.geoUrl,
             layers: this.bridgeLayerName,
+            parameters: {
+              tiled: true,
+              transparent: true,
+              format: 'image/png',
+              srs: 'EPSG:4490',
+              version: '1.1.1',
+            },
+            flyTo: true,
+            show: true,
+          })
+      );
+      this.setupLayerClickHandler();
+    },
+    // 加载地铁站
+    addFlashFlood() {
+      this.flashFloodLayer = this.viewer.imageryLayers.addImageryProvider(
+          new Cesium.WebMapServiceImageryProvider({
+            url: this.geoUrl,
+            layers: this.flashFloodsName,
             parameters: {
               tiled: true,
               transparent: true,
@@ -1009,6 +1032,13 @@ export default {
         this.addSubway();
       }
       this.subwayLayer.show = this.showSubway;
+    },
+    //控制山洪隐患点
+    toggleflashFlood(){
+      if(this.flashFloodLayer == null && this.showFlashFloods) {
+        this.addFlashFlood();
+      }
+      this.flashFloodLayer.show = this.showFlashFloods;
     },
     //加载内涝
     loadWaterLogging(){
@@ -1212,13 +1242,13 @@ export default {
         })
         //设置点击事件监听
         this.setupEntityClickHandler();
-      }catch(error){
+      } catch (error) {
         console.error("处理避难所点数据失败.")
       }
     },
     //加载储备站点
-    loadStorePoints(){
-      try{
+    loadStorePoints() {
+      try {
         //储备站点获取数据
         const storePointsFeatures = this.StorePointsData?.features || [];
         this.storePointsEntities = [];
@@ -1282,13 +1312,13 @@ export default {
         })
         //设置点击事件监听
         this.setupEntityClickHandler();
-      }catch(error){
+      } catch (error) {
         console.error("处理储备站点数据失败.")
       }
     },
     //加载救援队伍
-    loadSaveTeams(){
-      try{
+    loadSaveTeams() {
+      try {
         //消防队伍
         const fireFeatures = this.FireFighterData?.features || [];
 
@@ -1357,14 +1387,14 @@ export default {
 
         this.setupEntityClickHandler();
 
-      }catch(error){
+      } catch (error) {
         console.error("处理消防站数据失败.")
       }
     },
     // 加载医院(保护目标
-    loadProtectTarget(){
+    loadProtectTarget() {
 
-      try{
+      try {
         const hospitalFeatures = this.HospitalData?.features || [];
 
         this.protectEntities = [];
@@ -1433,13 +1463,13 @@ export default {
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-      }catch (error) {
+      } catch (error) {
         console.error('处理保护目标数据时出错:', error);
       }
     },
     // 加载风险源
-    loadDangerSource(){
-      try{
+    loadDangerSource() {
+      try {
         const dangerSourceFeatures = this.DangerSourceData?.features || [];
 
         this.dangerEntities = [];
@@ -1488,7 +1518,7 @@ export default {
         // 设置实体点击事件
         this.setupEntityClickHandler();
 
-      }catch (error) {
+      } catch (error) {
         console.error('处理风险源数据时出错:', error);
       }
     },
@@ -1618,63 +1648,63 @@ export default {
           if (!feature) return;
           // 3. 发送 GetFeatureInfo 请求,对每个Layer进行判别，若其显示，则请求
           //人口
-          if(this.showPeople){
+          if (this.showPeople) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.peopleLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("人口信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
           }
           //农作物
-          if(this.showCrops){
+          if (this.showCrops) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.cropsLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("农作物信息:", JSON.parse(text)); // 打印 GeoServer 返回的属性
           }
           //管网
-          if(this.showPipe){
+          if (this.showPipe) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.waterPipeLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("管网信息:", JSON.parse(text));
           }
           //道路
-          if(this.showRoad){
+          if (this.showRoad) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.roadLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("道路信息:", JSON.parse(text));
           }
           //桥梁
-          if(this.showBridge){
+          if (this.showBridge) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.bridgeLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("桥梁信息:", JSON.parse(text));
           }
           //高速
-          if(this.showHighway){
+          if (this.showHighway) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.highwayLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("高速信息:", JSON.parse(text));
           }
           //国道
-          if(this.showNationalRoad){
+          if (this.showNationalRoad) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.nationalRoadLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("国道信息:", JSON.parse(text));
           }
           //水库
-          if(this.showReservoir){
+          if (this.showReservoir) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.reservoirLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
             console.log("水库信息:", JSON.parse(text));
           }
           //地铁站
-          if(this.showSubway){
+          if (this.showNationalRoad) {
             const infoUrl = this.buildGetFeatureInfoUrl(longitude, latitude, this.subwayLayerName);
             const response = await fetch(infoUrl);
             const text = await response.text();
@@ -1693,7 +1723,7 @@ export default {
         request: 'GetFeatureInfo',
         layers: layerName,
         srs: 'EPSG:4490',
-        bbox: `${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}`, // 小范围查询
+        bbox: `${lon - 0.01},${lat - 0.01},${lon + 0.01},${lat + 0.01}`, // 小范围查询
         width: 101,  // 必须为奇数（中心点即点击位置）
         height: 101,
         query_layers: layerName,
@@ -2464,45 +2494,45 @@ export default {
     },
     toggleHospitalPoints() {
       //首次加载
-      if(this.hospitalEntities.length == 0 && this.showHospital){
+      if (this.hospitalEntities.length == 0 && this.showHospital) {
         this.loadProtectTarget();
-      }else{
+      } else {
         this.hospitalEntities.forEach(entity => {
           entity.show = this.showHospital;
         });
       }
     },
     toggleDangerPoints() {
-      if(this.dangerEntities.length == 0 && this.showDangerSource){
+      if (this.dangerEntities.length == 0 && this.showDangerSource) {
         this.loadDangerSource();
-      }else{
+      } else {
         this.dangerEntities.forEach(entity => {
           entity.show = this.showDangerSource;
         });
       }
     },
     toggleShelterPoints() {
-      if(this.shelterEntities.length == 0 && this.showShelter){
+      if (this.shelterEntities.length == 0 && this.showShelter) {
         this.loadShelter();
-      }else{
+      } else {
         this.shelterEntities.forEach(entity => {
           entity.show = this.showShelter;
         });
       }
     },
     toggleFirePoints() {
-      if(this.fireFighterEntities.length == 0 && this.showFire){
+      if (this.fireFighterEntities.length == 0 && this.showFire) {
         this.loadSaveTeams();
-      }else{
+      } else {
         this.fireFighterEntities.forEach(entity => {
           entity.show = this.showFire;
         });
       }
     },
     toggleStorePoints() {
-      if(this.storePointsEntities.length == 0 && this.showStore){
+      if (this.storePointsEntities.length == 0 && this.showStore) {
         this.loadStorePoints();
-      }else{
+      } else {
         this.storePointsEntities.forEach(entity => {
           entity.show = this.showStore;
         });
