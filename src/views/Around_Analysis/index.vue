@@ -72,6 +72,10 @@
             <th>统一编号</th>
             <td>{{ selectedEntityData.properties.unitCode || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.riskName">
+            <th>风险区名称</th>
+            <td>{{ selectedEntityData.properties.riskName || '未知' }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.fieldCode">
             <th>野外编号</th>
             <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
@@ -269,7 +273,7 @@ import DangerAreaData from '@/assets/static/disaster/xian_risk.json'
 import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
 import landslide from '@/assets/landslide/landslide.json'
 import {initCesium} from '@/cesium/initLayer.js'
-import {getRisk, getSlide, getFlashFlood, getFlow, getDangerous, getFire, getHospital, getShelter, getStore} from "@/api/system/aroundanalysis.js";
+import {getRisk, getSlide, getFlashFlood, getFlow, getDangerous, getFire, getHospital, getShelter, getStore, getTest} from "@/api/system/aroundanalysis.js";
 import {get} from "@vueuse/core";
 import Chart from "../../components/Earthquake/Chart.vue";
 import Table from "../../components/Earthquake/Table.vue";
@@ -337,6 +341,7 @@ export default {
       FireFighterData: null,
       StorePointsData: null,
       ShelterData: null,
+      TestData: null,
       peopleLayer: null,
       cropsLayer: null,
       waterPipeLayer: null,
@@ -1005,8 +1010,6 @@ export default {
         Features.forEach(point => {
           const longitude = point.geometry.coordinates[0];
           const latitude = point.geometry.coordinates[1];
-          // 加入储备点到数组
-          this.suchPoints.push([longitude, latitude])
 
           // 创建实体
           const entity = this.viewer.entities.add({
@@ -1035,10 +1038,9 @@ export default {
           // 保存实体引用
           suchEntities.push(entity);
         })
-
-        return suchEntities;
         //设置点击事件监听
         this.setupEntityClickHandler();
+        return suchEntities;
       }catch(error){
         console.error("处理点数据失败.")
       }

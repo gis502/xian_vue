@@ -313,13 +313,12 @@ let basicLayers = {
     async loadFlashFlood(){
         getFlashFlood().then((res) => {
             console.log(111, res.data);
-            this.loadEntities('山洪隐患点' ,res.data, flashIcon);
+            this.addHiddenDangerPoints('山洪隐患点' ,res.data, flashIcon);
         })
     },
     async loadWater(){
         getWater().then((res) => {
-            console.log(222, res.data);
-            this.loadEntities('内涝隐患点' ,res.data, waterIcon);
+            this.addHiddenDangerPoints('内涝隐患点' ,res.data, waterIcon);
         })
     },
     async loadHospital(){
@@ -363,7 +362,7 @@ let basicLayers = {
             }
 
             if(!window.viewer.entities.getById(entityId)){
-                window.viewer.entities.add({
+                const entity = window.viewer.entities.add({
                     name:type,
                     id: entityId,
                     position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -387,8 +386,8 @@ let basicLayers = {
                         latitude:lat,
                     },
                 });
+                this.disasterEntities.push(entity);
             }
-
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
     },

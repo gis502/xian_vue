@@ -169,7 +169,6 @@ function toggleDisaster(){
     basicLayers.AddDangerAreaDataSource();
     basicLayers.loadFlashFlood();
     basicLayers.loadWater();
-    props.setupEntityClickHandler();
   }else{
     basicLayers.disasterEntities.forEach(entity => {
       entity.show = showDisaster.value;
