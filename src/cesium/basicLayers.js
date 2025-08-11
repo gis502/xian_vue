@@ -264,15 +264,35 @@ let basicLayers = {
         )
         toRemove.forEach(ds => window.viewer.dataSources.remove(ds, true))
     },
+    hideAdminData() {
+        // 遍历当前所有数据源
+        const toHide = window.viewer.dataSources._dataSources.filter(
+            ds => ds.name && ds.name.startsWith('区县-')
+        );
+        toHide.forEach(ds => {
+            ds.show = false; // 隐藏数据源
+        });
+    },
+    showAdminData() {
+        // 遍历当前所有数据源
+        const toShow = window.viewer.dataSources._dataSources.filter(
+            ds => ds.name && ds.name.startsWith('区县-')
+        );
+        toShow.forEach(ds => {
+            ds.show = true; // 显示数据源
+        });
+    },
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
+            console.log(res.data,"dataOnHiddenDangerPointsOfDebrisFlow")
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
 
     },
     async loadLandSlide(){
         landslideHazardPointData().then((res) => {
+            console.log(res.data,"landslideHazardPointData")
             this.addHiddenDangerPoints("滑坡隐患点",res.data, landslideIcon);
         });
     },
@@ -330,6 +350,7 @@ let basicLayers = {
 
     async addHiddenDangerPoints(type,hiddenDangerPoints, imageEntity) {
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
+            // console.log(hiddenDangerPoints,"hiddenDangerPoints")
             let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
             let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
 
@@ -341,32 +362,33 @@ let basicLayers = {
                 entityId=type+hiddenDangerPoint.geologicalDisasterHideDTO.id
             }
 
-            const entity = window.viewer.entities.add({
-                name:type,
-                id: entityId,
-                position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                billboard: {
-                    // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
-                    image: imageEntity,
-                    width: 40, // 图片宽度,单位px
-                    height: 40, // 图片高度，单位px
-                    eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-                    color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-                    scale: 0.8, // 缩放比例
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-                    scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-                    depthTest: false, // 禁止深度测试
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-                    show: true,
-                },
-                properties: {
-                    data: hiddenDangerPoint,
-                    longitude:lon,
-                    latitude:lat,
-                },
-            });
+            if(!window.viewer.entities.getById(entityId)){
+                window.viewer.entities.add({
+                    name:type,
+                    id: entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    billboard: {
+                        // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                        image: imageEntity,
+                        width: 50, // 图片宽度,单位px
+                        height: 50, // 图片高度，单位px
+                        eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                        color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                        scale: 0.8, // 缩放比例
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                        scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                        depthTest: false, // 禁止深度测试
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                        show: true,
+                    },
+                    properties: {
+                        data: hiddenDangerPoint,
+                        longitude:lon,
+                        latitude:lat,
+                    },
+                });
+            }
 
-            this.disasterEntities.push(entity);
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
     },
@@ -483,6 +505,28 @@ let basicLayers = {
             });
         }
     },
+    hideHazardSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '泥石流隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=false
+            });
+        }
+    },
+    showHazardSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '泥石流隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=true
+            });
+        }
+    },
 
     removeLandSlide() {
         let toRemove = window.viewer.entities.values.filter(
@@ -492,6 +536,28 @@ let basicLayers = {
             // 2. 逐个删除
             toRemove.forEach(entity => {
                 window.viewer.entities.remove(entity);
+            });
+        }
+    },
+    hideLandSlide() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '滑坡隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=false
+            });
+        }
+    },
+    showLandSlide() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '滑坡隐患点'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=true
             });
         }
     },
@@ -508,7 +574,28 @@ let basicLayers = {
             });
         }
     },
-
+    hideDangerAreaDataSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '风险区域'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=false
+            });
+        }
+    },
+    showDangerAreaDataSource() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '风险区域'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show=true
+            });
+        }
+    },
 
 }
 export default basicLayers;

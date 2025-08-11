@@ -70,6 +70,7 @@
 <script setup name="Table">
 import { ref, watch, computed, onMounted } from "vue";
 import * as Cesium from "cesium";
+import layers from "@/cesium/layers.js";
 
 // 定义 props
 const props = defineProps({
@@ -156,6 +157,7 @@ function handleTableClick(item) {
     },
     duration: 2, // 飞行动画持续时间（秒）
   });
+  layers.flashHiddenBreathCircle(item)
 }
 
 // 显示隐藏

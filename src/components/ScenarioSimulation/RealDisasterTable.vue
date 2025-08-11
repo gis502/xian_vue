@@ -66,10 +66,12 @@
 </template>
 
 <script setup name="Table">
-import { ref, watch, computed, onMounted } from "vue";
+import {ref, watch, computed, onMounted} from "vue";
 import * as Cesium from "cesium";
 import timeTransfer from "@/cesium/timeTransfer.js";
-import { isEqual, throttle, debounce } from "lodash";
+import {isEqual, throttle, debounce} from "lodash";
+import layers from "@/cesium/layers.js";
+
 const props = defineProps({
   dataTypes: {
     type: Object,
@@ -139,19 +141,19 @@ const performSearch = () => {
 function updateTableData() {
   const currentTime = new Date(props.currentTime);
 
-    const newData = tableData.value.filter(item => {
-      const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
-      // console.log(occurTime,currentTime,"occurTime,currentTime")
-      if (!occurTime||!currentTime) {
-        console.error(`Invalid date format for field2: ${item.field2}`);
-        return false;
-      }
-      return occurTime < currentTime;
-    });
-    // 只有在数据实际发生变化时才更新 filteredTableData
-    if (!isEqual(filteredTableData.value, newData)) {
-      filteredTableData.value = newData;
+  const newData = tableData.value.filter(item => {
+    const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
+    // console.log(occurTime,currentTime,"occurTime,currentTime")
+    if (!occurTime || !currentTime) {
+      console.error(`Invalid date format for field2: ${item.field2}`);
+      return false;
     }
+    return occurTime < currentTime;
+  });
+  // 只有在数据实际发生变化时才更新 filteredTableData
+  if (!isEqual(filteredTableData.value, newData)) {
+    filteredTableData.value = newData;
+  }
 }
 
 function handleTableClick(item) {
@@ -161,14 +163,14 @@ function handleTableClick(item) {
   // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
   // if (cesiumViewer) {
   window.viewer.scene.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
-      orientation: {
-        heading: Cesium.Math.toRadians(0.0),
-        pitch: Cesium.Math.toRadians(-90.0),
-        roll: 0.0,
-      },
-      duration: 2, // 飞行动画持续时间（秒）
-    });
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 4000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0.0),
+      pitch: Cesium.Math.toRadians(-90.0),
+      roll: 0.0,
+    },
+    duration: 2, // 飞行动画持续时间（秒）
+  });
   // }
 }
 
@@ -185,9 +187,8 @@ watch(() => props.currentTime, () => {
 // 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   changeDataType();
-}, { deep: true });
+}, {deep: true});
 </script>
-
 
 
 <style scoped lang="scss">
