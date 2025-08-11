@@ -172,7 +172,7 @@ export default {
       this.$emit('update:update-rain-info', this.entries);
       if (!this.selectedPositionLonAndLat) return;
       let {longitude, latitude, cartesian} = this.selectedPositionLonAndLat;
-      this.$emit('update:show-info-panel', false);
+      // this.$emit('update:show-info-panel', false);
       // 标记后自动开启下雨效果
       this.$emit('update:handleWeather');
       // 新增逻辑：获取标记点所在行政区划 标记点的位置
@@ -188,13 +188,16 @@ export default {
         "longitude": longitude,
         "latitude": latitude,
         "position": this.positionArry.join(","),
-        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea + "暴雨",
+        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea.name + "暴雨",
         "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
       };
       console.log(requestData, "requestData saveRain")
       let res = await saveRain(requestData);
       console.log(res, "saveRain")
       if (this.adminArea) {
+
+
+
         //显示标记点
         let entity = {
           position: this.adminArea.name,
@@ -212,6 +215,7 @@ export default {
         // 核心修改：汇总所有区县数据后一次性请求接口
         await this.processAllDistricts();
         this.$emit('update:loading-model', false);
+        this.$emit('update:show-info-panel', false);
       } else {
         console.log("未找到标记点所在的行政区划");
       }
@@ -227,20 +231,19 @@ export default {
         const adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
         let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
         // 获取当前区县的匹配数据
-        let {matchedHuapoData, pointSet} = this.getHiddenDisasterPointswithCausingFactors(
+        let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
             allPointsInside,
             i,
-            this.rainfallArry
+            this.rainfallArry[i],
+            this.durationArry[i],
         );
         // 合并到总数据集
         allMatchedHuapoData.push(...matchedHuapoData);
-        Array.from(pointSet).forEach(key => allPointSet.add(key));
       }
       console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
       // 一次性发送所有数据到接口
-      let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData, allPointSet);
+      let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
       this.$emit('update:matched-huapo-entities', matchedHuapoEntities);
-      this.matchedHiddenHighlightEntities = matchedHuapoEntities;
       console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
       console.log(this.matchedHiddenHighlightEntities, "this.matchedHiddenHighlightEntities这是匹配的所有点")
       layers.flashHiddenDisasterPoints(matchedHuapoEntities);
@@ -256,7 +259,7 @@ export default {
         }
       ];
     },
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside, index, rainfallArry) {
+    getHiddenDisasterPointswithCausingFactors(landslidePointsInside, index, rainfall,duration) {
       console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
       let matchedHuapoData = [];
       let pointSet = new Set();
@@ -273,9 +276,14 @@ export default {
           let key = `${lon},${lat}`;
           if (pointSet.has(key)) {
             matchedHuapoData.push(item);
-            // factorVoList
-            // console.log(item,"useSimulationPointStore")
-            // item.
+            item.factorVoList.forEach(factor => {
+              if (factor.attributeName === "降雨量") {
+                factor.factorValue = rainfall;
+              }
+              if (factor.attributeName === "持续时间") {
+                factor.factorValue = duration;
+              }
+            });
           }
         });
 
@@ -286,16 +294,19 @@ export default {
           if (Array.isArray(huapoItem.factorVoList)) {
             huapoItem.factorVoList.forEach(factor => {
               if (factor.attributeName === "降雨量") {
-                factor.factorValue = rainfallArry[index];
+                factor.factorValue = rainfall;
+              }
+              if (factor.attributeName === "持续时间") {
+                factor.factorValue = duration;
               }
             });
           }
         });
       }
-      return {matchedHuapoData, pointSet};
+      return {matchedHuapoData};
     },
     // 获取区县所有数据
-    async caculateRainSlideTrigger(matchedHuapoData, pointSet) {
+    async caculateRainSlideTrigger(matchedHuapoData) {
       console.log(matchedHuapoData, "汇总后的matchedHuapoData")
       let requestData = {
         data: []
@@ -321,6 +332,7 @@ export default {
           factors: factors,
           lon: item.geologicalDisasterHideDTO.lon,
           lat: item.geologicalDisasterHideDTO.lat,
+          geologicalDisasterHideDTO:item.geologicalDisasterHideDTO,
         };
 
         requestData.data.push(itemFormat);

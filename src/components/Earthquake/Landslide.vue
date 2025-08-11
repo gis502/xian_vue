@@ -35,7 +35,11 @@
 </template>
 
 <script setup name="DisasterInformation">
-defineProps(["info"]);
+const props = defineProps(["info"]);
+watch(() => props, (newProps) => {
+  console.log('Props updated:DisasterInformation', newProps);
+}, {deep: true});
+
 </script>
 
 <style scoped></style>
