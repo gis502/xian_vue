@@ -51,26 +51,7 @@
     <Table :show="showRiskTable" :dataTypes="dataTypeHiddenDisaster"></Table>
     <!--表格-->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
-    <!-- 暴雨信息面板 -->
-    <!--    <div v-if="showInfoPanel" class="rain-info-panel">-->
-    <!--      <div class="panel-title">暴雨信息</div>-->
-    <!--      <div class="panel-content">-->
-    <!--        <div class="form-item">-->
-    <!--          <label class="jiangyuliang">降雨量:</label>-->
-    <!--          <input v-model.number="rainfall" type="number" min="0" max="500" step="1"/>-->
-    <!--          <span>毫米</span>-->
-    <!--        </div>-->
-    <!--        <div class="form-item">-->
-    <!--          <label>持续时间:</label>-->
-    <!--          <input v-model.number="duration" type="number" min="0" max="72" step="1"/>-->
-    <!--          <span>小时</span>-->
-    <!--        </div>-->
-    <!--        <div class="button-group">-->
-    <!--          <button @click="confirmRainPoint" :disabled="!rainfall || !duration" style="width: 80px">确认添加</button>-->
-    <!--          <button @click="cancelRainPoint" style="width: 80px">取消</button>-->
-    <!--        </div>-->
-    <!--      </div>-->
-    <!--    </div>-->
+    <!--触发下雨-->
     <AddRain
         v-if="showInfoPanel"
         :selectedPositionLonAndLat="selectedPosition"
@@ -90,8 +71,7 @@
     top: `${calculatePopupTop()}px`,
     display: popupVisible ? 'block' : 'none',
     opacity: popupVisible ? '1' : '0',
-    transform: popupVisible ? 'scale(1)' : 'scale(0.5)'
-  }"
+    transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
         @click.stop="stopPropagation">
       <div class="popup-header">
         <h3 v-if="selectedEntityData.properties.teamName">{{ selectedEntityData.properties.teamName || '消防站' }} </h3>
@@ -278,9 +258,12 @@
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :showWaterDisasterInformation="showWaterDisasterInformation"
+        :waterDisasterInformation="waterDisasterInformation"
+        :showFloodDisasterInformation="showFloodDisasterInformation"
+        :floodDisasterInformation="floodDisasterInformation"
         :trigger="'暴雨'"
-        :rainInfo="rainInfo"
-    />
+        :rainInfo="rainInfo"/>
     <Legend ref="legendRef"></Legend>
   </div>
 </template>
@@ -559,9 +542,13 @@ export default {
       showDisasterInformation: false,
       showdebrisFlowInformation: false,
       showRiskPointsInformation: false,
+      showWaterDisasterInformation: false,
+      showFloodDisasterInformation: false,
       disasterInformation: null,
       debrisFlowInformation: null,
       riskPointsInformation: null,
+      waterDisasterInformation: null,
+      floodDisasterInformation: null,
       showBaseInfo: false,
 
       matchedHiddenHighlightEntities: [],
@@ -675,7 +662,6 @@ export default {
     //   return this.districts.filter((district) => !selectedCodes.includes(district.code));
     // }
   },
-
   mounted() {
     this.load();
     this.getNum();//从后端读取数据，异步
@@ -684,6 +670,9 @@ export default {
     basicLayers.Addmudslide();
     basicLayers.AddDangerAreaDataSource();
     basicLayers.loadAdminData();
+    basicLayers.loadFlashFlood();
+    basicLayers.loadWater();
+
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
   },
@@ -1728,7 +1717,6 @@ export default {
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       }
     },
-
     handleWeather() {
       console.log("handleWeather")
       // 标记后自动开启下雨效果
@@ -1743,13 +1731,14 @@ export default {
       }
       document.body.style.cursor = '';
     },
-
     handleHiddenDisasterPointUpdate(probabilityPoints) {
       this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
       this.dataTypeHiddenDisaster.type1.data = [];
       this.dataTypeHiddenDisaster.type2.data = [];
       this.dataTypeHiddenDisaster.type3.data = [];
+      this.dataTypeHiddenDisaster.type4.data = [];
+      this.dataTypeHiddenDisaster.type5.data = [];
       // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
         console.log(item, "probabilityPoints.forEach")
@@ -1774,8 +1763,29 @@ export default {
               field6: item.geologicalDisasterHideDTO.lat,
             });
             break;
-          default:
+
+          case "内涝":
             this.dataTypeHiddenDisaster.type3.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            })
+            break;
+          case "山洪":
+            this.dataTypeHiddenDisaster.type4.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            })
+            break;
+          default:
+            this.dataTypeHiddenDisaster.type5.data.push({
               field1: item.geologicalDisasterHideDTO.disasterName,
               field2: item.geologicalDisasterHideDTO.position,
               field3: item.geologicalDisasterHideDTO.inspectorName,
@@ -2124,14 +2134,22 @@ export default {
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
                 this.baseInfoTitle = entity.name;
+
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
+                this.showFloodDisasterInformation = false;
+                this.showWaterDisasterInformation = false;
+
 
                 this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
 
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
+                this.waterDisasterInformation = null
+                this.floodDisasterInformation = null
+
+
               } else if (entity.name === "泥石流隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -2142,10 +2160,14 @@ export default {
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = true;
                 this.showRiskPointsInformation = false;
+                this.showFloodDisasterInformation = false;
+                this.showWaterDisasterInformation = false;
 
                 this.disasterInformation = null
                 this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.riskPointsInformation = null
+                this.waterDisasterInformation = null
+                this.floodDisasterInformation = null
               } else if (entity.name === "风险区域") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -2155,10 +2177,51 @@ export default {
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = true;
+                this.showFloodDisasterInformation = false;
+                this.showWaterDisasterInformation = false;
 
                 this.disasterInformation = null
                 this.debrisFlowInformation = null
+                this.waterDisasterInformation = null
+                this.floodDisasterInformation = null
                 this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+              } else if (entity.name === "内涝隐患点") {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = false;
+                this.showBaseInfo = true;
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                this.baseInfoTitle = entity.name;
+                this.showDisasterInformation = false;
+                this.showdebrisFlowInformation = false;
+                this.showRiskPointsInformation = false;
+                this.showWaterDisasterInformation = true;
+                this.showFloodDisasterInformation = false;
+
+                this.disasterInformation = null
+                this.debrisFlowInformation = null
+                this.floodDisasterInformation = null
+                this.riskPointsInformation = null
+                this.waterDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+
+              } else if (entity.name === "山洪隐患点") {
+
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible = false;
+                this.showBaseInfo = true;
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
+                this.baseInfoTitle = entity.name;
+                this.showDisasterInformation = false;
+                this.showdebrisFlowInformation = false;
+                this.showRiskPointsInformation = false;
+                this.showWaterDisasterInformation = false;
+                this.showFloodDisasterInformation = true;
+
+                this.disasterInformation = null
+                this.debrisFlowInformation = null
+                this.riskPointsInformation = null
+                this.waterDisasterInformation = null
+                this.floodDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+
               } else {
                 this.rainCenterPanelVisible = false;
                 this.eqCenterPanelVisible = false;
@@ -2678,6 +2741,7 @@ export default {
   font-size: 20px;
   color: red;
 }
+
 .factor-button {
   background-color: #409eff;
   color: white;

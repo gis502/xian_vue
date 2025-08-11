@@ -17,7 +17,6 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 import lineData from "@/assets/西安断层数据.json";
 
-
 import landslideIcon from "@/assets/images/landslide.png";
 import riskArea from "@/assets/images/riskArea.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
@@ -293,13 +292,13 @@ let basicLayers = {
     async loadFlashFlood(){
         getFlashFlood().then((res) => {
             console.log(111, res.data);
-            this.loadEntities('山洪隐患点' ,res.data, flashIcon);
+            this.addHiddenDangerPoints('山洪隐患点' ,res.data, flashIcon);
         })
     },
     async loadWater(){
         getWater().then((res) => {
             console.log(222, res.data);
-            this.loadEntities('内涝隐患点' ,res.data, waterIcon);
+            this.addHiddenDangerPoints('内涝隐患点' ,res.data, waterIcon);
         })
     },
     async loadHospital(){
