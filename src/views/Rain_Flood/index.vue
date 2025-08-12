@@ -385,29 +385,6 @@ export default {
       currentMapType: 0,
       rainMode: false,
       showInfoPanel: false,
-      // districts: [
-      //   { name: "新城区", code: "610102" },
-      //   { name: "碑林区", code: "610103" },
-      //   { name: "莲湖区", code: "610104" },
-      //   { name: "雁塔区", code: "610113" },
-      //   { name: "灞桥区", code: "610111" },
-      //   { name: "未央区", code: "610112" },
-      //   { name: "阎良区", code: "610114" },
-      //   { name: "临潼区", code: "610115" },
-      //   { name: "长安区", code: "610116" },
-      //   { name: "高陵区", code: "610117" },
-      //   { name: "鄠邑区", code: "610118" },
-      //   { name: "蓝田县", code: "610122" },
-      //   { name: "周至县", code: "610124" }
-      // ],
-      // entries: [
-      //   {
-      //     code: null,
-      //     name: "",
-      //     rainfall: null,
-      //     duration: null
-      //   }
-      // ],
       selectedPosition: null,
       // rainfall: 0,
       // duration: 2,
