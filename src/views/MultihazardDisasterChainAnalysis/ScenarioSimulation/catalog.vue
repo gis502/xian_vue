@@ -54,7 +54,6 @@
 <script>
 
 import {getAllEarthquakeList, getAllDisasterRain} from '@/api/system/disasterEvents'
-import {parsePointString} from "@/cesium/geomTransfer.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
 
 export default {
@@ -134,30 +133,29 @@ export default {
     async getDisasterEvents() {
       let earthquakeList = await getAllEarthquakeList();
       let disasterRainList = await getAllDisasterRain();
-      earthquakeList.forEach((item) => {
-        // console.log(item, "earthquakeListforEach")
-        let {longitude, latitude} = parsePointString(item.geom)
+      console.log(earthquakeList,disasterRainList, "disasterRainList")
+      earthquakeList.data.forEach((item) => {
+        console.log(item, "earthquakeListforEach")
         this.eventList.push({
           id:item.disasterId,
           name: item.disasterName,
           trigger: '地震',
           occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
           location: item.position,
-          longitude: Number(longitude).toFixed(2),
-          latitude: Number(latitude).toFixed(2),
+          longitude: Number(item.longitude).toFixed(2),
+          latitude: Number(item.latitude).toFixed(2),
         })
       });
-      disasterRainList.forEach((item) => {
-        // console.log(item, "disasterRainListforEach")
-        let {longitude, latitude} = parsePointString(item.geom)
+      disasterRainList.data.forEach((item) => {
+        console.log(item, "disasterRainListforEach")
         this.eventList.push({
           id:item.disasterId,
           name: item.disasterName,
           trigger: '暴雨',
           occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
           location: item.position,
-          longitude: Number(longitude).toFixed(2),
-          latitude: Number(latitude).toFixed(2),
+          longitude: Number(item.longitude).toFixed(2),
+          latitude: Number(item.latitude).toFixed(2),
         })
       });
       this.eventList.sort((a, b) => {

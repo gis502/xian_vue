@@ -27,12 +27,12 @@ export class PulseTool {
    */
   createPause(points) {
     if (!Array.isArray(points)) return;
-    console.log(963148,points)
+
     // 建立disasterType与disaster数组元素的映射关系
     const disasterTypeMap = {
       "滑坡": "landslide",
       "泥石流": "debris_flow",
-      "暴雨洪水": "torrential_flood",
+      "山洪": "torrential_flood",
       "内涝": "water_logging",
       "堰塞湖": "barrier_lake"
     };
@@ -151,6 +151,12 @@ export class PulseTool {
     const pulseColor = color instanceof Cesium.Color ? color : defaultColor;
 
     const entity = window.viewer.entities.add({
+      name: '隐患点呼吸圈',
+      properties: {
+        longitude:lon,
+        latitude:lat,
+      },
+      id: pulseId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
         image: this._circle,
@@ -215,8 +221,14 @@ export class PulseTool {
    * 移除所有脉冲
    */
   removePulseEntity() {
-    for (const entityId in this._entityPulseMap) {
-      this.deletePulseEntity(entityId);
+    let toRemove = window.viewer.entities.values.filter(
+        e => e.name === '隐患点呼吸圈'
+    );
+    if (toRemove) {
+      // 2. 逐个删除
+      toRemove.forEach(entity => {
+        window.viewer.entities.remove(entity);
+      });
     }
   }
 

@@ -23,7 +23,6 @@ import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import {PulseTool} from "@/cesium/pulse.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
-import * as turf from "@turf/turf"
 
 let layers = {
     //画烈度圈
@@ -360,7 +359,7 @@ let layers = {
         }
         return null;
     },
-    getAdminCoordinatesByName(areaName){
+    getAdminCoordinatesByName(areaName) {
         let administrationData = [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi]
 
         for (let admin of administrationData) {
@@ -373,20 +372,25 @@ let layers = {
         return null;
     },
     //找一个区域里的隐患点（区域为json数据）
-    findAllHiddenDisasterPointsInAffectedArea(adminCoordinates){
-        console.log(adminCoordinates,"findAllHiddenDisasterPointsInAffectedArea")
+    findAllHiddenDisasterPointsInAffectedArea(adminCoordinates) {
+        console.log(adminCoordinates, "findAllHiddenDisasterPointsInAffectedArea")
 
         // console.log(adminCoordinates[0],"adminCoordinates[0]")
         let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
         let mudslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("泥石流隐患点", adminCoordinates)
-        // let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates[0])
-        // 检查所有滑坡点
+        //let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates)
+        let waterPointsInside = this.findHiddenDisasterPointsInAdminCoordinates("内涝隐患点", adminCoordinates)
+        let floodPointsInside =  this.findHiddenDisasterPointsInAdminCoordinates("山洪隐患点", adminCoordinates)
 
+        // 检查所有滑坡点
         let allPointsInside = [
             ...landslidePointsInside,
-            ...mudslidePointsInside
+            ...mudslidePointsInside,
+            //...riskVillageInside,
+            ...waterPointsInside,
+            ...floodPointsInside
         ];
-        console.log(allPointsInside,"allPointsInside")
+        console.log(allPointsInside, "allPointsInside")
         return allPointsInside
     },
     findHiddenDisasterPointsInAdminCoordinates(type, adminCoordinates) {
@@ -539,7 +543,6 @@ let layers = {
     //预警点闪烁
     flashHiddenDisasterPoints(entities) {
         let pulse = new PulseTool(window.viewer);
-        console.log(77777777,pulse)
         console.log("传输过来的闪烁预警点实体是：", entities);
 
         if (!entities || entities.length === 0) return;
@@ -672,40 +675,189 @@ let layers = {
             }
         }
     },
-    addBlackBreathCircle(item) {
-        let lon = parsePointString(item.geom).longitude
-        let lat = parsePointString(item.geom).latitude
-        item.entityId = '灾害点呼吸圈_' + item.id;
-        let labeltext = timeTransfer.timestampToTimeChina(item.occurrenceTime) + " " + item.disasterName
-        const start = Cesium.JulianDate.fromDate(new Date(item.occurrenceTime));
-        const stop = Cesium.JulianDate.addDays(start, 10, new Cesium.JulianDate());
+    addBlackBreathCircle(realDisasterPoints) {
+        realDisasterPoints.forEach(item => {
+            let lon = parsePointString(item.geom).longitude
+            let lat = parsePointString(item.geom).latitude
+            item.entityId = '灾害点呼吸圈_' + item.id;
+            let labeltext = timeTransfer.timestampToTimeChina(item.occurrenceTime) + " " + item.disasterName
+            const start = Cesium.JulianDate.fromDate(new Date(item.occurrenceTime));
+            const stop = Cesium.JulianDate.addDays(start, 10, new Cesium.JulianDate());
 
-        viewer.entities.add({
-            name: '灾害点呼吸圈',
-            id: item.entityId,
-            availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-                start: start, stop: stop
-            }),]),
-            position: Cesium.Cartesian3.fromDegrees(lon, lat),
-            label: {
-                text: labeltext,
-                font: '16px sans-serif',
-                fillColor: Cesium.Color.BLACK,
-                backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
-                showBackground: true,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                outlineWidth: 2,
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                pixelOffset: new Cesium.Cartesian2(0, -16),
-            },
-            point: {
-                pixelSize: 30,
-                color: Cesium.Color.BLACK.withAlpha(0.5),
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 2,
-            },
-        });
+            viewer.entities.add({
+                name: '灾害点呼吸圈',
+                id: item.entityId,
+                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start: start, stop: stop
+                }),]),
+                position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                label: {
+                    text: labeltext,
+                    font: '16px sans-serif',
+                    fillColor: Cesium.Color.BLACK,
+                    backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+                    showBackground: true,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    outlineWidth: 2,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -16),
+                },
+                point: {
+                    pixelSize: 30,
+                    color: Cesium.Color.BLACK.withAlpha(0.5),
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                },
+            });
+        })
     },
+    addHiddenBreathCircle(probabilityPoints) {
+        const disasterTypeMap = {
+            "滑坡": "landslide",
+            "泥石流": "debris_flow",
+            "暴雨洪水": "torrential_flood",
+            "内涝": "water_logging",
+            "堰塞湖": "barrier_lake"
+        };
+        if (!probabilityPoints || probabilityPoints.length === 0) return;
+        console.log(probabilityPoints, "probabilityPoints addHiddenBreathCircle")
+        probabilityPoints.forEach(item => {
+            // 跳过无效数据（检查必要字段是否存在）
+            if (!item?.disasterType || !Array.isArray(item.disaster) ||
+                !Array.isArray(item.level) || !Array.isArray(item.probability)) {
+                return;
+            }
+
+            // 获取当前disasterType对应的disaster数组元素
+            const disasterKey = disasterTypeMap[item.disasterType];
+            if (!disasterKey) {
+                console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
+                return;
+            }
+
+            // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+            const index = item.disaster.indexOf(disasterKey);
+            if (index === -1 || index >= item.level.length || index >= item.probability.length) {
+                console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+                return;
+            }
+
+            // 获取对应的等级和概率
+            const level = item.level[index];
+
+            let lon = item.geologicalDisasterHideDTO.lon
+            let lat = item.geologicalDisasterHideDTO.lat
+            item.entityId = '隐患点呼吸圈_' + item.entityId
+            if (!window.viewer.entities.getById(item.entityId)) {
+                if (level == '高') {
+                    viewer.entities.add({
+                        name: '隐患点呼吸圈',
+                        id: item.entityId,
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: 30,
+                            color: Cesium.Color.RED(0.5),
+                        },
+                        properties: {
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                } else if (level == "中") {
+                    viewer.entities.add({
+                        name: '隐患点呼吸圈',
+                        id: item.entityId,
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: 30,
+                            color: Cesium.Color.YELLOW.withAlpha(0.5),
+                        },
+                        properties: {
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                }
+            }
+
+
+        })
+    },
+    notShowHiddenBreathCircle() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '隐患点呼吸圈'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = false
+            });
+        }
+    },
+    showHiddenBreathCircle() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '隐患点呼吸圈'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = true
+            });
+        }
+    },
+    flashHiddenBreathCircle(item) {
+        // 将经纬度转换为Cesium的Cartesian3坐标
+        const longitude = item.field5;
+        const latitude = item.field6;
+        // const position = Cesium.Cartesian3.fromDegrees(longitude, latitude);
+
+        // 筛选出与给定经纬度匹配的实体
+        const entities = window.viewer.entities.values.filter(e => {
+            console.log(e.properties.longitude._value)
+            let entityLongitude = e.properties.longitude._value
+            let entityLatitude = e.properties.latitude._value
+            let matchesName = e.name === '隐患点呼吸圈';
+            let matchesPosition = entityLongitude === longitude && entityLatitude === latitude;
+            if (matchesName && matchesPosition) {
+                console.log('匹配的实体：', e.name, entityLongitude); // 打印匹配的实体的名称和位置
+            } else {
+                console.log('不匹配的实体：', e.name, entityLongitude); // 打印不匹配的实体的名称和位置
+            }
+
+            return matchesName && matchesPosition;
+        });
+        console.log(entities, "flash match")
+
+
+        if (entities.length === 0) {
+            console.log('没有找到与给定经纬度匹配的 “隐患点呼吸圈” 实体');
+            return;
+        }
+
+        let flashCount = 0; // 记录闪烁次数
+        const maxFlashCount = 10; // 最大闪烁次数
+        const flashDuration = 500; // 每次闪烁的持续时间（毫秒）
+
+        // 闪烁函数
+        const flash = () => {
+            entities.forEach(entity => {
+                entity.show = !entity.show; // 切换实体的显示状态
+            });
+            flashCount++;
+            if (flashCount <= maxFlashCount) {
+                setTimeout(flash, flashDuration); // 继续闪烁
+            } else {
+                // 闪烁结束后，将所有实体的show属性设置为true
+                entities.forEach(entity => {
+                    entity.show = true;
+                });
+                console.log('闪烁结束，所有实体显示');
+            }
+        };
+
+        // 开始闪烁
+        flash();
+    }
 
 }
 export default layers;

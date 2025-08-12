@@ -5,39 +5,29 @@
       :style="styleObject"
   >
     <span>
-
     </span>
     <div class="disaster-popup">
       <div class="popup-header">
         <h3>{{ title }}</h3>
+
         <el-button
             type="info"
-            v-text="
-            displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'
-          "
+            v-text="displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'"
             @click="displayComponents"
         ></el-button>
         <el-button @click="landslideImpact">影响范围分析</el-button>
       </div>
 
       <!-- 滑坡信息 -->
-      <Landslide
-          v-if="!displayDisasterCausingFactors && showDisasterInformation"
-          :info="disasterInformation"
-      ></Landslide>
-
+      <Landslide v-if="!displayDisasterCausingFactors && showDisasterInformation" :info="disasterInformation"></Landslide>
       <!-- 泥石流 -->
-      <DebrisFlow
-          v-if="!displayDisasterCausingFactors && showdebrisFlowInformation"
-          :info="debrisFlowInformation"
-      ></DebrisFlow>
-
+      <DebrisFlow v-if="!displayDisasterCausingFactors && showdebrisFlowInformation" :info="debrisFlowInformation"></DebrisFlow>
       <!-- 风险点 -->
-      <RiskPoints
-          v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
-          :info="riskPointsInformation"
-      ></RiskPoints>
-
+      <RiskPoints v-if="!displayDisasterCausingFactors && showRiskPointsInformation" :info="riskPointsInformation"></RiskPoints>
+      <!--内涝-->
+      <WaterDisaster v-if="!displayDisasterCausingFactors && showWaterDisasterInformation" :info="waterDisasterInformation"></WaterDisaster>
+      <!--山洪-->
+      <FloodDisaster v-if="!displayDisasterCausingFactors && showFloodDisasterInformation" :info="floodDisasterInformation"></FloodDisaster>
       <!-- 致灾因子信息 -->
       <Hazards
           v-if="displayDisasterCausingFactors"
@@ -55,6 +45,8 @@ import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
 import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
+import WaterDisaster from "@/components/Earthquake/WaterDisaster.vue"
+import FloodDisaster from "@/components/Earthquake/FloodDisaster.vue"
 import {staticHazardsDatas} from "@/api/earthquake/datas";
 import {getAffectPoint, getHazardOptions, getPolieJiao} from "@/api/earthquake/hazards.js";
 import * as Cesium from 'cesium';
@@ -71,32 +63,55 @@ const props = defineProps({
   debrisFlowInformation: Object,
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
+  showWaterDisasterInformation: Boolean,
+  waterDisasterInformation: Object,
+  showFloodDisasterInformation: Boolean,
+  floodDisasterInformation: Object,
   trigger: String,
   rainfall: String,
   dataTypeHiddenDisaster: Object,
   rainInfo: Object,
 });
-// 获取致灾因子下拉列表选项
 
 watch(() => props, (newProps) => {
-  console.log('Props updated:', newProps);
+  //console.log('Props updated:', newProps);
 }, {deep: true});
+onMounted(() => {
+  console.log('Initial props:', props);
+});
+
+watch(() => props.disasterInformation, (newVal, oldVal) => {
+  console.log('disasterInformation updated:', newVal);
+});
+
+watch(() => props.debrisFlowInformation, (newVal, oldVal) => {
+  console.log('debrisFlowInformation updated:', newVal);
+});
+
+watch(() => props.riskPointsInformation, (newVal, oldVal) => {
+  console.log('riskPointsInformation updated:', newVal);
+});
+
+watch(() => props.position, (newVal, oldVal) => {
+  console.log('position updated:', newVal);
+});
+
+watch(() => props.position.y, (newY) => {
+  positionEntity.value.y = newY;
+});
 
 let options = ref([]);
 getHazardOptions().then((res) => {
   options.value = res;
+  console.log(props,"props")
 });
 
-// onMounted(() => {
-//   console.log('Props received:', props);
-// });
 const positionEntity = ref({x: 0, y: 0});
 
 watch(() => props.position.x, (newX) => {
   positionEntity.value.x = newX;
   // console.log(props.position,"props.position")
 });
-
 
 watch(() => props.position.y, (newY) => {
   positionEntity.value.y = newY;
@@ -108,27 +123,46 @@ const styleObject = computed(() => ({
   top: `${positionEntity.value.y}px`,
 }));
 
-
 const displayDisasterCausingFactors = ref(false);
-
 const hazards = computed(() => {
+  console.log(props.disasterInformation,props.debrisFlowInformation,"hazards")
   if (props.showDisasterInformation) {
-    handleRainfallAndDuration(props.disasterInformation, props.trigger);
+    props.disasterInformation.factorVoList.forEach((element) => {
+      element.type = element.unit == "" ? "select" : "input:number";
+      element.isModified = true;
+      element.isShow = true;
+    });
     return {
       ...props.disasterInformation,
-      title: '滑坡隐患点'
+      title: '滑坡隐患点' // 替换成你需要的标题
     };
   } else if (props.showdebrisFlowInformation) {
-    handleRainfallAndDuration(props.debrisFlowInformation, props.trigger);
+    props.debrisFlowInformation.factorVoList.forEach((element) => {
+      element.type = element.unit == "" ? "select" : "input:number";
+      element.isModified = true;
+      element.isShow = true;
+    })
     return {
       ...props.debrisFlowInformation,
-      title: '泥石流隐患点'
+      title: '泥石流隐患点' // 替换成你需要的标题
     };
   } else if (props.showRiskPointsInformation) {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
     return {
       ...props.riskPointsInformation,
-      title: '风险区域'
+      title: '风险区域' // 替换成你需要的标题
+    };
+  } else if (props.showWaterDisasterInformation) {
+    handleRainfallAndDuration(props.waterDisasterInformation, props.trigger);
+    return {
+      ...props.waterDisasterInformation,
+      title: '内涝隐患点'
+    };
+  } else if (props.showFloodDisasterInformation) {
+    handleRainfallAndDuration(props.floodDisasterInformation, props.trigger)
+    return {
+      ...props.floodDisasterInformation,
+      title: '山洪隐患点'
     };
   }
 });

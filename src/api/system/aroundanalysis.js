@@ -70,3 +70,10 @@ export function getStore() {
         method: 'get'
     })
 }
+
+export function getTest() {
+    return request({
+        url: '/around/getTest',
+        method: 'get'
+    })
+}
