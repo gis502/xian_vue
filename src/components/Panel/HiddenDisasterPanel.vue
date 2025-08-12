@@ -107,7 +107,6 @@ watch(() => props.position.y, (newY) => {
 let options = ref([]);
 getHazardOptions().then((res) => {
   options.value = res;
-
   console.log(props,"props")
 });
 
@@ -133,6 +132,7 @@ const styleObject = computed(() => ({
 
 const displayDisasterCausingFactors = ref(false);
 const hazards = computed(() => {
+  console.log(props.disasterInformation,props.debrisFlowInformation,"hazards")
   if (props.showDisasterInformation) {
     props.disasterInformation.factorVoList.forEach((element) => {
       element.type = element.unit == "" ? "select" : "input:number";

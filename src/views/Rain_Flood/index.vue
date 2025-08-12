@@ -573,7 +573,13 @@ export default {
 
   mounted() {
     this.load();
+    // this.getNum();//从后端读取数据，异步
     basicLayers.loadAdminData(); // 加载行政区划数据
+    basicLayers.loadLandSlide();
+    basicLayers.Addmudslide();
+    basicLayers.AddDangerAreaDataSource();
+    basicLayers.loadFlashFlood();
+    basicLayers.loadWater();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
   },

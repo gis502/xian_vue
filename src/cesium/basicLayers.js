@@ -288,7 +288,6 @@ let basicLayers = {
             console.log(res.data,"dataOnHiddenDangerPointsOfDebrisFlow")
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
-
     },
     async loadLandSlide(){
         landslideHazardPointData().then((res) => {
