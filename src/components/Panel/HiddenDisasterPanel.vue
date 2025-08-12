@@ -10,7 +10,7 @@
       <div class="popup-header">
         <h3>{{ title }}</h3>
 
-        <el-button
+        <el-button style="margin: 0 0 0 5px;"
             type="info"
             v-text="displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'"
             @click="displayComponents"
