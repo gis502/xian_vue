@@ -22,6 +22,7 @@
         <div class="table-btn" @click="downloadRainReport">
           报告下载
         </div>
+        <div><button class="table-btn" @click="toggleFactorPanel">致灾因子信息</button></div>
       </div>
     </div>
     <div class="secondary-panel">
@@ -63,6 +64,13 @@
         @update:handleWeather="handleWeather"
         @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
         @update:update-rain-info="updateRainInfo"
+    />
+    <!-- 组件引入，点击后显示 -->
+    <DisasterFactorForm
+        v-if="showFactorPanel"
+        v-model="disasterFactors"
+        @submit="submitFactors"
+        @cancel="cancelFactors"
     />
     <!-- 自定义弹出面板 -->
     <div
@@ -344,7 +352,7 @@ import {
   getFlashFlood,
   getWater
 } from "@/api/system/aroundanalysis.js";
-import timeTransfer from "@/cesium/timeTransfer.js";
+import DisasterFactorForm from "@/components/Earthquake/DisasterFactorForm.vue";
 import AddRain from "@/components/Panel/addRain.vue";
 
 export default {
@@ -355,10 +363,20 @@ export default {
     Legend,
     HiddenDisasterPanel,
     rainCenterPanel,
-    Table
+    Table,
+    DisasterFactorForm
   },
   data() {
     return {
+      //暴雨触发参数
+      model:[],
+      showFactorPanel: false,
+      disasterFactors: {
+        terrain: '',
+        soilMoisture: null,
+        vegetation: null
+      },
+
       geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
       peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
       cropsLayerName: 'test:xian_crops',
@@ -2491,6 +2509,18 @@ export default {
         this.stopLoading()
       }, 'image/png', 1.0)
     },
+    //致灾因子面板
+    toggleFactorPanel() {
+      this.showFactorPanel = !this.showFactorPanel;
+    },
+    submitFactors(factors) {
+      console.log('提交致灾因子信息:', factors);
+      this.model= factors;
+      this.showFactorPanel = false;
+    },
+    cancelFactors() {
+      this.showFactorPanel = false;
+    },
     // 计算弹出面板左坐标（带过渡动画）
     calculatePopupLeft() {
       return this.popupPosition.x;
@@ -2627,6 +2657,187 @@ export default {
   border-radius: 4px;
   font-size: 14px;
   z-index: 100;
+}
+
+/* 暴雨信息面板样式优化 */
+.rain-info-panel {
+  position: absolute;
+  top: 300px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 6px;
+  width: 240px;
+  height: 190px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #444;
+  text-align: left;
+}
+
+.panel-content div {
+  margin-bottom: 12px;
+  display: flex;
+
+}
+
+.panel-content label {
+  width: 70px;
+  /* text-align: right; 标签文本右对齐 */
+  font-weight: 500;
+  flex-shrink: 0; /* 防止标签宽度被压缩 */
+  display: inline-block; /* 确保宽度生效 */
+}
+
+.jiangyuliang {
+  text-align-last: justify;
+}
+
+.panel-content input {
+  width: 60px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 4px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  height: 30px; /* 固定高度确保垂直居中 */
+  box-sizing: border-box; /* 包含内边距 */
+}
+
+/* 优化单位文本样式，确保与输入框垂直对齐 */
+.panel-content span {
+  width: auto; /* 固定单位宽度，实现对齐 */
+  text-align: left; /* 单位文本左对齐 */
+  display: inline-block; /* 转为行内块元素便于设置宽度 */
+  height: 30px; /* 与输入框等高，确保垂直对齐 */
+  line-height: 30px; /* 垂直居中 */
+}
+
+/* 按钮组样式优化，确保按钮对齐 */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.panel-content button {
+  padding: 6px 12px;
+  background-color: #386641;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  height: 32px; /* 固定按钮高度，确保对齐 */
+  line-height: normal; /* 重置行高 */
+}
+
+.panel-content button:last-child {
+  background-color: #bc4749;
+  margin-left: 10px;
+}
+
+.panel-content button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* 图例面板样式 */
+.legend-panel {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  padding: 10px;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  max-height: 70%;
+  overflow-y: auto;
+}
+
+.legend-title {
+  font-size: 17px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.legend-content {
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.legend-text {
+  white-space: nowrap;
+}
+
+.legend-panel {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  padding: 10px;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  max-height: 70%;
+  overflow-y: auto;
+  max-width: 300px; /* 新增：限制图例最大宽度 */
+}
+
+.legend-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.legend-content {
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.legend-text {
+  white-space: nowrap;
 }
 
 .disaster-popup {
