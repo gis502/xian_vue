@@ -50,7 +50,6 @@ let basicLayers = {
     nationalRoadLayerName: 'test:xian_national_road',
     reservoirLayerName: 'test:xian_reservoir_list',
     subwayLayerName: 'test:xian_subway',
-    disasterEntities: [],//灾害点实体
     hospitalEntities: [],//医院实体
     dangerEntities: [],//危险源
     storePointsEntities: [],//储备点
@@ -340,7 +339,7 @@ let basicLayers = {
                 entityId=type+hiddenDangerPoint.geologicalDisasterHideDTO.id
             }
 
-            const entity = window.viewer.entities.add({
+            window.viewer.entities.add({
                 name:type,
                 id: entityId,
                 position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -364,8 +363,6 @@ let basicLayers = {
                     latitude:lat,
                 },
             });
-
-            this.disasterEntities.push(entity);
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
     },
@@ -506,29 +503,7 @@ let basicLayers = {
                 window.viewer.entities.remove(entity);
             });
         }
-    },
-    hideDangerAreaDataSource() {
-        let toRemove = window.viewer.entities.values.filter(
-            e => e.name === '风险区域'
-        );
-        if (toRemove) {
-            // 2. 逐个删除
-            toRemove.forEach(entity => {
-                entity.show=false
-            });
-        }
-    },
-    showDangerAreaDataSource() {
-        let toRemove = window.viewer.entities.values.filter(
-            e => e.name === '风险区域'
-        );
-        if (toRemove) {
-            // 2. 逐个删除
-            toRemove.forEach(entity => {
-                entity.show=true
-            });
-        }
-    },
+    }
 
 }
 export default basicLayers;
