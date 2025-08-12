@@ -145,7 +145,7 @@ export default {
         "longitude": longitude,
         "latitude": latitude,
         "position": this.positionArry.join(","),
-        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea + "暴雨",
+        "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea.name + "暴雨",
         "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
       };
       console.log(requestData, "requestData saveRain")
