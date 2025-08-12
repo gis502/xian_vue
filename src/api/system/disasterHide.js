@@ -18,3 +18,21 @@ export function getGeologicalDisasterHideByFlowList() {
         timeout:50000
     });
 }
+
+// 获取山洪
+export function getGeologicalDisasterAllFlashFloodList(){
+    return request({
+        url: '/hide/getFlashFlood',
+        method: 'get',
+        timeout:50000
+    });
+}
+
+// 获取内涝
+export function getGeologicalDisasterAllWaterList(){
+    return request({
+        url: '/hide/getWater',
+        method: 'get',
+        timeout:50000
+    });
+}

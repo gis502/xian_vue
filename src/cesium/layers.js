@@ -368,12 +368,17 @@ let layers = {
         // console.log(adminCoordinates[0],"adminCoordinates[0]")
         let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
         let mudslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("泥石流隐患点", adminCoordinates)
-        // let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates[0])
-        // 检查所有滑坡点
+        //let riskVillageInside = this.findHiddenDisasterPointsInAdminCoordinates("风险区域", adminCoordinates)
+        let waterPointsInside = this.findHiddenDisasterPointsInAdminCoordinates("内涝隐患点", adminCoordinates)
+        let floodPointsInside =  this.findHiddenDisasterPointsInAdminCoordinates("山洪隐患点", adminCoordinates)
 
+        // 检查所有滑坡点
         let allPointsInside = [
             ...landslidePointsInside,
-            ...mudslidePointsInside
+            ...mudslidePointsInside,
+            //...riskVillageInside,
+            ...waterPointsInside,
+            ...floodPointsInside
         ];
         console.log(allPointsInside, "allPointsInside")
         return allPointsInside
