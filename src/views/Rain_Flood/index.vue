@@ -1499,6 +1499,18 @@ export default {
         this.stopLoading()
       }, 'image/png', 1.0)
     },
+    //致灾因子面板
+    toggleFactorPanel() {
+      this.showFactorPanel = !this.showFactorPanel;
+    },
+    submitFactors(factors) {
+      console.log('提交致灾因子信息:', factors);
+      this.model= factors;
+      this.showFactorPanel = false;
+    },
+    cancelFactors() {
+      this.showFactorPanel = false;
+    },
     // 计算弹出面板左坐标（带过渡动画）
     calculatePopupLeft() {
       return this.popupPosition.x;
