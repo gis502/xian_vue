@@ -651,7 +651,7 @@ export default {
     basicLayers.loadLandSlide();
     basicLayers.Addmudslide();
     basicLayers.AddDangerAreaDataSource();
-    basicLayers.loadFlashFlood();
+    // basicLayers.loadFlashFlood();
     basicLayers.loadWater();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
@@ -924,7 +924,6 @@ export default {
               field6: item.geologicalDisasterHideDTO.lat,
             });
             break;
-
           case "内涝":
             this.dataTypeHiddenDisaster.type3.data.push({
               field1: item.geologicalDisasterHideDTO.disasterName,
