@@ -1,8 +1,6 @@
 <!-- 致灾因子 -->
 <template>
   <div class="container">
-    <span class="text">危险程度：{{ dangerLevel }}</span>
-    <span class="text">产生{{ disasterType }}的概率：{{ probability }}%</span>
     <!-- 致灾因子信息 -->
     <el-form :model="form" label-width="auto" style="max-width: 100%">
       <el-form-item
@@ -71,7 +69,7 @@ onBeforeMount(() => {
   const disasterTypeMap = {
     "滑坡": "landslide",
     "泥石流": "debris_flow",
-    "暴雨洪水": "torrential_flood",
+    "山洪": "torrential_flood",
     "内涝": "water_logging",
     "堰塞湖": "barrier_lake"
   };

@@ -257,12 +257,7 @@
         :showFloodDisasterInformation="showFloodDisasterInformation"
         :floodDisasterInformation="floodDisasterInformation"
         :trigger="'暴雨'"
-        :rainInfo="rainInfo"
-    />
-    <rain-layer-control
-        :viewer="viewer"
-        :setupEntityClickHandler="setupEntityClickHandler"
-    />
+        :rainInfo="rainInfo"/>
     <Legend ref="legendRef"></Legend>
   </div>
 </template>
@@ -390,29 +385,6 @@ export default {
       currentMapType: 0,
       rainMode: false,
       showInfoPanel: false,
-      // districts: [
-      //   { name: "新城区", code: "610102" },
-      //   { name: "碑林区", code: "610103" },
-      //   { name: "莲湖区", code: "610104" },
-      //   { name: "雁塔区", code: "610113" },
-      //   { name: "灞桥区", code: "610111" },
-      //   { name: "未央区", code: "610112" },
-      //   { name: "阎良区", code: "610114" },
-      //   { name: "临潼区", code: "610115" },
-      //   { name: "长安区", code: "610116" },
-      //   { name: "高陵区", code: "610117" },
-      //   { name: "鄠邑区", code: "610118" },
-      //   { name: "蓝田县", code: "610122" },
-      //   { name: "周至县", code: "610124" }
-      // ],
-      // entries: [
-      //   {
-      //     code: null,
-      //     name: "",
-      //     rainfall: null,
-      //     duration: null
-      //   }
-      // ],
       selectedPosition: null,
       // rainfall: 0,
       // duration: 2,
@@ -667,7 +639,11 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
       return this.tableData.slice(start, end);
-    }
+    },
+    // availableDistricts() {
+    //   const selectedCodes = this.entries.map((entry) => entry.code);
+    //   return this.districts.filter((district) => !selectedCodes.includes(district.code));
+    // }
   },
   mounted() {
     this.load();
@@ -917,79 +893,69 @@ export default {
       document.body.style.cursor = '';
     },
     handleHiddenDisasterPointUpdate(probabilityPoints) {
-      console.log()
-      const disasterTypeMap = {
-        "滑坡": "landslide",
-        "泥石流": "debris_flow",
-        "暴雨洪水": "torrential_flood",
-        "内涝": "water_logging",
-        "堰塞湖": "barrier_lake"
-      };
-      console.log(probabilityPoints,"probabilityPoints")
       this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
       this.dataTypeHiddenDisaster.type1.data = [];
       this.dataTypeHiddenDisaster.type2.data = [];
       this.dataTypeHiddenDisaster.type3.data = [];
+      this.dataTypeHiddenDisaster.type4.data = [];
+      this.dataTypeHiddenDisaster.type5.data = [];
+      // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
-        // 跳过无效数据（检查必要字段是否存在）
-        if (!item?.disasterType || !Array.isArray(item.disaster) ||
-            !Array.isArray(item.level) || !Array.isArray(item.probability)) {
-          return;
-        }
+        console.log(item, "probabilityPoints.forEach")
+        switch (item.disasterType) {
+          case "滑坡":
+            this.dataTypeHiddenDisaster.type1.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
+          case "泥石流":
+            this.dataTypeHiddenDisaster.type2.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
+            break;
 
-        // 获取当前disasterType对应的disaster数组元素
-        let disasterKey = disasterTypeMap[item.disasterType];
-        if (!disasterKey) {
-          console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
-          return;
+          case "内涝":
+            this.dataTypeHiddenDisaster.type3.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            })
+            break;
+          case "山洪":
+            this.dataTypeHiddenDisaster.type4.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.scaleGrade,
+              field4: item.geologicalDisasterHideDTO.riskGrade,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            })
+            break;
+          default:
+            this.dataTypeHiddenDisaster.type5.data.push({
+              field1: item.geologicalDisasterHideDTO.disasterName,
+              field2: item.geologicalDisasterHideDTO.position,
+              field3: item.geologicalDisasterHideDTO.inspectorName,
+              field4: item.geologicalDisasterHideDTO.inspectorTele,
+              field5: item.geologicalDisasterHideDTO.lon,
+              field6: item.geologicalDisasterHideDTO.lat,
+            });
         }
-
-        // 找到对应的索引（disaster、level、probability数组顺序一一对应）
-        let index = item.disaster.indexOf(disasterKey);
-        if (index === -1 || index >= item.level.length || index >= item.probability.length) {
-          console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
-          return;
-        }
-
-        // 获取对应的等级和概率
-        let level = item.level[index];
-        let probability = item.probability[index];
-
-        if(level=="高"||level=="中"){
-          switch (item.geologicalDisasterHideDTO.disasterType) {
-            case "滑坡":
-              this.dataTypeHiddenDisaster.type1.data.push({
-                field1: item.geologicalDisasterHideDTO.disasterName,
-                field2: item.geologicalDisasterHideDTO.position,
-                field3: item.geologicalDisasterHideDTO.scaleGrade,
-                field4: item.geologicalDisasterHideDTO.riskGrade,
-                field5: item.geologicalDisasterHideDTO.lon,
-                field6: item.geologicalDisasterHideDTO.lat,
-              });
-              break;
-            case "泥石流":
-              this.dataTypeHiddenDisaster.type2.data.push({
-                field1: item.geologicalDisasterHideDTO.disasterName,
-                field2: item.geologicalDisasterHideDTO.position,
-                field3: item.geologicalDisasterHideDTO.scaleGrade,
-                field4: item.geologicalDisasterHideDTO.riskGrade,
-                field5: item.geologicalDisasterHideDTO.lon,
-                field6: item.geologicalDisasterHideDTO.lat,
-              });
-              break;
-            default:
-              this.dataTypeHiddenDisaster.type3.data.push({
-                field1: item.geologicalDisasterHideDTO.disasterName,
-                field2: item.geologicalDisasterHideDTO.position,
-                field3: item.geologicalDisasterHideDTO.inspectorName,
-                field4: item.geologicalDisasterHideDTO.inspectorTele,
-                field5: item.geologicalDisasterHideDTO.lon,
-                field6: item.geologicalDisasterHideDTO.lat,
-              });
-          }
-        }
-      })
+      });
     },
     updateRainInfo(data) {
       this.rainInfo = data
@@ -1315,22 +1281,27 @@ export default {
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
+                console.log(this.rainCenterPanelVisible, "打开面板啊")
                 this.showBaseInfo = false;
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
+
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                console.log(this.PanelData, "显示数据")
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
                 this.baseInfoTitle = entity.name;
+
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
                 this.showFloodDisasterInformation = false;
                 this.showWaterDisasterInformation = false;
 
-
                 this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = null
@@ -1341,7 +1312,9 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
+
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = true;
                 this.showRiskPointsInformation = false;
@@ -1357,6 +1330,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;
@@ -1366,9 +1340,9 @@ export default {
 
                 this.disasterInformation = null
                 this.debrisFlowInformation = null
+                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.waterDisasterInformation = null
                 this.floodDisasterInformation = null
-                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "内涝隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -1383,9 +1357,9 @@ export default {
 
                 this.disasterInformation = null
                 this.debrisFlowInformation = null
-                this.floodDisasterInformation = null
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.floodDisasterInformation = null
 
               } else if (entity.name === "山洪隐患点") {
 
@@ -1411,6 +1385,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.showBaseInfo = false;
               }
+              console.log(this.PanelData, "this.PanelData")
             }
             //没有拾取到实体
             else {
@@ -1985,6 +1960,7 @@ export default {
   font-size: 20px;
   color: red;
 }
+
 .factor-button {
   background-color: #409eff;
   color: white;

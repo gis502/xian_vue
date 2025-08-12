@@ -1,50 +1,61 @@
-<script>
-import {defineComponent} from 'vue'
 
-export default defineComponent({
-  name: "WaterDisaster",
-  props: {
-    info: Object
-  },
-})
-</script>
 
-<!-- ÄàÊ¯Á÷ĞÅÏ¢×é¼ş -->
+<!-- æ³¥çŸ³æµä¿¡æ¯ç»„ä»¶ -->
 <template>
+  <span class="text">å±é™©ç¨‹åº¦ï¼š{{ dangerLevel }}</span>
+  <span class="text">äº§ç”Ÿ{{ disasterType }}çš„æ¦‚ç‡ï¼š{{ probability }}%</span>
   <table class="disaster-info-table">
     <tbody>
     <tr>
-      <td class="label">ÔÖº¦µãÃû³Æ</td>
+      <td class="label">ç¾å®³ç‚¹åç§°</td>
       <td>{{ info.geologicalDisasterHideDTO.disasterName }}</td>
     </tr>
     <tr>
-      <td class="label">Ò°Íâ±àºÅ</td>
-      <td>{{ info.geologicalDisasterHideDTO.fieldCode }}</td>
-    </tr>
-    <tr>
-      <td class="label">¹æÄ£µÈ¼¶</td>
+      <td class="label">è§„æ¨¡ç­‰çº§</td>
       <td>{{ info.geologicalDisasterHideDTO.scaleGrade }}</td>
     </tr>
     <tr>
-      <td class="label">ÏÕÇéµÈ¼¶</td>
+      <td class="label">é™©æƒ…ç­‰çº§</td>
       <td>{{ info.geologicalDisasterHideDTO.riskGrade }}</td>
     </tr>
     <tr>
-      <td class="label">µØÀíÎ»ÖÃ</td>
+      <td class="label">åœ°ç†ä½ç½®</td>
       <td>{{ info.geologicalDisasterHideDTO.position }}</td>
     </tr>
     <tr>
-      <td class="label">¾­¶È</td>
+      <td class="label">ç»åº¦</td>
       <td>{{ info.geologicalDisasterHideDTO.lon }}</td>
     </tr>
     <tr>
-      <td class="label">Î³¶È</td>
+      <td class="label">çº¬åº¦</td>
       <td>{{ info.geologicalDisasterHideDTO.lat }}</td>
     </tr>
     </tbody>
   </table>
 </template>
 
-<style scoped lang="scss">
+<script setup name="WaterDisaster">
+const props = defineProps(['info'])
 
+// å±é™©ç¨‹åº¦
+let dangerLevel = ref("");
+
+// æ¦‚ç‡å€¼
+let probability = ref(0);
+
+onMounted(() => {
+  dangerLevel.value = props.info.predict.level[0]
+  probability.value = props.info.predict.probability[0]
+})
+</script>
+
+<style scoped lang="scss">
+.text {
+  font-size: 20px;
+  color: red;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+  margin-left: 5px;
+}
 </style>
