@@ -188,22 +188,22 @@ const legend = [
   {
     id:0,
     img:eqentity1,
-    description:"一级实体"
+    description:"灾害实体"
   },
   {
     id:1,
     img:eqentity2,
-    description:"二级实体"
+    description:"一级实体"
   },
   {
     id:2,
     img:eqentity3,
-    description:"三级实体"
+    description:"二级实体"
   },
   {
     id:3,
     img:eqentity4,
-    description:"四级实体"
+    description:"三级实体"
   },
 ]
 // 定义要触发的事件
