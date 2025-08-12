@@ -263,64 +263,81 @@ let basicLayers = {
         )
         toRemove.forEach(ds => window.viewer.dataSources.remove(ds, true))
     },
+    hideAdminData() {
+        // 遍历当前所有数据源
+        const toHide = window.viewer.dataSources._dataSources.filter(
+            ds => ds.name && ds.name.startsWith('区县-')
+        );
+        toHide.forEach(ds => {
+            ds.show = false; // 隐藏数据源
+        });
+    },
+    showAdminData() {
+        // 遍历当前所有数据源
+        const toShow = window.viewer.dataSources._dataSources.filter(
+            ds => ds.name && ds.name.startsWith('区县-')
+        );
+        toShow.forEach(ds => {
+            ds.show = true; // 显示数据源
+        });
+    },
 
-    async Addmudslide() {
+    async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
             this.addHiddenDangerPoints('泥石流隐患点', res.data, debrisFlowIcon);
         });
-
     },
-    async loadLandSlide() {
+    async loadLandSlide(){
         landslideHazardPointData().then((res) => {
             this.addHiddenDangerPoints("滑坡隐患点", res.data, landslideIcon);
         });
     },
-    async AddDangerAreaDataSource() {
+    async AddDangerAreaDataSource(){
         riskVillageData().then((res) => {
             // 修改数据结构，待后续接口同意后更改
             const datas = [];
+
             res.data.features.forEach((item) => {
                 datas.push({
                     factorVoList: null,
                     geologicalDisasterHideDTO: item.properties,
                 });
             });
-            this.addHiddenDangerPoints("风险区域", datas, riskArea);
+            this.addHiddenDangerPoints("风险区域",datas, riskArea);
         });
     },
-    async loadFlashFlood() {
+    async loadFlashFlood(){
         getFlashFlood().then((res) => {
             console.log(111, res.data);
-            this.addHiddenDangerPoints('山洪隐患点', res.data, flashIcon);
+            this.addHiddenDangerPoints('山洪隐患点' ,res.data, flashIcon);
         })
     },
-    async loadWater() {
+    async loadWater(){
         getWater().then((res) => {
-            console.log(222, res.data);
             this.addHiddenDangerPoints('内涝隐患点', res.data, waterIcon);
         })
     },
-    async loadHospital() {
+    async loadHospital(){
         getHospital().then((res) => {
             this.loadEntities('医院', res.data, hospitalIcon);
         })
     },
-    async loadEmergencyShelter() {
+    async loadEmergencyShelter(){
         getShelter().then((res) => {
             this.loadEntities('避难所', res.data, shelterIcon);
         })
     },
-    async loadFireFighter() {
+    async loadFireFighter(){
         getFire().then((res) => {
             this.loadEntities('消防站', res.data, fireFighterIcon);
         })
     },
-    async loadStorePoint() {
+    async loadStorePoint(){
         getStore().then((res) => {
             this.loadEntities('储备点', res.data, storePointsIcon);
         })
     },
-    async loadDangerSource() {
+    async loadDangerSource(){
         getDangerous().then((res) => {
             this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
@@ -365,8 +382,8 @@ let basicLayers = {
         });
     },
     //加载点
-    loadEntities(type, data, icon) {
-        try {
+    loadEntities(type, data, icon){
+        try{
             //添加储备站点
             data.features.forEach(point => {
                 const longitude = point.geometry.coordinates[0];
@@ -396,50 +413,55 @@ let basicLayers = {
                     disasterData: point,
                 });
 
-                if (['山洪隐患点', '内涝隐患点'].includes(type)) {
+                if(['山洪隐患点', '内涝隐患点'].includes(type)){
                     this.disasterEntities.push(entity);
-                } else if (type == '医院') {
+                }
+                else if(type == '医院'){
                     this.hospitalEntities.push(entity);
-                } else if (type == '消防站') {
+                }
+                else if(type == '消防站'){
                     this.fireFighterEntities.push(entity);
-                } else if (type == '避难所') {
+                }
+                else if(type == '避难所'){
                     this.shelterEntities.push(entity);
-                } else if (type == '储备点') {
+                }
+                else if(type == '储备点'){
                     this.storePointsEntities.push(entity);
-                } else if (type == '风险源') {
+                }
+                else if(type == '风险源'){
                     this.dangerEntities.push(entity);
                 }
 
             })
-        } catch (error) {
+        }catch(error){
             console.error("处理点数据失败.")
         }
     },
-    addPeopleLayer() {
+    addPeopleLayer(){
         this.peopleLayer = this.addLayers(this.peopleLayerName);
     },
-    addCropsLayer() {
+    addCropsLayer(){
         this.cropsLayer = this.addLayers(this.cropsLayerName);
     },
-    addWaterPipeLayer() {
+    addWaterPipeLayer(){
         this.waterPipeLayer = this.addLayers(this.waterPipeLayerName);
     },
-    addRoadLayer() {
+    addRoadLayer(){
         this.roadLayer = this.addLayers(this.roadLayerName);
     },
-    addHighwayLayer() {
+    addHighwayLayer(){
         this.highwayLayer = this.addLayers(this.highwayLayerName);
     },
-    addBridgeLayer() {
+    addBridgeLayer(){
         this.bridgeLayer = this.addLayers(this.bridgeLayerName);
     },
-    addReservoirLayer() {
+    addReservoirLayer(){
         this.reservoirLayer = this.addLayers(this.reservoirLayerName);
     },
-    addSubway() {
+    addSubway(){
         this.subwayLayer = this.addLayers(this.subwayLayerName);
     },
-    addNationalRoad() {
+    addNationalRoad(){
         this.nationalRoadLayer = this.addLayers(this.nationalRoadLayerName);
     },
     //添加图层
@@ -461,34 +483,31 @@ let basicLayers = {
         );
     },
 
-    removeHazardSource() {
+    showHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === '泥石流隐患点'
+            e => e.name === 'type'
         );
         if (toRemove) {
             // 2. 逐个删除
             toRemove.forEach(entity => {
-                window.viewer.entities.remove(entity);
+                entity.show = true
             });
         }
     },
-
-    removeLandSlide() {
+    hideHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === '滑坡隐患点'
+            e => e.name === 'type'
         );
         if (toRemove) {
             // 2. 逐个删除
             toRemove.forEach(entity => {
-                window.viewer.entities.remove(entity);
+                entity.show = false
             });
         }
     },
-
-
-    removeDangerAreaDataSource() {
+    removeHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === '风险区域'
+            e => e.name === 'type'
         );
         if (toRemove) {
             // 2. 逐个删除

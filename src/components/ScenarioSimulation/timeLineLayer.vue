@@ -77,8 +77,8 @@ export default {
 
         '泥石流隐患点': false,
         '滑坡隐患点': false,
-        '山洪隐患点': true,
-        '内涝隐患点': true,
+        '山洪隐患点': false,
+        '内涝隐患点': false,
         '风险区域': false,
 
         '烈度圈': true,
@@ -100,8 +100,8 @@ export default {
         '地铁站': false,
       },
 
-      selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',],
-      prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域'],
+      selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
+      prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
@@ -124,16 +124,18 @@ export default {
         basicLayers.Addmudslide(),
         basicLayers.loadLandSlide(),
         basicLayers.AddDangerAreaDataSource(),
-        basicLayers.loadAdminData()
+        basicLayers.loadAdminData(),
+        basicLayers.loadFlashFlood(),
+        basicLayers.loadWater()
       ]);
     },
     onceLoadLayer() {
       if (this.onceLoadLayer) {
         if (this.disasterEvent.trigger == "地震") {
-          this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+          this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
           this.updateMapLayers();
         } else if (this.disasterEvent.trigger == "暴雨") {
-          this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点"];
+          this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
           this.updateMapLayers();
         }
 
@@ -175,11 +177,11 @@ export default {
         {
           name: '行政区划',
           add: () => {
-            if (this.firstLoad.行政区划==false) {
+            if (this.firstLoad.行政区划 == false) {
               basicLayers.showAdminData()
-            }else {
+            } else {
               basicLayers.loadAdminData()
-              this.firstLoad.行政区划=false
+              this.firstLoad.行政区划 = false
             }
           },
           remove: () => {
@@ -215,54 +217,81 @@ export default {
         {
           name: '泥石流隐患点',
           add: () => {
-            console.log(this.firstLoad.泥石流隐患点,"this.firstLoad.泥石流隐患点")
-            if (this.firstLoad.泥石流隐患点==false) {
-              basicLayers.showHazardSource()
-            }
-            else {
+            console.log(this.firstLoad.泥石流隐患点, "this.firstLoad.泥石流隐患点")
+            if (this.firstLoad.泥石流隐患点 == false) {
+              basicLayers.showHiddenEntity("泥石流隐患点")
+            } else {
               basicLayers.Addmudslide()
-              this.firstLoad.泥石流隐患点=false
+              this.firstLoad.泥石流隐患点 = false
             }
           },
           remove: () => {
-            basicLayers.hideHazardSource()
+            basicLayers.hideHiddenEntity("泥石流隐患点")
           }
         },
         {
           name: '滑坡隐患点',
           add: () => {
-            if (this.firstLoad.滑坡隐患点==false) {
-              basicLayers.showLandSlide()
-            }
-            else{
+            if (this.firstLoad.滑坡隐患点 == false) {
+              basicLayers.showHiddenEntity("滑坡隐患点")
+            } else {
               basicLayers.loadLandSlide()
-              this.firstLoad.滑坡隐患点=false
+              this.firstLoad.滑坡隐患点 = false
             }
           },
           remove: () => {
-            basicLayers.hideLandSlide()
+            basicLayers.hideHiddenEntity("滑坡隐患点")
+          }
+        },
+
+
+        {
+          name: '山洪隐患点',
+          add: () => {
+            if (this.firstLoad.山洪隐患点 == false) {
+              basicLayers.showHiddenEntity("山洪隐患点")
+            } else {
+              basicLayers.loadFlashFlood()
+              this.firstLoad.山洪隐患点 = false
+            }
+          },
+          remove: () => {
+            basicLayers.hideHiddenEntity("山洪隐患点")
           }
         },
         {
-          name: '风险区域',
+          name: '内涝隐患点',
           add: () => {
-            console.log(this.firstLoad.风险区域,"this.firstLoad.风险区域")
-            if (this.firstLoad.风险区域==false) {
-              basicLayers.showDangerAreaDataSource()
-            }
-            else{
-              basicLayers.AddDangerAreaDataSource()
-              this.firstLoad.风险区域=false
+            if (this.firstLoad.内涝隐患点 == false) {
+              basicLayers.showHiddenEntity("内涝隐患点")
+            } else {
+              basicLayers.loadWater()
+              this.firstLoad.内涝隐患点 = false
             }
           },
           remove: () => {
-            basicLayers.hideDangerAreaDataSource()
+            basicLayers.hideHiddenEntity("内涝隐患点")
+          }
+        },
+
+        {
+          name: '风险区域',
+          add: () => {
+            if (this.firstLoad.风险区域 == false) {
+              basicLayers.showHiddenEntity("风险区域")
+            } else {
+              basicLayers.AddDangerAreaDataSource()
+              this.firstLoad.风险区域 = false
+            }
+          },
+          remove: () => {
+            basicLayers.hideHiddenEntity("风险区域")
           }
         },
         {
           name: '预警点',
           add: async () => {
-            if (this.firstLoad.预警点==false) {
+            if (this.firstLoad.预警点 == false) {
               layers.showHiddenBreathCircle()
             } else {
               // 第一次加载，计算预警点
@@ -293,8 +322,7 @@ export default {
                   this.$emit('update:onceLoadLayer', false);
                   viewer.clockViewModel.shouldAnimate = true;
                 }
-              }
-              else if (this.disasterEvent.trigger == "暴雨") {
+              } else if (this.disasterEvent.trigger == "暴雨") {
                 // 汇总所有区县的匹配数据
                 let allMatchedHuapoData = [];
                 let allPointSet = new Set();
@@ -332,7 +360,7 @@ export default {
                   viewer.clockViewModel.shouldAnimate = true;
                 }
               }
-              this.firstLoad.预警点=false
+              this.firstLoad.预警点 = false
             }
           },
           remove: () => {
@@ -507,11 +535,12 @@ export default {
   border-color: #aef;
   box-shadow: 0 0 8px 3px #48b; /* 添加发光特效 */
 }
+
 .universalPanel {
   position: absolute;
   top: 2vh;
   right: 7vh;
-  background-color: rgba(40, 40, 40,1);
+  background-color: rgba(40, 40, 40, 1);
   color: white;
   padding: 10px;
   border-radius: 4px;
@@ -519,16 +548,19 @@ export default {
   width: 15vh;
   height: 87vh;
 }
+
 .panel-title1 {
   font-weight: bold;
   margin-bottom: 6px; /* 缩小标题与内容间距 */
   font-size: 12px; /* 缩小字体 */
 }
+
 .grid-container {
   display: flex;
   flex-direction: column; /* 设置为列方向 */
   align-items: flex-start; /* 选项靠左对齐 */
 }
+
 /* 减小字体大小 */
 .el-checkbox__label {
   display: inline-block;
@@ -536,12 +568,14 @@ export default {
   line-height: 1;
   padding-left: 8px;
 }
+
 /* 减小选项之间的间隔 */
 .grid-container .el-checkbox {
   margin-bottom: 0px; /* 调整选项之间的垂直间隔 */
   margin-right: 10px; /* 调整选项之间的水平间隔 */
   font-size: 8px; /* 根据需要调整大小 */
 }
+
 .calculation-message {
   position: fixed;
   top: 60px;
