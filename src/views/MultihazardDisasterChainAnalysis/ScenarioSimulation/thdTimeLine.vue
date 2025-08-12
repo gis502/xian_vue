@@ -713,16 +713,16 @@ export default {
               });
               break;
             case "山洪":
-              this.dataTypeHiddenDisaster.type3.data.push({
-                field1: item.geologicalDisasterHideDTO.disasterName,
-                field2: item.geologicalDisasterHideDTO.position,
-                // field3: item.geologicalDisasterHideDTO.scaleGrade,
-                // field4: item.geologicalDisasterHideDTO.riskGrade,
-                field3: item.probability[2],
-                field4: item.level[2],
-                field5: item.geologicalDisasterHideDTO.lon,
-                field6: item.geologicalDisasterHideDTO.lat,
-              });
+              // this.dataTypeHiddenDisaster.type3.data.push({
+              //   field1: item.geologicalDisasterHideDTO.disasterName,
+              //   field2: item.geologicalDisasterHideDTO.position,
+              //   // field3: item.geologicalDisasterHideDTO.scaleGrade,
+              //   // field4: item.geologicalDisasterHideDTO.riskGrade,
+              //   field3: item.probability[2],
+              //   field4: item.level[2],
+              //   field5: item.geologicalDisasterHideDTO.lon,
+              //   field6: item.geologicalDisasterHideDTO.lat,
+              // });
               break;
             case "内涝":
               this.dataTypeHiddenDisaster.type4.data.push({
