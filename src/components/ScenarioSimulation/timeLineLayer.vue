@@ -128,7 +128,7 @@ export default {
         {
           name: '烈度圈',
           add: () => {
-            layers.DrawEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude, this.disasterEvent.disaterName)
+            layers.DrawEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude, this.disasterEvent.disaterName);
           },
           remove: () => {
             layers.removeIsoseismalCircle()

@@ -233,7 +233,7 @@ let basicLayers = {
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
-            console.log(res.data,"dataOnHiddenDangerPointsOfDebrisFlow")
+            // console.log(res.data,"dataOnHiddenDangerPointsOfDebrisFlow")
             this.addHiddenDangerPoints('泥石流隐患点',res.data, debrisFlowIcon);
         });
 

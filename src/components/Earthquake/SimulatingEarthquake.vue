@@ -213,6 +213,8 @@ let showBaseInfo = ref(true);
 // 表单对象
 const ruleFormRef = ref();
 
+
+
 // 表单元素
 let form = reactive({
   name: "",
@@ -342,10 +344,10 @@ const emit = defineEmits([
 ]);
 
 // 添加模拟
-async function confirmEarthquake(formEl) {
+function confirmEarthquake(formEl) {
   if (!formEl) return;
   // 验证
-  await formEl.validate(async (valid, fields) => {
+  formEl.validate(async (valid, fields) => {
     if (valid) {
       // 隐藏显示
       emit("hideTable");
@@ -376,18 +378,20 @@ async function confirmEarthquake(formEl) {
         longitude: position.longitude,
         latitude: position.latitude,
       });
-
+      // console.log("--------------------------------------------------------------")
       layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
+
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
-
+      console.log("inEllipsePoints",inEllipsePoints);
       // 获取各个点的风险概率
-      // const [points, probabilityPoints] =
-      //   await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-      // console.log(points, probabilityPoints,"points, probabilityPoints")
-      // layers.flashHiddenDisasterPoints(probabilityPoints)
+      const [points, probabilityPoints] =
+        await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
+      console.log(points, probabilityPoints,"points, probabilityPoints")
+      layers.flashHiddenDisasterPoints(inEllipsePoints)
+      // console.log(898989898989,inEllipsePoints)
       // 处理表格和chart数据
-      // addDatasToTableAndChart(probabilityPoints);
+      addDatasToTableAndChart(inEllipsePoints);
 
       // 显示表格和chart
       emit("displayTable");
@@ -402,6 +406,7 @@ async function confirmEarthquake(formEl) {
       console.log("error submit!", fields);
     }
   });
+  // console.log("+++++++++++++++++++++++++++")
 }
 
 // 处理表格和chart数据
@@ -421,8 +426,8 @@ function addDatasToTableAndChart(probabilityPoints) {
         dataTypes.type1.data.push({
           field1: item.geologicalDisasterHideDTO.disasterName,
           field2: item.geologicalDisasterHideDTO.position,
-          field3: item.predict.level,
-          field4: `${item.predict.probability * 100}%`,
+          field3: item.geologicalDisasterHideDTO.scaleGrade,
+          field4: item.geologicalDisasterHideDTO.riskGrade,
           field5: item.geologicalDisasterHideDTO.lon,
           field6: item.geologicalDisasterHideDTO.lat,
         });

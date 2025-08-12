@@ -23,6 +23,7 @@ import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import {PulseTool} from "@/cesium/pulse.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
+import * as turf from "@turf/turf"
 
 let layers = {
     //画烈度圈
@@ -278,9 +279,7 @@ let layers = {
             let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
 
             let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
-
-            console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
-
+            // console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;
             let alpha = plphas[i]
@@ -438,21 +437,24 @@ let layers = {
 
     //找烈度圈相交点预警点
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
-        let allHiddenDisasterinEllipse = []
+        let allHiddenDisasterinEllipse = [];
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
-        const params = layers.calculateEllipseParams(magnitude).at(-1);
+        const params = layers.calculateEllipseParams(magnitude).at(-2);
+        console.log(123123,params)
+
         let validPoints = useSimulationPointStore().simulationPoints.filter(
             item => item && item.geologicalDisasterHideDTO
         );
         validPoints.forEach((item) => {
-            // console.log(item,item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat,"HiddenDisasterPoints item")
-            if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
-                item.predict = null;
+            if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+                // item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
             }
         })
+        // console.log("allHiddenDisasterinEllipse",allHiddenDisasterinEllipse)
         return allHiddenDisasterinEllipse
     },
+
     isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation) {
         const center = Cesium.Cartesian3.fromDegrees(Number(centerLon), Number(centerLat));
         const point = Cesium.Cartesian3.fromDegrees(Number(pointLon), Number(pointLat));
@@ -471,10 +473,73 @@ let layers = {
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
     },
+
+    isPointInEllipse1(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation,options = {}) {
+        // 处理默认参数
+        const { tolerance = 0.5, usePlanarApproximation = false } = options;
+
+        // 确保轴长为正数
+        const semiMajor = Math.max(Math.abs(majorAxis), Math.abs(minorAxis));
+        const semiMinor = Math.min(Math.abs(majorAxis), Math.abs(minorAxis));
+
+        // 如果轴长为0，只有点与中心重合时才返回true
+        if (semiMajor <= 0) {
+            return Math.abs(pointLon - centerLon) < 1e-9 && Math.abs(pointLat - centerLat) < 1e-9;
+        }
+
+        // 转换为弧度的旋转角度（从正北顺时针旋转）
+        const rotationRad = Cesium.Math.toRadians(rotation);
+
+        // 创建地理坐标
+        const pointCartographic = Cesium.Cartographic.fromDegrees(Number(pointLon), Number(pointLat), 0);
+        const centerCartographic = Cesium.Cartographic.fromDegrees(Number(centerLon), Number(centerLat), 0);
+
+        let surfaceDistance, azimuth;
+
+        if (usePlanarApproximation) {
+            // 平面近似模式（适用于小范围椭圆）
+            // 将经纬度转换为以椭圆中心为原点的平面坐标（米）
+            const centerCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(centerCartographic);
+            const transform = Cesium.Transforms.eastNorthUpToFixedFrame(centerCartesian);
+
+            const pointCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(pointCartographic);
+            const localPoint = Cesium.Matrix4.multiplyByPointAsVector(transform, pointCartesian, new Cesium.Cartesian3());
+
+            // 计算平面距离和方位角
+            surfaceDistance = Math.hypot(localPoint.x, localPoint.y);
+            azimuth = Math.atan2(localPoint.x, localPoint.y); // 从正北方向计算的方位角（弧度）
+        } else {
+            // 测地线模式（适用于大范围椭圆，考虑地球曲率）
+            const geodesic = new Cesium.EllipsoidGeodesic();
+            geodesic.setEndPoints(centerCartographic, pointCartographic);
+
+            // 计算地表距离（米）
+            surfaceDistance = geodesic.surfaceDistance;
+
+            // 计算方位角（从正北方向顺时针计算的角度，弧度）
+            azimuth = geodesic.startHeading;
+        }
+
+        // 计算点相对于椭圆旋转后的角度差
+        // 注意：Cesium的方位角是从正北顺时针增加，与数学中的角度定义不同
+        const angleDifference = azimuth - rotationRad;
+
+        // 计算椭圆在该方向上的有效半径
+        const cosTheta = Math.cos(angleDifference);
+        const sinTheta = Math.sin(angleDifference);
+        const ellipseRadiusAtAngle = (semiMajor * semiMinor) / Math.sqrt(
+            Math.pow(semiMinor * cosTheta, 2) + Math.pow(semiMajor * sinTheta, 2)
+        );
+
+        // 最终判断（包含容差）
+        return surfaceDistance <= ellipseRadiusAtAngle + tolerance;
+    },
+
     //找烈度圈相交点预警点结束
     //预警点闪烁
     flashHiddenDisasterPoints(entities) {
         let pulse = new PulseTool(window.viewer);
+        console.log(77777777,pulse)
         console.log("传输过来的闪烁预警点实体是：", entities);
 
         if (!entities || entities.length === 0) return;
