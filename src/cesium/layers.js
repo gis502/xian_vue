@@ -600,6 +600,7 @@ let layers = {
     },
     addBlackBreathCircle(realDisasterPoints) {
         realDisasterPoints.forEach(item => {
+            // console.log(item,"realDisasterPoints")
             let lon = parsePointString(item.geom).longitude
             let lat = parsePointString(item.geom).latitude
             item.entityId = '灾害点呼吸圈_' + item.id;
@@ -626,7 +627,7 @@ let layers = {
                     pixelOffset: new Cesium.Cartesian2(0, -16),
                 },
                 point: {
-                    pixelSize: 30,
+                    pixelSize: 45,
                     color: Cesium.Color.BLACK.withAlpha(0.5),
                     outlineColor: Cesium.Color.BLACK,
                     outlineWidth: 2,
@@ -703,8 +704,6 @@ let layers = {
                     });
                 }
             }
-
-
         })
     },
     notShowHiddenBreathCircle() {

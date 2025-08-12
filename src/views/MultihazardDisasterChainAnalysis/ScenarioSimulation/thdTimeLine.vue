@@ -568,6 +568,7 @@ export default {
               field4: item.state,
               field5: parsePointString(item.geom).longitude,
               field6: parsePointString(item.geom).latitude,
+              type:"type1",
             });
             break;
           case "泥石流":
@@ -578,6 +579,7 @@ export default {
               field4: item.state,
               field5: parsePointString(item.geom).longitude,
               field6: parsePointString(item.geom).latitude,
+              type:"type2",
             });
             break;
           default:
@@ -588,6 +590,7 @@ export default {
               field4: item.state,
               field5: parsePointString(item.geom).longitude,
               field6: parsePointString(item.geom).latitude,
+              type:"type3",
             });
         }
       });
