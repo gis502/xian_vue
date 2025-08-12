@@ -32,7 +32,7 @@ export class PulseTool {
     const disasterTypeMap = {
       "滑坡": "landslide",
       "泥石流": "debris_flow",
-      "暴雨洪水": "torrential_flood",
+      "山洪": "torrential_flood",
       "内涝": "water_logging",
       "堰塞湖": "barrier_lake"
     };

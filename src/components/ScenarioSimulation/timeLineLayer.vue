@@ -161,19 +161,19 @@ export default {
       this.showLayerFeatures = !this.showLayerFeatures;
     },
     async updateMapLayers() {
-      const currentSelected = [
+      let currentSelected = [
         ...this.selectedlayers
       ];
       // 计算图层差异
-      const previouslySelected = this.prevSelectedLayers || [];
-      const newlyChecked = currentSelected.filter(name => !previouslySelected.includes(name));
-      const newlyUnchecked = previouslySelected.filter(name => !currentSelected.includes(name));
+      let previouslySelected = this.prevSelectedLayers || [];
+      let newlyChecked = currentSelected.filter(name => !previouslySelected.includes(name));
+      let newlyUnchecked = previouslySelected.filter(name => !currentSelected.includes(name));
 
       // 更新记录（保存为下一次比对）
       this.prevSelectedLayers = [...currentSelected];
       // 图层映射：添加与移除图层逻辑
       // name: 图层名；add：添加图层；remove：移除图层
-      const layerActions = [
+      let layerActions = [
         {
           name: '行政区划',
           add: () => {
@@ -301,7 +301,7 @@ export default {
 
                 let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
                 console.log(allHiddeninEllipse, "allHiddeninEllipse")
-                const [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+                let [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
                 console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
                 // this.pulse.removePulseEntity();
                 layers.addHiddenBreathCircle(probabilityPoints)
@@ -322,14 +322,15 @@ export default {
                   this.$emit('update:onceLoadLayer', false);
                   viewer.clockViewModel.shouldAnimate = true;
                 }
-              } else if (this.disasterEvent.trigger == "暴雨") {
+              }
+              else if (this.disasterEvent.trigger == "暴雨") {
                 // 汇总所有区县的匹配数据
                 let allMatchedHuapoData = [];
                 let allPointSet = new Set();
 
                 // 遍历所有行政区划，收集数据
                 for (let i = 0; i < this.positionArry.length; i++) {
-                  const adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
+                  let adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
                   let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
                   // 获取当前区县的匹配数据
                   let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
@@ -384,13 +385,13 @@ export default {
           },
           remove: () => {
             // 移除滑坡事件实体
-            // const entity = viewer.entities.getById('landslideEvent');
+            // let entity = viewer.entities.getById('landslideEvent');
             // if (entity) {
             //   viewer.entities.remove(entity);
             // }
             //
             // // 移除黑色光圈效果
-            // const halo = viewer.entities.getById('landslideEventHalo');
+            // let halo = viewer.entities.getById('landslideEventHalo');
             // if (halo) {
             //   viewer.entities.remove(halo);
             // }
@@ -399,17 +400,17 @@ export default {
       ];
 
 // 构建 map 提升查找效率
-      const layerMap = new Map(layerActions.map(layer => [layer.name, layer]));
+      let layerMap = new Map(layerActions.map(layer => [layer.name, layer]));
 // 执行 add 操作
       newlyChecked.forEach(name => {
-        const layer = layerMap.get(name);
+        let layer = layerMap.get(name);
         if (layer && typeof layer.add === 'function') {
           layer.add();
         }
       });
 // 执行 remove 操作
       newlyUnchecked.forEach(name => {
-        const layer = layerMap.get(name);
+        let layer = layerMap.get(name);
         if (layer && typeof layer.remove === 'function') {
           layer.remove();
         }
@@ -473,8 +474,12 @@ export default {
           entityId = "风险区域" + item.geologicalDisasterHideDTO.unitCode;
         } else if (item.geologicalDisasterHideDTO.disasterType === "滑坡") {
           entityId = "滑坡隐患点" + item.geologicalDisasterHideDTO.id;
-        } else {
+        } else if (item.geologicalDisasterHideDTO.disasterType === "泥石流"){
           entityId = "泥石流隐患点" + item.geologicalDisasterHideDTO.id;
+        } else if (item.geologicalDisasterHideDTO.disasterType === "内涝"){
+          entityId = "内涝隐患点" + item.geologicalDisasterHideDTO.id;
+        } else if (item.geologicalDisasterHideDTO.disasterType === "山洪"){
+          entityId = "山洪隐患点" + item.geologicalDisasterHideDTO.id;
         }
 
         // 确保 factors 是一个数组
@@ -493,12 +498,12 @@ export default {
 
         requestData.data.push(itemFormat);
       });
-      console.log("一次性发送的请求数据：", requestData);
       try {
         let matchedHuapoEntities = [];
-        const res = await rainSlideTrigger(requestData);
-        console.log(res.data, "rainSlideTrigger返回结果")
-        let formatAnalyzedData = res.data || [];
+        console.log("一次性发送的请求数据：", requestData);
+        let res1111 = await rainSlideTrigger(requestData);
+        console.log(res1111, "rainSlideTrigger返回结果")
+        let formatAnalyzedData = res1111.data || [];
 
         formatAnalyzedData.forEach(item => {
           matchedHuapoEntities.push(item);

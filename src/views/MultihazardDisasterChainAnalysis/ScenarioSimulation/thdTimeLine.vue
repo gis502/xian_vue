@@ -168,8 +168,16 @@ export default {
             value: "type2",
           },
           {
-            name: "风险区预警点",
+            name: "山洪预警点",
             value: "type3",
+          },
+          {
+            name: "内涝预警点",
+            value: "type4",
+          },
+          {
+            name: "风险区预警点",
+            value: "type5",
           },
         ],
         type1: {
@@ -181,6 +189,14 @@ export default {
           data: [],
         },
         type3: {
+          headers: ["山洪流灾害名称", "位置", "发生概率", "险情等级"],
+          data: [],
+        },
+        type4: {
+          headers: ["内涝灾害名称", "位置", "规模等级", "险情等级"],
+          data: [],
+        },
+        type5: {
           headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
           data: [],
         },
@@ -580,16 +596,18 @@ export default {
       const disasterTypeMap = {
         "滑坡": "landslide",
         "泥石流": "debris_flow",
-        "暴雨洪水": "torrential_flood",
+        "山洪": "torrential_flood",
         "内涝": "water_logging",
         "堰塞湖": "barrier_lake"
       };
-      console.log(probabilityPoints)
+      console.log(probabilityPoints,"handleHiddenDisasterPointUpdate")
       this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
       this.dataTypeHiddenDisaster.type1.data = [];
       this.dataTypeHiddenDisaster.type2.data = [];
       this.dataTypeHiddenDisaster.type3.data = [];
+      this.dataTypeHiddenDisaster.type4.data = [];
+      this.dataTypeHiddenDisaster.type5.data = [];
       probabilityPoints.forEach((item) => {
         // 跳过无效数据（检查必要字段是否存在）
         if (!item?.disasterType || !Array.isArray(item.disaster) ||
@@ -637,8 +655,30 @@ export default {
                 field6: item.geologicalDisasterHideDTO.lat,
               });
               break;
-            default:
+            case "山洪":
               this.dataTypeHiddenDisaster.type3.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                // field3: item.geologicalDisasterHideDTO.scaleGrade,
+                // field4: item.geologicalDisasterHideDTO.riskGrade,
+                field3: item.probability[2],
+                field4: item.level[2],
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+              break;
+            case "内涝":
+              this.dataTypeHiddenDisaster.type4.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.scaleGrade,
+                field4: item.geologicalDisasterHideDTO.riskGrade,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+              break;
+            default:
+              this.dataTypeHiddenDisaster.type5.data.push({
                 field1: item.geologicalDisasterHideDTO.disasterName,
                 field2: item.geologicalDisasterHideDTO.position,
                 field3: item.geologicalDisasterHideDTO.inspectorName,

@@ -638,7 +638,7 @@ let layers = {
         const disasterTypeMap = {
             "滑坡": "landslide",
             "泥石流": "debris_flow",
-            "暴雨洪水": "torrential_flood",
+            "山洪": "torrential_flood",
             "内涝": "water_logging",
             "堰塞湖": "barrier_lake"
         };
@@ -678,7 +678,7 @@ let layers = {
                         id: item.entityId,
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
-                            pixelSize: 30,
+                            pixelSize: 40,
                             color: Cesium.Color.RED(0.5),
                         },
                         properties: {
@@ -686,13 +686,14 @@ let layers = {
                             latitude: lat,
                         },
                     });
-                } else if (level == "中") {
+                }
+                else if (level == "中") {
                     viewer.entities.add({
                         name: '隐患点呼吸圈',
                         id: item.entityId,
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
-                            pixelSize: 30,
+                            pixelSize: 40,
                             color: Cesium.Color.YELLOW.withAlpha(0.5),
                         },
                         properties: {
