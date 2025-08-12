@@ -12,9 +12,7 @@
 
         <el-button
             type="info"
-            v-text="
-            displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'
-          "
+            v-text="displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'"
             @click="displayComponents"
         ></el-button>
         <el-button @click="landslideImpact">影响范围分析</el-button>
@@ -22,29 +20,14 @@
 
       <!-- 滑坡信息 -->
       <Landslide v-if="!displayDisasterCausingFactors && showDisasterInformation" :info="disasterInformation"></Landslide>
-
       <!-- 泥石流 -->
-      <DebrisFlow
-          v-if="!displayDisasterCausingFactors && showdebrisFlowInformation"
-          :info="debrisFlowInformation"
-      ></DebrisFlow>
-
+      <DebrisFlow v-if="!displayDisasterCausingFactors && showdebrisFlowInformation" :info="debrisFlowInformation"></DebrisFlow>
       <!-- 风险点 -->
-      <RiskPoints
-          v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
-          :info="riskPointsInformation"
-      ></RiskPoints>
-
+      <RiskPoints v-if="!displayDisasterCausingFactors && showRiskPointsInformation" :info="riskPointsInformation"></RiskPoints>
       <!--内涝-->
-      <WaterDisaster v-if="!displayDisasterCausingFactors && showWaterDisasterInformation"
-      :info="waterDisasterInformation">
-      </WaterDisaster>
-
+      <WaterDisaster v-if="!displayDisasterCausingFactors && showWaterDisasterInformation" :info="waterDisasterInformation"></WaterDisaster>
       <!--山洪-->
-      <FloodDisaster v-if="displayDisasterCausingFactors && showFloodDisasterInformation"
-      :info="floodDisasterInformation">
-      </FloodDisaster>
-
+      <FloodDisaster v-if="!displayDisasterCausingFactors && showFloodDisasterInformation" :info="floodDisasterInformation"></FloodDisaster>
       <!-- 致灾因子信息 -->
       <Hazards
           v-if="displayDisasterCausingFactors"
@@ -123,14 +106,12 @@ getHazardOptions().then((res) => {
   console.log(props,"props")
 });
 
-
 const positionEntity = ref({x: 0, y: 0});
 
 watch(() => props.position.x, (newX) => {
   positionEntity.value.x = newX;
   // console.log(props.position,"props.position")
 });
-
 
 watch(() => props.position.y, (newY) => {
   positionEntity.value.y = newY;
@@ -141,7 +122,6 @@ const styleObject = computed(() => ({
   left: `${positionEntity.value.x}px`,
   top: `${positionEntity.value.y}px`,
 }));
-
 
 const displayDisasterCausingFactors = ref(false);
 const hazards = computed(() => {
@@ -186,6 +166,31 @@ const hazards = computed(() => {
     };
   }
 });
+
+function handleRainfallAndDuration(info, trigger) {
+  info.factorVoList.forEach((element) => {
+    element.type = element.unit == "" ? "select" : "input:number";
+    element.isModified = true;
+    if (trigger == "地震") {
+      element.isShow = false;
+    } else {
+      element.isShow = true;
+      if (props.rainInfo.length != 0) {
+        let adminArea = layers.getAdministrationByPoint(info.geologicalDisasterHideDTO.lon, info.geologicalDisasterHideDTO.lat);
+        let matchedIndex = props.rainInfo.findIndex((pos) => pos.name === adminArea.name);
+        if (matchedIndex !== -1) {
+          let rainfall = props.rainInfo[matchedIndex].rainfall;
+          let duration = props.rainInfo[matchedIndex].duration;
+          if (element.attributeNameAlias == 'rainfall') {
+            element.factorValue = rainfall;
+          } else if (element.attributeNameAlias == 'duration') {
+            element.factorValue = duration;
+          }
+        }
+      }
+    }
+  });
+}
 function displayComponents() {
   displayDisasterCausingFactors.value = !displayDisasterCausingFactors.value;
 }

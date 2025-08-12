@@ -1,49 +1,29 @@
-<script>
-import {defineComponent} from 'vue'
-
-export default defineComponent({
-  name: "FloodDisaster",
-  props: {
-    info: Object
-  },
-})
-</script>
-
 <template>
   <table class="disaster-info-table">
     <tbody>
     <tr>
-      <td class="label">‘÷∫¶µ„√˚≥∆</td>
+      <td class="label">ÁÅæÂÆ≥ÁÇπÂêçÁß∞</td>
       <td>{{ info.geologicalDisasterHideDTO.disasterName }}</td>
     </tr>
     <tr>
-      <td class="label">“∞Õ‚±‡∫≈</td>
-      <td>{{ info.geologicalDisasterHideDTO.fieldCode }}</td>
-    </tr>
-    <tr>
-      <td class="label">πÊƒ£µ»º∂</td>
-      <td>{{ info.geologicalDisasterHideDTO.scaleGrade }}</td>
-    </tr>
-    <tr>
-      <td class="label">œ’«Èµ»º∂</td>
-      <td>{{ info.geologicalDisasterHideDTO.riskGrade }}</td>
-    </tr>
-    <tr>
-      <td class="label">µÿ¿ÌŒª÷√</td>
+      <td class="label">Âú∞ÁêÜ‰ΩçÁΩÆ</td>
       <td>{{ info.geologicalDisasterHideDTO.position }}</td>
     </tr>
     <tr>
-      <td class="label">æ≠∂»</td>
+      <td class="label">ÁªèÂ∫¶</td>
       <td>{{ info.geologicalDisasterHideDTO.lon }}</td>
     </tr>
     <tr>
-      <td class="label">Œ≥∂»</td>
+      <td class="label">Á∫¨Â∫¶</td>
       <td>{{ info.geologicalDisasterHideDTO.lat }}</td>
     </tr>
     </tbody>
   </table>
 </template>
 
-<style scoped lang="scss">
+<script setup name="FloodDisaster">
+defineProps(['info'])
+</script>
 
+<style scoped>
 </style>
