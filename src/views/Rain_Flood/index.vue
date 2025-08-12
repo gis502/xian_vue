@@ -2141,7 +2141,6 @@ export default {
                 this.showFloodDisasterInformation = false;
                 this.showWaterDisasterInformation = false;
 
-
                 this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
 
                 this.debrisFlowInformation = null
@@ -2182,9 +2181,9 @@ export default {
 
                 this.disasterInformation = null
                 this.debrisFlowInformation = null
+                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
                 this.waterDisasterInformation = null
                 this.floodDisasterInformation = null
-                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "内涝隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -2199,9 +2198,9 @@ export default {
 
                 this.disasterInformation = null
                 this.debrisFlowInformation = null
-                this.floodDisasterInformation = null
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.floodDisasterInformation = null
 
               } else if (entity.name === "山洪隐患点") {
 

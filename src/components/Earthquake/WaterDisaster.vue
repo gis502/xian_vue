@@ -9,36 +9,32 @@ export default defineComponent({
 })
 </script>
 
-<!-- ÄàÊ¯Á÷ĞÅÏ¢×é¼ş -->
+<!-- æ³¥çŸ³æµä¿¡æ¯ç»„ä»¶ -->
 <template>
   <table class="disaster-info-table">
     <tbody>
     <tr>
-      <td class="label">ÔÖº¦µãÃû³Æ</td>
+      <td class="label">ç¾å®³ç‚¹åç§°</td>
       <td>{{ info.geologicalDisasterHideDTO.disasterName }}</td>
     </tr>
     <tr>
-      <td class="label">Ò°Íâ±àºÅ</td>
-      <td>{{ info.geologicalDisasterHideDTO.fieldCode }}</td>
-    </tr>
-    <tr>
-      <td class="label">¹æÄ£µÈ¼¶</td>
+      <td class="label">è§„æ¨¡ç­‰çº§</td>
       <td>{{ info.geologicalDisasterHideDTO.scaleGrade }}</td>
     </tr>
     <tr>
-      <td class="label">ÏÕÇéµÈ¼¶</td>
+      <td class="label">é™©æƒ…ç­‰çº§</td>
       <td>{{ info.geologicalDisasterHideDTO.riskGrade }}</td>
     </tr>
     <tr>
-      <td class="label">µØÀíÎ»ÖÃ</td>
+      <td class="label">åœ°ç†ä½ç½®</td>
       <td>{{ info.geologicalDisasterHideDTO.position }}</td>
     </tr>
     <tr>
-      <td class="label">¾­¶È</td>
+      <td class="label">ç»åº¦</td>
       <td>{{ info.geologicalDisasterHideDTO.lon }}</td>
     </tr>
     <tr>
-      <td class="label">Î³¶È</td>
+      <td class="label">çº¬åº¦</td>
       <td>{{ info.geologicalDisasterHideDTO.lat }}</td>
     </tr>
     </tbody>
