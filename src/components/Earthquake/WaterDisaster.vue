@@ -1,24 +1,4 @@
-<script>
-import {defineComponent} from 'vue'
 
-export default defineComponent({
-  name: "WaterDisaster",
-  props: {
-    info: Object
-  },
-})
-
-// 危险程度
-let dangerLevel = ref("");
-
-// 概率值
-let probability = ref(0);
-
-onMounted(() => {
-  dangerLevel.value = info.predict.level[0]
-  probability.value = info.predict.probability[0]
-})
-</script>
 
 <!-- 泥石流信息组件 -->
 <template>
@@ -53,6 +33,21 @@ onMounted(() => {
     </tbody>
   </table>
 </template>
+
+<script setup name="WaterDisaster">
+const props = defineProps(['info'])
+
+// 危险程度
+let dangerLevel = ref("");
+
+// 概率值
+let probability = ref(0);
+
+onMounted(() => {
+  dangerLevel.value = props.info.predict.level[0]
+  probability.value = props.info.predict.probability[0]
+})
+</script>
 
 <style scoped lang="scss">
 .text {
