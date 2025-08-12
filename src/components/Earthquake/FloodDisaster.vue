@@ -1,49 +1,50 @@
-<script>
-import {defineComponent} from 'vue'
-
-export default defineComponent({
-  name: "FloodDisaster",
-  props: {
-    info: Object
-  },
-})
-</script>
-
 <template>
+  <span class="text">å±é™©ç¨‹åº¦ï¼š{{ dangerLevel }}</span>
+  <span class="text">äº§ç”Ÿ{{ disasterType }}çš„æ¦‚ç‡ï¼š{{ probability }}%</span>
   <table class="disaster-info-table">
     <tbody>
     <tr>
-      <td class="label">ÔÖº¦µãÃû³Æ</td>
+      <td class="label">ç¾å®³ç‚¹åç§°</td>
       <td>{{ info.geologicalDisasterHideDTO.disasterName }}</td>
     </tr>
     <tr>
-      <td class="label">Ò°Íâ±àºÅ</td>
-      <td>{{ info.geologicalDisasterHideDTO.fieldCode }}</td>
-    </tr>
-    <tr>
-      <td class="label">¹æÄ£µÈ¼¶</td>
-      <td>{{ info.geologicalDisasterHideDTO.scaleGrade }}</td>
-    </tr>
-    <tr>
-      <td class="label">ÏÕÇéµÈ¼¶</td>
-      <td>{{ info.geologicalDisasterHideDTO.riskGrade }}</td>
-    </tr>
-    <tr>
-      <td class="label">µØÀíÎ»ÖÃ</td>
+      <td class="label">åœ°ç†ä½ç½®</td>
       <td>{{ info.geologicalDisasterHideDTO.position }}</td>
     </tr>
     <tr>
-      <td class="label">¾­¶È</td>
+      <td class="label">ç»åº¦</td>
       <td>{{ info.geologicalDisasterHideDTO.lon }}</td>
     </tr>
     <tr>
-      <td class="label">Î³¶È</td>
+      <td class="label">çº¬åº¦</td>
       <td>{{ info.geologicalDisasterHideDTO.lat }}</td>
     </tr>
     </tbody>
   </table>
 </template>
 
-<style scoped lang="scss">
+<script setup name="FloodDisaster">
+const props = defineProps(['info'])
 
+// å±é™©ç¨‹åº¦
+let dangerLevel = ref("");
+
+// æ¦‚ç‡å€¼
+let probability = ref(0);
+
+onMounted(() => {
+  dangerLevel.value = props.info.predict.level[0]
+  probability.value = props.info.predict.probability[0]
+})
+</script>
+
+<style scoped>
+.text {
+  font-size: 20px;
+  color: red;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+  margin-left: 5px;
+}
 </style>
