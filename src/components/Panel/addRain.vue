@@ -81,14 +81,14 @@ export default {
         }
       }
     },
-    PanelPosition: {
-      immediate: true,
-      handler(newVal) {
-        if (newVal) {
-          this.positionEntity = newVal
-        }
-      }
-    }
+    // PanelPosition: {
+    //   immediate: true,
+    //   handler(newVal) {
+    //     if (newVal) {
+    //       this.positionEntity = newVal
+    //     }
+    //   }
+    // }
   },
   computed: {
     styleObject() {
