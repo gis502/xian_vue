@@ -257,7 +257,12 @@
         :showFloodDisasterInformation="showFloodDisasterInformation"
         :floodDisasterInformation="floodDisasterInformation"
         :trigger="'暴雨'"
-        :rainInfo="rainInfo"/>
+        :rainInfo="rainInfo"
+    />
+    <rain-layer-control
+        :viewer="viewer"
+        :setupEntityClickHandler="setupEntityClickHandler"
+    />
     <Legend ref="legendRef"></Legend>
   </div>
 </template>
@@ -662,11 +667,7 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
       return this.tableData.slice(start, end);
-    },
-    // availableDistricts() {
-    //   const selectedCodes = this.entries.map((entry) => entry.code);
-    //   return this.districts.filter((district) => !selectedCodes.includes(district.code));
-    // }
+    }
   },
   mounted() {
     this.load();
@@ -674,7 +675,6 @@ export default {
     basicLayers.loadLandSlide();
     basicLayers.Addmudslide();
     basicLayers.AddDangerAreaDataSource();
-    basicLayers.loadAdminData();
     basicLayers.loadFlashFlood();
     basicLayers.loadWater();
     this.loadRiverData(); // 加载河流数据
@@ -704,104 +704,6 @@ export default {
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
       this.entitiesClickPonpHandler()
-    },
-    // 设置实体点击事件处理
-    setupEntityClickHandler() {
-
-      // 清除之前的点击事件处理程序
-      if (this.clickHandler) {
-        this.clickHandler.destroy();
-      }
-
-      // 为左键点击添加事件处理程序
-      this.clickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
-      this.clickHandler.setInputAction((movement) => {
-        // 检查点击是否在实体上
-        const pickedObject = this.viewer.scene.pick(movement.position);
-        // 判断是否有disasterName属性
-        if (pickedObject.id._disasterData === undefined) {
-          return;
-        }
-        // 隐藏之前的弹出面板
-        this.closePopup();
-
-        if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
-          const entity = pickedObject.id;
-          // 获取实体的灾害数据
-          this.selectedEntityData = entity._disasterData || {};
-          // 计算弹出框位置并显示面板
-          this.calculateAndShowPopup(entity, movement.position);
-        } else {
-          // 如果点击在空白处，隐藏信息框
-          this.viewer.selectedEntity = undefined;
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    },
-    // 计算并显示弹出面板
-    async calculateAndShowPopup(entity, movementPosition) {
-      try {
-        const scene = this.viewer.scene;
-        const clock = this.viewer.clock;
-        // 获取当前时间
-        const currentTime = clock.currentTime;
-        // 使用当前时间获取位置值
-        const position = entity.position.getValue(currentTime);
-        // 正确检查位置有效性
-        if (!position ||
-            isNaN(position.x) || isNaN(position.y) || isNaN(position.z) ||
-            !isFinite(position.x) || !isFinite(position.y) || !isFinite(position.z)) {
-          console.log('位置无效或未定义');
-          return;
-        }
-        // 转换为窗口坐标
-        const windowPosition = scene.cartesianToCanvasCoordinates(position);
-        if (windowPosition) {
-          // 计算最终位置（添加偏移量）
-          this.popupPosition = {
-            x: windowPosition.x + 20,
-            y: windowPosition.y - 10
-          };
-          // 检测边界防止面板超出视口
-          this.checkPopupBoundary();
-          // 显示弹出面板
-          this.popupVisible = true;
-          // 平滑定位到点击的实体
-          await this.viewer.flyTo(entity, {
-            duration: 0.5,
-            offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
-          });
-        }
-      } catch (error) {
-        console.error("计算弹出面板位置出错:", error);
-      }
-    },
-    // 关闭弹出面板
-    closePopup() {
-      this.popupVisible = false;
-      this.selectedEntityData = null;
-    },
-    // 检测弹出面板边界
-    checkPopupBoundary() {
-      const panelWidth = 280;
-      const panelHeight = 200;
-      const canvas = this.viewer.canvas;
-      const rect = canvas.getBoundingClientRect();
-      // 防止面板超出右边界
-      if (this.popupPosition.x + panelWidth > rect.right) {
-        this.popupPosition.x = rect.right - panelWidth - 10;
-      }
-      // 防止面板超出下边界
-      if (this.popupPosition.y + panelHeight > rect.bottom) {
-        this.popupPosition.y = rect.bottom - panelHeight - 10;
-      }
-      // 防止面板超出左边界
-      if (this.popupPosition.x < 10) {
-        this.popupPosition.x = 10;
-      }
-      // 防止面板超出上边界
-      if (this.popupPosition.y < 10) {
-        this.popupPosition.y = 10;
-      }
     },
     loadLakeData() {
       if (!this.lakeData) {
@@ -1015,69 +917,79 @@ export default {
       document.body.style.cursor = '';
     },
     handleHiddenDisasterPointUpdate(probabilityPoints) {
+      console.log()
+      const disasterTypeMap = {
+        "滑坡": "landslide",
+        "泥石流": "debris_flow",
+        "暴雨洪水": "torrential_flood",
+        "内涝": "water_logging",
+        "堰塞湖": "barrier_lake"
+      };
+      console.log(probabilityPoints,"probabilityPoints")
       this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
       this.dataTypeHiddenDisaster.type1.data = [];
       this.dataTypeHiddenDisaster.type2.data = [];
       this.dataTypeHiddenDisaster.type3.data = [];
-      this.dataTypeHiddenDisaster.type4.data = [];
-      this.dataTypeHiddenDisaster.type5.data = [];
-      // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
-        console.log(item, "probabilityPoints.forEach")
-        switch (item.disasterType) {
-          case "滑坡":
-            this.dataTypeHiddenDisaster.type1.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-            break;
-          case "泥石流":
-            this.dataTypeHiddenDisaster.type2.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-            break;
-
-          case "内涝":
-            this.dataTypeHiddenDisaster.type3.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            })
-            break;
-          case "山洪":
-            this.dataTypeHiddenDisaster.type4.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            })
-            break;
-          default:
-            this.dataTypeHiddenDisaster.type5.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.inspectorName,
-              field4: item.geologicalDisasterHideDTO.inspectorTele,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
+        // 跳过无效数据（检查必要字段是否存在）
+        if (!item?.disasterType || !Array.isArray(item.disaster) ||
+            !Array.isArray(item.level) || !Array.isArray(item.probability)) {
+          return;
         }
-      });
+
+        // 获取当前disasterType对应的disaster数组元素
+        let disasterKey = disasterTypeMap[item.disasterType];
+        if (!disasterKey) {
+          console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
+          return;
+        }
+
+        // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+        let index = item.disaster.indexOf(disasterKey);
+        if (index === -1 || index >= item.level.length || index >= item.probability.length) {
+          console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+          return;
+        }
+
+        // 获取对应的等级和概率
+        let level = item.level[index];
+        let probability = item.probability[index];
+
+        if(level=="高"||level=="中"){
+          switch (item.geologicalDisasterHideDTO.disasterType) {
+            case "滑坡":
+              this.dataTypeHiddenDisaster.type1.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.scaleGrade,
+                field4: item.geologicalDisasterHideDTO.riskGrade,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+              break;
+            case "泥石流":
+              this.dataTypeHiddenDisaster.type2.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.scaleGrade,
+                field4: item.geologicalDisasterHideDTO.riskGrade,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+              break;
+            default:
+              this.dataTypeHiddenDisaster.type3.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.inspectorName,
+                field4: item.geologicalDisasterHideDTO.inspectorTele,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+          }
+        }
+      })
     },
     updateRainInfo(data) {
       this.rainInfo = data
@@ -1398,26 +1310,19 @@ export default {
                 this.eqCenterPanelVisible = true;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = false;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
-
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
-                console.log(this.rainCenterPanelVisible, "打开面板啊")
                 this.showBaseInfo = false;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
-
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
-                console.log(this.PanelData, "显示数据")
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
                 this.baseInfoTitle = entity.name;
-
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
                 this.showRiskPointsInformation = false;
@@ -1426,7 +1331,6 @@ export default {
 
 
                 this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
-
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = null
@@ -1437,9 +1341,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
-
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = true;
                 this.showRiskPointsInformation = false;
@@ -1455,7 +1357,6 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
-                // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;
@@ -1646,6 +1547,100 @@ export default {
     // 阻止事件冒泡
     stopPropagation(e) {
       e.stopPropagation();
+    },
+    // 设置实体点击事件处理
+    setupEntityClickHandler() {
+      // 清除之前的点击事件处理程序
+      if (this.clickHandler) {
+        this.clickHandler.destroy();
+      }
+      // 为左键点击添加事件处理程序
+      this.clickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
+      this.clickHandler.setInputAction((movement) => {
+        // 检查点击是否在实体上
+        const pickedObject = this.viewer.scene.pick(movement.position);
+        if (pickedObject.id.disasterData === undefined) {
+          return;
+        }
+        // 隐藏之前的弹出面板
+        this.closePopup();
+        if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+          const entity = pickedObject.id;
+          // 获取实体的灾害数据
+          this.selectedEntityData = entity.disasterData || {};
+          // 计算弹出框位置并显示面板
+          this.calculateAndShowPopup(entity, movement.position);
+        } else {
+          // 如果点击在空白处，隐藏信息框
+          this.viewer.selectedEntity = undefined;
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    },
+    // 计算并显示弹出面板
+    async calculateAndShowPopup(entity, movementPosition) {
+      try {
+        const scene = this.viewer.scene;
+        const clock = this.viewer.clock;
+        // 获取当前时间
+        const currentTime = clock.currentTime;
+        // 使用当前时间获取位置值
+        const position = entity.position.getValue(currentTime);
+        // 正确检查位置有效性
+        if (!position ||
+            isNaN(position.x) || isNaN(position.y) || isNaN(position.z) ||
+            !isFinite(position.x) || !isFinite(position.y) || !isFinite(position.z)) {
+          console.log('位置无效或未定义');
+          return;
+        }
+        // 转换为窗口坐标
+        const windowPosition = scene.cartesianToCanvasCoordinates(position);
+        if (windowPosition) {
+          // 计算最终位置（添加偏移量）
+          this.popupPosition = {
+            x: windowPosition.x + 20,
+            y: windowPosition.y - 10
+          };
+          // 检测边界防止面板超出视口
+          this.checkPopupBoundary();
+          // 显示弹出面板
+          this.popupVisible = true;
+          // 平滑定位到点击的实体
+          await this.viewer.flyTo(entity, {
+            duration: 0.5,
+            offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+          });
+        }
+      } catch (error) {
+        console.error("计算弹出面板位置出错:", error);
+      }
+    },
+    // 检测弹出面板边界
+    checkPopupBoundary() {
+      const panelWidth = 280;
+      const panelHeight = 200;
+      const canvas = this.viewer.canvas;
+      const rect = canvas.getBoundingClientRect();
+      // 防止面板超出右边界
+      if (this.popupPosition.x + panelWidth > rect.right) {
+        this.popupPosition.x = rect.right - panelWidth - 10;
+      }
+      // 防止面板超出下边界
+      if (this.popupPosition.y + panelHeight > rect.bottom) {
+        this.popupPosition.y = rect.bottom - panelHeight - 10;
+      }
+      // 防止面板超出左边界
+      if (this.popupPosition.x < 10) {
+        this.popupPosition.x = 10;
+      }
+      // 防止面板超出上边界
+      if (this.popupPosition.y < 10) {
+        this.popupPosition.y = 10;
+      }
+    },
+    // 关闭弹出面板
+    closePopup() {
+      this.popupVisible = false;
+      this.selectedEntityData = null;
     }
   }
 }
@@ -1725,187 +1720,6 @@ export default {
   border-radius: 4px;
   font-size: 14px;
   z-index: 100;
-}
-
-/* 暴雨信息面板样式优化 */
-.rain-info-panel {
-  position: absolute;
-  top: 300px;
-  left: 10px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 15px;
-  border-radius: 6px;
-  width: 240px;
-  height: 190px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.panel-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #444;
-  text-align: left;
-}
-
-.panel-content div {
-  margin-bottom: 12px;
-  display: flex;
-
-}
-
-.panel-content label {
-  width: 70px;
-  /* text-align: right; 标签文本右对齐 */
-  font-weight: 500;
-  flex-shrink: 0; /* 防止标签宽度被压缩 */
-  display: inline-block; /* 确保宽度生效 */
-}
-
-.jiangyuliang {
-  text-align-last: justify;
-}
-
-.panel-content input {
-  width: 60px;
-  padding: 6px 8px;
-  border: none;
-  border-radius: 4px;
-  text-align: center;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  height: 30px; /* 固定高度确保垂直居中 */
-  box-sizing: border-box; /* 包含内边距 */
-}
-
-/* 优化单位文本样式，确保与输入框垂直对齐 */
-.panel-content span {
-  width: auto; /* 固定单位宽度，实现对齐 */
-  text-align: left; /* 单位文本左对齐 */
-  display: inline-block; /* 转为行内块元素便于设置宽度 */
-  height: 30px; /* 与输入框等高，确保垂直对齐 */
-  line-height: 30px; /* 垂直居中 */
-}
-
-/* 按钮组样式优化，确保按钮对齐 */
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.panel-content button {
-  padding: 6px 12px;
-  background-color: #386641;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  height: 32px; /* 固定按钮高度，确保对齐 */
-  line-height: normal; /* 重置行高 */
-}
-
-.panel-content button:last-child {
-  background-color: #bc4749;
-  margin-left: 10px;
-}
-
-.panel-content button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-/* 图例面板样式 */
-.legend-panel {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
-  padding: 10px;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  max-height: 70%;
-  overflow-y: auto;
-}
-
-.legend-title {
-  font-size: 17px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.legend-content {
-  font-size: 12px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-
-  margin-right: 6px;
-  border-radius: 2px;
-}
-
-.legend-text {
-  white-space: nowrap;
-}
-
-.legend-panel {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
-  padding: 10px;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  max-height: 70%;
-  overflow-y: auto;
-  max-width: 300px; /* 新增：限制图例最大宽度 */
-}
-
-.legend-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.legend-content {
-  font-size: 12px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  border-radius: 2px;
-}
-
-.legend-text {
-  white-space: nowrap;
 }
 
 .disaster-popup {
@@ -2171,7 +1985,6 @@ export default {
   font-size: 20px;
   color: red;
 }
-
 .factor-button {
   background-color: #409eff;
   color: white;

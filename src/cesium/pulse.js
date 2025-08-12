@@ -179,8 +179,14 @@ export class PulseTool {
    * 移除所有脉冲
    */
   removePulseEntity() {
-    for (const entityId in this._entityPulseMap) {
-      this.deletePulseEntity(entityId);
+    let toRemove = window.viewer.entities.values.filter(
+        e => e.name === '隐患点呼吸圈'
+    );
+    if (toRemove) {
+      // 2. 逐个删除
+      toRemove.forEach(entity => {
+        window.viewer.entities.remove(entity);
+      });
     }
   }
 
