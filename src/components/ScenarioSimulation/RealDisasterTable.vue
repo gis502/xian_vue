@@ -115,7 +115,6 @@ function changeDataType() {
   tableData.value = typeData.data;
   searchQuery.value = "";
   currentPage.value = 1;
-  // updateTableData();
 }
 
 function nextPage() {
@@ -136,7 +135,6 @@ const toggleTableVisibility = () => {
 
 const performSearch = () => {
   currentPage.value = 1;
-  updateTableData();
 };
 
 function timeSelect(){
@@ -175,9 +173,6 @@ function timeSelect(){
     }
   }
 
-function updateTableData() {
-
-}
 function handleTableClick(item) {
   const longitude = item.field5; // 获取经度
   const latitude = item.field6; // 获取纬度
@@ -262,11 +257,11 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 
 .table-title {
   font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-bottom: 5px;
+  font-size: 16px;
   text-align: center;
   margin-top: 0; /* 将 margin-top 设置为0，避免空白区域 */
-  padding-top: 20px; /* 增加内边距，为按钮留出空间 */
+  padding-top: 0px; /* 增加内边距，为按钮留出空间 */
 }
 
 .data-table table {

@@ -680,7 +680,7 @@ let layers = {
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: 40,
-                            color: Cesium.Color.RED(0.5),
+                            color: Cesium.Color.RED.withAlpha(0.5),
                         },
                         properties: {
                             longitude: lon,

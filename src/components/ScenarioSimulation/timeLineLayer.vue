@@ -12,7 +12,8 @@
     </div>
     <div class="universalPanel" v-if="showLayerFeatures">
       <div class="panel-title1">多源要素图层</div>
-      <el-checkbox-group v-model="selectedlayers" @change="updateMapLayers" class="grid-container">
+
+      <el-checkbox-group v-model="selectedlayers" @change="updateMapLayers" class="grid-container custom-checkbox-group">
         <el-checkbox v-for="item in layeritems" :key="item.id" :label="item.name">{{ item.name }}</el-checkbox>
       </el-checkbox-group>
     </div>
@@ -322,8 +323,7 @@ export default {
                   this.$emit('update:onceLoadLayer', false);
                   viewer.clockViewModel.shouldAnimate = true;
                 }
-              }
-              else if (this.disasterEvent.trigger == "暴雨") {
+              } else if (this.disasterEvent.trigger == "暴雨") {
                 // 汇总所有区县的匹配数据
                 let allMatchedHuapoData = [];
                 let allPointSet = new Set();
@@ -474,11 +474,11 @@ export default {
           entityId = "风险区域" + item.geologicalDisasterHideDTO.unitCode;
         } else if (item.geologicalDisasterHideDTO.disasterType === "滑坡") {
           entityId = "滑坡隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "泥石流"){
+        } else if (item.geologicalDisasterHideDTO.disasterType === "泥石流") {
           entityId = "泥石流隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "内涝"){
+        } else if (item.geologicalDisasterHideDTO.disasterType === "内涝") {
           entityId = "内涝隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "山洪"){
+        } else if (item.geologicalDisasterHideDTO.disasterType === "山洪") {
           entityId = "山洪隐患点" + item.geologicalDisasterHideDTO.id;
         }
 
@@ -566,14 +566,12 @@ export default {
   align-items: flex-start; /* 选项靠左对齐 */
 }
 
-/* 减小字体大小 */
-.el-checkbox__label {
-  display: inline-block;
-  font-size: 8px; /* 直接设置字体大小 */
+.custom-checkbox-group .el-checkbox__label {
+  color: white;
+  font-size: 8px;
   line-height: 1;
   padding-left: 8px;
 }
-
 /* 减小选项之间的间隔 */
 .grid-container .el-checkbox {
   margin-bottom: 0px; /* 调整选项之间的垂直间隔 */

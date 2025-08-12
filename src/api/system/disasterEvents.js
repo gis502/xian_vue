@@ -37,4 +37,10 @@ export function selectDisasterRealByDisasterId(data) {
     })
 }
 
-
+export function getRainPeriodInfoByDisasterId(data){
+    return request({
+        url: '/XianDisasterRain/getRainPeriodInfoByDisasterId',
+        method: 'post',
+        params:data
+    })
+}

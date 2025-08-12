@@ -85,9 +85,9 @@ export default {
     return {
       // oldCurrentTime: null,
       selectedId: "playStart", // 当前选中的按钮，前进后退，暂停播放
-      currentSpeed: 7200,
+      currentSpeed: 600,
       showSpeedOptions: false,
-      speedOption: '7200X',
+      speedOption: '600X',
       speedOptions: ['1X', '60X', '600X', '3600X', '7200X'],
       // plots: [],
       ifNewEq: false, //用于 回到真实时间

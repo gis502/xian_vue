@@ -53,6 +53,11 @@
         :currentTime="currentTime"
     />
     <Table :show="true" :dataTypes="dataTypeHiddenDisaster"></Table>
+    <RainInfoTable
+        v-if="trigger === '暴雨'"
+        :disasterEvent="disasterEvent"
+        :currentTime="currentTime"
+    />
     <!-- 图例 -->
     <Legend></Legend>
   </div>
@@ -77,6 +82,7 @@ import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import RealDisasterTable from "@/components/ScenarioSimulation/RealDisasterTable.vue";
+import RainInfoTable from "@/components/ScenarioSimulation/rainInfoTable.vue";
 import Table from "@/components/Earthquake/Table.vue";
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 
@@ -226,6 +232,7 @@ export default {
     Legend,
     //表格
     RealDisasterTable,
+    RainInfoTable,
     Table
   },
   beforeDestroy() {
