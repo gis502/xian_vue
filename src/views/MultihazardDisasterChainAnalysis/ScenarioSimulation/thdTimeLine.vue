@@ -6,11 +6,11 @@
         :position="PanelPosition"
         :popupData="PanelData"
     />
-    <rainCenterPanel
-        v-show="rainCenterPanelVisible"
-        :position="PanelPosition"
-        :popupData="PanelData"
-    />
+<!--    <rainCenterPanel-->
+<!--        v-show="rainCenterPanelVisible"-->
+<!--        :position="PanelPosition"-->
+<!--        :popupData="PanelData"-->
+<!--    />-->
     <!-- 鼠标悬停时显示的经纬度坐标 -->
     <div class="coordinate-box">
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}
@@ -239,17 +239,15 @@ export default {
     async init() {
       let that = this
       if (this.trigger == "地震") {
-        this.disasterEvent = await getEarthquakeEventById({id: this.id})
+        let res= await getEarthquakeEventById({id: this.id})
+        this.disasterEvent=res.data
         this.disasterEvent.trigger = "地震"
       } else if (this.trigger == "暴雨") {
-        this.disasterEvent = await getDisasterRainById({id: this.id})
+        let res= await getDisasterRainById({id: this.id})
+        this.disasterEvent=res.data
         this.disasterEvent.trigger = "暴雨"
       }
-
-      let {longitude, latitude} = parsePointString(this.disasterEvent.geom)
-      this.disasterEvent.longitude = longitude
-      this.disasterEvent.latitude = latitude
-
+      console.log(this.disasterEvent,"this.disasterEvent")
       if (!this.disasterEvent.occurrenceTime) {
         console.error("Invalid occurrenceTime:", this.disasterEvent.occurrenceTime);
         return;
@@ -537,6 +535,7 @@ export default {
     },
 
     handleRealDisasterPointUpdate(data) {
+      console.log(data,"handleRealDisasterPointUpdate")
       this.realDisasterPoint = data
 
       this.dataTypesRealDisater.type1.data = [];
@@ -578,45 +577,157 @@ export default {
       });
     },
     handleHiddenDisasterPointUpdate(probabilityPoints) {
+      const disasterTypeMap = {
+        "滑坡": "landslide",
+        "泥石流": "debris_flow",
+        "暴雨洪水": "torrential_flood",
+        "内涝": "water_logging",
+        "堰塞湖": "barrier_lake"
+      };
+      console.log(probabilityPoints)
+      this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
       this.dataTypeHiddenDisaster.type1.data = [];
       this.dataTypeHiddenDisaster.type2.data = [];
       this.dataTypeHiddenDisaster.type3.data = [];
-      // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
-        switch (item.geologicalDisasterHideDTO.disasterType) {
-          case "滑坡":
-            this.dataTypeHiddenDisaster.type1.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-            break;
-          case "泥石流":
-            this.dataTypeHiddenDisaster.type2.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.scaleGrade,
-              field4: item.geologicalDisasterHideDTO.riskGrade,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
-            break;
-          default:
-            this.dataTypeHiddenDisaster.type3.data.push({
-              field1: item.geologicalDisasterHideDTO.disasterName,
-              field2: item.geologicalDisasterHideDTO.position,
-              field3: item.geologicalDisasterHideDTO.inspectorName,
-              field4: item.geologicalDisasterHideDTO.inspectorTele,
-              field5: item.geologicalDisasterHideDTO.lon,
-              field6: item.geologicalDisasterHideDTO.lat,
-            });
+        // 跳过无效数据（检查必要字段是否存在）
+        if (!item?.disasterType || !Array.isArray(item.disaster) ||
+            !Array.isArray(item.level) || !Array.isArray(item.probability)) {
+          return;
         }
-      });
+
+        // 获取当前disasterType对应的disaster数组元素
+        let disasterKey = disasterTypeMap[item.disasterType];
+        if (!disasterKey) {
+          console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
+          return;
+        }
+
+        // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+        let index = item.disaster.indexOf(disasterKey);
+        if (index === -1 || index >= item.level.length || index >= item.probability.length) {
+          console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+          return;
+        }
+
+        // 获取对应的等级和概率
+        let level = item.level[index];
+        let probability = item.probability[index];
+
+        if(level=="高"||level=="中"){
+          switch (item.geologicalDisasterHideDTO.disasterType) {
+            case "滑坡":
+              this.dataTypeHiddenDisaster.type1.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.scaleGrade,
+                field4: item.geologicalDisasterHideDTO.riskGrade,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+              break;
+            case "泥石流":
+              this.dataTypeHiddenDisaster.type2.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.scaleGrade,
+                field4: item.geologicalDisasterHideDTO.riskGrade,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+              break;
+            default:
+              this.dataTypeHiddenDisaster.type3.data.push({
+                field1: item.geologicalDisasterHideDTO.disasterName,
+                field2: item.geologicalDisasterHideDTO.position,
+                field3: item.geologicalDisasterHideDTO.inspectorName,
+                field4: item.geologicalDisasterHideDTO.inspectorTele,
+                field5: item.geologicalDisasterHideDTO.lon,
+                field6: item.geologicalDisasterHideDTO.lat,
+              });
+          }
+        }
+      })
+
+
+      // // 风险区数据，滑坡数据，泥石流数据
+      // probabilityPoints.forEach((item) => {
+      //   // console.log(item, "probabilityPoints.forEach")
+      //   switch (item.geologicalDisasterHideDTO.disasterType) {
+      //     case "滑坡":
+      //       this.dataTypeHiddenDisaster.type1.data.push({
+      //         field1: item.geologicalDisasterHideDTO.disasterName,
+      //         field2: item.geologicalDisasterHideDTO.position,
+      //         field3: item.geologicalDisasterHideDTO.scaleGrade,
+      //         field4: item.geologicalDisasterHideDTO.riskGrade,
+      //         field5: item.geologicalDisasterHideDTO.lon,
+      //         field6: item.geologicalDisasterHideDTO.lat,
+      //       });
+      //       break;
+      //     case "泥石流":
+      //       this.dataTypeHiddenDisaster.type2.data.push({
+      //         field1: item.geologicalDisasterHideDTO.disasterName,
+      //         field2: item.geologicalDisasterHideDTO.position,
+      //         field3: item.geologicalDisasterHideDTO.scaleGrade,
+      //         field4: item.geologicalDisasterHideDTO.riskGrade,
+      //         field5: item.geologicalDisasterHideDTO.lon,
+      //         field6: item.geologicalDisasterHideDTO.lat,
+      //       });
+      //       break;
+      //     default:
+      //       this.dataTypeHiddenDisaster.type3.data.push({
+      //         field1: item.geologicalDisasterHideDTO.disasterName,
+      //         field2: item.geologicalDisasterHideDTO.position,
+      //         field3: item.geologicalDisasterHideDTO.inspectorName,
+      //         field4: item.geologicalDisasterHideDTO.inspectorTele,
+      //         field5: item.geologicalDisasterHideDTO.lon,
+      //         field6: item.geologicalDisasterHideDTO.lat,
+      //       });
+      //   }
+      // });
     },
+    // handleHiddenDisasterPointUpdate(probabilityPoints) {
+    //
+    //   // 清空表格数据
+    //   this.dataTypeHiddenDisaster.type1.data = [];
+    //   this.dataTypeHiddenDisaster.type2.data = [];
+    //   this.dataTypeHiddenDisaster.type3.data = [];
+    //   // 风险区数据，滑坡数据，泥石流数据
+    //   probabilityPoints.forEach((item) => {
+    //     switch (item.geologicalDisasterHideDTO.disasterType) {
+    //       case "滑坡":
+    //         this.dataTypeHiddenDisaster.type1.data.push({
+    //           field1: item.geologicalDisasterHideDTO.disasterName,
+    //           field2: item.geologicalDisasterHideDTO.position,
+    //           field3: item.geologicalDisasterHideDTO.scaleGrade,
+    //           field4: item.geologicalDisasterHideDTO.riskGrade,
+    //           field5: item.geologicalDisasterHideDTO.lon,
+    //           field6: item.geologicalDisasterHideDTO.lat,
+    //         });
+    //         break;
+    //       case "泥石流":
+    //         this.dataTypeHiddenDisaster.type2.data.push({
+    //           field1: item.geologicalDisasterHideDTO.disasterName,
+    //           field2: item.geologicalDisasterHideDTO.position,
+    //           field3: item.geologicalDisasterHideDTO.scaleGrade,
+    //           field4: item.geologicalDisasterHideDTO.riskGrade,
+    //           field5: item.geologicalDisasterHideDTO.lon,
+    //           field6: item.geologicalDisasterHideDTO.lat,
+    //         });
+    //         break;
+    //       default:
+    //         this.dataTypeHiddenDisaster.type3.data.push({
+    //           field1: item.geologicalDisasterHideDTO.disasterName,
+    //           field2: item.geologicalDisasterHideDTO.position,
+    //           field3: item.geologicalDisasterHideDTO.inspectorName,
+    //           field4: item.geologicalDisasterHideDTO.inspectorTele,
+    //           field5: item.geologicalDisasterHideDTO.lon,
+    //           field6: item.geologicalDisasterHideDTO.lat,
+    //         });
+    //     }
+    //   });
+    // },
 // //子-父-子，控制时间轴暂停与播放
 // handleStopTimePlay() {
 //   this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
