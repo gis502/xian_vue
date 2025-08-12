@@ -245,7 +245,6 @@ export default {
       let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
       this.$emit('update:matched-huapo-entities', matchedHuapoEntities);
       console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
-      console.log(this.matchedHiddenHighlightEntities, "this.matchedHiddenHighlightEntities这是匹配的所有点")
       layers.flashHiddenDisasterPoints(matchedHuapoEntities);
     },
     cancelRainPoint() {
