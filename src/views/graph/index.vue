@@ -7,7 +7,7 @@
 
     <div class="catalog" v-show="ifShowCatalog">
       <div class="titleName">
-        知识图谱
+        多灾种知识图谱
       </div>
       <div class="search">
         <el-button type="primary" class="search-button" @click="focusNode(inputValue)">
@@ -429,117 +429,154 @@ const getData = async (item) => {
     // 设置不同的分类数据结构
     if (isRain) {
       firstData.value = [
-        { name: '灾害基本信息类' },
-        { name: '气象与水文触发信息类' },
-        { name: '人员伤亡与转移' },
-        { name: '房屋与基础设施破坏类' },
-        { name: '次生灾害类' },
-        { name: '应急响应与救援行动类' },
-        { name: '社会援助与捐赠类' },
-        { name: '灾后恢复与评估类' }
+        { name: '突发事件' },
+        { name: '危险源和风险隐患区' },
+        { name: '防护目标' },
+        { name: '应急保障资源' },
+        { name: '应急知识' },
+        { name: '应急预案' },
+        { name: '应急平台' }
       ];
-        secondData.value = [
-          { name: '基本信息' },
-          { name: '人员与损失信息' },
-          { name: '救援与响应' },
-          { name: '外部条件与环境' },
-          { name: '影响范围' },
-          { name: '气象信息' },
-          { name: '水文信息' },
-          { name: '应急响应信息' },
-          { name: '人员伤亡信息' },
-          { name: '转移安置信息' },
-          { name: '房屋破坏信息' },
-          { name: '基础设施破坏信息' },
-          { name: '次生灾害事件信息' },
-          { name: '响应与救援部门信息' },
-          { name: '企业援助信息' },
-          { name: '慈善机构援助信息' },
-          { name: '恢复与评估信息' },
+      secondData.value = [
+        // 对应“突发事件”的二级分类（原始结构中“自然灾害/事故灾难...”为二级）
+        { name: '自然灾害' },
+        { name: '事故灾难' },
+        { name: '公共卫生事件' },
+        { name: '社会安全事件' },
 
-    ];
+        // 对应“危险源和风险隐患区”的二级分类
+        { name: '自然灾害风险隐患区' },
+        { name: '事故灾难风险隐患区' },
+        { name: '公共卫生风险隐患区' },
+        { name: '社会安全风险隐患区' },
+
+        // 对应“防护目标”的二级分类
+        { name: '重要部位' },
+        { name: '关键基础设施' },
+
+        // 对应“应急保障资源”的二级分类
+        { name: '应急机构' },
+        { name: '应急人力资源' },
+        { name: '应急物资保障资源' },
+        { name: '应急通信资源' },
+        { name: '应急运输与物流资源' },
+        { name: '医疗卫生资源' },
+        { name: '应急避难场区' },
+        { name: '应急财力资源' },
+
+        // 对应“应急知识”的二级分类
+        { name: '法律法规' },
+        { name: '技术规范' },
+
+        // 对应“应急预案”的二级分类
+        { name: '国家级应急预案' },
+        { name: '省级应急预案' },
+        { name: '市级应急预案' },
+        { name: '基层应急预案' },
+        { name: '企业级应急预案' },
+        { name: '军队应急预案' },
+
+        // 对应“应急平台”的二级分类
+        { name: '国务院应急平台' },
+        { name: '地方应急平台' },
+        { name: '部门应急平台' },
+        { name: '基层应急平台' },
+        { name: '企业应急平台' },
+        { name: '军队应急平台' },
+        { name: '移动应急平台' }
+      ];
       list.value = [
-          {
-            id: 1,
-            value: '灾害基本信息类',
-            isOpen: false,
-            children: [
-              { id: 11, value: '基本信息' },
-              { id: 12, value: '人员与损失信息' },
-              { id: 13, value: '救援与响应' },
-              { id: 14, value: '外部条件与环境' },
-              { id: 15, value: '影响范围' }
-            ],
-            fatherCount: 5
-          },
-          {
-            id: 2,
-            value: '气象与水文触发信息类',
-            isOpen: false,
-            children: [
-              { id: 21, value: '气象信息' },
-              { id: 22, value: '水文信息' }
-            ],
-            fatherCount: 2
-          },
-          {
-            id: 3,
-            value: '人员伤亡与转移',
-            isOpen: false,
-            children: [
-              { id: 31, value: '人员伤亡信息' },
-              { id: 32, value: '转移安置信息' }
-            ],
-            fatherCount: 2
-          },
-          {
-            id: 4,
-            value: '房屋与基础设施破坏类',
-            isOpen: false,
-            children: [
-              { id: 41, value: '房屋破坏信息' },
-              { id: 42, value: '基础设施破坏信息' }
-            ],
-            fatherCount: 2
-          },
-          {
-            id: 5,
-            value: '次生灾害类',
-            isOpen: false,
-            children: [
-              { id: 51, value: '次生灾害事件信息' }
-            ],
-            fatherCount: 1
-          },
-          {
-            id: 6,
-            value: '应急响应与救援行动类',
-            isOpen: false,
-            children: [
-              { id: 61, value: '响应与救援部门信息' }
-            ],
-            fatherCount: 1
-          },
-          {
-            id: 7,
-            value: '社会援助与捐赠类',
-            isOpen: false,
-            children: [
-              { id: 71, value: '企业援助信息' },
-              { id: 72, value: '慈善机构援助信息' }
-            ],
-            fatherCount: 2
-          },
-          {
-            id: 8,
-            value: '灾后恢复与评估类',
-            isOpen: false,
-            children: [
-              { id: 81, value: '恢复与评估信息' }
-            ],
-            fatherCount: 1
-          }
-        ]
+        {
+          id: 1,
+          value: '突发事件',
+          isOpen: false,
+          children: [
+            { id: 11, value: '自然灾害' },
+            { id: 12, value: '事故灾难' },
+            { id: 13, value: '公共卫生事件' },
+            { id: 14, value: '社会安全事件' }
+          ],
+          fatherCount: 4
+        },
+        {
+          id: 2,
+          value: '危险源和风险隐患区',
+          isOpen: false,
+          children: [
+            { id: 21, value: '自然灾害风险隐患区' },
+            { id: 22, value: '事故灾难风险隐患区' },
+            { id: 23, value: '公共卫生风险隐患区' },
+            { id: 24, value: '社会安全风险隐患区' }
+          ],
+          fatherCount: 4
+        },
+        {
+          id: 3,
+          value: '防护目标',
+          isOpen: false,
+          children: [
+            { id: 31, value: '重要部位' },
+            { id: 32, value: '关键基础设施' }
+          ],
+          fatherCount: 2
+        },
+        {
+          id: 4,
+          value: '应急保障资源',
+          isOpen: false,
+          children: [
+            { id: 41, value: '应急机构' },
+            { id: 42, value: '应急人力资源' },
+            { id: 43, value: '应急物资保障资源' },
+            { id: 44, value: '应急通信资源' },
+            { id: 45, value: '应急运输与物流资源' },
+            { id: 46, value: '医疗卫生资源' },
+            { id: 47, value: '应急避难场区' },
+            { id: 48, value: '应急财力资源' }
+          ],
+          fatherCount: 8
+        },
+        {
+          id: 5,
+          value: '应急知识',
+          isOpen: false,
+          children: [
+            { id: 51, value: '法律法规' },
+            { id: 52, value: '技术规范' }
+          ],
+          fatherCount: 2
+        },
+        {
+          id: 6,
+          value: '应急预案',
+          isOpen: false,
+          children: [
+            { id: 61, value: '国家级应急预案' },
+            { id: 62, value: '省级应急预案' },
+            { id: 63, value: '市级应急预案' },
+            { id: 64, value: '基层应急预案' },
+            { id: 65, value: '企业级应急预案' },
+            { id: 66, value: '军队应急预案' }
+          ],
+          fatherCount: 6
+        },
+        {
+          id: 7,
+          value: '应急平台',
+          isOpen: false,
+          children: [
+            { id: 71, value: '国务院应急平台' },
+            { id: 72, value: '地方应急平台' },
+            { id: 73, value: '部门应急平台' },
+            { id: 74, value: '基层应急平台' },
+            { id: 75, value: '企业应急平台' },
+            { id: 76, value: '军队应急平台' },
+            { id: 77, value: '移动应急平台' }
+          ],
+          fatherCount: 7
+        }
+      ];
+
     } else  {
       firstData.value = [
         { name: '地震震情信息' },
@@ -694,7 +731,7 @@ const getData = async (item) => {
 
     // 给节点分配图标样式
     chartStartData.value = chartData.value.map(item => {
-      console.log(lastDisasterData.value.disasterName)
+      console.log("图标匹配",lastDisasterData.value.disasterName)
       if (item.name === lastDisasterData.value.disasterName) {
         item.symbol = `image:///images/eqentity1.png`;
         item.itemStyle = {
@@ -753,14 +790,11 @@ const initChart = () => {
   if (echartsInstance.value !== null) {
     echartsInstance.value.dispose();
   }
-
   echartsOption.value.series[0].data = chartStartData.value;
   echartsOption.value.series[0].links = chartStartLinks.value;
-
   echartsInstance.value = echarts.init(chart.value);
   echartsInstance.value.setOption(echartsOption.value);
   echartsInstance.value.resize();
-
   echartsInstance.value.on('click', function (params) {
     if (params.componentType === 'series' && params.seriesType === 'graph') {
       if (params.dataType === 'node') {
@@ -929,88 +963,83 @@ const updateChartData = () => {
   });
 };
 
-// 搜索节点并聚焦
-const focusNode = (nodeName) => {
+// 模糊查找匹配的节点下标
+const findNodeIndexes = (keyword) => {
+  if (!keyword) return [];
+  const lowerKeyword = keyword.toLowerCase();
+  return echartsOption.value.series[0].data
+      .map((node, index) => ({
+        name: node.name,
+        index
+      }))
+      .filter(item => item.name.toLowerCase().includes(lowerKeyword))
+      .map(item => item.index);
+};
 
-  console.log(inputValue.value, "输入框的内容")
-  console.log(nodeName, "节点名称")
+// 模糊查找匹配的边
+const findLinkMatches = (keyword) => {
+  if (!keyword) return [];
+  const lowerKeyword = keyword.toLowerCase();
+  return echartsOption.value.series[0].links.filter(link => {
+    const sourceMatch = link.source?.toLowerCase().includes(lowerKeyword);
+    const targetMatch = link.target?.toLowerCase().includes(lowerKeyword);
+    const valueMatch = link.value?.toString().toLowerCase().includes(lowerKeyword);
+    const labelMatch = typeof link.label?.formatter === 'string' &&
+        link.label.formatter.toLowerCase().includes(lowerKeyword);
+    return sourceMatch || targetMatch || valueMatch || labelMatch;
+  });
+};
 
-  if (!nodeName?.trim()) {
+
+const focusNode = (keyword) => {
+  if (!keyword?.trim()) {
     inputValue.value = '';
     return;
   }
 
-  const indexes = findNodeIndexes(nodeName);
-  if (indexes.length === 0) {
-    ElMessage.warning(`节点 "${nodeName}" 不存在`);
+  const indexes = findNodeIndexes(keyword);
+  const matchedLinks = findLinkMatches(keyword);
+
+  if (indexes.length === 0 && matchedLinks.length === 0) {
+    ElMessage.warning(`未找到包含 "${keyword}" 的节点或关系`);
     inputValue.value = '';
     return;
   }
 
-  for (const index of indexes) {
+  // 恢复默认视图
+  echartsInstance.value.dispatchAction({ type: 'restore' });
+
+  // 如果有节点匹配
+  indexes.forEach(index => {
     const nodeData = echartsOption.value.series[0].data[index];
-
-    // 获取节点的屏幕坐标
-    const pixelCoords = echartsInstance.value.convertToPixel({seriesIndex: 0}, [nodeData.x, nodeData.y]);
-
-    // 获取图表容器的尺寸
-    const containerWidth = echartsInstance.value.getWidth();
-    const containerHeight = echartsInstance.value.getHeight();
-
-    // 计算需要移动的距离（将节点移动到屏幕中心）
-    const dx = containerWidth / 2 - pixelCoords[0];
-    const dy = containerHeight / 2 - pixelCoords[1];
-    // 重置视图位置和缩放
-    echartsInstance.value.dispatchAction({
-      type: 'restore'
-    });
-
-    // 高亮目标节点
-    echartsInstance.value.dispatchAction({
-      type: 'highlight',
-      name: echartsOption.value.series[0].data[index].name
-    });
-
-    // 聚焦目标节点及其关联节点
+    echartsInstance.value.dispatchAction({ type: 'highlight', name: nodeData.name });
     echartsInstance.value.dispatchAction({
       type: 'focusNodeAdjacency',
       seriesIndex: 0,
       dataIndex: index
     });
+  });
 
-    // 移动视图使节点居中
-    echartsInstance.value.dispatchAction({
-      type: 'graphRoam',
-      dx: dx,
-      dy: dy
+  // 如果有关系匹配，找到源和目标节点
+  matchedLinks.forEach(link => {
+    const sourceIndex = echartsOption.value.series[0].data.findIndex(n => n.name === link.source);
+    const targetIndex = echartsOption.value.series[0].data.findIndex(n => n.name === link.target);
+
+    [sourceIndex, targetIndex].forEach(idx => {
+      if (idx !== -1) {
+        echartsInstance.value.dispatchAction({ type: 'highlight', name: echartsOption.value.series[0].data[idx].name });
+        echartsInstance.value.dispatchAction({
+          type: 'focusNodeAdjacency',
+          seriesIndex: 0,
+          dataIndex: idx
+        });
+      }
     });
-
-    // 设置缩放和中心点
-    // echartsInstance.value.setOption({
-    //   series: [{
-    //     zoom: 2,  // 设置合适的缩放级别
-    //     center: [echartsOption.value.series[0].data[index].x, echartsOption.value.series[0].data[index].y]
-    //   }]
-    // });
-
-    // 显示节点的提示框
-    // echartsInstance.value.dispatchAction({
-    //   type: 'showTip',
-    //   seriesIndex: 0,
-    //   dataIndex: index
-    // });
-  }
+  });
 
   inputValue.value = '';
 };
 
-// 模糊查找节点索引
-const findNodeIndexes = (name) => {
-  const lowerName = name.toLowerCase();
-  return echartsOption.value.series[0].data
-      .map((node, idx) => node.name.toLowerCase().includes(lowerName) ? idx : -1)
-      .filter(idx => idx !== -1);
-};
 
 
 // 显示描述并聚焦节点
@@ -1043,8 +1072,7 @@ const handleClick = () => {
 };
 
 const handleChildClick = (child) => {
-  console.log(child,"我看看怎么个事")
-  const newChild = { name: child.value }; // 转换成 {name: "强震检测信息"}
+  const newChild = { name: child.value };
   handleNodeClick(newChild);
   focusNode(newChild.name);
 };
