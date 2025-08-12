@@ -2,6 +2,7 @@
   <div class="layerControl-panel">
     <div class="panel-title">控制显示</div>
     <div class="panel-content">
+      <label><input type="checkbox" v-model="showDisaster" @change="toggleDisaster"> 显示隐患点 </label>
       <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
       <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示风险源 </label>
       <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
@@ -30,7 +31,7 @@ const props = defineProps({
   setupEntityClickHandler: Function
 });
 
-const showDisaster = ref(false);
+const showDisaster = ref(true);
 const showHospital = ref(false); // 控制医院显示/隐藏
 const showDangerSource = ref(false); // 控制风险源显示/隐藏
 const showShelter = ref(false); // 控制避难所显示/隐藏
@@ -161,19 +162,19 @@ function buildGetFeatureInfoUrl(lon, lat, layerName) {
 }
 
 
-// function toggleDisaster(){
-//   if(basicLayers.disasterEntities.length === 0 && showDisaster.value){
-//     basicLayers.loadLandSlide();
-//     basicLayers.Addmudslide();
-//     basicLayers.AddDangerAreaDataSource();
-//     basicLayers.loadFlashFlood();
-//     basicLayers.loadWater();
-//   }else{
-//     basicLayers.disasterEntities.forEach(entity => {
-//       entity.show = showDisaster.value;
-//     });
-//   }
-// }
+function toggleDisaster(){
+  if(basicLayers.disasterEntities.length === 0 && showDisaster.value){
+    basicLayers.loadLandSlide();
+    basicLayers.Addmudslide();
+    basicLayers.AddDangerAreaDataSource();
+    basicLayers.loadFlashFlood();
+    basicLayers.loadWater();
+  }else{
+    basicLayers.disasterEntities.forEach(entity => {
+      entity.show = showDisaster.value;
+    });
+  }
+}
 
 function toggleHospitalPoints() {
   //首次加载
