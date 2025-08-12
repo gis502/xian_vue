@@ -17,7 +17,6 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 import lineData from "@/assets/西安断层数据.json";
 
-
 import landslideIcon from "@/assets/images/landslide.png";
 import riskArea from "@/assets/images/riskArea.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
@@ -348,7 +347,6 @@ let basicLayers = {
 
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
-            // console.log(hiddenDangerPoints,"hiddenDangerPoints")
             let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
             let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
 
@@ -367,8 +365,8 @@ let basicLayers = {
                     billboard: {
                         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
                         image: imageEntity,
-                        width: 50, // 图片宽度,单位px
-                        height: 50, // 图片高度，单位px
+                        width: 40, // 图片宽度,单位px
+                        height: 40, // 图片高度，单位px
                         eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
                         color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
                         scale: 0.8, // 缩放比例

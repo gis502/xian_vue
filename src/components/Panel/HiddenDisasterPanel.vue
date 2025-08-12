@@ -21,10 +21,7 @@
       </div>
 
       <!-- 滑坡信息 -->
-      <Landslide
-          v-if="!displayDisasterCausingFactors && showDisasterInformation"
-          :info="disasterInformation"
-      ></Landslide>
+      <Landslide v-if="!displayDisasterCausingFactors && showDisasterInformation" :info="disasterInformation"></Landslide>
 
       <!-- 泥石流 -->
       <DebrisFlow
@@ -37,6 +34,16 @@
           v-if="!displayDisasterCausingFactors && showRiskPointsInformation"
           :info="riskPointsInformation"
       ></RiskPoints>
+
+      <!--内涝-->
+      <WaterDisaster v-if="!displayDisasterCausingFactors && showWaterDisasterInformation"
+      :info="waterDisasterInformation">
+      </WaterDisaster>
+
+      <!--山洪-->
+      <FloodDisaster v-if="displayDisasterCausingFactors && showFloodDisasterInformation"
+      :info="floodDisasterInformation">
+      </FloodDisaster>
 
       <!-- 致灾因子信息 -->
       <Hazards
@@ -55,6 +62,8 @@ import DebrisFlow from "@/components/Earthquake/DebrisFlow.vue";
 import Landslide from "@/components/Earthquake/Landslide.vue";
 import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
+import WaterDisaster from "@/components/Earthquake/WaterDisaster.vue"
+import FloodDisaster from "@/components/Earthquake/FloodDisaster.vue"
 import {staticHazardsDatas} from "@/api/earthquake/datas";
 import {getAffectPoint, getHazardOptions, getPolieJiao} from "@/api/earthquake/hazards.js";
 import * as Cesium from 'cesium';
@@ -71,6 +80,10 @@ const props = defineProps({
   debrisFlowInformation: Object,
   showRiskPointsInformation: Boolean,
   riskPointsInformation: Object,
+  showWaterDisasterInformation: Boolean,
+  waterDisasterInformation: Object,
+  showFloodDisasterInformation: Boolean,
+  floodDisasterInformation: Object,
   trigger: String,
   rainfall: String,
   dataTypeHiddenDisaster: Object,
@@ -78,7 +91,7 @@ const props = defineProps({
 });
 
 watch(() => props, (newProps) => {
-  console.log('Props updated:', newProps);
+  //console.log('Props updated:', newProps);
 }, {deep: true});
 onMounted(() => {
   console.log('Initial props:', props);
@@ -158,6 +171,18 @@ const hazards = computed(() => {
     return {
       ...props.riskPointsInformation,
       title: '风险区域' // 替换成你需要的标题
+    };
+  } else if (props.showWaterDisasterInformation) {
+    handleRainfallAndDuration(props.waterDisasterInformation, props.trigger);
+    return {
+      ...props.waterDisasterInformation,
+      title: '内涝隐患点'
+    };
+  } else if (props.showFloodDisasterInformation) {
+    handleRainfallAndDuration(props.floodDisasterInformation, props.trigger)
+    return {
+      ...props.floodDisasterInformation,
+      title: '山洪隐患点'
     };
   }
 });
