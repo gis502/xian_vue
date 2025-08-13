@@ -22,14 +22,13 @@
         <div class="table-btn" @click="downloadRainReport">
           报告下载
         </div>
-        <div><button class="table-btn" @click="toggleFactorPanel">致灾因子信息</button></div>
+        <div>
+          <button class="table-btn" @click="toggleFactorPanel">致灾因子信息</button>
+        </div>
       </div>
     </div>
     <!-- 控制显示 -->
-    <rain-layer-control
-        :viewer="viewer"
-        :setupEntityClickHandler="setupEntityClickHandler"
-    />
+    <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
     <!-- 加载状态提示 -->
     <div v-if="isLoading" class="loading-indicator">
       {{ loadingText }}
@@ -38,6 +37,12 @@
     <Table :show="showRiskTable" :dataTypes="dataTypeHiddenDisaster"></Table>
     <!--表格-->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
+    <!--各区县受隐患点情况图表-->
+    <AffectedChart
+        v-if="showLegend"
+        :dimensions="dimensions"
+        :source="districtDisasterData">
+    </AffectedChart>
     <!--触发下雨-->
     <AddRain
         v-if="showInfoPanel"
@@ -47,15 +52,13 @@
         @update:loading-model="loadingModel = $event"
         @update:handleWeather="handleWeather"
         @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
-        @update:update-rain-info="updateRainInfo"
-    />
+        @update:update-rain-info="updateRainInfo"/>
     <!-- 组件引入，点击后显示 -->
     <DisasterFactorForm
         v-if="showFactorPanel"
         v-model="disasterFactors"
         @submit="submitFactors"
-        @cancel="cancelFactors"
-    />
+        @cancel="cancelFactors"/>
     <!-- 自定义弹出面板 -->
     <div
         v-if="selectedEntityData"
@@ -283,57 +286,20 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import riverData from '@/assets/static/json/river.json';
 import lakeData from '@/assets/static/json/lake.json';
 // 引入滑坡，泥石流灾害点数据
-import landslide_surface01 from '@/assets/images/landslide_surface01.jpg'
-import landslide from '@/assets/landslide/landslide.json'
-import dangerSourceIcon from "@/assets/images/gasstation.png"
-import hospitalIcon from "@/assets/images/hospital.png"
-import fireIcon from "@/assets/images/firefighter.png"
-import storePointsIcon from "@/assets/images/storePoints.jpg"
-import shelterIcon from "@/assets/images/emergencyShelter.png"
 import {initCesium} from '@/cesium/initLayer.js'
-import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
-// 图标
-import riskArea from '@/assets/images/riskArea.png'
-import debrisFlowIcon from '@/assets/images/DebrisFlow.png'
-import landslideIcon from '@/assets/images/landslide.png'
-import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 // api
-import {
-  getGeologicalDisasterHideByLandSlideList,
-  getGeologicalDisasterHideByFlowList
-} from '@/api/system/disasterHide.js'
 import {saveCanvas, generateRainReport} from '@/api/system/reportDownLoad.js'
-import {
-  getGeologicalDisasterRiskList
-} from '@/api/system/disasterRisk.js'
-import {
-  getFactorValueList
-} from '@/api/system/factorValues.js'
-import {
-  rainSlideTrigger,
-  rainSlideFactorUpdata, saveRain
-} from '@/api/system/rainModel.js'
 import Chart from "../../components/Earthquake/Chart.vue";
-import {reactive} from "vue";
+import AffectedChart from "@/components/Earthquake/AffectedChart.vue";
 //封装函数
-import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
-
-
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import Table from "@/components/Earthquake/Table.vue";
 //获取其他点数据
-import {
-  getDangerous,
-  getFire,
-  getHospital,
-  getShelter,
-  getStore
-} from "@/api/system/aroundanalysis.js";
 import DisasterFactorForm from "@/components/Earthquake/DisasterFactorForm.vue";
 import AddRain from "@/components/Panel/addRain.vue";
 import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
@@ -344,6 +310,7 @@ export default {
     RainLayerControl,
     AddRain,
     Chart,
+    AffectedChart,
     Legend,
     HiddenDisasterPanel,
     rainCenterPanel,
@@ -353,14 +320,13 @@ export default {
   data() {
     return {
       //暴雨触发参数
-      model:[],
+      model: [],
       showFactorPanel: false,
       disasterFactors: {
         terrain: '',
         soilMoisture: null,
         vegetation: null
       },
-
       geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
       peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
       cropsLayerName: 'test:xian_crops',
@@ -533,10 +499,8 @@ export default {
       waterDisasterInformation: null,
       floodDisasterInformation: null,
       showBaseInfo: false,
-
       matchedHiddenHighlightEntities: [],
       loadingModel: false,
-
       dataTypeHiddenDisaster: {
         filterCriteria: [
           {
@@ -629,9 +593,26 @@ export default {
         },
         seriesDatas: [0, 0, 0],
       },
-
       //预警点表格显示隐藏
       showRiskTable: true,
+      showLegend: false,
+      dimensions: ['grade', '高', '中', '低'],
+      districtDisasterData: [
+        {
+          district: '',
+          disasters: [
+            {type: '滑坡', '高': 0, '中': 0, '低': 0},
+            {type: '泥石流', '高': 0, '中': 0, '低': 0},
+            {type: '山洪', '高': 0, '中': 0, '低': 0},
+            {type: '内涝', '高': 0, '中': 0, '低': 0}
+          ]
+        },
+      ],
+      // 可以在这里添加其他ECharts配置
+      chartOptions: {
+        // 例如：
+        title: ''
+      }
     }
   },
   computed: {
@@ -900,6 +881,9 @@ export default {
       this.dataTypeHiddenDisaster.type3.data = [];
       this.dataTypeHiddenDisaster.type4.data = [];
       this.dataTypeHiddenDisaster.type5.data = [];
+      // 初始化一个临时对象用于统计每个区县的灾害数据
+      const districtStats = {};
+
       // 风险区数据，滑坡数据，泥石流数据
       probabilityPoints.forEach((item) => {
         console.log(item, "probabilityPoints.forEach")
@@ -924,7 +908,6 @@ export default {
               field6: item.geologicalDisasterHideDTO.lat,
             });
             break;
-
           case "内涝":
             this.dataTypeHiddenDisaster.type3.data.push({
               field1: item.geologicalDisasterHideDTO.disasterName,
@@ -955,7 +938,50 @@ export default {
               field6: item.geologicalDisasterHideDTO.lat,
             });
         }
+
+        // 获取区县名称
+        const district = item.geologicalDisasterHideDTO.county;
+        // 获取灾害类型
+        const disasterType = item.disasterType;
+        // 获取风险等级（默认取第一个等级）
+        const level = item.level && item.level.length > 0 ? item.level[0] : '中'; // 默认中级
+
+        // 如果该区县还没有统计数据，初始化
+        if (!districtStats[district]) {
+          districtStats[district] = {
+            district: district,
+            disasters: [
+              { type: '滑坡', '高': 0, '中': 0, '低': 0 },
+              { type: '泥石流', '高': 0, '中': 0, '低': 0 },
+              { type: '山洪', '高': 0, '中': 0, '低': 0 },
+              { type: '内涝', '高': 0, '中': 0, '低': 0 }
+            ]
+          };
+        }
+        // 找到对应的灾害类型对象并增加相应级别的计数
+        const disasterItem = districtStats[district].disasters.find(d => d.type === disasterType);
+        if (disasterItem) {
+          // 确保等级是合法的（高、中、低）
+          if (['高', '中', '低'].includes(level)) {
+            disasterItem[level]++;
+          } else {
+            // 未知等级默认计入中级
+            disasterItem['中']++;
+          }
+        } else if (disasterType) {
+          // 处理可能存在的其他灾害类型
+          districtStats[district].disasters.push({
+            type: disasterType,
+            '高': level === '高' ? 1 : 0,
+            '中': level === '中' ? 1 : 0,
+            '低': level === '低' ? 1 : 0
+          });
+        }
       });
+      // 统计结果转换为数组格式
+      this.districtDisasterData = Object.values(districtStats);
+      this.showLegend = !this.showLegend;
+
     },
     updateRainInfo(data) {
       this.rainInfo = data
@@ -1049,7 +1075,7 @@ export default {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    left : 25%;
+    left : 75%;
     background: rgba(42, 42, 42, 0.8);
     color: white;
     padding: 10px;
@@ -1234,7 +1260,6 @@ export default {
     //   this.timers.push(id);
     //   return id;
     // },
-
     // 加载
     startLoading() {
       this.loadingModel = true;
@@ -1243,7 +1268,6 @@ export default {
     stopLoading() {
       this.loadingModel = false;
     },
-
     //-------信息面板弹框-----
     entitiesClickPonpHandler() {
 
@@ -1505,7 +1529,7 @@ export default {
     },
     submitFactors(factors) {
       console.log('提交致灾因子信息:', factors);
-      this.model= factors;
+      this.model = factors;
       this.showFactorPanel = false;
     },
     cancelFactors() {
@@ -1619,7 +1643,6 @@ export default {
     }
   }
 }
-
 
 </script>
 
