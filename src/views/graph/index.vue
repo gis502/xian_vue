@@ -267,6 +267,10 @@ const fetchNewsData = async (item = lastItem) => {
     ElMessage.error('请求异常')
   }
 }
+// 新增：存储完整原始数据（不做过滤，用于查询）
+const fullData = ref([]);
+const fullLinks = ref([]);
+
 
 // 分页变化时调用
 const handlePageChange = (newPage) => {
@@ -784,12 +788,82 @@ const getData = async (item) => {
   }
 };
 
+// 计算节点层级并返回前三级节点和关联关系
+const filterTopThreeLevels = () => {
+  // 假设lastDisasterData是根节点(第一级)
+  const rootNode = lastDisasterData.value.disasterName;
+  if (!rootNode) return { data: [], links: [] };
+
+  // 层级映射表，根节点为第1级
+  const nodeLevels = { [rootNode]: 1 };
+  // 待处理的节点队列
+  const queue = [rootNode];
+  // 收集前三级节点
+  const topThreeNodes = new Set([rootNode]);
+  // 收集前三级节点间的连接
+  const topThreeLinks = [];
+
+  // 遍历计算节点层级（基于完整数据）
+  while (queue.length > 0) {
+    const currentNode = queue.shift();
+    const currentLevel = nodeLevels[currentNode];
+
+    // 如果当前节点已是第三级，则不再处理其子节点
+    if (currentLevel >= 3) continue;
+
+    // 找到当前节点的直接子节点连接（使用完整links数据）
+    const childLinks = fullLinks.value.filter(link => link.source === currentNode);
+
+    childLinks.forEach(link => {
+      const childNode = link.target;
+
+      // 记录子节点层级
+      if (!nodeLevels[childNode]) {
+        nodeLevels[childNode] = currentLevel + 1;
+        queue.push(childNode);
+
+        // 如果是前三级节点，添加到展示集合中
+        if (nodeLevels[childNode] <= 3) {
+          topThreeNodes.add(childNode);
+          topThreeLinks.push(link);
+        }
+      } else if (nodeLevels[childNode] <= 3) {
+        // 已存在但仍在前三级的节点，添加连接
+        topThreeLinks.push(link);
+      }
+    });
+  }
+
+  // 过滤出前三级的节点数据（使用完整data数据）
+  const filteredData = fullData.value.filter(node =>
+      topThreeNodes.has(node.name)
+  );
+
+  return {
+    data: filteredData,
+    links: topThreeLinks
+  };
+};
+
+// 初始化图表
 // 初始化图表
 const initChart = () => {
   if (!chart.value) return;
   if (echartsInstance.value !== null) {
     echartsInstance.value.dispose();
   }
+
+  // 保存完整数据副本（用于查询）
+  fullData.value = [...chartStartData.value];
+  fullLinks.value = [...chartStartLinks.value];
+
+  // 获取前三级数据（用于展示）
+  const { data: topThreeData, links: topThreeLinks } = filterTopThreeLevels();
+
+  // 只展示前三级
+  chartStartData.value = [...topThreeData];
+  chartStartLinks.value = [...topThreeLinks];
+
   echartsOption.value.series[0].data = chartStartData.value;
   echartsOption.value.series[0].links = chartStartLinks.value;
   echartsInstance.value = echarts.init(chart.value);
@@ -805,6 +879,7 @@ const initChart = () => {
 
   window.addEventListener('resize', handleResize);
 };
+
 
 
 // 点击节点触发函数,用于记录已展开的节点名
@@ -963,81 +1038,148 @@ const updateChartData = () => {
   });
 };
 
-// 模糊查找匹配的节点下标
+// 优化：模糊查找匹配的节点下标（基于完整数据）
 const findNodeIndexes = (keyword) => {
   if (!keyword) return [];
   const lowerKeyword = keyword.toLowerCase();
-  return echartsOption.value.series[0].data
+  return fullData.value  // 这里改为使用完整数据
       .map((node, index) => ({
         name: node.name,
         index
       }))
       .filter(item => item.name.toLowerCase().includes(lowerKeyword))
-      .map(item => item.index);
+      .map(item => ({
+        ...item,
+        // 标记该节点是否当前可见
+        isVisible: chartStartData.value.some(n => n.name === item.name)
+      }));
 };
 
-// 模糊查找匹配的边
+// 优化：模糊查找匹配的边（基于完整数据）
 const findLinkMatches = (keyword) => {
   if (!keyword) return [];
   const lowerKeyword = keyword.toLowerCase();
-  return echartsOption.value.series[0].links.filter(link => {
-    const sourceMatch = link.source?.toLowerCase().includes(lowerKeyword);
-    const targetMatch = link.target?.toLowerCase().includes(lowerKeyword);
-    const valueMatch = link.value?.toString().toLowerCase().includes(lowerKeyword);
-    const labelMatch = typeof link.label?.formatter === 'string' &&
-        link.label.formatter.toLowerCase().includes(lowerKeyword);
-    return sourceMatch || targetMatch || valueMatch || labelMatch;
-  });
+  return fullLinks.value  // 这里改为使用完整数据
+      .filter(link => {
+        const sourceMatch = link.source?.toLowerCase().includes(lowerKeyword);
+        const targetMatch = link.target?.toLowerCase().includes(lowerKeyword);
+        const valueMatch = link.value?.toString().toLowerCase().includes(lowerKeyword);
+        const labelMatch = typeof link.label?.formatter === 'string' &&
+            link.label.formatter.toLowerCase().includes(lowerKeyword);
+        return sourceMatch || targetMatch || valueMatch || labelMatch;
+      })
+      .map(link => ({
+        ...link,
+        // 标记该边是否当前可见
+        isVisible: chartStartLinks.value.some(l =>
+            l.source === link.source && l.target === link.target
+        )
+      }));
 };
 
-
+// 优化：聚焦节点（如果节点不可见则自动展开路径）
 const focusNode = (keyword) => {
   if (!keyword?.trim()) {
     inputValue.value = '';
     return;
   }
 
-  const indexes = findNodeIndexes(keyword);
+  const matchedNodes = findNodeIndexes(keyword);
   const matchedLinks = findLinkMatches(keyword);
 
-  if (indexes.length === 0 && matchedLinks.length === 0) {
+  if (matchedNodes.length === 0 && matchedLinks.length === 0) {
     ElMessage.warning(`未找到包含 "${keyword}" 的节点或关系`);
     inputValue.value = '';
     return;
   }
 
+  // 检查是否有匹配但不可见的节点，需要自动展开
+  const invisibleNodes = matchedNodes.filter(n => !n.isVisible);
+  if (invisibleNodes.length > 0) {
+    ElMessage.info(`正在展开包含"${keyword}"的节点...`);
+    // 自动展开这些节点的路径
+    invisibleNodes.forEach(node => {
+      expandNodePath(node.name);
+    });
+  }
+
   // 恢复默认视图
   echartsInstance.value.dispatchAction({ type: 'restore' });
 
-  // 如果有节点匹配
-  indexes.forEach(index => {
-    const nodeData = echartsOption.value.series[0].data[index];
-    echartsInstance.value.dispatchAction({ type: 'highlight', name: nodeData.name });
-    echartsInstance.value.dispatchAction({
-      type: 'focusNodeAdjacency',
-      seriesIndex: 0,
-      dataIndex: index
-    });
+  // 高亮匹配节点
+  matchedNodes.forEach(item => {
+    // 从当前展示数据中找到索引
+    const displayIndex = chartStartData.value.findIndex(n => n.name === item.name);
+    if (displayIndex !== -1) {
+      echartsInstance.value.dispatchAction({ type: 'highlight', name: item.name });
+      echartsInstance.value.dispatchAction({
+        type: 'focusNodeAdjacency',
+        seriesIndex: 0,
+        dataIndex: displayIndex
+      });
+    }
   });
 
-  // 如果有关系匹配，找到源和目标节点
+  // 高亮匹配边
   matchedLinks.forEach(link => {
-    const sourceIndex = echartsOption.value.series[0].data.findIndex(n => n.name === link.source);
-    const targetIndex = echartsOption.value.series[0].data.findIndex(n => n.name === link.target);
+    if (link.isVisible) {
+      const sourceIndex = chartStartData.value.findIndex(n => n.name === link.source);
+      const targetIndex = chartStartData.value.findIndex(n => n.name === link.target);
 
-    [sourceIndex, targetIndex].forEach(idx => {
-      if (idx !== -1) {
-        echartsInstance.value.dispatchAction({ type: 'highlight', name: echartsOption.value.series[0].data[idx].name });
-        echartsInstance.value.dispatchAction({
-          type: 'focusNodeAdjacency',
-          seriesIndex: 0,
-          dataIndex: idx
-        });
-      }
-    });
+      [sourceIndex, targetIndex].forEach(idx => {
+        if (idx !== -1) {
+          echartsInstance.value.dispatchAction({ type: 'highlight', name: chartStartData.value[idx].name });
+        }
+      });
+    }
   });
 
-  inputValue.value = '';
+  // inputValue.value = '';
+};
+
+// 新增：自动展开节点路径（从根节点到目标节点）
+const expandNodePath = (targetNode) => {
+  // 找到从根节点到目标节点的路径
+  const path = findPathToNode(lastDisasterData.value.disasterName, targetNode);
+
+  // 依次展开路径上的节点
+  path.forEach(nodeName => {
+    if (!expandedNodes.has(nodeName)) {
+      // 模拟点击展开节点
+      const nodeData = { name: nodeName };
+      handleNodeClick(nodeData);
+    }
+  });
+};
+
+// 新增：查找从源节点到目标节点的路径
+const findPathToNode = (sourceNode, targetNode) => {
+  const visited = new Set();
+  const path = [];
+
+  const dfs = (currentNode) => {
+    if (visited.has(currentNode)) return false;
+    visited.add(currentNode);
+    path.push(currentNode);
+
+    if (currentNode === targetNode) return true;
+
+    // 查找当前节点的所有子节点
+    const childNodes = fullLinks.value
+        .filter(link => link.source === currentNode)
+        .map(link => link.target);
+
+    for (const child of childNodes) {
+      if (dfs(child)) return true;
+    }
+
+    // 没有找到路径，回溯
+    path.pop();
+    return false;
+  };
+
+  dfs(sourceNode);
+  return path;
 };
 
 
@@ -1061,8 +1203,6 @@ const showDescription = (item, value) => {
 
   focusNode(value);
 };
-
-
 
 
 // 向父组件传值不展示大知识图谱
