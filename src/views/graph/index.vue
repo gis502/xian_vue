@@ -306,7 +306,9 @@ const echartsOption = ref({
     force: {
       repulsion: 1000,
       edgeLength: [100, 200],
-      layoutAnimation: true,
+      layoutAnimation: true, // 关闭布局动画（关键：避免新增节点时的位置突变）
+      gravity: 0.1, // 降低引力，减少整体向中心聚集的趋势
+      friction: 0.9 // 增加摩擦系数，让布局更快稳定
     },
     symbolSize: 70,
     nodeScaleRatio: 1,
