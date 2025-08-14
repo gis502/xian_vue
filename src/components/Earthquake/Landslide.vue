@@ -1,7 +1,7 @@
 <!-- 滑坡信息组件 -->
 <template>
   <span class="text">危险程度：{{ dangerLevel }}</span>
-  <span class="text">产生{{ disasterType }}的概率：{{ probability }}%</span>
+  <span class="text" style="margin-left: 100px">发生概率：{{ probability }}%</span>
   <table class="disaster-info-table">
     <tbody>
       <tr>
@@ -59,11 +59,12 @@ onMounted(() => {
 
 <style scoped>
 .text {
-  font-size: 20px;
+  font-size: 16px;
   color: red;
   font-weight: bold;
+  margin-top: 10px;
   margin-bottom: 10px;
-  display: block;
+  display: inline-block;
   margin-left: 5px;
 }
 </style>

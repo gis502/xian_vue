@@ -40,16 +40,16 @@ import {
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 let basicLayers = {
-    geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
-    peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
-    cropsLayerName: 'test:xian_crops',
-    waterPipeLayerName: 'test:xian_water_pipe',
-    roadLayerName: 'test:xian_road',
-    bridgeLayerName: 'test:xian_bridge_points',
-    highwayLayerName: 'test:xian_highway',
-    nationalRoadLayerName: 'test:xian_national_road',
-    reservoirLayerName: 'test:xian_reservoir_list',
-    subwayLayerName: 'test:xian_subway',
+    geoUrl: '/geoserver/xian/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
+    peopleLayerName: 'xian:xian_people', // 格式：工作空间名:图层名
+    cropsLayerName: 'xian:xian_crops',
+    waterPipeLayerName: 'xian:xian_water_pipe',
+    roadLayerName: 'xian:xian_road',
+    bridgeLayerName: 'xian:xian_bridge_points',
+    highwayLayerName: 'xian:xian_highway',
+    nationalRoadLayerName: 'xian:xian_national_road',
+    reservoirLayerName: 'xian:xian_reservoir_list',
+    subwayLayerName: 'xian:xian_subway',
     disasterEntities: [],//灾害点实体
     hospitalEntities: [],//医院实体
     dangerEntities: [],//危险源
@@ -85,8 +85,8 @@ let basicLayers = {
                     eyeOffset: new Cesium.Cartesian3(0, 0, 0),
                     scale: 0.8,
                     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                    depthTest: false,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                    depthxian: false,
+                    disableDepthxianDistance: Number.POSITIVE_INFINITY,
                     color: Cesium.Color.WHITE.withAlpha(1),//颜色
                     clampToGround: true,
                 },
@@ -100,7 +100,7 @@ let basicLayers = {
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                     outlineWidth: 2,
                     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                    disableDepthxianDistance: Number.POSITIVE_INFINITY,
                     verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                     pixelOffset: new Cesium.Cartesian2(0, -16),
                 },
@@ -367,8 +367,8 @@ let basicLayers = {
                     scale: 0.8, // 缩放比例
                     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
                     scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-                    depthTest: false, // 禁止深度测试
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                    depthxian: false, // 禁止深度测试
+                    disableDepthxianDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
                     show: true,
                 },
                 properties: {
@@ -402,8 +402,8 @@ let basicLayers = {
                         scale: 0.8, // 缩放比例
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
                         scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-                        depthTest: false, // 禁止深度测试
-                        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                        depthxian: false, // 禁止深度测试
+                        disableDepthxianDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
                         show: true
                     },
                     originalColor: Cesium.Color.RED,
