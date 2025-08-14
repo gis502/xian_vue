@@ -36,61 +36,63 @@ export class PulseTool {
       "内涝": "water_logging",
       "堰塞湖": "barrier_lake"
     };
-
-    points.forEach((pt) => {
+    points.forEach(pt => {
+      // console.log(5555555,pt)
       // 跳过无效数据（检查必要字段是否存在）
-      if (!pt?.disasterType || !Array.isArray(pt.disaster) ||
-          !Array.isArray(pt.level) || !Array.isArray(pt.probability)) {
-        return;
-      }
+      // if (!pt?.disasterType || !Array.isArray(pt.disaster) ||
+      //     !Array.isArray(pt.level) || !Array.isArray(pt.probability)) {
+      //   return;
+      // }
 
       // 获取当前disasterType对应的disaster数组元素
-      const disasterKey = disasterTypeMap[pt.disasterType];
-      if (!disasterKey) {
-        console.warn(`未找到与disasterType "${pt.disasterType}" 匹配的映射`);
-        return;
-      }
-
-      // 找到对应的索引（disaster、level、probability数组顺序一一对应）
-      const index = pt.disaster.indexOf(disasterKey);
-      if (index === -1 || index >= pt.level.length || index >= pt.probability.length) {
-        console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
-        return;
-      }
+      // const disasterKey = disasterTypeMap[pt.disasterType];
+      // if (!disasterKey) {
+      //   console.warn(`未找到与disasterType "${pt.disasterType}" 匹配的映射`);
+      //   return;
+      // }
+      //
+      // // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+      // const index = pt.disaster.indexOf(disasterKey);
+      // if (index === -1 || index >= pt.level.length || index >= pt.probability.length) {
+      //   console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+      //   return;
+      // }
 
       // 获取对应的等级和概率
-      const level = pt.level[index];
-      const probability = pt.probability[index];
-      // 只处理等级为"高"或"中"的情况
-      if (level !== '高' && level !== '中') return;
-
-      // 生成唯一key（结合entityId和灾害类型确保唯一性）
-      const key = `${pt.disasterType}_${pt.entityId}_${disasterKey}`;
+      // const level = pt.level[index];
+      // const probability = pt.probability[index];
+      // // 只处理等级为"高"或"中"的情况
+      // if (level !== '高' && level !== '中') return;
+      //
+      // // 生成唯一key（结合entityId和灾害类型确保唯一性）
+      // const key = `${pt.disasterType}_${pt.entityId}_${disasterKey}`;
 
       // 如果已有脉冲 -> 先删除
-      if (this._entityPulseMap[key]) {
-        this.deletePulseEntity(key);
-      }
+      // if (this._entityPulseMap[key]) {
+      //   this.deletePulseEntity(key);
+      // }
 
       // 生成唯一 pulseId，可包含概率信息
-      const pulseId = `PULSE_${key}_${Date.now()}_prob${probability}`;
+      // const pulseId = `PULSE_${key}_${Date.now()}_prob${probability}`;
+
 
       // 创建脉冲圆圈，根据等级设置颜色
       this.createOptimizedPulseCircle(
-          pulseId,
-          pt.lon,  // 假设经纬度字段为lon和lat
-          pt.lat,
+          // pulseId,
+          pt.geologicalDisasterHideDTO.lon,  // 假设经纬度字段为lon和lat
+          pt.geologicalDisasterHideDTO.lat,
           this._maxRadius,
           this._duration,
-          level === '高' ? Cesium.Color.RED : Cesium.Color.YELLOW
+          Cesium.Color.RED
+          // level === '高' ? Cesium.Color.RED : Cesium.Color.YELLOW
       );
 
       // 记录映射关系，可同时存储概率信息
-      this._entityPulseMap[key] = {
-        pulseId,
-        probability,
-        level
-      };
+      // this._entityPulseMap[key] = {
+      //   pulseId,
+      //   probability,
+      //   level
+      // };
     });
   }
   /**
@@ -103,9 +105,50 @@ export class PulseTool {
    * @param {Object} color - 颜色
    * @returns
    */
-  createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
-    console.log("createOptimizedPulseCirclecreateOptimizedPulseCircle")
+  // createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
+  //   console.log("createOptimizedPulseCirclecreateOptimizedPulseCircle")
+  //   const startTime = Cesium.JulianDate.now();
+  //
+  //   const entity = window.viewer.entities.add({
+  //     // id: pulseId,
+  //     position: Cesium.Cartesian3.fromDegrees(lon, lat),
+  //     billboard: {
+  //       image: this._circle,
+  //       width: new Cesium.CallbackProperty((time) => {
+  //         const elapsed =
+  //           Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+  //         const progress = elapsed / duration;
+  //         return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
+  //       }, false),
+  //       height: new Cesium.CallbackProperty((time) => {
+  //         const elapsed =
+  //           Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+  //         const progress = elapsed / duration;
+  //         return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
+  //       }, false),
+  //       color: new Cesium.CallbackProperty((time) => {
+  //         const elapsed =
+  //           Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+  //         const progress = elapsed / duration;
+  //         const alpha = 0.7 * (1 - progress);
+  //         return color.withAlpha(alpha);
+  //       }, false),
+  //       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+  //       verticalOrigin: Cesium.VerticalOrigin.CENTER,
+  //       horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+  //     },
+  //   });
+  //
+  //   return entity;
+  // }
+
+  createOptimizedPulseCircle(lon, lat, maxRadius, duration, color) {
+    console.log("createOptimizedPulseCircle");
     const startTime = Cesium.JulianDate.now();
+
+    // 确保color参数是有效的Cesium.Color对象，如果不是则使用默认颜色
+    const defaultColor = Cesium.Color.RED;
+    const pulseColor = color instanceof Cesium.Color ? color : defaultColor;
 
     const entity = window.viewer.entities.add({
       name: '隐患点呼吸圈',
@@ -118,23 +161,21 @@ export class PulseTool {
       billboard: {
         image: this._circle,
         width: new Cesium.CallbackProperty((time) => {
-          const elapsed =
-            Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const elapsed = Cesium.JulianDate.secondsDifference(time, startTime) % duration;
           const progress = elapsed / duration;
           return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
         }, false),
         height: new Cesium.CallbackProperty((time) => {
-          const elapsed =
-            Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const elapsed = Cesium.JulianDate.secondsDifference(time, startTime) % duration;
           const progress = elapsed / duration;
           return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
         }, false),
         color: new Cesium.CallbackProperty((time) => {
-          const elapsed =
-            Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const elapsed = Cesium.JulianDate.secondsDifference(time, startTime) % duration;
           const progress = elapsed / duration;
           const alpha = 0.7 * (1 - progress);
-          return color.withAlpha(alpha);
+          // 使用经过验证的pulseColor
+          return pulseColor.withAlpha(alpha);
         }, false),
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
@@ -144,6 +185,7 @@ export class PulseTool {
 
     return entity;
   }
+
 
   /**
    * 生成图形贴图函数
