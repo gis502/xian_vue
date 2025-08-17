@@ -22,7 +22,6 @@ import YanLiang from "@/assets/static/area/YanLiang.json";
 import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import {PulseTool} from "@/cesium/pulse.js";
-import {rainSlideTrigger} from "@/api/system/rainModel.js";
 
 let layers = {
     //画烈度圈

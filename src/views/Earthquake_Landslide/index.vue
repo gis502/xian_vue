@@ -34,7 +34,6 @@
         :trigger="'地震'"
         :rainfall="'0'"
     />
-
     <!-- 地震模拟 -->
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation"
@@ -44,7 +43,6 @@
         >清除地震模拟
       </el-button>
     </div>
-
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
       v-if="showEarthquakeSimulation"
