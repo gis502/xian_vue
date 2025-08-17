@@ -632,7 +632,7 @@ export default {
     basicLayers.loadLandSlide();
     basicLayers.Addmudslide();
     basicLayers.AddDangerAreaDataSource();
-    basicLayers.loadFlashFlood();
+    // basicLayers.loadFlashFlood();
     basicLayers.loadWater();
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据

@@ -600,6 +600,7 @@ let layers = {
     },
     addBlackBreathCircle(realDisasterPoints) {
         realDisasterPoints.forEach(item => {
+            // console.log(item,"realDisasterPoints")
             let lon = parsePointString(item.geom).longitude
             let lat = parsePointString(item.geom).latitude
             item.entityId = '灾害点呼吸圈_' + item.id;
@@ -626,7 +627,7 @@ let layers = {
                     pixelOffset: new Cesium.Cartesian2(0, -16),
                 },
                 point: {
-                    pixelSize: 30,
+                    pixelSize: 45,
                     color: Cesium.Color.BLACK.withAlpha(0.5),
                     outlineColor: Cesium.Color.BLACK,
                     outlineWidth: 2,
@@ -638,7 +639,7 @@ let layers = {
         const disasterTypeMap = {
             "滑坡": "landslide",
             "泥石流": "debris_flow",
-            "暴雨洪水": "torrential_flood",
+            "山洪": "torrential_flood",
             "内涝": "water_logging",
             "堰塞湖": "barrier_lake"
         };
@@ -678,21 +679,22 @@ let layers = {
                         id: item.entityId,
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
-                            pixelSize: 30,
-                            color: Cesium.Color.RED(0.5),
+                            pixelSize: 40,
+                            color: Cesium.Color.RED.withAlpha(0.5),
                         },
                         properties: {
                             longitude: lon,
                             latitude: lat,
                         },
                     });
-                } else if (level == "中") {
+                }
+                else if (level == "中") {
                     viewer.entities.add({
                         name: '隐患点呼吸圈',
                         id: item.entityId,
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
-                            pixelSize: 30,
+                            pixelSize: 40,
                             color: Cesium.Color.YELLOW.withAlpha(0.5),
                         },
                         properties: {
@@ -702,8 +704,6 @@ let layers = {
                     });
                 }
             }
-
-
         })
     },
     notShowHiddenBreathCircle() {

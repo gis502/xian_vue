@@ -1,16 +1,6 @@
 <template>
   <div class="app-container">
-<!--    <el-form-item>-->
-<!--      <el-input-->
-<!--          v-model="queryParams"-->
-<!--          placeholder="请输入时间轴信息"-->
-<!--          clearable-->
-<!--          style="width: 200px"-->
-<!--          @keyup.enter="handleQuery"-->
-<!--      />-->
-<!--      <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>-->
-<!--      <el-button icon="Refresh" @click="resetQuery">重置</el-button>-->
-<!--    </el-form-item>-->
+
     <el-table :data="tableData"
               height="600px"
               @row-click="go"
@@ -74,61 +64,7 @@ export default {
     this.getDisasterEvents()
   },
   methods: {
-    // 搜索功能
-    // handleQuery() {
-    //   // 获取搜索关键字
-    //   const searchKey = this.queryParams.trim();
-    //
-    //   // 如果搜索关键字为空，恢复为原始数据
-    //   if (searchKey === "") {
-    //     this.tableData = this.getEq();  // 恢复所有数据并重新进行分页
-    //     return;
-    //   }
-    //
-    //   let finalSearchKey = searchKey;
-    //
-    //   // 判断是否是时间格式
-    //   const timePattern = /^(\d{4})年(\d{1,2})月(\d{1,2})日(\d{1,2})时(\d{1,2})分(\d{1,2})秒$/;
-    //   const timeMatch = searchKey.match(timePattern);
-    //
-    //   if (timeMatch) {
-    //     // 如果是时间格式，转换为目标格式
-    //     const [, year, month, day, hh, mm, ss] = timeMatch;
-    //     finalSearchKey = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hh.padStart(2, '0')}:${mm.padStart(2, '0')}:${ss.padStart(2, '0')}`;
-    //   }
-    //
-    //   // 发送搜索请求
-    //   queryEqList({queryValue: finalSearchKey}).then(res => {
-    //     console.log("检查返回的数据", res); // 检查返回的数据
-    //     // 处理并格式化返回的数据
-    //     const filteredData = res.filter(item => item.magnitude >= 3).map(item => {
-    //       // 提取 geom 中的坐标信息，默认值 [0, 0] 防止数据缺失
-    //       const [longitude, latitude] = item.geom?.coordinates || [0, 0];
-    //
-    //       // 直接修改 item 对象的属性
-    //       item.occurrenceTime = this.timestampToTimeChina(item.occurrenceTime); // 格式化时间
-    //       item.magnitude = Number(item.magnitude).toFixed(1); // 格式化震级
-    //       item.latitude = Number(latitude).toFixed(2); // 格式化纬度
-    //       item.longitude = Number(longitude).toFixed(2); // 格式化经度
-    //
-    //       // 返回修改后的 item
-    //       return item;
-    //     });
-    //     // 搜索之后更新数据
-    //     this.eventList = filteredData;
-    //     this.total = filteredData.length;  // 更新总数
-    //     // 使用更新后的数据更新分页
-    //     this.tableData = this.getPageArr(filteredData);  // 传入处理后的数据
-    //   }).catch(error => {
-    //     console.error("搜索时出现错误:", error);
-    //   });
-    // },
-    //
-    // // 重置功能
-    // resetQuery() {
-    //   this.queryParams = '';  // 清空搜索输入框
-    //   this.getEq();  // 重新加载所有数据
-    // },
+
 
     async getDisasterEvents() {
       let earthquakeList = await getAllEarthquakeList();
@@ -165,6 +101,7 @@ export default {
         return dateB.localeCompare(dateA);
       });
 
+      this.total=this.eventList.length
       this.tableData = this.getPageArr()
       // console.log(this.tableData)
     },
