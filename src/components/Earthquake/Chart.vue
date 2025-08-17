@@ -102,7 +102,7 @@ function addChart() {
     },
     // grid,
     grid: grid,
-    
+
     xAxis: {
       type: "category",
       data: chartDatas.xAxis.data,
@@ -213,6 +213,5 @@ function addChart() {
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
 }
 </style>

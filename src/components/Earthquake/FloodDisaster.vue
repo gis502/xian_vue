@@ -1,4 +1,6 @@
 <template>
+  <span class="text">危险程度：{{ dangerLevel }}</span>
+  <span class="text">产生{{ disasterType }}的概率：{{ probability }}%</span>
   <table class="disaster-info-table">
     <tbody>
     <tr>
@@ -22,8 +24,27 @@
 </template>
 
 <script setup name="FloodDisaster">
-defineProps(['info'])
+const props = defineProps(['info'])
+
+// 危险程度
+let dangerLevel = ref("");
+
+// 概率值
+let probability = ref(0);
+
+onMounted(() => {
+  dangerLevel.value = props.info.predict.level[0]
+  probability.value = props.info.predict.probability[0]
+})
 </script>
 
 <style scoped>
+.text {
+  font-size: 20px;
+  color: red;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+  margin-left: 5px;
+}
 </style>

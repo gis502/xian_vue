@@ -60,7 +60,7 @@
       <button @click="nextPage" :disabled="currentPage === totalPages">
         下一页
       </button>
-      <span class="total-items">共 {{ filteredTableData.length }} 条</span>
+      <span class="total-items">共 {{ tableData.length }} 条</span>
     </div>
   </div>
 </template>
@@ -86,12 +86,13 @@ const props = defineProps({
 const tableData = ref([]);
 const isTableVisible = ref(true);
 const selectedDataType = ref("type1");
+const allData = ref([]);
 const tableHeaders = ref([]);
 const searchQuery = ref("");
 
 const currentPage = ref(1);
 const pageSize = 5;
-
+const lastTimeData=ref([])
 // 过滤后的数据
 const filteredTableData = ref([]);
 
@@ -104,16 +105,16 @@ const totalPages = computed(() =>
 const paginatedTableData = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
   const end = start + pageSize;
-  return filteredTableData.value.slice(start, end);
+  return tableData.value.slice(start, end);
 });
 
 function changeDataType() {
+
   const typeData = props.dataTypes[selectedDataType.value];
   tableHeaders.value = typeData.headers;
   tableData.value = typeData.data;
   searchQuery.value = "";
   currentPage.value = 1;
-  updateTableData();
 }
 
 function nextPage() {
@@ -134,16 +135,14 @@ const toggleTableVisibility = () => {
 
 const performSearch = () => {
   currentPage.value = 1;
-  updateTableData();
 };
 
-// 更新表格数据的函数
-function updateTableData() {
+function timeSelect(){
   const currentTime = new Date(props.currentTime);
 
-  const newData = tableData.value.filter(item => {
+  const newData = allData.value.filter(item => {
+
     const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
-    // console.log(occurTime,currentTime,"occurTime,currentTime")
     if (!occurTime || !currentTime) {
       console.error(`Invalid date format for field2: ${item.field2}`);
       return false;
@@ -151,13 +150,30 @@ function updateTableData() {
     return occurTime < currentTime;
   });
   // 只有在数据实际发生变化时才更新 filteredTableData
-  if (!isEqual(filteredTableData.value, newData)) {
-    filteredTableData.value = newData;
+  // 找出新添加或更新的数据
+  const changedData = newData.filter(item =>
+      !lastTimeData.value.some(ldItem => ldItem.field1 === item.field1)
+  );
+
+
+  // 更新 lastTimeData.value，只添加新数据或更新变化的数据
+  lastTimeData.value = lastTimeData.value.map(ldItem =>
+      newData.some(newItem => newItem.field1 === ldItem.field1) ? newData.find(newItem => newItem.field1 === ldItem.field1) : ldItem
+  ).filter(ldItem => newData.some(newItem => newItem.field1 === ldItem.field1))
+
+
+    if (changedData.length > 0) {
+      // 获取变化数据的类型
+      const changedDataType = changedData[0].type;
+      // // 如果变化的数据类型与当前显示的类型不同，则切换类型
+      if (changedDataType !== selectedDataType.value) {
+        selectedDataType.value = changedDataType;
+        changeDataType();
+      }
+    }
   }
-}
 
 function handleTableClick(item) {
-  // console.log(item,"handleTableClick")
   const longitude = item.field5; // 获取经度
   const latitude = item.field6; // 获取纬度
   // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
@@ -178,7 +194,7 @@ onMounted(() => {
   changeDataType();
 });
 // 节流后的 updateTableData 函数
-const throttledUpdateTableData = throttle(updateTableData, 1000);
+const throttledUpdateTableData = throttle(timeSelect, 1000);
 
 // 监听 currentTime 的变化
 watch(() => props.currentTime, () => {
@@ -186,7 +202,15 @@ watch(() => props.currentTime, () => {
 });
 // 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
-  changeDataType();
+  if(newDataTypes){
+    allData.value = [
+      ...(newDataTypes.type1?.data || []),
+      ...(newDataTypes.type2?.data || []),
+      ...(newDataTypes.type3?.data || []),
+    ];
+    timeSelect();
+  }
+
 }, {deep: true});
 </script>
 
@@ -233,11 +257,11 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 
 .table-title {
   font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-bottom: 5px;
+  font-size: 16px;
   text-align: center;
   margin-top: 0; /* 将 margin-top 设置为0，避免空白区域 */
-  padding-top: 20px; /* 增加内边距，为按钮留出空间 */
+  padding-top: 0px; /* 增加内边距，为按钮留出空间 */
 }
 
 .data-table table {
