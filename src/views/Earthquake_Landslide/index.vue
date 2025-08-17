@@ -56,6 +56,7 @@
       @cancelEarthquake="cancelEarthquake"
       @startLoading="startLoading"
       @stopLoading="stopLoading"
+      @updateEqInfo="updateEqInfo"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -231,8 +232,6 @@ function entitiesClickPonpHandler() {
             updatePopupPosition();
           }, 10);
 
-
-
           // 如果 entity 没有 _layer 字段，且当前选中图层是特定图层时跳过
           if (!entity.name) {
             eqCenterPanelVisible.value = false;
@@ -241,6 +240,8 @@ function entitiesClickPonpHandler() {
           }
           // 如果点击的是标绘点
           else if (entity.name === "地震中心") {
+
+            console.log("地震中心...")
             eqCenterPanelVisible.value = true;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = false;
@@ -311,6 +312,16 @@ function entitiesClickPonpHandler() {
       updatePopupPosition();
     }
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+}
+
+// 更新地震信息
+function updateEqInfo(data){
+
+  data.forEach(item=>{
+    console.log( item,"item...要点击的，，，")
+    matchedHiddenHighlightEntities.value.push( item)
+  })
+
 }
 
 //计算点击位置的经纬度和高度

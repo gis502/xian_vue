@@ -812,7 +812,6 @@ let layers = {
 
         // 筛选出与给定经纬度匹配的实体
         const entities = window.viewer.entities.values.filter(e => {
-            console.log(e.properties.longitude._value)
             let entityLongitude = e.properties.longitude._value
             let entityLatitude = e.properties.latitude._value
             let matchesName = e.name === '隐患点呼吸圈';

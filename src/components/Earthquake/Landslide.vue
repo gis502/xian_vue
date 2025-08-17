@@ -47,6 +47,10 @@ let dangerLevel = ref("");
 // 概率值
 let probability = ref(0);
 
+// 灾害类型
+
+let disasterType = ref("");
+
 watch(() => props, (newProps) => {
   console.log('Props updated:DisasterInformation', newProps);
 }, {deep: true});
@@ -54,6 +58,7 @@ watch(() => props, (newProps) => {
 onMounted(() => {
   dangerLevel.value = props.info.predict.level[0]
   probability.value = props.info.predict.probability[0]
+  disasterType.value = props.info.predict.disasterType
 })
 </script>
 

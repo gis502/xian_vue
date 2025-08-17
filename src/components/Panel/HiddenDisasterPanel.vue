@@ -2,8 +2,7 @@
 <template>
   <div
       class="cesium-info-window"
-      :style="styleObject"
-  >
+      :style="styleObject">
     <span>
     </span>
     <div class="disaster-popup">
