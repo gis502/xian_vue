@@ -32,9 +32,11 @@ let dangerLevel = ref("");
 // 概率值
 let probability = ref(0);
 
+let disasterType = ref("");
 onMounted(() => {
   dangerLevel.value = props.info.predict.level[0]
   probability.value = props.info.predict.probability[0]
+  disasterType.value = props.info.predict.disasterType
 })
 </script>
 

@@ -22,7 +22,6 @@ import YanLiang from "@/assets/static/area/YanLiang.json";
 import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import {PulseTool} from "@/cesium/pulse.js";
-import {rainSlideTrigger} from "@/api/system/rainModel.js";
 
 let layers = {
     //画烈度圈
@@ -813,7 +812,6 @@ let layers = {
 
         // 筛选出与给定经纬度匹配的实体
         const entities = window.viewer.entities.values.filter(e => {
-            console.log(e.properties.longitude._value)
             let entityLongitude = e.properties.longitude._value
             let entityLatitude = e.properties.latitude._value
             let matchesName = e.name === '隐患点呼吸圈';

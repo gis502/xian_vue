@@ -1170,17 +1170,6 @@ export default {
         }
       }
     },
-
-    // 关闭界面的方法（调用此方法时触发资源释放）
-    // closeInterface() {
-    //   this.isClosed = true;
-    //   this.releaseAllResources();
-    //   // 清空DOM引用
-    //   const container = this.$refs.cesiumContainer;
-    //   if (container) container.innerHTML = '';
-    //   // 触发组件销毁
-    //   this.$destroy();
-    // },
     // 释放所有资源的核心方法
     releaseAllResources() {
       // 1. 清理Cesium核心资源
@@ -1244,22 +1233,6 @@ export default {
 
       console.log('所有资源已释放');
     },
-    // 重写定时器相关方法，统一管理定时器ID
-    // setSafeInterval(fn, delay) {
-    //   const id = setInterval(fn, delay);
-    //   this.timers.push(id);
-    //   return id;
-    // },
-    // setSafeTimeout(fn, delay) {
-    //   const id = setTimeout(fn, delay);
-    //   this.timers.push(id);
-    //   return id;
-    // },
-    // requestSafeAnimationFrame(fn) {
-    //   const id = requestAnimationFrame(fn);
-    //   this.timers.push(id);
-    //   return id;
-    // },
     // 加载
     startLoading() {
       this.loadingModel = true;
@@ -1469,7 +1442,6 @@ export default {
         }
       });
     },
-
     async downloadRainReport() {
       this.startLoading()
       // 1. 截三维画布
