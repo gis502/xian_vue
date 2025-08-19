@@ -118,20 +118,20 @@ export function init_cesium_navigation(longitude, latitude, height) {
     options.zoomOutTooltip = "缩小";
     //新版必须new CesiumNavigation ,可以查看作者github
     window.navigation = new CesiumNavigation(window.viewer, options)
-    let compass = document.getElementsByClassName('compass')[0]
-    compass.addEventListener('dblclick', function () {
-        // 设置相机飞行到指北视角
-        viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, viewer.camera.positionCartographic.height), // 目标位置
-            orientation: {
-                heading: Cesium.Math.toRadians(0), // 朝向正北
-                pitch: Cesium.Math.toRadians(-90), // 向下俯视
-                roll: 0 // 不倾斜
-            },
-            duration: 3, // 动画持续时间，单位为秒
-            easingFunction: Cesium.EasingFunction.LINEAR // 动画缓动函数
-        });
-    }, false);
+    // let compass = document.getElementsByClassName('compass')[0]
+    // compass.addEventListener('dblclick', function () {
+    //     // 设置相机飞行到指北视角
+    //     viewer.camera.flyTo({
+    //         destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, viewer.camera.positionCartographic.height), // 目标位置
+    //         orientation: {
+    //             heading: Cesium.Math.toRadians(0), // 朝向正北
+    //             pitch: Cesium.Math.toRadians(-90), // 向下俯视
+    //             roll: 0 // 不倾斜
+    //         },
+    //         duration: 3, // 动画持续时间，单位为秒
+    //         easingFunction: Cesium.EasingFunction.LINEAR // 动画缓动函数
+    //     });
+    // }, false);
 }
 
 //显示鼠标位置坐标
