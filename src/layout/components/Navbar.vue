@@ -88,7 +88,8 @@ function setLayout() {
   height: 50px;
   overflow: hidden;
   position: relative;
-  background: #fff;
+  background: url("src/assets/images/background_image.png")center center no-repeat #fff;
+  background-size: cover;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 
   .hamburger-container {
