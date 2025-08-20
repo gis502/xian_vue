@@ -91,7 +91,7 @@ function addChart() {
       left: "center",
       top: 0,
       subtextStyle: {
-        color: "#fff",
+        color: "#000",
         fontSize: 16,
         fontWeight: "bold", // 加粗字体
         marginBottom: 10, // 底部边距
@@ -112,7 +112,7 @@ function addChart() {
         },
         interval: 0,
         margin: 20,
-        color: "#fff", // x轴标签保持白色
+        color: "#000", // x轴标签保持白色
         rich: {
           wrap: {
             lineHeight: 18,
@@ -131,7 +131,7 @@ function addChart() {
       type: "value",
       axisLabel: {
         formatter: "{value}",
-        color: "#fff", // y轴标签保持白色
+        color: "#000", // y轴标签保持白色
       },
       axisLine: {
         lineStyle: {
@@ -177,7 +177,7 @@ function addChart() {
               text: api.value(1),
               x: location[0],
               y: location[1] - 10,
-              fill: "#fff",
+              fill: "#000",
               font: "12px sans-serif",
               textAlign: "center",
               textVerticalAlign: "bottom",
@@ -206,10 +206,11 @@ function addChart() {
   bottom: 10px; /* 距离顶部20px */
   left: 20px; /* 距离左侧20px */
   /*background-color: white; !* 与图例背景色一致 *!*/
-  background-color: rgba(40, 40, 40, 0.8);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.75);
+  color: black;
   padding: 15px;
-  border-radius: 4px;
+  border-radius: 16px;
+  border: 1px solid #FFFFFF;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */

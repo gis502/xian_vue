@@ -371,6 +371,7 @@ let basicLayers = {
                     disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
                     show: true,
                 },
+                disasterData: hiddenDangerPoint,
                 properties: {
                     data: hiddenDangerPoint,
                     longitude: lon,
