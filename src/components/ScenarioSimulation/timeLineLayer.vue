@@ -197,9 +197,7 @@ export default {
             }
           },
           remove: () => {
-            if (this.disasterEvent.trigger == "地震") {
-              layers.removeIsoseismalCircle()
-            }
+            layers.removeIsoseismalCircle()
           }
         },
         {

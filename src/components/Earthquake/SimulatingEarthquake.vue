@@ -2,9 +2,9 @@
 <template>
   <!-- 收集内容 -->
   <div
-    v-show="isShow"
-    class="earthquake-info-panel"
-    :style="{
+      v-show="isShow"
+      class="earthquake-info-panel"
+      :style="{
       top: position.y + 'px',
       left: position.x + 'px',
     }"
@@ -12,11 +12,13 @@
     <div style="padding: 10px">
       <el-row align="middle" gutter="10">
         <el-col :span="12" style="text-align: right">
-          {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}</el-col
+          {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}
+        </el-col
         >
         <el-col :span="12">
           <el-button type="info" round @click="showBaseInfo = !showBaseInfo"
-            >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息</el-button
+          >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息
+          </el-button
           >
         </el-col>
       </el-row>
@@ -24,11 +26,11 @@
     <div class="panel-content">
       <!-- 模拟信息 -->
       <el-form
-        ref="ruleFormRef"
-        :rules="rules"
-        :model="form"
-        label-width="auto"
-        v-show="showBaseInfo"
+          ref="ruleFormRef"
+          :rules="rules"
+          :model="form"
+          label-width="auto"
+          v-show="showBaseInfo"
       >
         <el-row gutter="10">
           <el-col :span="24">
@@ -55,11 +57,11 @@
           <el-col :span="12">
             <el-form-item label="震级" prop="magnitude">
               <el-input
-                v-model="form.magnitude"
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
+                  v-model="form.magnitude"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
               >
                 <template #append>Ms</template>
               </el-input>
@@ -76,12 +78,12 @@
         <el-row gutter="10">
           <el-col :span="12">
             <el-form-item label="纬度" prop="longitude">
-              <el-input v-model="form.longitude" type="number" />
+              <el-input v-model="form.longitude" type="number"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="经度" prop="latitude">
-              <el-input v-model="form.latitude" type="number" />
+              <el-input v-model="form.latitude" type="number"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -89,9 +91,9 @@
           <el-col :span="12">
             <el-form-item label="时间" prop="dateTime">
               <el-date-picker
-                v-model="form.dateTime"
-                type="datetime"
-                placeholder="选择日期时间"
+                  v-model="form.dateTime"
+                  type="datetime"
+                  placeholder="选择日期时间"
               />
             </el-form-item>
           </el-col>
@@ -106,46 +108,50 @@
           </el-col>
         </el-row>
         <el-row :gutter="10" justify="center" style="padding-bottom: 10px">
-          <hr class="segmentation" />
+          <hr class="segmentation"/>
           <el-link type="primary" @click="setMore">
             点击{{ isShowMore ? "收起" : "查看" }}，更多设置
-            <el-icon v-if="!isShowMore"><ArrowDown /></el-icon>
-            <el-icon v-else><ArrowUp /></el-icon>
+            <el-icon v-if="!isShowMore">
+              <ArrowDown/>
+            </el-icon>
+            <el-icon v-else>
+              <ArrowUp/>
+            </el-icon>
           </el-link>
         </el-row>
         <el-row v-show="isShowMore" :gutter="10">
           <el-col :span="12">
             <el-form-item label="来源">
-              <el-input v-model="form.source" />
+              <el-input v-model="form.source"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="县编码">
-              <el-input v-model="form.countyCode" />
+              <el-input v-model="form.countyCode"/>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row v-show="isShowMore" :gutter="10">
           <el-col :span="12">
             <el-form-item label="乡镇编码">
-              <el-input v-model="form.townshipCode" />
+              <el-input v-model="form.townshipCode"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="区县">
-              <el-input v-model="form.district" />
+              <el-input v-model="form.district"/>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row v-show="isShowMore" :gutter="10">
           <el-col :span="12">
             <el-form-item label="省份">
-              <el-input v-model="form.province" />
+              <el-input v-model="form.province"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="城市">
-              <el-input v-model="form.city" />
+              <el-input v-model="form.city"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -153,20 +159,22 @@
           <el-col :span="12">
             <el-form-item>
               <el-button
-                type="success"
-                @click="confirmEarthquake(ruleFormRef)"
-                style="width: 100%"
-                >添加</el-button
+                  type="success"
+                  @click="confirmEarthquake(ruleFormRef)"
+                  style="width: 100%"
+              >添加
+              </el-button
               >
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item>
               <el-button
-                type="danger"
-                @click="emit('cancelEarthquake')"
-                style="width: 100%"
-                >取消</el-button
+                  type="danger"
+                  @click="emit('cancelEarthquake')"
+                  style="width: 100%"
+              >取消
+              </el-button
               >
             </el-form-item>
           </el-col>
@@ -176,13 +184,13 @@
       <!-- 致灾因子参数信息 -->
       <el-form :model="form" label-width="auto" v-show="!showBaseInfo">
         <el-form-item
-          v-for="(param, index) in hazardsParams"
-          :key="index"
-          :label="param.attributeName"
+            v-for="(param, index) in hazardsParams"
+            :key="index"
+            :label="param.attributeName"
         >
           <el-input
-            v-model="hazardsForm[param.attributeNameAlias]"
-            :placeholder="`请输入${param.attributeName}参数`"
+              v-model="hazardsForm[param.attributeNameAlias]"
+              :placeholder="`请输入${param.attributeName}参数`"
           ></el-input>
         </el-form-item>
       </el-form>
@@ -191,18 +199,18 @@
 </template>
 
 <script setup name="SimulatingEarthquake">
-import { reactive } from "vue";
-import { useSimulationPointStore } from "../../store/earthquake/simulation_points";
-import { obtainTheProbabilityOfSimulatedPointRisk } from "../../api/earthquake/hazards";
+import {reactive} from "vue";
+import {useSimulationPointStore} from "../../store/earthquake/simulation_points";
+import {obtainTheProbabilityOfSimulatedPointRisk} from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 import basicLayers from "../../cesium/basicLayers";
 // (hazardsParams)致灾因子后端数据（此处是模拟）
-import { addDisaster, hazardsParams } from "../../api/earthquake/datas";
-import { parseTime } from "../../utils/ruoyi";
+import {addDisaster, hazardsParams} from "../../api/earthquake/datas";
+import {parseTime} from "../../utils/ruoyi";
 
 
 // 常量
-const { province, city } = {
+const {province, city} = {
   province: "陕西省",
   city: "西安市",
 };
@@ -212,6 +220,7 @@ let showBaseInfo = ref(true);
 
 // 表单对象
 const ruleFormRef = ref();
+
 
 // 表单元素
 let form = reactive({
@@ -324,7 +333,7 @@ let isShow = ref(true);
 let isShowMore = ref(false);
 
 // 获取位置以及表格中要呈现的内容
-const { position, dataTypes, chartDatas } = defineProps([
+const {position, dataTypes, chartDatas} = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
@@ -339,13 +348,14 @@ const emit = defineEmits([
   "hideChart",
   "startLoading",
   "stopLoading",
+  "updateEqInfo",
 ]);
 
 // 添加模拟
 async function confirmEarthquake(formEl) {
   if (!formEl) return;
   // 验证
-  await formEl.validate(async (valid, fields) => {
+  formEl.validate(async (valid, fields) => {
     if (valid) {
       // 隐藏显示
       emit("hideTable");
@@ -376,16 +386,19 @@ async function confirmEarthquake(formEl) {
         longitude: position.longitude,
         latitude: position.latitude,
       });
-
+      // console.log("--------------------------------------------------------------")
       layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
+
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
-
+      console.log("inEllipsePoints", inEllipsePoints);
       // 获取各个点的风险概率
       const [points, probabilityPoints] =
-        await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-      console.log(points, probabilityPoints,"points, probabilityPoints")
+          await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
+      console.log(points, probabilityPoints, "points, probabilityPoints")
+      emit('updateEqInfo', probabilityPoints)
       layers.flashHiddenDisasterPoints(probabilityPoints)
+      // console.log(898989898989,inEllipsePoints)
       // 处理表格和chart数据
       addDatasToTableAndChart(probabilityPoints);
 
@@ -402,6 +415,7 @@ async function confirmEarthquake(formEl) {
       console.log("error submit!", fields);
     }
   });
+  // console.log("+++++++++++++++++++++++++++")
 }
 
 // 处理表格和chart数据
@@ -421,8 +435,8 @@ function addDatasToTableAndChart(probabilityPoints) {
         dataTypes.type1.data.push({
           field1: item.geologicalDisasterHideDTO.disasterName,
           field2: item.geologicalDisasterHideDTO.position,
-          field3: item.predict.level,
-          field4: `${item.predict.probability * 100}%`,
+          field3: item.geologicalDisasterHideDTO.scaleGrade,
+          field4: item.geologicalDisasterHideDTO.riskGrade,
           field5: item.geologicalDisasterHideDTO.lon,
           field6: item.geologicalDisasterHideDTO.lat,
         });
@@ -471,6 +485,7 @@ function setMore() {
   max-height: 400px;
   overflow-y: auto;
 }
+
 .panel-title {
   text-align: center;
   padding-bottom: 10px;

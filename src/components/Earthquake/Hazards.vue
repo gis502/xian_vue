@@ -116,6 +116,7 @@ async function modifyDatas() {
   // 设置脉冲
   this.pulse.createPause([hazards.hazardsDatas]);
 }
+
 </script>
 
 <style lang="scss" scoped>

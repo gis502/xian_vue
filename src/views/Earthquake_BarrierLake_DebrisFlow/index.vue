@@ -1066,6 +1066,7 @@ export default {
       let longitude = Cesium.Math.toDegrees(cartographic.longitude);
       // let height = cartographic.height;
       point = {x: longitude, y: latitude}
+      console.log(89898989,point)
       // console.log(point,123,point)
       const distancePointToLine = (point, linePoint1, linePoint2) => {
         let p = Cesium.Cartesian3.fromDegrees(point.x, point.y)

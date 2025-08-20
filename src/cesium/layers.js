@@ -22,7 +22,6 @@ import YanLiang from "@/assets/static/area/YanLiang.json";
 import YanTa from "@/assets/static/area/YanTa.json";
 import ZhouZhi from "@/assets/static/area/ZhouZhi.json";
 import {PulseTool} from "@/cesium/pulse.js";
-import {rainSlideTrigger} from "@/api/system/rainModel.js";
 
 let layers = {
     //画烈度圈
@@ -56,8 +55,8 @@ let layers = {
         let bearing = Cesium.Math.toDegrees(Math.atan2(y, x));
         bearing = (bearing + 360) % 360;
 
-        let rotation = Cesium.Math.toRadians(bearing - 90);
-        return rotation;
+        // let rotation = Cesium.Math.toRadians(bearing-90);
+        return bearing;
     },
     pointToLineDistance_getMinLine(position, lineData) {
         /**
@@ -79,7 +78,6 @@ let layers = {
         // let longitude = Cesium.Math.toDegrees(cartographic.longitude);
         // let height = cartographic.height;
         point = {x: position.longitude, y: position.latitude}
-
         //计算点到线的距离
         const distancePointToLine = (point, linePoint1, linePoint2) => {
             let p = Cesium.Cartesian3.fromDegrees(point.x, point.y)
@@ -149,6 +147,7 @@ let layers = {
                 min_line = lonlat
             }
         })
+
         return min_line
     },
     DrawCircle(point, rotation, magnitude) {
@@ -156,7 +155,7 @@ let layers = {
         // 地震源位置
         let position = point;
         // 根据断裂带计算的角度
-        // let strikeDirection = bearing;
+        let strikeDirection = rotation;
 
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
@@ -166,6 +165,8 @@ let layers = {
         ellipseParams.forEach(params => {
             let short = Math.min(params.semiMinorAxis, params.semiMajorAxis)
             let long = Math.max(params.semiMajorAxis, params.semiMinorAxis)
+            const adjustedDegrees = -(strikeDirection - 90);
+            const bearing = Cesium.Math.toRadians(adjustedDegrees);
             let ellipse = new Cesium.Entity({
                 position: Cesium.Cartesian3.fromDegrees(position.x, position.y), name: "地震影响区域", ellipse: {
                     // semiMinorAxis: params.semiMinorAxis,
@@ -177,7 +178,7 @@ let layers = {
                     outline: true,
                     outlineColor: Cesium.Color.RED,
                     outlineWidth: 3,
-                    rotation: rotation, // 设置椭圆旋转角度
+                    rotation: bearing, // 设置椭圆旋转角度
                 }
             });
             window.viewer.entities.add(ellipse);
@@ -242,16 +243,24 @@ let layers = {
             return 1.3003 * M + 0.3844;
         }
         const calculateRa = (M, Ia) => {
-            const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10);
-            // console.log(a, "=============================")
-            return a;
+            // const a = (Math.pow(10, (4.0293 + 1.3003 * M - Ia) / 3.6404) - 10);
+            // // console.log(a, "=============================")
+            // return a;
+            // 按照公式计算指数部分，Ia 对应公式里的 I
+            const exponent = (3.04 + 1.27 * M - Ia) / 0.92;
+            // 计算 e 的 exponent 次方，再减去 8.65 得到 Ra
+            const Ra = Math.exp(exponent) - 8.65;
+            return Ra;
         }
 
         const calculateRb = (M, Ib) => {
-            const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5);
-            // console.log(b, "=============================")
-
-            return b;
+            // const b = (Math.pow(10, (2.3816 + 1.3003 * M - Ib) / 2.8573) - 5);
+            // // console.log(b, "=============================")
+            //
+            // return b;
+            const exponent = (2.57 + 1.23 * M - Ib) / 0.86;
+            const Rb = Math.exp(exponent) - 4.86;
+            return Rb;
         }
         let sum = Math.floor(Math.min(Number(IaWhenAIsZero(magnitude)), Number(IbWhenBIsZero(magnitude))));
         let intensityLevels = [];
@@ -265,10 +274,10 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 1000;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 1000;
-
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
+            // console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;
             let alpha = plphas[i]
@@ -431,21 +440,24 @@ let layers = {
 
     //找烈度圈相交点预警点
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
-        let allHiddenDisasterinEllipse = []
+        let allHiddenDisasterinEllipse = [];
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
-        const params = layers.calculateEllipseParams(magnitude).at(-1);
+        const params = layers.calculateEllipseParams(magnitude).at(-2);
+        console.log(123123,params)
+
         let validPoints = useSimulationPointStore().simulationPoints.filter(
             item => item && item.geologicalDisasterHideDTO
         );
         validPoints.forEach((item) => {
-            console.log(item, item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, "HiddenDisasterPoints item")
-            if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
-                item.predict = null;
+            if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+                // item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
             }
         })
+        // console.log("allHiddenDisasterinEllipse",allHiddenDisasterinEllipse)
         return allHiddenDisasterinEllipse
     },
+
     isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation) {
         const center = Cesium.Cartesian3.fromDegrees(Number(centerLon), Number(centerLat));
         const point = Cesium.Cartesian3.fromDegrees(Number(pointLon), Number(pointLat));
@@ -464,6 +476,68 @@ let layers = {
         const distance = Cesium.Cartesian3.distance(point, boundingSphere.center);
         return distance <= boundingSphere.radius;
     },
+
+    isPointInEllipse1(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation,options = {}) {
+        // 处理默认参数
+        const { tolerance = 0.5, usePlanarApproximation = false } = options;
+
+        // 确保轴长为正数
+        const semiMajor = Math.max(Math.abs(majorAxis), Math.abs(minorAxis));
+        const semiMinor = Math.min(Math.abs(majorAxis), Math.abs(minorAxis));
+
+        // 如果轴长为0，只有点与中心重合时才返回true
+        if (semiMajor <= 0) {
+            return Math.abs(pointLon - centerLon) < 1e-9 && Math.abs(pointLat - centerLat) < 1e-9;
+        }
+
+        // 转换为弧度的旋转角度（从正北顺时针旋转）
+        const rotationRad = Cesium.Math.toRadians(rotation);
+
+        // 创建地理坐标
+        const pointCartographic = Cesium.Cartographic.fromDegrees(Number(pointLon), Number(pointLat), 0);
+        const centerCartographic = Cesium.Cartographic.fromDegrees(Number(centerLon), Number(centerLat), 0);
+
+        let surfaceDistance, azimuth;
+
+        if (usePlanarApproximation) {
+            // 平面近似模式（适用于小范围椭圆）
+            // 将经纬度转换为以椭圆中心为原点的平面坐标（米）
+            const centerCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(centerCartographic);
+            const transform = Cesium.Transforms.eastNorthUpToFixedFrame(centerCartesian);
+
+            const pointCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(pointCartographic);
+            const localPoint = Cesium.Matrix4.multiplyByPointAsVector(transform, pointCartesian, new Cesium.Cartesian3());
+
+            // 计算平面距离和方位角
+            surfaceDistance = Math.hypot(localPoint.x, localPoint.y);
+            azimuth = Math.atan2(localPoint.x, localPoint.y); // 从正北方向计算的方位角（弧度）
+        } else {
+            // 测地线模式（适用于大范围椭圆，考虑地球曲率）
+            const geodesic = new Cesium.EllipsoidGeodesic();
+            geodesic.setEndPoints(centerCartographic, pointCartographic);
+
+            // 计算地表距离（米）
+            surfaceDistance = geodesic.surfaceDistance;
+
+            // 计算方位角（从正北方向顺时针计算的角度，弧度）
+            azimuth = geodesic.startHeading;
+        }
+
+        // 计算点相对于椭圆旋转后的角度差
+        // 注意：Cesium的方位角是从正北顺时针增加，与数学中的角度定义不同
+        const angleDifference = azimuth - rotationRad;
+
+        // 计算椭圆在该方向上的有效半径
+        const cosTheta = Math.cos(angleDifference);
+        const sinTheta = Math.sin(angleDifference);
+        const ellipseRadiusAtAngle = (semiMajor * semiMinor) / Math.sqrt(
+            Math.pow(semiMinor * cosTheta, 2) + Math.pow(semiMajor * sinTheta, 2)
+        );
+
+        // 最终判断（包含容差）
+        return surfaceDistance <= ellipseRadiusAtAngle + tolerance;
+    },
+
     //找烈度圈相交点预警点结束
     //预警点闪烁
     flashHiddenDisasterPoints(entities) {
@@ -479,8 +553,10 @@ let layers = {
     judgeandaddRealDisasterNewPoint(realDisasterPoints) {
         realDisasterPoints.forEach(item => {
             this.ifaddNewPoint(item)
+            this.addBlackBreathCircle(item)
+            // this.addRealDisasterLabel(item)
+            //找是否有同一类型，同一经纬度
         })
-        this.addBlackBreathCircle(realDisasterPoints)
     },
     ifaddNewPoint(item) {
         let lon = parsePointString(item.geom).longitude
@@ -736,7 +812,6 @@ let layers = {
 
         // 筛选出与给定经纬度匹配的实体
         const entities = window.viewer.entities.values.filter(e => {
-            console.log(e.properties.longitude._value)
             let entityLongitude = e.properties.longitude._value
             let entityLatitude = e.properties.latitude._value
             let matchesName = e.name === '隐患点呼吸圈';

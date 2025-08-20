@@ -15,7 +15,7 @@ import YanTa from '@/assets/static/area/YanTa.json';
 import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
-import lineData from "@/assets/西安断层数据.json";
+import lineData from "@/assets/西安断层数据（新）.json";
 
 import landslideIcon from "@/assets/images/landslide.png";
 import riskArea from "@/assets/images/riskArea.png";
@@ -121,7 +121,7 @@ let basicLayers = {
     addFaultZone() {
         let line_data = []
         lineData.features.forEach(line => {
-            // console.log(line.geometry)
+
             line_data.push(line.geometry)
         })
 

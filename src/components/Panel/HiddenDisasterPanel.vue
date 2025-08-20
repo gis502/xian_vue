@@ -2,8 +2,7 @@
 <template>
   <div
       class="cesium-info-window"
-      :style="styleObject"
-  >
+      :style="styleObject">
     <span>
     </span>
     <div class="disaster-popup">
@@ -166,6 +165,8 @@ const hazards = computed(() => {
     };
   }
 });
+
+console.log(8746551,hazards.value);
 
 function handleRainfallAndDuration(info, trigger) {
   info.factorVoList.forEach((element) => {

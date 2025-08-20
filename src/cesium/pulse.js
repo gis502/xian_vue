@@ -32,7 +32,7 @@ export class PulseTool {
     const disasterTypeMap = {
       "滑坡": "landslide",
       "泥石流": "debris_flow",
-      "山洪": "torrential_flood",
+      "暴雨洪水": "torrential_flood",
       "内涝": "water_logging",
       "堰塞湖": "barrier_lake"
     };
@@ -108,30 +108,25 @@ export class PulseTool {
     const startTime = Cesium.JulianDate.now();
 
     const entity = window.viewer.entities.add({
-      name: '隐患点呼吸圈',
-      properties: {
-        longitude:lon,
-        latitude:lat,
-      },
       id: pulseId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
         image: this._circle,
         width: new Cesium.CallbackProperty((time) => {
           const elapsed =
-            Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
           const progress = elapsed / duration;
           return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
         }, false),
         height: new Cesium.CallbackProperty((time) => {
           const elapsed =
-            Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
           const progress = elapsed / duration;
           return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
         }, false),
         color: new Cesium.CallbackProperty((time) => {
           const elapsed =
-            Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
           const progress = elapsed / duration;
           const alpha = 0.7 * (1 - progress);
           return color.withAlpha(alpha);
@@ -179,14 +174,8 @@ export class PulseTool {
    * 移除所有脉冲
    */
   removePulseEntity() {
-    let toRemove = window.viewer.entities.values.filter(
-        e => e.name === '隐患点呼吸圈'
-    );
-    if (toRemove) {
-      // 2. 逐个删除
-      toRemove.forEach(entity => {
-        window.viewer.entities.remove(entity);
-      });
+    for (const entityId in this._entityPulseMap) {
+      this.deletePulseEntity(entityId);
     }
   }
 
