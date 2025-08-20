@@ -38,25 +38,6 @@ export default {
       showData: [],
       lastTimeData:[],
       predictRain:[],
-      // showData: [{
-      //   area: "",
-      //   totalRainfall: "-",
-      //   duration: "-",
-      //   predictTotalRainfall: "-",
-      //   predictDuration: "-"
-      // }],
-      // lastTimeData: [{
-      //   area: "",
-      //   totalRainfall: "-",
-      //   duration: "-",
-      // }],
-      // predictRain:[
-      //   {
-      //     area: "",
-      //     predictTotalRainfall: "-",
-      //     predictDuration: "-"
-      //   }
-      // ],
       RainPeriodInfo: null,
       countyStartRainTimeMap: new Map(),
     }

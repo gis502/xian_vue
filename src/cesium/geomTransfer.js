@@ -1,20 +1,21 @@
-export function parsePointString(pointString) {
-    // 使用正则表达式匹配格式 "POINT(x y)"
-    const regex = /^POINT\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*)\)$/;
 
-    // 检查是否匹配
-    const match = pointString.match(regex);
-    if (!match) {
-        throw new Error("无效的几何字符串格式");
+export function parsePointString(pointString) {
+    if (typeof pointString !== 'string') {
+        console.warn('parsePointString 收到非字符串:', pointString);
+        return null;          // 或者抛出业务错误
     }
 
-    // 提取坐标部分
-    const coordinates = match[1].split(" ").map(Number);
+    try {
+        const [lon, lat] = pointString
+            .replace(/^\w+\(|\)$/g, '')   // 去掉 "POINT(" 和最后的 ")"
+            .split(' ');
 
-    // console.log(coordinates,"coordinates")
-    // 返回经纬度
-    return {
-        longitude: coordinates[0],
-        latitude: coordinates[1]
-    };
+        return {
+            longitude: Number(lon),
+            latitude:  Number(lat)
+        };
+    } catch (e) {
+        console.error('坐标字符串解析失败:', pointString, e);
+        return null;
+    }
 }

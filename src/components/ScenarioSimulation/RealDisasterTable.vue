@@ -91,7 +91,7 @@ const tableHeaders = ref([]);
 const searchQuery = ref("");
 
 const currentPage = ref(1);
-const pageSize = 5;
+const pageSize = 3;
 const lastTimeData=ref([])
 // 过滤后的数据
 const filteredTableData = ref([]);
@@ -142,27 +142,49 @@ function timeSelect(){
 
   const newData = allData.value.filter(item => {
 
-    const occurTime = timeTransfer.timeChinaToNewDate(item.field2);
+    const occurTime = timeTransfer.timeChinaToNewDate(item.field1);
     if (!occurTime || !currentTime) {
-      console.error(`Invalid date format for field2: ${item.field2}`);
+      // console.error(`Invalid date format for field2: ${item.field1}`);
       return false;
     }
     return occurTime < currentTime;
   });
+  // console.log(newData,currentTime,"newData")
   // 只有在数据实际发生变化时才更新 filteredTableData
   // 找出新添加或更新的数据
-  const changedData = newData.filter(item =>
-      !lastTimeData.value.some(ldItem => ldItem.field1 === item.field1)
-  );
+  // const changedData = newData.filter(item =>
+  //     !lastTimeData.value.some(ldItem => (ldItem.field1 === item.field1)&&(ldItem.field2 === item.field2)&&(ldItem.field3 === item.field3))
+  // );
+  //
 
-
-  // 更新 lastTimeData.value，只添加新数据或更新变化的数据
-  lastTimeData.value = lastTimeData.value.map(ldItem =>
-      newData.some(newItem => newItem.field1 === ldItem.field1) ? newData.find(newItem => newItem.field1 === ldItem.field1) : ldItem
-  ).filter(ldItem => newData.some(newItem => newItem.field1 === ldItem.field1))
-
+  let changedData = [];
+  if (lastTimeData.value.length === 0) {
+    lastTimeData.value = newData;
+    changedData = newData;
+    // console.log('No previous data, all new data is considered changed.');
+  } else {
+    changedData = newData.filter(item => {
+      // console.log('Checking item:', item);
+      const isMatch = lastTimeData.value.some(ldItem => {
+        // console.log('Last Time Data item:', ldItem);
+        return (ldItem.field1 === item.field1) && (ldItem.field2 === item.field2) && (ldItem.field3 === item.field3);
+      });
+      if (!isMatch) {
+        // console.log('No match found for item:', item);
+      }
+      return !isMatch;
+    });
+    // 更新 lastTimeData.value
+    lastTimeData.value = newData;
+  }
+// 在控制台中打印 changedData
+//   console.log('Changed Data:', changedData);
 
     if (changedData.length > 0) {
+      // 更新 lastTimeData.value，只添加新数据或更新变化的数据
+      lastTimeData.value = newData
+
+
       // 获取变化数据的类型
       const changedDataType = changedData[0].type;
       // // 如果变化的数据类型与当前显示的类型不同，则切换类型

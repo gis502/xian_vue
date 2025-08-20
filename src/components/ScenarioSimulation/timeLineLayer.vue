@@ -13,7 +13,8 @@
     <div class="universalPanel" v-if="showLayerFeatures">
       <div class="panel-title1">多源要素图层</div>
 
-      <el-checkbox-group v-model="selectedlayers" @change="updateMapLayers" class="grid-container custom-checkbox-group">
+      <el-checkbox-group v-model="selectedlayers" @change="updateMapLayers"
+                         class="grid-container custom-checkbox-group">
         <el-checkbox v-for="item in layeritems" :key="item.id" :label="item.name">{{ item.name }}</el-checkbox>
       </el-checkbox-group>
     </div>
@@ -73,7 +74,7 @@ export default {
       //是否第一次加载，进入页面就加载的，默认值为true.第一次add加载，之后显示隐藏
       firstLoad: {
         '行政区划': false,
-        '预警点': true,
+        '预警点': false,
         '灾害点': true,
 
         '泥石流隐患点': false,
@@ -83,7 +84,7 @@ export default {
         '风险区域': false,
 
         '烈度圈': true,
-        '断裂带': true,
+        '断裂带': false,
 
         '医院': false,
         '风险源': false,
@@ -101,8 +102,10 @@ export default {
         '地铁站': false,
       },
 
-      selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
-      prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
+      // selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
+      // prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
+      selectedlayers: [],
+      prevSelectedLayers:[],
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
@@ -121,36 +124,49 @@ export default {
   watch: {
     async viewer() {
       this.currentTime = viewer.clock.currentTime
-      await Promise.all([
-        basicLayers.Addmudslide(),
-        basicLayers.loadLandSlide(),
-        basicLayers.AddDangerAreaDataSource(),
-        basicLayers.loadAdminData(),
-        basicLayers.loadFlashFlood(),
-        basicLayers.loadWater()
-      ]);
+      // await Promise.all([
+        // basicLayers.Addmudslide(),
+        // basicLayers.loadLandSlide(),
+        // basicLayers.AddDangerAreaDataSource(),
+        // basicLayers.loadAdminData(),
+        // basicLayers.loadFlashFlood(),
+        // basicLayers.loadWater()
+      // ]);
     },
-    onceLoadLayer() {
+    async onceLoadLayer() {
       if (this.onceLoadLayer) {
-        if (this.disasterEvent.trigger == "地震") {
-          this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
-          this.updateMapLayers();
-        } else if (this.disasterEvent.trigger == "暴雨") {
-          this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
-          this.updateMapLayers();
-        }
-
+          if (this.disasterEvent.trigger == "地震") {
+            this.selectedlayers = ["灾害点","烈度圈"];
+            await this.updateMapLayers();
+            if (this.onceLoadLayer) {
+              this.$emit('update:onceLoadLayer', false);
+              viewer.clockViewModel.shouldAnimate = true;
+            }
+          }
       }
+      // if (this.onceLoadLayer) {
+      //   if (this.disasterEvent.trigger == "地震") {
+      //     this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
+      //     this.updateMapLayers();
+      //   } else if (this.disasterEvent.trigger == "暴雨") {
+      //     this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
+      //     this.updateMapLayers();
+      //   }
+      //
+      // }
     },
     disasterEvent() {
-      function convertToArray(str) {
-        return str.split(',').map(item => item.trim());
-      }
+      if (this.disasterEvent.trigger == "暴雨") {
+        function convertToArray(str) {
+          return str.split(',').map(item => item.trim());
+        }
 
 // 使用示例
-      this.positionArry = convertToArray(this.disasterEvent.position);
-      this.rainfallArry = convertToArray(this.disasterEvent.rainfall);
-      this.durationArry = convertToArray(this.disasterEvent.duration);
+        this.positionArry = convertToArray(this.disasterEvent.position);
+        this.rainfallArry = convertToArray(this.disasterEvent.rainfall);
+        this.durationArry = convertToArray(this.disasterEvent.duration);
+      }
+
     }
   },
   components: {},
@@ -369,16 +385,34 @@ export default {
         {
           name: '灾害点',
           add: async () => {
-            console.log(this.disasterEvent, "this.disasterEvent")
+
+            let disaterEndTime=new Date(new Date(this.disasterEvent.occurrenceTime).getTime() + 10 * 24 * 3600 * 1000);
+            console.log(disaterEndTime,"disaterEndTime")
             if (!this.realDisasterPoint) {
               this.realDisasterPoint = await selectDisasterRealByDisasterId({
                 disasterId: this.disasterEvent.disasterId,
                 disasterTrigger: this.disasterEvent.trigger
               })
+              console.log(this.realDisasterPoint,"this.realDisasterPoint before")
+              this.realDisasterPoint.forEach(item => {
+                // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
+                if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
+                  // 为没有结束时间的点设置默认结束时间
+                  item.endTime = disaterEndTime  //20天 错误时间设置结束时间地震发生20天以后
+                }
+                if (!item.startTime) {
+                  // 为没有开始时间的点设置默认开始时间
+                  item.startTime = this.disasterEvent.occurrenceTime;
+                }
+              })
               this.$emit("update:realDisasterPoint", this.realDisasterPoint);
-              layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            } else {
-              layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+              console.log(this.realDisasterPoint,"this.realDisasterPoint")
+              layers.addRealDisaterPlot(this.realDisasterPoint)
+              // layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
+            }
+            else {
+              // layers.addRealDisaterPlot(this.realDisasterPoint)
+              // layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
             }
           },
           remove: () => {
@@ -570,6 +604,7 @@ export default {
   line-height: 1;
   padding-left: 8px;
 }
+
 /* 减小选项之间的间隔 */
 .grid-container .el-checkbox {
   margin-bottom: 0px; /* 调整选项之间的垂直间隔 */
