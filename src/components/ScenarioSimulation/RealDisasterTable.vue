@@ -203,11 +203,11 @@ function timeSelect(){
       lastTimeData.value = newData
       // 获取变化数据的类型
       const changedDataType = changedData[0].type;
-      console.log(changedDataType,"changedDataType")
+      // console.log(changedDataType,"changedDataType")
       // // 如果变化的数据类型与当前显示的类型不同，则切换类型
       // if (changedDataType !== selectedDataType.value) {
         selectedDataType.value = changedDataType;
-        console.log(selectedDataType.value,"selectedDataType.value")
+        // console.log(selectedDataType.value,"selectedDataType.value")
         changeDataType();
       // }
     }

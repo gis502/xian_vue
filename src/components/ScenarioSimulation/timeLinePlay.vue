@@ -325,7 +325,7 @@ export default {
           }
 
           // 点闪烁
-          // await timeLine.blinkMarker(item);
+          await timeLine.blinkMarker(item);
           // console.log("blinkMarker else")
           // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           // } else {

@@ -59,9 +59,10 @@ let timeLine = {
     addDataSourceLayer(datasourcename) {
         if (datasourcename === "pointData") {
             let pointDataSource = null
-            if (window.viewer && window.viewer.dataSources._dataSources[0] && window.viewer.dataSources._dataSources.find(ds => ds.name === 'pointData')) {
-                pointDataSource = window.pointDataSource
-            } else {
+            if (window.pointDataSource) {
+                return window.pointDataSource;
+            }
+            else {
                 if (window.viewer && window.viewer.dataSources) {
                     pointDataSource = new Cesium.CustomDataSource("pointData");
                     let dataSourcePromise = window.viewer.dataSources.add(pointDataSource)
@@ -165,9 +166,11 @@ let timeLine = {
         }
         else if (datasourcename === "label") {
             let labeldataSource = null
-            if (window.viewer && window.viewer.dataSources._dataSources[0] && window.viewer.dataSources._dataSources.find(ds => ds.name === 'label')) {
-                labeldataSource = window.labeldataSource
-            } else {
+
+            if (window.labeldataSource) {
+                return window.labeldataSource;
+            }
+            else {
                 if (window.viewer && window.viewer.dataSources) {
                     labeldataSource = new Cesium.CustomDataSource("label");
                     let dataSourcePromise = window.viewer.dataSources.add(labeldataSource)
@@ -388,10 +391,10 @@ let timeLine = {
         // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
         // console.log(item, "addMakerPoint timeline")
         //点的属性 震中点统用一一个方法
-        let labeltext = null
+        // let labeltext = null
         item.longitude=parsePointString(item.geom).longitude
         item.latitude=parsePointString(item.geom).latitude
-        // let img = import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + item.icon + '.png?t=' + new Date().getTime()
+        let img =  '/images/PlotsPic/' + item.disasterType + '.png'
         let pointDataSource = this.addDataSourceLayer("pointData")
         if (pointDataSource) {
             if (window.pointDataSource.entities.getById(item.plotId)) {
@@ -425,8 +428,8 @@ let timeLine = {
                 properties: {...item}
             })
             // console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
-            let plotId = item.plotId
-            let plotType = item.plotType
+            // let plotId = item.plotId
+            // let plotType = item.plotType
 
             // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
             //     getPlotInfos({plotId, plotType}).then(res => {
@@ -920,33 +923,45 @@ let timeLine = {
     // },
     //
     // //闪烁
-    // blinkMarker(plot) {
-    //     return new Promise((resolve) => {
-    //         let entity = null
-    //         if (plot.drawtype === 'point') {
-    //             entity = window.pointDataSource.entities.getById(plot.plotId);
-    //         } else {
-    //             entity = window.viewer.entities.getById(plot.plotId); // 假设每个点都有一个唯一的id
-    //         }
-    //         if (!entity) {
-    //             console.error("Entity not found:", plot);
-    //             resolve();
-    //             return;
-    //         }
-    //         console.log(entity,"blinkMarker entity")
-    //         const interval = 200; // 每次闪烁的时间间隔
-    //         let count = 0;
-    //         const blinkInterval = setInterval(() => {
-    //             entity.show = !entity.show
-    //             count++;
-    //             if (count >= 5) {
-    //                 clearInterval(blinkInterval);
-    //                 entity.show = true;
-    //                 resolve(); // 完成闪烁，继续后续操作
-    //             }
-    //         }, interval);
-    //     });
-    // },
+    blinkMarker(plot) {
+        return new Promise((resolve) => {
+            let entity = null
+            console.log(plot,"blink")
+            // 1) 打印 pointDataSource 里的实体
+            // if (window.pointDataSource) {
+            //     console.table(
+            //         window.pointDataSource.entities.values.map(e => ({
+            //             id: e.id,
+            //             show: e.show,
+            //             layer: e.layer,
+            //             plottype: e.plottype
+            //         }))
+            //     );
+            // }
+            if (plot.drawtype === 'point') {
+                entity = window.pointDataSource.entities.getById(plot.plotId);
+            } else {
+                entity = window.viewer.entities.getById(plot.plotId); // 假设每个点都有一个唯一的id
+            }
+            if (!entity) {
+                console.error("Entity not found:", plot);
+                resolve();
+                return;
+            }
+            console.log(entity,"blinkMarker entity")
+            const interval = 200; // 每次闪烁的时间间隔
+            let count = 0;
+            const blinkInterval = setInterval(() => {
+                entity.show = !entity.show
+                count++;
+                if (count >= 5) {
+                    clearInterval(blinkInterval);
+                    entity.show = true;
+                    resolve(); // 完成闪烁，继续后续操作
+                }
+            }, interval);
+        });
+    },
     fly(lng, lat, height, time) {
         return new Promise((resolve, reject) => {
             window.viewer.scene.camera.flyTo({
