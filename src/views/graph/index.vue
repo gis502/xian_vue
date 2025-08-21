@@ -335,7 +335,8 @@ const monthDisasterMap = [
 const handleMonthClick = (index) => {
   currentMonth.value = index;
   scrollToCurrentMonth();
-  filterDisasterByMonth(index); // 切换月份时过滤数据
+  currentPage.value = 1; // 切换月份后重置到第1页
+  fetchData(); // 关键：调用fetchData请求后端数据（带当前月份的筛选条件）
   resetTimer();
 };
 
@@ -343,7 +344,8 @@ const handleMonthClick = (index) => {
 const nextMonth = () => {
   currentMonth.value = (currentMonth.value + 1) % months.length;
   scrollToCurrentMonth();
-  filterDisasterByMonth(currentMonth.value); // 切换月份时过滤数据
+  currentPage.value = 1; // 重置页码
+  fetchData(); // 重新请求后端数据
   resetTimer();
 };
 
@@ -474,6 +476,7 @@ const fetchData = async () => {
       pageSize: pageSizeNum.value,
       disasterTypes: allowedTypes // 数组参数名与后端DTO一致
     });
+
     tableData.value = res.data.records || [];
     disTotal.value = res.data.total || 0;
   } catch (error) {
@@ -487,10 +490,6 @@ const handlePageChangeDisaster = (page) => {
   currentPage.value = page;
   fetchData();
 };
-
-
-
-
 
 // 根据月份过滤灾害数据
 const filterDisasterByMonth = (monthIndex) => {
@@ -514,11 +513,7 @@ const filterDisasterByMonth = (monthIndex) => {
   }
 };
 
-// const handlePageChangeDisaster = (page) => {
-//   currentPage.value = page
-//   // 分页切换时重新过滤（基于当前月份）
-//   filterDisasterByMonth(currentMonth.value);
-// }
+
 const closePanel = () => {
   showChat.value = false
 }
