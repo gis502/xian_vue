@@ -65,7 +65,11 @@ export default {
         })
         .catch((error) => {
           console.error("获取因子数据失败:", error);
-          alert("获取因子数据失败");
+          this.$message({
+            message: "获取因子数据失败，请检查网络或服务接口状态",
+            type: "error",
+            duration: 3000 // 3秒自动关闭
+          });
         });
   },
   methods: {
@@ -124,7 +128,7 @@ export default {
     },
 
     handleSubmit() {
-      const payload = { data: {} };
+      const payload = {data: {}};
 
       for (const key in this.localFactors) {
         const factor = this.localFactors[key];
@@ -135,9 +139,13 @@ export default {
 
         // 非 rockType 需要至少一个分割点（会产生两个区间）
         if (!isRockType && ranges.length < 1) {
-          alert(`因子 "${factor.labelText}" 的区间输入无效，请输入至少一个分割点，例如：400 或 400,700`);
+          this.$message({
+            message: `因子 "${factor.labelText}" 的区间输入无效，请输入至少一个分割点，例如：400 或 400,700`,
+            type: 'error'
+          });
           return;
         }
+
 
         // 解析概率
         const probs = factor.probInput
@@ -149,40 +157,56 @@ export default {
         const intervalCount = ranges.length + 1;
 
         if (!isRockType && probs.length !== intervalCount) {
-          alert(`因子 "${factor.labelText}" 的先验概率个数应为 ${intervalCount} 个（分割点 ${ranges.length} 个 -> 区间 ${intervalCount} 个）`);
+          this.$message({
+            message: `因子 "${factor.labelText}" 的先验概率个数应为 ${intervalCount} 个（分割点 ${ranges.length} 个 -> 区间 ${intervalCount} 个）`,
+            type: 'warning'
+          });
           return;
         }
 
         if (probs.length < 1) {
-          alert(`因子 "${factor.labelText}" 的概率输入无效`);
+          this.$message({
+            message: `因子 "${factor.labelText}" 的概率输入无效`,
+            type: 'error'
+          });
           return;
         }
 
         const probSum = probs.reduce((a, b) => a + b, 0);
         if (Math.abs(probSum - 1) > 0.001) {
-          alert(`因子 "${factor.labelText}" 的先验概率之和应为 1（当前和=${probSum.toFixed(4)}）`);
+          this.$message({
+            message: `因子 "${factor.labelText}" 的先验概率之和应为 1（当前和=${probSum.toFixed(4)}）`,
+            type: 'error'
+          });
           return;
         }
 
-        // 提交时传回纯数字的 ranges（例如 [400,700]），以及概率数组
+// 提交时传回纯数字的 ranges（例如 [400,700]），以及概率数组
         payload.data[key] = {
           range: ranges,
           probability: probs
         };
-      }
 
-      // 发起 POST 请求（body = { data: { ... } }）
-      axios
-          .post("http://localhost:8085/model/bayes/change", payload, {
-            headers: { "Content-Type": "application/json" }
-          })
-          .then(() => {
-            alert("提交成功！");
-          })
-          .catch((err) => {
-            console.error("提交失败:", err);
-            alert("提交失败，请检查参数格式与后端日志");
-          });
+
+        // 发起 POST 请求（body = { data: { ... } }）
+        axios
+            .post("http://localhost:8085/model/bayes/change", payload, {
+              headers: {"Content-Type": "application/json"}
+            })
+            .then(() => {
+              this.$message({
+                message: '提交成功！',
+                type: 'success'
+              });
+            })
+            .catch((err) => {
+              console.error("提交失败:", err);
+              this.$message({
+                message: '提交失败，请检查参数格式与后端日志',
+                type: 'error'
+              });
+            });
+      }
     }
   }
 };

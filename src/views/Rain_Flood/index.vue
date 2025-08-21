@@ -23,7 +23,7 @@
           报告下载
         </div>
         <div>
-          <button class="table-btn" @click="toggleFactorPanel">致灾因子信息</button>
+          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>
         </div>
       </div>
     </div>
