@@ -76,10 +76,11 @@
   position: absolute;
   bottom: 20px; /* 可选调整 */
   right: 15px; /* 可选调整 */
-  background-color: rgba(40, 40, 40, 0.8);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  color: black;
   padding: 10px; /* 缩小内边距 */
-  border-radius: 4px;
+  border-radius: 16px;
   z-index: 1000;
   max-width: 180px; /* 缩小最大宽度 */
 }
