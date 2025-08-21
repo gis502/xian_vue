@@ -78,6 +78,7 @@ import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
 import {getDisasterRainById, getEarthquakeEventById} from "@/api/system/disasterEvents.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
+import {geomToCoordinates} from "../../cesium/geomTransfer.js";
 
 export default {
   name: "timeLinePlay",
@@ -140,7 +141,7 @@ export default {
 
     viewer(newVal) {
       // this.getPlotwithStartandEndTime(this.eqid)
-      window.viewer.timeline.container.onmouseup = (e) => {
+      viewer.timeline.container.onmouseup = (e) => {
         // this.findLastRecordTimeAndContent()
         // if(this.isMarkingLayer===false){
         //   console.log("11111 isMarkingLayer_viewer ")
@@ -165,13 +166,12 @@ export default {
       this.RealDisasterPlots.forEach(item => {
         if (!item.endTime ) {
           // 为没有结束时间的点设置默认结束时间
-          item.endTime =new Date(new Date(item.occurrenceTime).getTime()+10*24*3600  ) //20天 错误时间设置结束时间地震发生20天以后
+          item.endTime =new Date(new Date(item.startTime).getTime()+10*24*3600  ) //20天 错误时间设置结束时间地震发生20天以后
         }
         item.longitude=parsePointString(item.geom).longitude
         item.latitude=parsePointString(item.geom).latitude
         this.plots.push(item)
       })
-
       console.log(this.plots,"this.plots")
     }
     // isMarkingLayer(newVal) {
@@ -285,7 +285,7 @@ export default {
     async flyToPointsSequentially() {
       for (let index = 0; index < this.plotArrinOneTime.length; index++) {
         const item = this.plotArrinOneTime[index];
-        let lastRecordTimeLocaltmp = this.timestampToTimeChina(item.occurrenceTime)
+        let lastRecordTimeLocaltmp = this.timestampToTimeChina(item.startTime)
         if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
           this.lastRecordTimeLocal = lastRecordTimeLocaltmp
         }
@@ -314,9 +314,16 @@ export default {
           break; // 终止循环
         }
         try {
-          console.log(item)
+          console.log(item,"flyToPointsSequentially")
+          // let flylog=Number(parsePointString(item.geom).longitude)
+
+          // let flylat=Number(parsePointString(item.geom).latitude)
+          console.log(geomToCoordinates(item.geom),"geomToCoordinates(item.geom)")
+          let flylog=Number(geomToCoordinates(item.geom)[0][0])
+          let flylat=Number(geomToCoordinates(item.geom)[0][1])
+          console.log(flylog,flylat,"flylog,flylat")
           // 飞到指定点
-          await timeLine.fly(item.longitude, item.latitude, 20000);
+          await timeLine.fly(flylog, flylat, 20000);
           if (this.endflag) {
             console.log(index, this.plotArrinOneTime.length, "终止飞行222");
             // timeLine.makerLabelsShowPersonAndResouce(this.plots)
@@ -324,7 +331,7 @@ export default {
           }
 
           // 点闪烁
-          // await timeLine.blinkMarker(item);
+          await timeLine.blinkMarker(item);
           // console.log("blinkMarker else")
           // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           // } else {
@@ -349,7 +356,7 @@ export default {
         return;
       }
       this.plotArrinOneTime = this.plots.filter(plot => {
-        return this.ifArriveTime(currentTime, oldCurrentTime, plot.occurrenceTime);
+        return this.ifArriveTime(currentTime, oldCurrentTime, plot.startTime);
       });
       if (this.endflag) {
         window.viewer.clockViewModel.shouldAnimate = false;

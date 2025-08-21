@@ -16,24 +16,24 @@
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}
     </div>
     <!-- 点击弹窗 -->
-    <HiddenDisasterPanel
-        v-if="showBaseInfo"
-        :title="baseInfoTitle"
-        :position="PanelPosition"
-        :showDisasterInformation="showDisasterInformation"
-        :dataTypeHiddenDisaster="dataTypeHiddenDisaster"
-        :disasterInformation="disasterInformation"
-        :showdebrisFlowInformation="showdebrisFlowInformation"
-        :debrisFlowInformation="debrisFlowInformation"
-        :showRiskPointsInformation="showRiskPointsInformation"
-        :riskPointsInformation="riskPointsInformation"
-        :showWaterDisasterInformation="showWaterDisasterInformation"
-        :waterDisasterInformation="waterDisasterInformation"
-        :showFloodDisasterInformation="showFloodDisasterInformation"
-        :floodDisasterInformation="floodDisasterInformation"
-        :trigger="'暴雨'"
-        :rainInfo="rainInfo"
-    />
+<!--    <HiddenDisasterPanel-->
+<!--        v-if="showBaseInfo"-->
+<!--        :title="baseInfoTitle"-->
+<!--        :position="PanelPosition"-->
+<!--        :showDisasterInformation="showDisasterInformation"-->
+<!--        :dataTypeHiddenDisaster="dataTypeHiddenDisaster"-->
+<!--        :disasterInformation="disasterInformation"-->
+<!--        :showdebrisFlowInformation="showdebrisFlowInformation"-->
+<!--        :debrisFlowInformation="debrisFlowInformation"-->
+<!--        :showRiskPointsInformation="showRiskPointsInformation"-->
+<!--        :riskPointsInformation="riskPointsInformation"-->
+<!--        :showWaterDisasterInformation="showWaterDisasterInformation"-->
+<!--        :waterDisasterInformation="waterDisasterInformation"-->
+<!--        :showFloodDisasterInformation="showFloodDisasterInformation"-->
+<!--        :floodDisasterInformation="floodDisasterInformation"-->
+<!--        :trigger="'暴雨'"-->
+<!--        :rainInfo="rainInfo"-->
+<!--    />-->
 
 
     <timeLinePlay
@@ -53,10 +53,10 @@
     />
 
     <!--    表格-->
-    <RealDisasterTable
-        :dataTypes="dataTypesRealDisater"
-        :currentTime="currentTime"
-    />
+<!--    <RealDisasterTable-->
+<!--        :dataTypes="dataTypesRealDisater"-->
+<!--        :currentTime="currentTime"-->
+<!--    />-->
 <!--    <Table :show="true" :dataTypes="dataTypeHiddenDisaster"></Table>-->
 <!--    <RainInfoTable-->
 <!--        v-if="trigger === '暴雨'"-->
@@ -64,7 +64,7 @@
 <!--        :currentTime="currentTime"-->
 <!--    />-->
     <!-- 图例 -->
-<!--    <Legend></Legend>-->
+    <Legend></Legend>
   </div>
 </template>
 
@@ -133,47 +133,41 @@ export default {
       dataTypesRealDisater: {
         filterCriteria: [
           {
-            name: "人员伤亡",
+            name: "滑坡点",
             value: "type1",
           },
           {
-            name: "救援出队",
+            name: "泥石流点",
             value: "type2",
           },
           {
-            name: "灾害点",
+            name: "风险点",
             value: "type3",
           },
         ],
         type1: {
           // headers: ["滑坡灾害名称", "发生时间", "人员伤亡情况","处置阶段"],
-          headers: [
-            {name: "发生时间", key: "field1", width: "30%"},
-            {name: "位置", key: "field2", width: "15%"},
-            {name: "伤亡情况", key: "field3", width: "30%"},
-            {name: "人数", key: "field4", width: "15%"}],
+          headers: [{name: "滑坡灾害名称", key: "field1", width: "30%"},
+            {name: "发生时间", key: "field2", width: "30%"},
+            {name: "人员伤亡", key: "field3", width: "15%"},
+            {name: "处置阶段", key: "field4", width: "15%"}],
           data: [],
 
         },
         type2: {
           // headers: ["泥石流灾害名称", "发生时间", "人员伤亡情况", "处置阶段"],
-          headers: [
-            {name: "到达时间", key: "field1", width: "30%"},
-            {name: "队伍位置", key: "field2", width: "20%"},
-            {name: "队伍状态", key: "field3", width: "15%"},
-            {name: "队伍名称", key: "field4", width: "20%"},
-            {name: "出队人数", key: "field5", width: "15%"},
-            ],
+          headers: [{name: "泥石流灾害名称", key: "field1", width: "30%"},
+            {name: "发生时间", key: "field2", width: "30%"},
+            {name: "人员伤亡", key: "field3", width: "15%"},
+            {name: "处置阶段", key: "field4", width: "15%"}],
           data: [],
         },
         type3: {
           // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
-          headers: [
-            {name: "发生时间", key: "field1", width: "30%"},
-            {name: "灾害位置", key: "field2", width: "20%"},
-            {name: "灾害类型", key: "field3", width: "20%"},
-            {name: "人员伤亡", key: "field4", width: "15%"},
-            {name: "处置阶段", key: "field5", width: "15%"}],
+          headers: [{name: "风险区名称", key: "field1", width: "30%"},
+            {name: "发生时间", key: "field2", width: "30%"},
+            {name: "人员伤亡", key: "field3", width: "15%"},
+            {name: "处置阶段", key: "field4", width: "15%"}],
           data: [],
         },
       },
@@ -290,7 +284,6 @@ export default {
         console.error("Invalid occurrenceTime:", this.disasterEvent.occurrenceTime);
         return;
       }
-
 
       let startTimetmp = new Date(this.disasterEvent.occurrenceTime);
       let startTime = Cesium.JulianDate.fromDate(startTimetmp);
@@ -618,44 +611,42 @@ export default {
       this.dataTypesRealDisater.type1.data = [];
       this.dataTypesRealDisater.type2.data = [];
       this.dataTypesRealDisater.type3.data = [];
-
-
       // 风险区数据，滑坡数据，泥石流数据
       this.realDisasterPoint.forEach((item) => {
-        if(item.disasterType=="失踪人员"||item.disasterType=="轻伤人员"||item.disasterType=="重伤人员"||item.disasterType=="危重伤人员"||item.disasterType=="死亡人员"){
-          this.dataTypesRealDisater.type1.data.push({
-            field1: timeTransfer.timestampToTimeChina(item.startTime),
-            field2: item.belongCounty+item.belongTown,
-            field3: item.disasterType,
-            field4: "",
-            field5: parsePointString(item.geom).longitude,
-            field6: parsePointString(item.geom).latitude,
-            type:"type1",
-          });
+        switch (item.disasterType) {
+          case "滑坡":
+            this.dataTypesRealDisater.type1.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5: parsePointString(item.geom).longitude,
+              field6: parsePointString(item.geom).latitude,
+              type:"type1",
+            });
+            break;
+          case "泥石流":
+            this.dataTypesRealDisater.type2.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5: parsePointString(item.geom).longitude,
+              field6: parsePointString(item.geom).latitude,
+              type:"type2",
+            });
+            break;
+          default:
+            this.dataTypesRealDisater.type3.data.push({
+              field1: item.disasterName,
+              field2: timeTransfer.timestampToTimeChina(item.occurrenceTime),
+              field3: item.peopleInjure,
+              field4: item.state,
+              field5: parsePointString(item.geom).longitude,
+              field6: parsePointString(item.geom).latitude,
+              type:"type3",
+            });
         }
-        else if(item.disasterType=="已出发队伍"||item.disasterType=="正在参与队伍"||item.disasterType=="待命队伍"){
-          this.dataTypesRealDisater.type2.data.push({
-            field1: timeTransfer.timestampToTimeChina(item.startTime),
-            field2: item.belongCounty+item.belongTown,
-            field3: item.disasterType,
-            field4: "",
-            field5: parsePointString(item.geom).longitude,
-            field6: parsePointString(item.geom).latitude,
-            type:"type2",
-          });
-        }
-        else {
-          this.dataTypesRealDisater.type3.data.push({
-            field1: timeTransfer.timestampToTimeChina(item.startTime),
-            field2: item.belongCounty+item.belongTown,
-            field3: item.disasterType,
-            field4: "",
-            field5: parsePointString(item.geom).longitude,
-            field6: parsePointString(item.geom).latitude,
-            type:"type3",
-          });
-        }
-
       });
     },
     handleHiddenDisasterPointUpdate(probabilityPoints) {
@@ -793,7 +784,54 @@ export default {
       //   }
       // });
     },
-
+    // handleHiddenDisasterPointUpdate(probabilityPoints) {
+    //
+    //   // 清空表格数据
+    //   this.dataTypeHiddenDisaster.type1.data = [];
+    //   this.dataTypeHiddenDisaster.type2.data = [];
+    //   this.dataTypeHiddenDisaster.type3.data = [];
+    //   // 风险区数据，滑坡数据，泥石流数据
+    //   probabilityPoints.forEach((item) => {
+    //     switch (item.geologicalDisasterHideDTO.disasterType) {
+    //       case "滑坡":
+    //         this.dataTypeHiddenDisaster.type1.data.push({
+    //           field1: item.geologicalDisasterHideDTO.disasterName,
+    //           field2: item.geologicalDisasterHideDTO.position,
+    //           field3: item.geologicalDisasterHideDTO.scaleGrade,
+    //           field4: item.geologicalDisasterHideDTO.riskGrade,
+    //           field5: item.geologicalDisasterHideDTO.lon,
+    //           field6: item.geologicalDisasterHideDTO.lat,
+    //         });
+    //         break;
+    //       case "泥石流":
+    //         this.dataTypeHiddenDisaster.type2.data.push({
+    //           field1: item.geologicalDisasterHideDTO.disasterName,
+    //           field2: item.geologicalDisasterHideDTO.position,
+    //           field3: item.geologicalDisasterHideDTO.scaleGrade,
+    //           field4: item.geologicalDisasterHideDTO.riskGrade,
+    //           field5: item.geologicalDisasterHideDTO.lon,
+    //           field6: item.geologicalDisasterHideDTO.lat,
+    //         });
+    //         break;
+    //       default:
+    //         this.dataTypeHiddenDisaster.type3.data.push({
+    //           field1: item.geologicalDisasterHideDTO.disasterName,
+    //           field2: item.geologicalDisasterHideDTO.position,
+    //           field3: item.geologicalDisasterHideDTO.inspectorName,
+    //           field4: item.geologicalDisasterHideDTO.inspectorTele,
+    //           field5: item.geologicalDisasterHideDTO.lon,
+    //           field6: item.geologicalDisasterHideDTO.lat,
+    //         });
+    //     }
+    //   });
+    // },
+// //子-父-子，控制时间轴暂停与播放
+// handleStopTimePlay() {
+//   this.stopTimePlay = true; // 用于控制时间轴停止播放的变量
+//   console.log(this.stopTimePlay, "this.stopTimePlay")
+// },
+// handleStartTimePlay() {
+//   this.stopTimePlay = false;
   },
 
 

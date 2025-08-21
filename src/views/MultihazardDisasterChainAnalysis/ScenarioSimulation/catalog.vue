@@ -149,7 +149,7 @@ export default {
 
 
     go(row, column, cell, event) {
-      // console.log(row,"row")
+      console.log(row,"row")
       this.$router.push({name: 'thdTimeLine', params: {id: row.id,trigger:row.trigger}})
     },
   }
