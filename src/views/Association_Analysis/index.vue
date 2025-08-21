@@ -2326,10 +2326,11 @@ export default {
   position: absolute;
   top: 20px; /* 距离顶部20px */
   left: 0; /* 距离左侧20px */
-  background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
-  color: white;
+  background-color: rgba(255, 255, 255, 0.75); /* 与图例背景色一致 */
+  color: black;
   padding: 15px;
-  border-radius: 4px;
+  border: 1px solid #FFFFFF;
+  border-radius: 16px;
   z-index: 1000;
   width: 647px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
