@@ -331,10 +331,11 @@ function toggleSubway(){
   position: absolute;
   top: 10px;
   right: 20px;
-  background-color: rgba(40, 40, 40, 0.8);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  border-radius: 16px;
+  color: black;
   padding: 10px; /* 缩小内边距 */
-  border-radius: 4px;
   z-index: 1000;
   width: 160px; /* 缩小面板宽度 */
 }

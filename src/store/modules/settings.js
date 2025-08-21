@@ -10,6 +10,7 @@ const useSettingsStore = defineStore(
   {
     state: () => ({
       title: '',
+      mainLogo: '/src/assets/logo/mainlogo.png',
       theme: storageSetting.theme || '#409EFF',
       sideTheme: storageSetting.sideTheme || sideTheme,
       showSettings: showSettings,
