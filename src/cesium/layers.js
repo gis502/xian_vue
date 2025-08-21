@@ -448,9 +448,9 @@ let layers = {
         let validPoints = useSimulationPointStore().simulationPoints.filter(
             item => item && item.geologicalDisasterHideDTO
         );
-
+        console.log(963963,validPoints)
         validPoints.forEach((item) => {
-            if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+            if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
                 // item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
             }
