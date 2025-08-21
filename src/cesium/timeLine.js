@@ -1,12 +1,12 @@
 import * as Cesium from 'cesium'
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 // import cesiumPlot from "@/cesium/plot/cesiumPlot.js";
-// import plotCompute from "@/cesium/plot/plotCompute.js";
-// import {xp} from "@/cesium/drawArrow/algorithm.js";
+import plotCompute from "@/cesium/plotCompute.js";
+import {xp} from "@/cesium/ArrowalGorithm.js";
 // import {getPlotInfos} from "@/api/system/plot.js";
 import img from "@/assets/icons/TimeLine/黄点点.png";
 import {parsePointString} from "@/cesium/geomTransfer.js";
-
+import {geomToCoordinates} from "./geomTransfer.js";
 let timeLine = {
     //
     // addCenterPoint(item) {
@@ -394,7 +394,7 @@ let timeLine = {
         // let labeltext = null
         item.longitude=parsePointString(item.geom).longitude
         item.latitude=parsePointString(item.geom).latitude
-        let img =  '/images/PlotsPic/' + item.disasterType + '.png'
+        let img =  '/images/PlotsPic/' + item.plotType + '.png'
         let pointDataSource = this.addDataSourceLayer("pointData")
         if (pointDataSource) {
             if (window.pointDataSource.entities.getById(item.plotId)) {
@@ -439,298 +439,367 @@ let timeLine = {
             // }
         }
     },
-    // addPolyline(item, type) {
-    //     console.log(item, "addPolyline timeline")
-    //     if (window.viewer && window.viewer.entities) {
-    //
-    //         let material = cesiumPlot.getMaterial(item.plotType, import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + item.icon + '.png?t=' + new Date().getTime())
-    //
-    //         let positionsArr = []
-    //         item.geom.coordinates.forEach(e => {
-    //             positionsArr.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
-    //         })
-    //         if (window.viewer.entities.getById(item.plotId)) {
-    //             window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
-    //         }
-    //         window.viewer.entities.add({
-    //             availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                 start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                 stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //             })]),
-    //             id: item.plotId,
-    //             plottype: item.plotType,
-    //             layer: type,
-    //             polyline: {
-    //                 positions: positionsArr,
-    //                 width: 5,
-    //                 material: material,
-    //                 // material: Cesium.Color.YELLOW,
-    //                 // depthFailMaterial: Cesium.Color.YELLOW,
-    //                 clampToGround: true,
-    //             },
-    //             properties: {
-    //                 ...item,
-    //             }
-    //         })
-    //     }
-    // },
-    // addPolygon(item, type) {
-    //     // console.log(item, "item")
-    //     if (window.viewer && window.viewer.entities) {
-    //         if (item.plotType === "泥石流" || item.plotType === "滑坡" || item.plotType === "地面沉降" || item.plotType === "崩塌" || item.plotType === "地面塌陷") {
-    //             let polygonPoints = []
-    //             item.geom.coordinates[0].forEach(e => {
-    //                 polygonPoints.push(Cesium.Ellipsoid.WGS84.cartographicToCartesian(Cesium.Cartographic.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0))));
-    //             })
-    //             if (window.viewer.entities.getById(item.plotId)) {
-    //                 // console.log(window.viewer.entities.getById(item.plotId), "window.viewer.entities.getById(item.plotId)")
-    //                 window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
-    //             }
-    //             window.viewer.entities.add({
-    //                 availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                     start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                     stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //                 })]),
-    //                 id: item.plotId,
-    //                 layer: type,
-    //                 polygon: {
-    //                     hierarchy: new Cesium.PolygonHierarchy(polygonPoints),
-    //                     material: new Cesium.ImageMaterialProperty({
-    //                         color: Cesium.Color.WHITE.withAlpha(0.4),
-    //                     }),
-    //                     clampToGround: true,
-    //                     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,// 绑定到地形高度,让billboard贴地
-    //                     depthTest: false,//禁止深度测试但是没有下面那句有用
-    //                     disableDepthTestDistance: Number.POSITIVE_INFINITY//不再进行深度测试（真神）
-    //                 },
-    //                 properties: {
-    //                     // pointPosition: this.positions,
-    //                     // linePoint: this.polygonPointEntity,
-    //                     ...item //弹出框
-    //                 }
-    //             });
-    //
-    //             const width = 9000;  // 矩形宽度
-    //             const height = 9000; // 矩形高度
-    //             // 获取大多边形的中心点
-    //             const center = plotCompute.getPolygonCenter(polygonPoints);
-    //             // 生成小矩形的四个角点
-    //             const smallRectanglePositions = plotCompute.createContainedRectangle(center, width, height, item.angle, polygonPoints);
-    //             const diameter = Cesium.Cartesian3.distance(smallRectanglePositions[0], smallRectanglePositions[2]);
-    //
-    //             if (window.viewer.entities.getById(item.plotId + "_polygon")) {
-    //                 window.viewer.entities.removeById(item.plotId + "_polygon"); // 先删除现有实体
-    //             }
-    //             // 使用对角线作为直径绘制圆形
-    //             window.viewer.entities.add({
-    //                 availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                     start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                     stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //                 })]),
-    //                 id: item.plotId + "_polygon",
-    //                 position: center, // 圆心为大多边形的中心点
-    //                 layer: '中心图标',
-    //                 ellipse: {
-    //                     semiMajorAxis: diameter / 2, // 对角线的一半作为半径
-    //                     semiMinorAxis: diameter / 2, // 保证是一个正圆
-    //                     material: new Cesium.ImageMaterialProperty({
-    //                         image: import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + item.icon + '.png?t=' + new Date().getTime(),
-    //                         repeat: new Cesium.Cartesian2(1.02, 1.0684), // 控制图片的缩放
-    //                         color: Cesium.Color.WHITE.withAlpha(1.0),
-    //                         scale: 0.5 // 调整图片缩放比例
-    //                     }),
-    //                     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,// 绑定到地形高度,让billboard贴地
-    //                     depthTest: false,//禁止深度测试但是没有下面那句有用
-    //                     disableDepthTestDistance: Number.POSITIVE_INFINITY,//不再进行深度测试（真神）
-    //                     stRotation: Cesium.Math.toRadians(item.angle), // 图片旋转
-    //                     clampToGround: true
-    //                 },
-    //                 properties: {
-    //                     // pointPosition: this.positions,
-    //                     // linePoint: this.polygonPointEntity,
-    //                     ...item //弹出框
-    //                 }
-    //             });
-    //         }
-    //         else {
-    //             // 1-1 经纬度
-    //             let polygonPoints = []
-    //             item.geom.coordinates[0].forEach(e => {
-    //                 polygonPoints.push(Cesium.Ellipsoid.WGS84.cartographicToCartesian(Cesium.Cartographic.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0))));
-    //             })
-    //
-    //             if (window.viewer.entities.getById(item.plotId)) {
-    //                 // console.log(window.viewer.entities.getById(item.plotId), "window.viewer.entities.getById(item.plotId)")
-    //                 window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
-    //             }
-    //             window.viewer.entities.add({
-    //                 availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                     start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                     stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //                 })]),
-    //                 id: item.plotId,
-    //                 layer: type,
-    //                 polygon: {
-    //                     hierarchy: new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(polygonPoints), false),
-    //                     material: import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + item.icon + '.png?t=' + new Date().getTime(),
-    //                     // stRotation: Cesium.Math.toRadians(polygon[0].angle),
-    //                     clampToGround: true,
-    //                 },
-    //                 properties: {
-    //                     // pointPosition: this.positions,
-    //                     // linePoint: this.polygonPointEntity,
-    //                     ...item //弹出框
-    //                 }
-    //             });
-    //         }
-    //     }
-    // },
-    // addArrow(item, type) {
-    //     console.log(item,type,"addArrow timeline")
-    //     if (item.drawtype === 'straight') {
-    //         this.addStraightArrow(item, type)
-    //     } else if (item.drawtype === 'attack') {
-    //         this.addAttackArrow(item, type)
-    //     } else {
-    //         this.addPincerArrow(item, type)
-    //     }
-    // },
+    // 选择当前线的material
+    getMaterial(type,img) {
+        if(type==="量算"){
+            let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
+                color: Cesium.Color.CYAN,
+                dashPattern: parseInt("110000001111", 1),
+            })
+            return NORMALLINE
+        }
+        if(type==="地裂缝"||type==="可用供水管网"||type==="不可用供水管网"){
+            let PICTURELINE = new Cesium.ImageMaterialProperty({
+                image: img,
+                repeat: new Cesium.Cartesian2(3, 1),
+            })
+            return PICTURELINE
+        }
+        if(type==="可通行公路"||type==="限制通行公路"||type==="不可通行公路"){
+            let color = null
+            if(type==="可通行公路"){
+                color = Cesium.Color.fromBytes(158,202,181)
+            }else if(type==="限制通行公路"){
+                color = Cesium.Color.fromBytes(206,184,157)
+            }else{
+                color = Cesium.Color.fromBytes(199,151,149)
+            }
+            let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
+                color: color,
+                dashPattern: parseInt("110000001111", 1),
+            })
+            return NORMALLINE
+        }
+        if(type==="可通行铁路"||type==="不可通行铁路"){
+            let gapColor
+            if(type==="可通行铁路"){
+                gapColor = Cesium.Color.BLACK
+            }else {
+                gapColor = Cesium.Color.RED
+            }
+            let DASHLINE= new Cesium.PolylineDashMaterialProperty({
+                color: Cesium.Color.WHITE,
+                gapColor: gapColor,
+                dashLength: 100
+            })
+            return DASHLINE
+        }
+        if(type==="可用输电线路"||type==="不可用输电线路"){
+            let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
+                color: Cesium.Color.CYAN,
+                dashPattern: parseInt("110000001111", 1),
+            })
+            return NORMALLINE
+        }
+        if(type==="可用输气管线"||type==="不可用输气管线"){
+            let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
+                color: Cesium.Color.CYAN,
+                dashPattern: parseInt("110000001111", 1),
+            })
+            return NORMALLINE
+        }
+    },
+    addPolyline(item, type) {
+        console.log(item, "addPolyline timeline")
+        if (window.viewer && window.viewer.entities) {
+
+            let material = this.getMaterial(item.plotType,'/images/PlotsPic/' + item.plotType + '.png')
+
+            let positionsArr = []
+            let coordinates=geomToCoordinates(item.geom)
+            coordinates.forEach(e => {
+                positionsArr.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
+            })
+            if (window.viewer.entities.getById(item.plotId)) {
+                window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
+            }
+            window.viewer.entities.add({
+                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                    stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                })]),
+                id: item.plotId,
+                plottype: item.plotType,
+                layer: type,
+                polyline: {
+                    positions: positionsArr,
+                    width: 5,
+                    material: material,
+                    // material: Cesium.Color.YELLOW,
+                    // depthFailMaterial: Cesium.Color.YELLOW,
+                    clampToGround: true,
+                },
+                properties: {
+                    ...item,
+                }
+            })
+        }
+    },
+    addPolygon(item, type) {
+        let img =  '/images/PlotsPic/' + item.plotType + '.png'
+        console.log(item, "item")
+        if (window.viewer && window.viewer.entities) {
+            if (item.plotType === "泥石流" || item.plotType === "滑坡" || item.plotType === "地面沉降" || item.plotType === "崩塌" || item.plotType === "地面塌陷") {
+                let polygonPoints = []
+                let coordinates=geomToCoordinates(item.geom)
+                console.log(coordinates,"coordinates")
+                coordinates.forEach(e => {
+                    polygonPoints.push(Cesium.Ellipsoid.WGS84.cartographicToCartesian(Cesium.Cartographic.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0))));
+                })
+                // 让坐标逆时针，避免背面剔除
+                // polygonPoints.reverse();
+                if (window.viewer.entities.getById(item.plotId)) {
+                    // console.log(window.viewer.entities.getById(item.plotId), "window.viewer.entities.getById(item.plotId)")
+                    window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
+                }
+                window.viewer.entities.add({
+                    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                        start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                        stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                    })]),
+                    id: item.plotId,
+                    layer: type,
+                    polygon: {
+                        hierarchy: new Cesium.PolygonHierarchy(polygonPoints),
+                        material: new Cesium.ImageMaterialProperty({
+                            color: Cesium.Color.WHITE.withAlpha(0.4),
+                        }),
+                        clampToGround: true,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,// 绑定到地形高度,让billboard贴地
+                        depthTest: false,//禁止深度测试但是没有下面那句有用
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY//不再进行深度测试（真神）
+                    },
+                    properties: {
+                        // pointPosition: this.positions,
+                        // linePoint: this.polygonPointEntity,
+                        ...item //弹出框
+                    }
+                });
+
+                const width = 9000;  // 矩形宽度
+                const height = 9000; // 矩形高度
+                // 获取大多边形的中心点
+                const center = plotCompute.getPolygonCenter(polygonPoints);
+                // 生成小矩形的四个角点
+                const smallRectanglePositions = plotCompute.createContainedRectangle(center, width, height, item.angle, polygonPoints);
+                const diameter = Cesium.Cartesian3.distance(smallRectanglePositions[0], smallRectanglePositions[2]);
+
+                if (window.viewer.entities.getById(item.plotId + "_polygon")) {
+                    window.viewer.entities.removeById(item.plotId + "_polygon"); // 先删除现有实体
+                }
+                // 使用对角线作为直径绘制圆形
+                window.viewer.entities.add({
+                    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                        start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                        stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                    })]),
+                    id: item.plotId + "_polygon",
+                    position: center, // 圆心为大多边形的中心点
+                    layer: '中心图标',
+                    ellipse: {
+                        semiMajorAxis: diameter / 2, // 对角线的一半作为半径
+                        semiMinorAxis: diameter / 2, // 保证是一个正圆
+                        material: new Cesium.ImageMaterialProperty({
+                            image: img,
+                            repeat: new Cesium.Cartesian2(1.02, 1.0684), // 控制图片的缩放
+                            color: Cesium.Color.WHITE.withAlpha(1.0),
+                            scale: 0.5 // 调整图片缩放比例
+                        }),
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,// 绑定到地形高度,让billboard贴地
+                        depthTest: false,//禁止深度测试但是没有下面那句有用
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY,//不再进行深度测试（真神）
+                        stRotation: Cesium.Math.toRadians(item.angle), // 图片旋转
+                        clampToGround: true
+                    },
+                    properties: {
+                        // pointPosition: this.positions,
+                        // linePoint: this.polygonPointEntity,
+                        ...item //弹出框
+                    }
+                });
+            }
+            else {
+                // 1-1 经纬度
+                let polygonPoints = []
+                let coordinates=geomToCoordinates(item.geom)
+                coordinates.forEach(e => {
+                    polygonPoints.push(Cesium.Ellipsoid.WGS84.cartographicToCartesian(Cesium.Cartographic.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0))));
+                })
+                if (window.viewer.entities.getById(item.plotId)) {
+                    // console.log(window.viewer.entities.getById(item.plotId), "window.viewer.entities.getById(item.plotId)")
+                    window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
+                }
+                window.viewer.entities.add({
+                    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                        start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                        stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                    })]),
+                    id: item.plotId,
+                    layer: type,
+                    polygon: {
+                        hierarchy: new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(polygonPoints), false),
+                        material: img,
+                        // stRotation: Cesium.Math.toRadians(polygon[0].angle),
+                        clampToGround: true,
+                    },
+                    properties: {
+                        // pointPosition: this.positions,
+                        // linePoint: this.polygonPointEntity,
+                        ...item //弹出框
+                    }
+                });
+            }
+        }
+    },
+    addArrow(item, type) {
+        console.log(item,type,"addArrow timeline")
+        if (item.drawtype === 'straight') {
+            this.addStraightArrow(item, type)
+        } else if (item.drawtype === 'attack') {
+            this.addAttackArrow(item, type)
+        } else {
+            this.addPincerArrow(item, type)
+        }
+    },
     // //---被引用的子方法-箭头---
-    // addStraightArrow(item, type) {
-    //     if (window.viewer && window.viewer.entities) {
-    //         let arrowPoints = []
-    //         item.geom.coordinates.forEach(e => {
-    //             arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
-    //         })
-    //         var update = function () {
-    //             if (arrowPoints.length < 2) {
-    //                 return null;
-    //             }
-    //             var p1 = arrowPoints[1];
-    //             var p2 = arrowPoints[2];
-    //             var firstPoint = plotCompute.cartesianToLatlng(p1);
-    //             var endPoints = plotCompute.cartesianToLatlng(p2);
-    //             var arrow = [];
-    //             var res = xp.algorithm.fineArrow([firstPoint[0], firstPoint[1]], [endPoints[0], endPoints[1]]);
-    //             var index = JSON.stringify(res).indexOf("null");
-    //             if (index != -1) return [];
-    //             for (var i = 0; i < res.length; i++) {
-    //                 var c3 = new Cesium.Cartesian3(res[i].x, res[i].y, res[i].z);
-    //                 arrow.push(c3);
-    //             }
-    //             return new Cesium.PolygonHierarchy(arrow);
-    //         }
-    //         if (!window.viewer.entities.getById(item.plotId)) {
-    //             window.viewer.entities.add({
-    //                 availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                     start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                     stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //                 })]),
-    //                 drawtype:item.drawtype,
-    //                 id: item.plotId,
-    //                 polygon: new Cesium.PolygonGraphics({
-    //                     hierarchy: new Cesium.CallbackProperty(update, false),
-    //                     show: true,
-    //                     fill: true,
-    //                     material: Cesium.Color.BLUE  // 蓝色，透明度0.5
-    //                 }),
-    //                 layer: type,
-    //                 properties: {
-    //                     ...item
-    //                 }
-    //             })
-    //         }
-    //
-    //     }
-    // },
-    // addAttackArrow(item, type) {
-    //     if (window.viewer && window.viewer.entities) {
-    //         let arrowPoints = []
-    //         item.geom.coordinates.forEach(e => {
-    //             arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
-    //         })
-    //         var update = function () {
-    //             //计算面
-    //             if (arrowPoints.length < 3) {
-    //                 return null;
-    //             }
-    //             var lnglatArr = [];
-    //             for (var i = 0; i < arrowPoints.length; i++) {
-    //                 var lnglat = plotCompute.cartesianToLatlng(arrowPoints[i]);
-    //                 lnglatArr.push(lnglat)
-    //             }
-    //             var res = xp.algorithm.tailedAttackArrow(lnglatArr);
-    //             var index = JSON.stringify(res.polygonalPoint).indexOf("null");
-    //             var returnData = [];
-    //             if (index == -1) returnData = res.polygonalPoint;
-    //             return new Cesium.PolygonHierarchy(returnData);
-    //         }
-    //         if (window.viewer.entities.getById(item.plotId)) {
-    //             window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
-    //         }
-    //         window.viewer.entities.add({
-    //             availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                 start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                 stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //             })]),
-    //             id: item.plotId,
-    //             polygon: new Cesium.PolygonGraphics({
-    //                 hierarchy: new Cesium.CallbackProperty(update, false),
-    //                 show: true,
-    //                 fill: true,
-    //                 material: Cesium.Color.RED
-    //             }),
-    //             layer: type,
-    //             properties: {
-    //                 ...item
-    //             }
-    //         })
-    //     }
-    // },
-    // addPincerArrow(item, type) {
-    //     if (window.viewer && window.viewer.entities) {
-    //         let arrowPoints = []
-    //         item.geom.coordinates.forEach(e => {
-    //             arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
-    //         })
-    //         var update = function () {
-    //             //计算面
-    //             if (arrowPoints.length < 3) {
-    //                 return null;
-    //             }
-    //             var lnglatArr = [];
-    //             for (var i = 0; i < arrowPoints.length; i++) {
-    //                 var lnglat = plotCompute.cartesianToLatlng(arrowPoints[i]);
-    //                 lnglatArr.push(lnglat)
-    //             }
-    //             var res = xp.algorithm.doubleArrow(lnglatArr);
-    //             var returnData = [];
-    //             var index = JSON.stringify(res.polygonalPoint).indexOf("null");
-    //             if (index == -1) returnData = res.polygonalPoint;
-    //             return new Cesium.PolygonHierarchy(returnData);
-    //         }
-    //         if (window.viewer.entities.getById(item.plotId)) {
-    //             window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
-    //         }
-    //         window.viewer.entities.add({
-    //             availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                 start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-    //                 stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-    //             })]),
-    //             id: item.plotId,
-    //             polygon: new Cesium.PolygonGraphics({
-    //                 hierarchy: new Cesium.CallbackProperty(update, false),
-    //                 show: true,
-    //                 fill: true,
-    //                 material: Cesium.Color.YELLOW
-    //             }),
-    //             layer: type,
-    //             properties: {
-    //                 ...item
-    //             }
-    //         })
-    //     }
-    // },
+    addStraightArrow(item, type) {
+        if (window.viewer && window.viewer.entities) {
+            let arrowPoints = []
+            let coordinates=geomToCoordinates(item.geom)
+            coordinates.forEach(e => {
+                arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
+            })
+            var update = function () {
+                if (arrowPoints.length < 2) {
+                    return null;
+                }
+                var p1 = arrowPoints[1];
+                var p2 = arrowPoints[2];
+                var firstPoint = plotCompute.cartesianToLatlng(p1);
+                var endPoints = plotCompute.cartesianToLatlng(p2);
+                var arrow = [];
+                var res = xp.algorithm.fineArrow([firstPoint[0], firstPoint[1]], [endPoints[0], endPoints[1]]);
+                var index = JSON.stringify(res).indexOf("null");
+                if (index != -1) return [];
+                for (var i = 0; i < res.length; i++) {
+                    var c3 = new Cesium.Cartesian3(res[i].x, res[i].y, res[i].z);
+                    arrow.push(c3);
+                }
+                return new Cesium.PolygonHierarchy(arrow);
+            }
+            if (!window.viewer.entities.getById(item.plotId)) {
+                window.viewer.entities.add({
+                    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                        start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                        stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                    })]),
+                    drawtype:item.drawtype,
+                    id: item.plotId,
+                    polygon: new Cesium.PolygonGraphics({
+                        hierarchy: new Cesium.CallbackProperty(update, false),
+                        show: true,
+                        fill: true,
+                        material: Cesium.Color.BLUE  // 蓝色，透明度0.5
+                    }),
+                    layer: type,
+                    properties: {
+                        ...item
+                    }
+                })
+            }
+
+        }
+    },
+    addAttackArrow(item, type) {
+        if (window.viewer && window.viewer.entities) {
+            let arrowPoints = []
+            let coordinates=geomToCoordinates(item.geom)
+            coordinates.forEach(e => {
+                arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
+            })
+            var update = function () {
+                //计算面
+                if (arrowPoints.length < 3) {
+                    return null;
+                }
+                var lnglatArr = [];
+                for (var i = 0; i < arrowPoints.length; i++) {
+                    var lnglat = plotCompute.cartesianToLatlng(arrowPoints[i]);
+                    lnglatArr.push(lnglat)
+                }
+                var res = xp.algorithm.tailedAttackArrow(lnglatArr);
+                var index = JSON.stringify(res.polygonalPoint).indexOf("null");
+                var returnData = [];
+                if (index == -1) returnData = res.polygonalPoint;
+                return new Cesium.PolygonHierarchy(returnData);
+            }
+            if (window.viewer.entities.getById(item.plotId)) {
+                window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
+            }
+            window.viewer.entities.add({
+                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                    stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                })]),
+                id: item.plotId,
+                polygon: new Cesium.PolygonGraphics({
+                    hierarchy: new Cesium.CallbackProperty(update, false),
+                    show: true,
+                    fill: true,
+                    material: Cesium.Color.RED
+                }),
+                layer: type,
+                properties: {
+                    ...item
+                }
+            })
+        }
+    },
+    addPincerArrow(item, type) {
+        if (window.viewer && window.viewer.entities) {
+            let arrowPoints = []
+            let coordinates=geomToCoordinates(item.geom)
+            coordinates.forEach(e => {
+                arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
+            })
+            var update = function () {
+                //计算面
+                if (arrowPoints.length < 3) {
+                    return null;
+                }
+                var lnglatArr = [];
+                for (var i = 0; i < arrowPoints.length; i++) {
+                    var lnglat = plotCompute.cartesianToLatlng(arrowPoints[i]);
+                    lnglatArr.push(lnglat)
+                }
+                var res = xp.algorithm.doubleArrow(lnglatArr);
+                var returnData = [];
+                var index = JSON.stringify(res.polygonalPoint).indexOf("null");
+                if (index == -1) returnData = res.polygonalPoint;
+                return new Cesium.PolygonHierarchy(returnData);
+            }
+            if (window.viewer.entities.getById(item.plotId)) {
+                window.viewer.entities.removeById(item.plotId);  // 删除已存在的多边形实体
+            }
+            window.viewer.entities.add({
+                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                    stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                })]),
+                id: item.plotId,
+                polygon: new Cesium.PolygonGraphics({
+                    hierarchy: new Cesium.CallbackProperty(update, false),
+                    show: true,
+                    fill: true,
+                    material: Cesium.Color.YELLOW
+                }),
+                layer: type,
+                properties: {
+                    ...item
+                }
+            })
+        }
+    },
     // //标签（点线面）
     // labeltext(plotType, res) {
     //     // console.log("标签",res)

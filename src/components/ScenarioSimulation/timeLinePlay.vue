@@ -78,6 +78,7 @@ import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
 import {getDisasterRainById, getEarthquakeEventById} from "@/api/system/disasterEvents.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
+import {geomToCoordinates} from "../../cesium/geomTransfer.js";
 
 export default {
   name: "timeLinePlay",
@@ -314,8 +315,13 @@ export default {
         }
         try {
           console.log(item,"flyToPointsSequentially")
-          let flylog=Number(parsePointString(item.geom).longitude)
-          let flylat=Number(parsePointString(item.geom).latitude)
+          // let flylog=Number(parsePointString(item.geom).longitude)
+
+          // let flylat=Number(parsePointString(item.geom).latitude)
+          console.log(geomToCoordinates(item.geom),"geomToCoordinates(item.geom)")
+          let flylog=Number(geomToCoordinates(item.geom)[0][0])
+          let flylat=Number(geomToCoordinates(item.geom)[0][1])
+          console.log(flylog,flylat,"flylog,flylat")
           // 飞到指定点
           await timeLine.fly(flylog, flylat, 20000);
           if (this.endflag) {

@@ -815,25 +815,25 @@ let layers = {
         })
 
         // //---线---
-        // let polylineArr = plots.filter(e => e.drawtype === 'polyline')
-        // console.log(polylineArr, "polylineArr")
-        // polylineArr.forEach(item => {
-        //     timeLine.addPolyline(item, "标绘点")
-        // })
+        let polylineArr = plots.filter(e => e.drawtype === 'polyline')
+        console.log(polylineArr, "polylineArr")
+        polylineArr.forEach(item => {
+            timeLine.addPolyline(item, "标绘点")
+        })
         //
         // //---面---
-        // let polygonArr = plots.filter(e => e.drawtype === 'polygon')
-        // console.log(polygonArr, "polygonArr")
-        // polygonArr.forEach(item => {
-        //     timeLine.addPolygon(item, "标绘点")
-        // })
-        //
-        //
-        // //---箭头绘制---
-        // let arrowArr = plots.filter(e => e.drawtype === 'straight' || e.drawtype === 'attack' || e.drawtype === 'pincer');
-        // arrowArr.forEach(item => {
-        //     timeLine.addArrow(item, "标绘点")
-        // })
+        let polygonArr = plots.filter(e => e.drawtype === 'polygon')
+        console.log(polygonArr, "polygonArr")
+        polygonArr.forEach(item => {
+            timeLine.addPolygon(item, "标绘点")
+        })
+
+
+        //---箭头绘制---
+        let arrowArr = plots.filter(e => e.drawtype === 'straight' || e.drawtype === 'attack' || e.drawtype === 'pincer');
+        arrowArr.forEach(item => {
+            timeLine.addArrow(item, "标绘点")
+        })
     },
 
     flashHiddenBreathCircle(item) {
