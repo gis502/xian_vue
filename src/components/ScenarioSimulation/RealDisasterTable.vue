@@ -98,7 +98,7 @@ const filteredTableData = ref([]);
 
 // 总页数
 const totalPages = computed(() =>
-    Math.ceil(filteredTableData.value.length / pageSize)
+    Math.ceil(tableData.value.length / pageSize)
 );
 
 // 当前页的数据
@@ -109,12 +109,30 @@ const paginatedTableData = computed(() => {
 });
 
 function changeDataType() {
-
   const typeData = props.dataTypes[selectedDataType.value];
+  // const typeData = props.dataTypes[lastTimeData.value];
+
   tableHeaders.value = typeData.headers;
-  tableData.value = typeData.data;
+  // tableData.value = typeData.data;
+  // 1. 先取交集
+  let intersection =typeData.data.filter(td =>
+      lastTimeData.value.some(ltd =>
+          ltd.field1 === td.field1 &&
+          ltd.field2 === td.field2 &&
+          ltd.field3 === td.field3
+      )
+  );
+  // 2. 再按时间倒序排序（越晚越靠前）
+  intersection.sort((a, b) => {
+    const timeA = timeTransfer.timeChinaToNewDate(a.field1);
+    const timeB = timeTransfer.timeChinaToNewDate(b.field1);
+    return timeB - timeA;   // 晚 - 早  =>  晚的在前
+  });
+
+  tableData.value = intersection;
   searchQuery.value = "";
   currentPage.value = 1;
+  // currentPage.value = totalPages.value;
 }
 
 function nextPage() {
@@ -183,15 +201,15 @@ function timeSelect(){
     if (changedData.length > 0) {
       // 更新 lastTimeData.value，只添加新数据或更新变化的数据
       lastTimeData.value = newData
-
-
       // 获取变化数据的类型
       const changedDataType = changedData[0].type;
+      console.log(changedDataType,"changedDataType")
       // // 如果变化的数据类型与当前显示的类型不同，则切换类型
-      if (changedDataType !== selectedDataType.value) {
+      // if (changedDataType !== selectedDataType.value) {
         selectedDataType.value = changedDataType;
+        console.log(selectedDataType.value,"selectedDataType.value")
         changeDataType();
-      }
+      // }
     }
   }
 
