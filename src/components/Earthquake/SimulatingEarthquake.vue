@@ -5,8 +5,8 @@
       v-show="isShow"
       class="earthquake-info-panel"
       :style="{
-      top: position.y + 'px',
-      left: position.x + 'px',
+      top: 76.444+'px',
+      left: 575.667 + 'px',
     }"
   >
     <div style="padding: 10px">
@@ -386,22 +386,22 @@ async function confirmEarthquake(formEl) {
         longitude: position.longitude,
         latitude: position.latitude,
       });
-      // console.log("--------------------------------------------------------------")
       layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
 
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
       console.log("inEllipsePoints", inEllipsePoints);
       // 获取各个点的风险概率
-      const [points, probabilityPoints] =
-          await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-      console.log(points, probabilityPoints, "points, probabilityPoints")
-      emit('updateEqInfo', probabilityPoints)
-      layers.flashHiddenDisasterPoints(probabilityPoints)
-      // console.log(898989898989,inEllipsePoints)
-      // 处理表格和chart数据
-      addDatasToTableAndChart(probabilityPoints);
-
+      if (inEllipsePoints.length!==0){
+        const [points, probabilityPoints] =
+            await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
+        emit('updateEqInfo', probabilityPoints)
+        layers.flashHiddenDisasterPoints(probabilityPoints)
+        // console.log(898989898989,inEllipsePoints)
+        // 处理表格和chart数据
+        addDatasToTableAndChart(probabilityPoints);
+      };
+      // console.log(points, probabilityPoints, "points, probabilityPoints")
       // 显示表格和chart
       emit("displayTable");
       emit("displayChart");

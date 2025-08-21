@@ -108,7 +108,7 @@ export class PulseTool {
     const startTime = Cesium.JulianDate.now();
 
     const entity = window.viewer.entities.add({
-      id: pulseId,
+      // id: pulseId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
         image: this._circle,
