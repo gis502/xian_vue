@@ -76,7 +76,6 @@ export const constantRoutes = [
     children: [
       {
         path: '/thdTimeLine/:id/:trigger',
-        // path: '/thdTimeLine',
         component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
         name: 'thdTimeLine',
         props: true,

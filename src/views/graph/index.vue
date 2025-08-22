@@ -124,6 +124,7 @@
 
     <div class="toggle-button open" @click="updateChartData" v-show="ifShowCatalog"><p style="color: black">多灾种信息列表</p></div>
     <div class="chat-panel" v-if="showChat">
+
       <div class="chat-title">灾害信息列表</div>
       <div class="toggle-button closed" @click="closePanel">关闭</div>
 
@@ -165,8 +166,29 @@
       />
     </div>
 
-  </div>
+    <!-- 底部时间轴组件 -->
+    <div class="timeline-container">
+      <div class="timeline-scroll" ref="timelineScroll">
+        <div class="timeline-wrapper" ref="timelineWrapper">
+          <!-- 横线容器 - 用于连接所有月份 -->
+          <div class="timeline-connector"></div>
 
+          <div
+              class="timeline-item"
+              v-for="(month, index) in months"
+              :key="index"
+              :class="{ active: currentMonth === index }"
+              @click="handleMonthClick(index)"
+          >
+            <div class="month-circle"></div>
+            <div class="month-label">{{ month }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
 </template>
 
 <script setup>
@@ -285,6 +307,81 @@ const formatDate = (dateStr) => {
 //新闻模块结束*********************
 
 
+// 时间轴相关变量****************
+const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+const currentMonth = ref(0) // 当前选中月份索引
+const timelineScroll = ref(null)
+const timelineWrapper = ref(null)
+const timer = ref(null)
+// 月份与灾害类型的映射关系（索引0=1月，11=12月）
+const monthDisasterMap = [
+  ['earthquake'], // 1月：默认展示所有
+  ['fire'], // 2月：默认展示所有
+  ['fire'], // 3月：默认展示所有
+  ['fire'], // 4月：仅展示火灾
+  ['fire'], // 5月：仅展示火灾
+  ['rain','earthquake'], // 6月：仅展示暴雨
+  ['rain'], // 7月：仅展示暴雨
+  ['rain'], // 8月：仅展示暴雨
+  ['fire'], // 9月：默认展示所有
+  ['fire'], // 10月：默认展示所有
+  ['fire'], // 11月：默认展示所有
+  ['fire']  // 12月：默认展示所有
+];
+
+
+
+// 点击月份切换
+const handleMonthClick = async (index) => {
+  currentMonth.value = index;
+  scrollToCurrentMonth();
+  currentPage.value = 1; // 重置分页
+
+  await fetchData(); // ✅ 等数据更新完成
+
+  if (tableData.value.length > 0) {
+    await getData(tableData.value[0]); // ✅ 切换月份后展示第一条
+  }
+
+  resetTimer(); // 时间轴轮播重置
+};
+
+
+// 切换到下一个月
+const nextMonth = () => {
+  currentMonth.value = (currentMonth.value + 1) % months.length;
+  scrollToCurrentMonth();
+  currentPage.value = 1; // 重置页码
+  fetchData(); // 重新请求后端数据
+  resetTimer();
+};
+
+
+// 滚动到当前选中月份
+const scrollToCurrentMonth = () => {
+  if (timelineScroll.value && timelineWrapper.value) {
+    const itemWidth = 100 // 每个月份项宽度
+    const scrollLeft = currentMonth.value * itemWidth - 200 // 居中显示
+    timelineScroll.value.scrollTo({
+      left: scrollLeft > 0 ? scrollLeft : 0,
+      behavior: 'smooth'
+    })
+  }
+}
+
+// 重置自动轮播定时器
+const resetTimer = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
+  timer.value = setInterval(() => {
+    nextMonth()
+  }, 180000) //
+}
+
+//时间轴结束**************
+
+
 
 // ECharts 配置
 const echartsOption = ref({
@@ -306,7 +403,9 @@ const echartsOption = ref({
     force: {
       repulsion: 1000,
       edgeLength: [100, 200],
-      layoutAnimation: true,
+      layoutAnimation: true, // 关闭布局动画（关键：避免新增节点时的位置突变）
+      gravity: 0.1, // 降低引力，减少整体向中心聚集的趋势
+      friction: 0.9 // 增加摩擦系数，让布局更快稳定
     },
     symbolSize: 70,
     nodeScaleRatio: 1,
@@ -371,30 +470,36 @@ const lastDisasterData = ref([])
 // 最新的灾害的eqid
 const lastDiasterId = ref()
 const lastEqRainId = ref()
+// 新增：存储所有灾害原始数据（未过滤）
+const allTableData = ref([]);
 
 
 const fetchData = async () => {
   try {
-    const res = await getEarthquakeRainPage(currentPage.value, pageSizeNum.value)
-    tableData.value = res.data.records
-    lastItem= tableData.value[0]
-    disTotal.value = res.data.total
-    console.log('最新数据:', tableData.value)
-    console.log('最新数据总数:',  disTotal.value)
+    const allowedTypes = monthDisasterMap[currentMonth.value] || [];
+    console.log('allowedTypes:', allowedTypes)
+    const res = await getEarthquakeRainPage({
+      pageNum: currentPage.value,
+      pageSize: pageSizeNum.value,
+      disasterTypes: allowedTypes // 数组参数名与后端DTO一致
+    });
 
-    await getData(lastItem) // 放这里确保拿到的是最新数据
+    tableData.value = res.data.records || [];
+    disTotal.value = res.data.total || 0;
   } catch (error) {
-    console.error('请求数据失败', error)
-    tableData.value = []
-    disTotal.value = 0
-    lastItem.value = null
+    console.error('请求数据失败', error);
+    tableData.value = [];
+    disTotal.value = 0;
   }
-}
+};
 
 const handlePageChangeDisaster = (page) => {
-  currentPage.value = page
-  fetchData()
-}
+  currentPage.value = page;
+  fetchData();
+};
+
+
+
 const closePanel = () => {
   showChat.value = false
 }
@@ -414,11 +519,19 @@ const getData = async (item) => {
       console.warn("无效灾害数据");
       return;
     }
-
-    const isRain = item.disasterType === 'rain';
-    const eqid = isRain ? item.rainDisasterId : item.earthquakeDisasterId;
-    const disasterType = isRain ? 'rain' : 'earthquake';
-    console.log("eqid", eqid)
+    let eqid;
+    let disasterType;
+    if (item.disasterType === 'rain') {
+      eqid = item.rainDisasterId;
+      disasterType = 'rain';
+    } else if (item.disasterType === 'earthquake') {
+      eqid = item.earthquakeDisasterId;
+      disasterType = 'earthquake';
+    } else {
+      // 其他灾害类型处理逻辑，比如洪水、台风
+      eqid = null;
+      disasterType = 'unknown';
+    }
 
     if (!eqid) {
       console.warn("灾害 ID 缺失，无法获取图谱");
@@ -431,64 +544,65 @@ const getData = async (item) => {
     lastDisasterData.value = item;
 
     // 设置不同的分类数据结构
-    if (isRain) {
-      firstData.value = [
-        { name: '突发事件' },
-        { name: '危险源和风险隐患区' },
-        { name: '防护目标' },
-        { name: '应急保障资源' },
-        { name: '应急知识' },
-        { name: '应急预案' },
-        { name: '应急平台' }
-      ];
-      secondData.value = [
-        // 对应“突发事件”的二级分类（原始结构中“自然灾害/事故灾难...”为二级）
-        { name: '自然灾害' },
-        { name: '事故灾难' },
-        { name: '公共卫生事件' },
-        { name: '社会安全事件' },
+    firstData.value = [
+      { name: '突发事件' },
+      { name: '危险源和风险隐患区' },
+      { name: '防护目标' },
+      { name: '应急保障资源' },
+      { name: '应急知识' },
+      { name: '应急预案' },
+      { name: '应急平台' }
+    ];
+    secondData.value = [
+      // 对应“突发事件”的二级分类（原始结构中“自然灾害/事故灾难...”为二级）
+      { name: '自然灾害' },
+      { name: '事故灾难' },
+      { name: '公共卫生事件' },
+      { name: '社会安全事件' },
 
-        // 对应“危险源和风险隐患区”的二级分类
-        { name: '自然灾害风险隐患区' },
-        { name: '事故灾难风险隐患区' },
-        { name: '公共卫生风险隐患区' },
-        { name: '社会安全风险隐患区' },
+      // 对应“危险源和风险隐患区”的二级分类
+      { name: '自然灾害风险隐患区' },
+      { name: '事故灾难风险隐患区' },
+      { name: '公共卫生风险隐患区' },
+      { name: '社会安全风险隐患区' },
 
-        // 对应“防护目标”的二级分类
-        { name: '重要部位' },
-        { name: '关键基础设施' },
+      // 对应“防护目标”的二级分类
+      { name: '重要部位' },
+      { name: '关键基础设施' },
 
-        // 对应“应急保障资源”的二级分类
-        { name: '应急机构' },
-        { name: '应急人力资源' },
-        { name: '应急物资保障资源' },
-        { name: '应急通信资源' },
-        { name: '应急运输与物流资源' },
-        { name: '医疗卫生资源' },
-        { name: '应急避难场区' },
-        { name: '应急财力资源' },
+      // 对应“应急保障资源”的二级分类
+      { name: '应急机构' },
+      { name: '应急人力资源' },
+      { name: '应急物资保障资源' },
+      { name: '应急通信资源' },
+      { name: '应急运输与物流资源' },
+      { name: '医疗卫生资源' },
+      { name: '应急避难场区' },
+      { name: '应急财力资源' },
 
-        // 对应“应急知识”的二级分类
-        { name: '法律法规' },
-        { name: '技术规范' },
+      // 对应“应急知识”的二级分类
+      { name: '法律法规' },
+      { name: '技术规范' },
 
-        // 对应“应急预案”的二级分类
-        { name: '国家级应急预案' },
-        { name: '省级应急预案' },
-        { name: '市级应急预案' },
-        { name: '基层应急预案' },
-        { name: '企业级应急预案' },
-        { name: '军队应急预案' },
+      // 对应“应急预案”的二级分类
+      { name: '国家级应急预案' },
+      { name: '省级应急预案' },
+      { name: '市级应急预案' },
+      { name: '基层应急预案' },
+      { name: '企业级应急预案' },
+      { name: '军队应急预案' },
 
-        // 对应“应急平台”的二级分类
-        { name: '国务院应急平台' },
-        { name: '地方应急平台' },
-        { name: '部门应急平台' },
-        { name: '基层应急平台' },
-        { name: '企业应急平台' },
-        { name: '军队应急平台' },
-        { name: '移动应急平台' }
-      ];
+      // 对应“应急平台”的二级分类
+      { name: '国务院应急平台' },
+      { name: '地方应急平台' },
+      { name: '部门应急平台' },
+      { name: '基层应急平台' },
+      { name: '企业应急平台' },
+      { name: '军队应急平台' },
+      { name: '移动应急平台' }
+    ];
+
+    if (item.disasterType === 'rain') {
       list.value = [
         {
           id: 1,
@@ -581,7 +695,7 @@ const getData = async (item) => {
         }
       ];
 
-    } else  {
+    }  else if (item.disasterType === 'earthquake'){
       firstData.value = [
         { name: '地震震情信息' },
         { name: '地震灾情信息' },
@@ -845,7 +959,6 @@ const filterTopThreeLevels = () => {
   };
 };
 
-// 初始化图表
 // 初始化图表
 const initChart = () => {
   if (!chart.value) return;
@@ -1220,12 +1333,20 @@ const handleChildClick = (child) => {
 // 生命周期钩子
 onMounted(async () => {
   await fetchData()
+  if (tableData.value.length > 0) {
+    await getData(tableData.value[0]);
+  }
+
+  resetTimer()
 });
 
 onBeforeUnmount(() => {
   if (echartsInstance.value) {
     echartsInstance.value.dispose();
     window.removeEventListener('resize', handleResize);
+  }
+  if (timer.value) {
+    clearInterval(timer.value)
   }
 });
 
@@ -1508,7 +1629,7 @@ onBeforeUnmount(() => {
 //多灾害列表***********
   .chat-panel {
     position: absolute;
-    bottom: 90px;
+    bottom: 80px;
     right: 20px;
     width: 600px;
     background: #ffffff;
@@ -1819,7 +1940,7 @@ onBeforeUnmount(() => {
 //新闻列表
 .news-float-box {
   position: absolute;
-  top: 40px;
+  top: 10px;
   right: 20px;
   bottom: 60px;
   width: 500px;
@@ -1887,8 +2008,127 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
+// 时间轴组件样式（调整后）
+.timeline-container {
+  position: absolute;
+  bottom: 20px;
+  left: 55%;
+  transform: translateX(-50%);
+  width: 35%;
+  max-width: 1200px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .timeline-title {
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
 
 
+  .timeline-wrapper {
+    display: flex;
+    gap: 25px; /* 增大间距，适应中文显示 */
+    padding: 0 20px;
+    position: relative;
+  }
+
+  .timeline-connector {
+    position: absolute;
+    top: 10px; /* 调整横线位置以适应更小的圆圈 */
+    left: 30px;
+    right: 30px; /* 向右延伸一点，确保截止到12月的球 */
+    height: 2px;
+    background: linear-gradient(90deg,
+    rgba(64, 158, 255, 0.3) 0%,
+    rgba(64, 158, 255, 0.8) 50%,
+    rgba(64, 158, 255, 0.3) 100%);
+    z-index: 0;
+  }
+
+  .timeline-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    width: 30px; /* 固定宽度确保对齐 */
+    text-align: center;
+
+    // 进一步缩小圆形尺寸
+    .month-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 2px solid #409EFF;
+      transition: all 0.3s ease;
+    }
+
+    .month-label {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+
+    &:hover {
+      .month-circle {
+        transform: scale(1.2);
+        box-shadow: 0 0 8px rgba(64, 158, 255, 0.5);
+      }
+    }
+
+    &.active {
+      .month-circle {
+        background-color: #409EFF;
+        color: white;
+        box-shadow: 0 0 12px rgba(64, 158, 255, 0.7);
+      }
+
+      .month-label {
+        color: #409EFF;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .timeline-controls {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+
+    .control-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #409EFF;
+      background-color: white;
+      color: #409EFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: #409EFF;
+        color: white;
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+// 调整底部元素位置
+.knowledgeGraph {
+  padding-bottom: 100px;
+}
 </style>
 
 
