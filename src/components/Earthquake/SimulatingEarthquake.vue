@@ -5,8 +5,8 @@
       v-show="isShow"
       class="earthquake-info-panel"
       :style="{
-      top: position.y + 'px',
-      left: position.x + 'px',
+      top: 76.444+'px',
+      left: 575.667 + 'px',
     }"
   >
     <div style="padding: 10px">
@@ -386,22 +386,30 @@ async function confirmEarthquake(formEl) {
         longitude: position.longitude,
         latitude: position.latitude,
       });
-      // console.log("--------------------------------------------------------------")
       layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
 
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
       console.log("inEllipsePoints", inEllipsePoints);
+      const favEllipsePoints = [];
       // 获取各个点的风险概率
-      const [points, probabilityPoints] =
-          await obtainTheProbabilityOfSimulatedPointRisk(inEllipsePoints);
-      console.log(points, probabilityPoints, "points, probabilityPoints")
-      emit('updateEqInfo', probabilityPoints)
-      layers.flashHiddenDisasterPoints(probabilityPoints)
-      // console.log(898989898989,inEllipsePoints)
-      // 处理表格和chart数据
-      addDatasToTableAndChart(probabilityPoints);
-
+      if (inEllipsePoints.length!==0){
+        for (let i=0; i<inEllipsePoints.length;i++){
+          if (inEllipsePoints[i].factorVoList!=null){
+            favEllipsePoints.push(inEllipsePoints[i])
+          }
+        }
+      };
+      console.log("favEllipsePoints",favEllipsePoints);
+      if (favEllipsePoints.length!==0){
+        const [points, probabilityPoints] =
+            await obtainTheProbabilityOfSimulatedPointRisk(favEllipsePoints);
+        emit('updateEqInfo', probabilityPoints)
+        console.log("probabilityPoints",probabilityPoints)
+        layers.flashHiddenDisasterPoints(probabilityPoints)
+        // 处理表格和chart数据
+        addDatasToTableAndChart(probabilityPoints);
+      }
       // 显示表格和chart
       emit("displayTable");
       emit("displayChart");

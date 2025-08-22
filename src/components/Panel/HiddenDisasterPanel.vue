@@ -80,7 +80,7 @@ onMounted(() => {
 });
 
 watch(() => props.disasterInformation, (newVal, oldVal) => {
-  console.log('disasterInformation updated:', newVal);
+  console.log('disasterInformation u`pdated:', newVal);
 });
 
 watch(() => props.debrisFlowInformation, (newVal, oldVal) => {

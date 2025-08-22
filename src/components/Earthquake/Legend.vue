@@ -1,69 +1,70 @@
 <template>
-  <div class="legend">
-    <div class="legend-title">图例</div>
-    <div class="legend-item">
-      <span class="legend-color" id="earthquake"></span>灾害中心
+    <div class="legend">
+      <div class="legend-title">图例</div>
+      <div class="legend-item">
+        <span class="legend-color" id="earthquake"></span>灾害中心
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="landslide"></div>
+        滑坡隐患点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="debrisflow"></div>
+        泥石流隐患点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="flashflood"></div>
+        山洪
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="water"></div>
+        内涝点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="riskArea"></div>
+        风险区域
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="earthquakeline"></div>
+        断裂带
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="predictMidDisaster"></div>
+        中风险预警点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="predictHighDisaster"></div>
+        高风险预警点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="realDisaster"></div>
+        灾害点
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="hospital"></div>
+        医院
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="dangerSource"></div>
+        危险源(加油加气站)
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="shelter"></div>
+        避难所
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="firefighter"></div>
+        消防站
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="storePoint"></div>
+        储备站
+      </div>
     </div>
-    <div class="legend-item">
-      <div class="legend-color" id="landslide"></div>
-      滑坡隐患点
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="debrisflow"></div>
-      泥石流隐患点
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="flashflood"></div>
-      山洪
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="water"></div>
-      内涝点
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="riskArea"></div>
-      风险区域
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="earthquakeline"></div>
-      断裂带
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="predictMidDisaster"></div>
-      中风险预警点
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="predictHighDisaster"></div>
-      高风险预警点
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="realDisaster"></div>
-      灾害点
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="hospital"></div>
-      医院
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="dangerSource"></div>
-      危险源(加油加气站)
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="shelter"></div>
-      避难所
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="firefighter"></div>
-      消防站
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" id="storePoint"></div>
-      储备站
-    </div>
-  </div>
 </template>
 
 <script setup name="Legend">
+
 </script>
 
 <style scoped>
