@@ -161,6 +161,7 @@ let layers = {
 
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
+        console.log(777777,ellipseParams)
         // 先添加遮罩层，确保它在最底层
         // const rotation = Cesium.Math.toRadians(strikeDirection - 90);
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
@@ -189,7 +190,7 @@ let layers = {
             //    这里选椭圆“正上”方向（rotation=0 时即正北）
             const angleRad = Cesium.Math.toRadians(rotation); // 椭圆长轴方向
             // 长轴端点在地球表面上的位移（近似）
-            const offsetMeters = params.semiMajorAxis * 0.5; // 1.1 倍半径
+            const offsetMeters = params.semiMajorAxis * 1.1; // 1.1 倍半径
             const offsetLon = (offsetMeters / 111320) * Math.sin(angleRad);
             const offsetLat = (offsetMeters / 111320) * Math.cos(angleRad);
             // 3. 文字实体
@@ -445,18 +446,17 @@ let layers = {
         let allHiddenDisasterinEllipse = [];
         let rotation = layers.calculateRotation(longitude, latitude, magnitude)
         const params = layers.calculateEllipseParams(magnitude).at(-2);
-        console.log(123123,params)
 
         let validPoints = useSimulationPointStore().simulationPoints.filter(
             item => item && item.geologicalDisasterHideDTO
         );
+        console.log(963963,validPoints)
         validPoints.forEach((item) => {
-            if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+            if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
                 // item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
             }
         })
-        // console.log("allHiddenDisasterinEllipse",allHiddenDisasterinEllipse)
         return allHiddenDisasterinEllipse
     },
 

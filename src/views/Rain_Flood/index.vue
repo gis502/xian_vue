@@ -23,7 +23,7 @@
           报告下载
         </div>
         <div>
-          <button class="table-btn" @click="toggleFactorPanel">致灾因子信息</button>
+          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>
         </div>
       </div>
     </div>
@@ -1476,18 +1476,20 @@ export default {
         formData.append('file', blob, 'cesium_with_legend.png')
 
         // ✅ 正确解析 fetch 返回的 JSON
-        const response = await saveCanvas(formData)
-        const res = await response.json() // 关键：这里也要 await
-        const imgUrl = res.data
-        console.log(imgUrl, "imgUrl")
+        // const response = await saveCanvas(formData)
+        // const res = await response.json() // 关键：这里也要 await
+        // const imgUrl = res.data
+        // console.log(imgUrl, "imgUrl")
 
         // ✅ 生成 Word
-        const wordRes = await generateRainReport(imgUrl)
+        // const wordRes = await generateRainReport(imgUrl)
+        const wordRes = await generateRainReport("1")
         console.log(wordRes, "wordRes")
         const wordUrl = wordRes.data
 
         // ✅ 触发下载
         const link = document.createElement('a');
+        // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
         link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
         link.download = wordUrl;                         // 强制触发下载
         link.click();

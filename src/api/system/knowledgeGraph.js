@@ -32,10 +32,11 @@ export function getNewsPage(pageNum, pageSize, lastItem) {
 }
 
 
-export function getEarthquakeRainPage(pageNum, pageSize) {
+// 接口函数（POST）
+export function getEarthquakeRainPage(data) {
     return request({
         url: '/earthquake-rain/list',
-        method: 'get',
-        params: { pageNum, pageSize }
+        method: 'post',
+        data: data, // 自动转为JSON，axios默认Content-Type为application/json
     });
 }
