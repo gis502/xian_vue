@@ -34,7 +34,7 @@ import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
-
+import {getExcelPlotInfo} from "@/api/system/disasterEvents.js";
 export default {
   data() {
     return {
@@ -138,10 +138,10 @@ export default {
           if (this.disasterEvent.trigger == "地震") {
             this.selectedlayers = ["灾害点","烈度圈"];
             await this.updateMapLayers();
-            if (this.onceLoadLayer) {
-              this.$emit('update:onceLoadLayer', false);
-              viewer.clockViewModel.shouldAnimate = true;
-            }
+            // if (this.onceLoadLayer) {
+            //   this.$emit('update:onceLoadLayer', false);
+            //   viewer.clockViewModel.shouldAnimate = true;
+            // }
           }
       }
       // if (this.onceLoadLayer) {
@@ -155,7 +155,7 @@ export default {
       //
       // }
     },
-    disasterEvent() {
+    async disasterEvent() {
       if (this.disasterEvent.trigger == "暴雨") {
         function convertToArray(str) {
           return str.split(',').map(item => item.trim());
@@ -166,6 +166,26 @@ export default {
         this.rainfallArry = convertToArray(this.disasterEvent.rainfall);
         this.durationArry = convertToArray(this.disasterEvent.duration);
       }
+      this.realDisasterPoint = await selectDisasterRealByDisasterId({
+        disasterId: this.disasterEvent.disasterId,
+        disasterTrigger: this.disasterEvent.trigger
+      })
+
+      const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
+      const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
+      console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
+      const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
+      console.log("updatedRes processDataEqid",batchData)
+      this.$emit("update:realDisasterPointWithInfo", batchData);
+      if (this.onceLoadLayer) {
+        this.$emit('update:onceLoadLayer', false);
+        viewer.clockViewModel.shouldAnimate = true;
+      }
+
+
+
+      // const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
+
 
     }
   },
@@ -332,11 +352,11 @@ export default {
                   this.calculationMessage = '';
                 }, 3000);
 
-                // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-                if (this.onceLoadLayer) {
-                  this.$emit('update:onceLoadLayer', false);
-                  viewer.clockViewModel.shouldAnimate = true;
-                }
+                // // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+                // if (this.onceLoadLayer) {
+                //   this.$emit('update:onceLoadLayer', false);
+                //   viewer.clockViewModel.shouldAnimate = true;
+                // }
               } else if (this.disasterEvent.trigger == "暴雨") {
                 // 汇总所有区县的匹配数据
                 let allMatchedHuapoData = [];
@@ -370,10 +390,10 @@ export default {
                   this.calculationMessage = '';
                 }, 3000);
                 // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-                if (this.onceLoadLayer) {
-                  this.$emit('update:onceLoadLayer', false);
-                  viewer.clockViewModel.shouldAnimate = true;
-                }
+                // if (this.onceLoadLayer) {
+                //   this.$emit('update:onceLoadLayer', false);
+                //   viewer.clockViewModel.shouldAnimate = true;
+                // }
               }
               this.firstLoad.预警点 = false
             }
@@ -387,13 +407,13 @@ export default {
           add: async () => {
 
             let disaterEndTime=new Date(new Date(this.disasterEvent.occurrenceTime).getTime() + 10 * 24 * 3600 * 1000);
-            console.log(disaterEndTime,"disaterEndTime")
-            if (!this.realDisasterPoint) {
-              this.realDisasterPoint = await selectDisasterRealByDisasterId({
-                disasterId: this.disasterEvent.disasterId,
-                disasterTrigger: this.disasterEvent.trigger
-              })
-              console.log(this.realDisasterPoint,"this.realDisasterPoint before")
+            // console.log(disaterEndTime,"disaterEndTime")
+            // if (!this.realDisasterPoint) {
+              // this.realDisasterPoint = await selectDisasterRealByDisasterId({
+              //   disasterId: this.disasterEvent.disasterId,
+              //   disasterTrigger: this.disasterEvent.trigger
+              // })
+              // console.log(this.realDisasterPoint,"this.realDisasterPoint before")
               this.realDisasterPoint.forEach(item => {
                 // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
                 if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
@@ -406,14 +426,26 @@ export default {
                 }
               })
               this.$emit("update:realDisasterPoint", this.realDisasterPoint);
-              console.log(this.realDisasterPoint,"this.realDisasterPoint")
+              // console.log(this.realDisasterPoint,"this.realDisasterPoint")
+
+              // const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
+              // const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
+              // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
+              // const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
+              // console.log("updatedRes processDataEqid",batchData)
+
               layers.addRealDisaterPlot(this.realDisasterPoint)
+            // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+            // if (this.onceLoadLayer) {
+            //   this.$emit('update:onceLoadLayer', false);
+            //   viewer.clockViewModel.shouldAnimate = true;
+            // }
               // layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            }
-            else {
+            // }
+            // else {
               // layers.addRealDisaterPlot(this.realDisasterPoint)
               // layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            }
+            // }
           },
           remove: () => {
             // 移除滑坡事件实体

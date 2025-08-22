@@ -242,12 +242,14 @@ watch(() => props.currentTime, () => {
 });
 // 监听 dataTypes 的变化
 watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
+  console.log(props.dataTypes,"props.dataTypes")
   if(newDataTypes){
     allData.value = [
       ...(newDataTypes.type1?.data || []),
       ...(newDataTypes.type2?.data || []),
       ...(newDataTypes.type3?.data || []),
     ];
+    console.log(allData.value,"allData.value")
     timeSelect();
   }
 
