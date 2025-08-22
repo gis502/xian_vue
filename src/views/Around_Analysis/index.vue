@@ -256,7 +256,7 @@ export default {
     return {
       disasterEntities: [],
       showChart: false,
-      showTable: true,
+      showTable: false,
       viewer: null,
       wmsLayers: [],
       currentMapType: 0,
@@ -451,7 +451,6 @@ export default {
           roll: 0.0
         }
       });
-
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
@@ -525,7 +524,6 @@ export default {
         console.error('河流GeoJSON数据加载失败');
         return;
       }
-
       this.isLoading = true;
       this.loadingText = '加载河流数据...';
 
@@ -619,8 +617,8 @@ export default {
             billboard: {
               // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
               image: landslideIcon,
-              width: 60, // 图片宽度,单位px
-              height: 60, // 图片高度，单位px
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
               eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
               color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
               scale: 0.8, // 缩放比例
@@ -628,24 +626,6 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
-            },
-            // 文字
-            label: {
-              text: `${disasterNAME}`,
-              font: '15pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, -35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
               show: true
             },
             // 添加灾害类型信息，用于弹窗显示
@@ -675,8 +655,8 @@ export default {
             billboard: {
               // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
               image: flowIcon,
-              width: 60, // 图片宽度,单位px
-              height: 60, // 图片高度，单位px
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
               eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
               color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
               scale: 0.8, // 缩放比例
@@ -684,24 +664,6 @@ export default {
               scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
               depthTest: false, // 禁止深度测试
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-              show: true
-            },
-            // 文字
-            label: {
-              text: `${disasterNAME}`,
-              font: '15pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, 35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
               show: true
             },
             // 添加灾害类型信息，用于弹窗显示
@@ -734,8 +696,8 @@ export default {
             billboard: {
               // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
               image: riskAreaIcon,
-              width: 60, // 图片宽度,单位px
-              height: 60, // 图片高度，单位px
+              width: 40, // 图片宽度,单位px
+              height: 40, // 图片高度，单位px
               eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
               color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
               scale: 0.8, // 缩放比例
@@ -745,24 +707,24 @@ export default {
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
               show: true
             },
-            // 文字
-            label: {
-              text: `${position}`,
-              font: '15pt Source Han Sans CN',
-              fillColor: Cesium.Color.WHITE,
-              backgroundColor: Cesium.Color.AQUA,
-              showBackground: false,
-              outline: true,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 10,
-              scale: 1.0,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.CENTER,
-              horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-              pixelOffset: new Cesium.Cartesian2(-70, -35),
-              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-              show: true
-            },
+            // // 文字
+            // label: {
+            //   text: `${position}`,
+            //   font: '15pt Source Han Sans CN',
+            //   fillColor: Cesium.Color.WHITE,
+            //   backgroundColor: Cesium.Color.AQUA,
+            //   showBackground: false,
+            //   outline: true,
+            //   outlineColor: Cesium.Color.BLACK,
+            //   outlineWidth: 10,
+            //   scale: 1.0,
+            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
+            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
+            //   show: false
+            // },
             // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription({position}, '次生灾害风险区'),
             // 保存原始样式，用于闪烁恢复
@@ -810,7 +772,7 @@ export default {
         // 检查点击是否在实体上
         const pickedObject = this.viewer.scene.pick(movement.position);
         // 判断是否有disasterName属性
-        if (pickedObject.id._disasterData === undefined) {
+        if (pickedObject.id.disasterData === undefined) {
           return;
         }
         // 隐藏之前的弹出面板
@@ -819,7 +781,7 @@ export default {
         if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
           const entity = pickedObject.id;
           // 获取实体的灾害数据
-          this.selectedEntityData = entity._disasterData || {};
+          this.selectedEntityData = entity.disasterData || {};
           // 计算弹出框位置并显示面板
           this.calculateAndShowPopup(entity, movement.position);
         } else {
@@ -827,70 +789,6 @@ export default {
           this.viewer.selectedEntity = undefined;
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    },
-    // 配置行政区划样式
-    configureAdminStyles(dataSource, i, color) {
-      if (!dataSource) return;
-
-      const entities = dataSource.entities.values;
-
-      entities.forEach(entity => {
-        const name = entity.properties.name._value || dataSource.name;
-
-        entity.polygon = {
-          hierarchy: entity.polygon.hierarchy,
-          material: color,
-          outline: true,
-          outlineColor: Cesium.Color.BLUE,
-          outlineWidth: 1,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          show: this.showAdminLayer, // 使用统一的显示控制
-          fill: true,
-          shadow: true,
-          depthFailMaterial: color.withAlpha(0.2)
-        };
-
-        entity.label = {
-          text: name,
-          font: '12px sans-serif',
-          fillColor: Cesium.Color.BLACK,
-          backgroundColor: color.withAlpha(0.7),
-          padding: new Cesium.Cartesian2(5, 5),
-          showBackground: true,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, 10),
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          show: this.showAdminLayer // 使用统一的显示控制
-        };
-
-      });
-    },
-    //定义行政区划颜色
-    generateRandomColor(i) {
-      // 定义13种不同的颜色
-      const colors = [
-        new Cesium.Color(255 / 255, 153 / 255, 0 / 255, 0.5),    // 活力橙
-        new Cesium.Color(255 / 255, 51 / 255, 102 / 255, 0.5),   // 亮粉红
-        new Cesium.Color(0 / 255, 178 / 255, 255 / 255, 0.5),    // 天蓝色
-        new Cesium.Color(102 / 255, 255 / 255, 102 / 255, 0.5),  // 浅绿色
-        new Cesium.Color(204 / 255, 102 / 255, 255 / 255, 0.5),  // 淡紫色
-        new Cesium.Color(255 / 255, 204 / 255, 0 / 255, 0.5),    // 金黄色
-        new Cesium.Color(0 / 255, 204 / 255, 153 / 255, 0.5),    // 青绿色
-        new Cesium.Color(255 / 255, 102 / 255, 102 / 255, 0.5),  // 浅红色
-        new Cesium.Color(102 / 255, 153 / 255, 255 / 255, 0.5),  // 淡蓝色
-        new Cesium.Color(255 / 255, 178 / 255, 102 / 255, 0.5),  // 浅橙色
-        new Cesium.Color(153 / 255, 255 / 255, 204 / 255, 0.5),  // 淡青色
-        new Cesium.Color(255 / 255, 153 / 255, 204 / 255, 0.5),  // 浅粉色
-        new Cesium.Color(190 / 255, 255 / 255, 232 / 255, 0.5),  // 淡靛紫
-      ];
-
-      // 确保索引在有效范围内
-      if (i >= 0 && i < colors.length) {
-        return colors[i];
-      } else {
-        // 如果索引超出范围，使用默认颜色或循环使用已有颜色
-        return colors[i % colors.length];
-      }
     },
     // 准备开始点击事件
     toggleRainMode() {
@@ -1029,7 +927,6 @@ export default {
         );
     }
   `;
-
       this.rainEffect = new Cesium.PostProcessStage({
         fragmentShader: rainFragmentShader,
         uniforms: {
@@ -1037,12 +934,10 @@ export default {
           rainArea: new Cesium.Cartesian4(0.25, 0.25, 0.5, 0.5)
         }
       });
-
       // 添加到场景但默认禁用
       this.viewer.scene.postProcessStages.add(this.rainEffect);
       this.rainEffect.enabled = false;
-
-      // 设置降雨量的方法
+      //设置半径
       this.setRainIntensity = (value) => {
         this.rainEffect.uniforms.rainIntensity = Math.max(0.0, Math.min(1.0, value));
         this.updateRainUI(value); // 更新UI显示
@@ -1054,18 +949,16 @@ export default {
         const percentage = Math.round(intensity * 100);
         this.rainControlUI.intensityLabel.textContent = `降雨量: ${percentage}%`;
         this.rainControlUI.intensitySlider.value = percentage;
-
         // 根据雨的强度改变按钮颜色
         const hue = 100 - intensity * 50; // 从蓝色到深蓝色
         this.rainControlUI.toggleBtn.style.backgroundColor = `hsl(${hue}, 80%, 45%)`;
       }
     },
-    // 添加暴雨影响区域椭圆
+    // 添加暴雨影响区域圆
     addRainEllipse(centerCartesian, rainfall) {
-      // 根据降雨量计算椭圆半径 (mm -> 米)
-      const Radius = rainfall * this.rainEllipseScale; // 长轴半径
-
-      // 计算椭圆边界的经纬度坐标
+      // 根据所给量计算圆半径 (mm -> 米)
+      const Radius = rainfall * this.rainEllipseScale; // 半径
+      // 计算圆边界的经纬度坐标
       const ellipseCoordinates = this.calculateEllipseCoordinates(
           centerCartesian,
           Radius,
@@ -1091,11 +984,8 @@ export default {
 
       // 存储圆坐标数据
       ellipseEntity.coordinates = ellipseCoordinates;
-
       // 检测灾害点是否在圆范围内
-      // this.checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, Radius);
-      this.checkOtherPointsInEllipse(ellipseEntity, centerCartesian, Radius);
-
+      this.checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, Radius);
       return ellipseEntity;
     },
     // 计算圆形边界的经纬度坐标
@@ -1377,7 +1267,6 @@ export default {
             });
           }
         });
-
         //消防站表数据加载
         fireDates.forEach(entity => {
           const entityCoords4 = entity.geometry.coordinates;
@@ -1413,18 +1302,7 @@ export default {
             });
           }
         });
-
         this.showTable = true;
-        // 更新椭圆描述，显示检测结果
-//         const description = ellipseEntity.description.getValue();
-//         ellipseEntity.description = description + `
-//   <p><strong>其他点:</strong> ${allPointsInside.length}个</p>
-//   <p><strong>医院:</strong> ${hospitalPointsInside.length}个</p>
-//   <p><strong>风险源:</strong> ${dangerSourcePointsInside.length}个</p>
-//   <p><strong>避难所:</strong> ${shelterPointsInside.length}个</p>
-//   <p><strong>消防站:</strong> ${fireFighterPointsInside.length}个</p>
-//   <p><strong>储备点:</strong> ${storePointsInside.length}个</p>
-// `;
         this.initColumGraph(hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside);
       }
     },
@@ -1727,10 +1605,10 @@ export default {
 
 
 .rain-btn{
-  background-color: rgba(35, 158, 187, 1);
+  background-color: #3c86ff;
   color: white;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.3s;
@@ -1742,7 +1620,7 @@ export default {
 }
 
 .rain-btn:hover {
-  background-color: rgba(33, 158, 188, 1);
+  background-color: #3c86ff;
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
