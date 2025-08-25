@@ -166,7 +166,7 @@ const hazards = computed(() => {
   }
 });
 
-console.log(8746551,hazards.value);
+// console.log(8746551,hazards.value);
 
 function handleRainfallAndDuration(info, trigger) {
   info.factorVoList.forEach((element) => {

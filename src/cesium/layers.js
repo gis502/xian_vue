@@ -33,7 +33,8 @@ let layers = {
         this.removeIsoseismalCircle()
         let rotation = this.calculateRotation(longitude, latitude, magnitude)
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
-        this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
+        let circle_param = this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
+        return circle_param;
     },
     calculateRotation(longitude, latitude) {
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
@@ -158,10 +159,11 @@ let layers = {
         let position = point;
         // 根据断裂带计算的角度
         let strikeDirection = rotation;
-
+        //八度以上烈度圈面积
+        let CircleArea;
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
-        console.log(777777,ellipseParams)
+
         // 先添加遮罩层，确保它在最底层
         // const rotation = Cesium.Math.toRadians(strikeDirection - 90);
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
@@ -213,6 +215,18 @@ let layers = {
                 }
             });
         });
+        for (let i=0;i<ellipseParams.length;i++){
+            if (ellipseParams[i].intensity===9){
+                CircleArea = Math.PI * ellipseParams[i].semiMajorAxis * ellipseParams[i].semiMinorAxis;
+                const Elliptic_param = {
+                    semiMajorAxis: ellipseParams[i].semiMajorAxis,
+                    semiMinorAxis: ellipseParams[i].semiMinorAxis,
+                    CircleArea: CircleArea,
+                    rotation: rotation
+                }
+                return Elliptic_param;
+            }
+        }
     },
     calculateEllipseParams(magnitude) {
 
@@ -277,9 +291,9 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 50;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 50;
             // console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;

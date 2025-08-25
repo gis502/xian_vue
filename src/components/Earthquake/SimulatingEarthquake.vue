@@ -205,7 +205,7 @@ import {obtainTheProbabilityOfSimulatedPointRisk} from "../../api/earthquake/haz
 import layers from "../../cesium/layers";
 import basicLayers from "../../cesium/basicLayers";
 // (hazardsParams)致灾因子后端数据（此处是模拟）
-import {addDisaster, hazardsParams} from "../../api/earthquake/datas";
+import {addDisaster, addEarthquake, hazardsParams} from "../../api/earthquake/datas";
 import {parseTime} from "../../utils/ruoyi";
 
 
@@ -227,7 +227,7 @@ let form = reactive({
   name: "",
   fullName: "",
   position: `${province}${city}${position.name ? position.name : ""}`,
-  magnitude: 6,
+  magnitude: 7,
   depth: 0,
   longitude: parseFloat(position.longitude.toFixed(4)),
   latitude: parseFloat(position.latitude.toFixed(4)),
@@ -386,8 +386,38 @@ async function confirmEarthquake(formEl) {
         longitude: position.longitude,
         latitude: position.latitude,
       });
-      layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
-
+      const base = layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
+      let circle_param = reactive({
+        name: form.name,
+        fullName: form.fullName,
+        position: form.position,
+        magnitude: form.magnitude,
+        depth: form.depth,
+        longitude: position.longitude,
+        latitude: position.latitude,
+        dateTime: form.dateTime,
+        type: form.type,
+        circleArea: base.CircleArea,
+        rotation: base.rotation,
+        semiMajorAxis: base.semiMajorAxis,
+        semiMinorAxis: base.semiMinorAxis,
+        // 下面数据非必须数据
+        source: "",
+        countyCode: "",
+        townshipCode: "",
+        district: position.name,
+        province: province,
+        city: city,
+      });
+      console.log(878787,circle_param);
+      // 调用函数发送请求
+      addEarthquake(circle_param)
+          .then(response => {
+            console.log("灾害信息添加成功", response);
+          })
+          .catch(error => {
+            console.error("灾害信息添加失败", error);
+          });
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
       console.log("inEllipsePoints", inEllipsePoints);

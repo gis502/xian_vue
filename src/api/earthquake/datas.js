@@ -202,3 +202,17 @@ export const addDisaster = (data) => {
     data,
   });
 };
+
+/**
+ * 添加地震数据到灾害表中
+ * @param {*} data - 添加的数据
+ * @returns
+ */
+export const addEarthquake = (data) => {
+  return request({
+    url: "/XianEarthquakeList/earthquake/add",
+    method: "post",
+    data,
+  })
+}
+
