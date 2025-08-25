@@ -65,9 +65,9 @@ export default {
       positionEntity: {x: 580, y: 20},
       districts: [
         {name: "新城区", code: "610102"},
-        {name: "碑林区", code: "610103"},
-        {name: "莲湖区", code: "610104"},
-        {name: "雁塔区", code: "610113"},
+        {name: "碑林区", code: "610103"},//无
+        {name: "莲湖区", code: "610104"},//无
+        {name: "雁塔区", code: "610113"},//无
         {name: "灞桥区", code: "610111"},
         {name: "未央区", code: "610112"},
         {name: "阎良区", code: "610114"},

@@ -158,12 +158,11 @@ import landslideIcon from "@/assets/images/landslide.png"
 import riskArea from "@/assets/static/disaster/xian_risk.json"
 import riskAreaIcon from "@/assets/images/riskArea.png"
 import flowIcon from "@/assets/images/DebrisFlow.png"
-import CesiumNavigation from "cesium-navigation-es6";
 import {init_cesium_navigation, initCesium} from '@/cesium/initLayer.js'
-import axios from 'axios';
-import {getFlow, getRisk, getSlide,getHistoryDisaster} from "@/api/system/association_analysis.js";
+import {getFlow, getHistoryDisaster, getRisk, getSlide} from "@/api/system/association_analysis.js";
 import * as echarts from "echarts";
 import basicLayers from "@/cesium/basicLayers.js";
+import {getRain} from "@/api/system/aroundanalysis.js";
 
 export default {
   name: "index",
@@ -202,6 +201,7 @@ export default {
       bearing: 0,//烈度圈偏转角度
       earthPoint:null,//地震点
       eqlistName: '',
+      rainData: null,
       //天气相关数据
       weatherData: null,
       weatherLoading: false,
@@ -238,17 +238,17 @@ export default {
       cityWeather: {}, // 西安市整体天气
       districts: [ // 区县列表（含 adcode）
         { name: '灞桥区', adcode: '610111' },
-        { name: '碑林区', adcode: '610103' },
+        // { name: '碑林区', adcode: '610103' },//无
         { name: '长安区', adcode: '610116' },
         { name: '高陵区', adcode: '610117' },
         { name: '鄠邑区', adcode: '610118' },
         { name: '蓝田县', adcode: '610122' },
-        { name: '莲湖区', adcode: '610104' },
+        // { name: '莲湖区', adcode: '610104' },//无
         { name: '临潼区', adcode: '610115' },
         { name: '未央区', adcode: '610112' },
         { name: '新城区', adcode: '610102' },
         { name: '阎良区', adcode: '610114' },
-        { name: '雁塔区', adcode: '610113' },
+        // { name: '雁塔区', adcode: '610113' },//无
         { name: '周至县', adcode: '610124' }
       ],
       districtWeather: [], // 区县天气数据
@@ -275,11 +275,7 @@ export default {
 
   mounted() {
     this.init();
-    // this.AddCompass();
-    // basicLayers.loadAdminData();
-    // this.loadAdminData(); // 加载行政区划数据
-    // this.createLegend(); // 创建图例
-
+    basicLayers.loadAdminData();
   },
 
   computed: {
@@ -308,14 +304,11 @@ export default {
   },
 
   methods: {
-
     init() {
-
       this.viewer = initCesium("cesiumContainer")
-
       // 注释版权信息
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
-      init_cesium_navigation(108.948024, 34.263161, 200000,this.viewer);
+      init_cesium_navigation(108.948024, 34.263161, 200000, this.viewer);
       window.viewer=this.viewer
       //定位到西安
       // this.locatedXiAn();
@@ -329,294 +322,96 @@ export default {
           roll: 0.0,
         },
       });
-      basicLayers.loadAdminData();
-      // 获取天气数据
-      // this.fetchWeatherData();
-
       // 添加风险区
       this.Addriskzone();
-
       //添加滑坡隐患点
       this.AddSlide();
-
       //添加泥石流隐患点
       this.AddFlow();
-
       //获取区县所有气象数据，并把它们存入数组
-      this.fetchDistrictWeather();
-
+      this.getData();
     },
-
-    // 获取高德天气数据
-    // fetchWeatherData() {
-    //   this.weatherLoading = true;
-    //   this.weatherError = null;
-    //
-    //   // 使用 extensions=all 获取更详细的天气数据（可能包含降雨量）
-    //   const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=${this.weather}&city=610100&extensions=all`;
-    //
-    //   axios.get(url)
-    //       .then(response => {
-    //         // console.log('完整API响应:', response.data);
-    //
-    //         if (response.data.status !== '1') {
-    //           throw new Error(`API错误: ${response.data.info}`);
-    //         }
-    //
-    //         // 提取实时天气数据（如果有）
-    //         const liveData = response.data.lives && response.data.lives.length > 0
-    //             ? response.data.lives[0]
-    //             : {};
-    //
-    //         // 提取预报天气数据（可能包含降雨量）
-    //         const forecastData = response.data.forecasts && response.data.forecasts.length > 0 &&
-    //         response.data.forecasts[0].casts && response.data.forecasts[0].casts.length > 0
-    //             ? response.data.forecasts[0].casts[0] // 今天的预报
-    //             : {};
-    //
-    //         // 整合数据，优先使用实时数据，缺少的字段用预报数据补充
-    //         this.weatherData = {
-    //           weather: liveData.weather || forecastData.dayweather || '-', // 天气状况
-    //           temperature: liveData.temperature || forecastData.daytemp || '-', // 温度
-    //           humidity: liveData.humidity ||
-    //               liveData.humidity_float ||  // 备选字段
-    //               '50',
-    //           precipitation: liveData.precipitation || forecastData.dayrain || forecastData.rainfall || '0', // 降雨量
-    //           winddirection: liveData.winddirection ||
-    //               forecastData.daywind ||  // 预报中的风向
-    //               forecastData.winddirection ||  // 备选字段
-    //               '无风向数据',  // 最终默认值
-    //           reporttime: liveData.reporttime || new Date().toLocaleString(), // 报告时间
-    //         };
-    //
-    //         // console.log('整合后的天气数据:', this.weatherData);
-    //       })
-    //       .catch(error => {
-    //         this.weatherError = error.message;
-    //         console.error('获取天气数据出错:', error);
-    //       })
-    //       .finally(() => {
-    //         this.weatherLoading = false;
-    //       });
-    // },
+    async getData(){
+      await getRain().then(res => {
+        this.rainData = res.data;
+      })
+      this.fetchDistrictWeather();
+    },
     //获取各区县天气数据
-    async fetchDistrictWeather() {
+    fetchDistrictWeather() {
       // 清空原有数据
       this.weather_data = [];
       this.districtWeather = [];
-
-
-      const requests = this.districts.map(async (district) => {
-        try {
-          const res = await axios.get(
-              `https://restapi.amap.com/v3/weather/weatherInfo?key=${this.weather}&city=${district.adcode}&extensions=base`
-          );
-
-          if (res.data.status === '1' && res.data.lives && res.data.lives.length > 0) {
-            // 成功获取数据：保留完整信息 + 模拟降雨量
-            const weatherData = {
+      const rainFeatures = this.rainData?.features || [];
+      console.log(112, rainFeatures);
+      // 处理数据，过滤掉 null 值
+      const allResults = this.districts
+          .map((district) => {
+            const point = rainFeatures.find(p =>
+                p.properties.adminCode == district.adcode&&
+                p.properties.relativeHumidity != null
+            );
+            if (!point) {
+              console.warn(`未找到 ${district.name} 的天气数据`);
+              return { ...district, rainfall: 0, temperature: 0, humidity: 0};
+            }
+            if (point) {
+              return {
+                ...district,
+                rainfall: point.properties.rainPreHours ?? 0,
+                temperature: point.properties.temperature ?? 0,
+                humidity: point.properties.relativeHumidity ?? 0,
+              };
+            }
+            // 即使理论上不会出现，也返回一个标记对象
+            return {
               ...district,
-              ...res.data.lives[0],
-              rainfall: this.simulateRainfall(), // 模拟降雨量
-              is_valid: true // 标记为有效数据
+              rainfall: 0, // 默认值
+              temperature: 0,
+              humidity: 0,
+              missingData: true // 添加标记
             };
-            // console.log(`${district.name} 数据正常:`, weatherData);
-            return weatherData;
-          }
-
-          // 无数据：仅保留名称，其他字段置空，模拟降雨量
-          const noData = {
-            ...district,
-            weather: '无数据',
-            temperature: '-',
-            humidity: '-',
-            winddirection: '-',
-            rainfall: this.simulateRainfall(), // 模拟降雨量
-            is_valid: false // 标记为无效数据
-          };
-          // console.log(`${district.name} 无数据:`, noData);
-          return noData;
-        } catch (err) {
-          // 请求失败：仅保留名称，其他字段置空，模拟降雨量
-          const errorData = {
-            ...district,
-            weather: '获取失败',
-            temperature: '-',
-            humidity: '-',
-            winddirection: '-',
-            rainfall: this.simulateRainfall(), // 模拟降雨量
-            is_valid: false // 标记为无效数据
-          };
-          console.error(`${district.name} 获取失败:`, err);
-          return errorData;
-        }
-      });
-
-      const allResults = await Promise.all(requests);
+          })
       this.districtWeather = allResults;
-
-
-      const validDataList = allResults.filter(item => item.is_valid);
-      const baseData = validDataList.length > 0 ? validDataList[0] : null;
-
-
-      let p = allResults.map(item => {
-        if (item.is_valid) {
-          // 有效数据：直接保留
-          return item;
-        } else {
-          // 无效数据：保留名称和自身模拟的降雨量，其他字段复用baseData
-          if (baseData) {
-            return {
-              name: item.name, // 保留自身名称
-              adcode: item.adcode, // 保留自身adcode
-              rainfall: item.rainfall, // 使用自身模拟的降雨量
-              // 其他字段复用第一个有效数据的值
-              province: baseData.province,
-              city: baseData.city,
-              weather: baseData.weather,
-              temperature: baseData.temperature,
-              humidity: baseData.humidity,
-              winddirection: baseData.winddirection,
-              windpower: baseData.windpower,
-              reporttime: baseData.reporttime
-            };
-          } else {
-            // 极端情况：无任何有效数据，仅保留名称和模拟的降雨量
-            return {
-              name: item.name,
-              adcode: item.adcode,
-              weather: '无数据',
-              rainfall: item.rainfall // 使用自身模拟的降雨量
-            };
-          }
-        }
-      });
-
-      p.sort((a, b) => b.rainfall - a.rainfall);
-
-      this.weather_data.push(...p)
+      // 直接使用 allResults，不需要再次映射
+      const sortedWeatherData = [...allResults]
+          .sort((a, b) => b.rainfall - a.rainfall)
+          .map(item => ({
+            name: item.name,
+            adcode: item.adcode,
+            rainfall: item.rainfall,
+            temperature: item.temperature,
+            humidity: item.humidity,
+          }));
+      this.weather_data = sortedWeatherData;
       this.flashPoints();
-      // console.log('最终处理后的天气数据:', this.weather_data);
     },
-
-    simulateRainfall() {
-      // 根据天气状况调整降雨量概率分布
-      const weatherConditions = ['晴', '多云', '阴', '小雨', '中雨', '大雨', '暴雨'];
-      const randomWeather = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
-
-      let minRain = 0;
-      let maxRain = 50;
-
-      // 根据天气类型调整降雨量范围
-      switch (randomWeather) {
-        case '晴':
-        case '多云':
-        case '阴':
-          minRain = 20;
-          maxRain = 35; // 晴天最多5毫米
-          break;
-        case '小雨':
-          minRain = 35;
-          maxRain = 85;
-          break;
-        case '中雨':
-          minRain = 30;
-          maxRain = 95;
-          break;
-        case '大雨':
-          minRain = 30;
-          maxRain = 100;
-          break;
-        case '暴雨':
-          minRain = 50.1;
-          maxRain = 100;
-          break;
-      }
-
-      // 生成指定范围内的随机降雨量，保留1位小数
-      const rainfall = (Math.random() * (maxRain - minRain) + minRain).toFixed(1);
-      return parseFloat(rainfall); // 转换为数字类型
-    },
-
-    refreshWeather() {
-      this.fetchWeatherData();
-    },
-
-    getWeatherIcon(code) {
-      // 打印实际获取的天气代码，方便调试
-      // console.log('Weather code:', code);
-
-      // 处理可能的 null/undefined 情况
-      if (!code) {
-        return this.weatherIconMap.default || '🌍';
-      }
-
-      // 统一转换为字符串，避免类型不匹配
-      const codeStr = code.toString();
-
-
-      // 如果映射表中有对应项，返回对应图标
-      if (this.weatherIconMap[codeStr]) {
-        return this.weatherIconMap[codeStr];
-      }
-
-      // 否则返回默认图标
-      return this.weatherIconMap.default || '🌍';
-    },
-
-    shouldShowRainfall(weatherText) {
-      if (!weatherText) return false;
-
-      // 包含雨、雪、雷等关键字的天气状况显示降雨量
-      const rainfallKeywords = ['雨', '雪', '雷', '雹', '冻'];
-      return rainfallKeywords.some(keyword => weatherText.includes(keyword));
-    },
-
-    formatTime(timeStr) {
-      if (!timeStr) return '-';
-
-      // 如果是 ISO 格式的时间字符串
-      if (timeStr.includes('T')) {
-        return new Date(timeStr).toLocaleString();
-      }
-
-      // 处理高德 API 返回的格式（如 "2025-07-23 16:38:23"）
-      return timeStr.replace(' ', ' '); // 简单处理，可根据需要优化
-    },
-
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
       }
     },
-
     nextPointPage() {
       if (this.currentPointPage < this.totalPointPages) {
         this.currentPointPage++;
       }
     },
-
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
       }
     },
-
     prevPointPage() {
       if (this.currentPointPage > 1) {
         this.currentPointPage--;
       }
     },
-
     toggleTableVisibility() {
       this.isTableVisible = !this.isTableVisible;
     },
-
     togglePointTableVisibility(){
       this.iswarn_point_table = !this.iswarn_point_table;
     },
-
     locatedXiAn() {
       //默认定位到西安
       const savedView = localStorage.getItem('mapView');
@@ -647,39 +442,6 @@ export default {
         }));
       });
     },
-
-    // AddCompass(){
-    //   //添加罗盘功能
-    //   const options = {};
-    //
-    //   options.defaultResetView = Cesium.Cartographic.fromDegrees(108.948024, 34.263161, 40000.0);
-    //   // 相机方向
-    //   options.orientation = {
-    //     heading: Cesium.Math.toRadians(0),   // 朝向正北（0度）
-    //     roll: 0 // 翻滚角为0
-    //   };
-    //   // 相机延时
-    //   // options.duration = 4; // 默认为3s
-    //
-    //   // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
-    //   options.enableCompass = true;
-    //   // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
-    //   options.enableZoomControls = true;
-    //   // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
-    //   options.enableDistanceLegend = true;
-    //   // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
-    //   options.enableCompassOuterRing = true;
-    //
-    //   // 修改重置视图的tooltip
-    //   options.resetTooltip = "重置视图";
-    //   // 修改放大按钮的tooltip
-    //   options.zoomInTooltip = "放大";
-    //   // 修改缩小按钮的tooltip
-    //   options.zoomOutTooltip = "缩小";
-    //
-    //   new CesiumNavigation(this.viewer, options);
-    // },
-
     AddSlide(){
       let pointInfo;
       //添加滑坡隐患点数据
@@ -731,7 +493,6 @@ export default {
       // 设置点击事件处理
       this.setupEntityClickHandler();
     },
-
     AddFlow(){
       let pointInfo;
       getFlow().then(params =>{
@@ -779,15 +540,11 @@ export default {
         })
       });
     },
-
     Addriskzone() {
       let riskAreaInfo;
       getRisk().then(risk => {
         let data = risk.data.features;
         data.forEach(point => {
-          // this.riskzone.push(point.properties)
-          // locat = this.extractDistrictName(point.properties.position);
-          // console.log(44444,locat);
           let lon = point.geometry.coordinates[0];
           let lat = point.geometry.coordinates[1];
           // 存储点的详细信息（从原始数据中提取）
@@ -830,28 +587,11 @@ export default {
       // 设置点击事件处理
       this.setupEntityClickHandler();
     },
-
-    // 提取区县名称的工具函数
-    // extractDistrictName(address) {
-    //   // 地址格式："陕西省西安市XX区/县XX街道..."
-    //   // 匹配 "西安市" 后的第一个 "区" 或 "县" 名称
-    //   const regex = /西安市([^区]+[区|县])/;
-    //   const match = address.match(regex);
-    //   if (match && match[1]) {
-    //     return match[1].trim(); // 提取并去除空格（如 "灞桥区"）
-    //   }
-    //   // 兼容其他格式（如无"西安市"直接匹配区县）
-    //   const backupRegex = /([^省]+[区|县])/;
-    //   const backupMatch = address.match(backupRegex);
-    //   return backupMatch?.[1]?.trim() || '未知区县';
-    // },
-
     setupEntityClickHandler() {
       // 清除旧的事件处理程序
       if (this.entityClickHandler) {
         this.entityClickHandler.destroy();
       }
-
       // 添加新的事件处理程序
       this.entityClickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
       this.entityClickHandler.setInputAction((click) => {
@@ -890,7 +630,6 @@ export default {
             });
           }
           else if (entity.userData && entity.userData.type === 'flow') {
-
             //屏幕坐标转世界坐标
             let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
             //世界坐标转经纬度
@@ -916,7 +655,6 @@ export default {
             });
           }
           else if (entity.userData && entity.userData.type === 'riskArea') {
-
             //屏幕坐标转世界坐标
             let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
             //世界坐标转经纬度
@@ -946,25 +684,19 @@ export default {
     },
 
     showInfoList(info,entity) {
-
       // 清除现有信息窗口
       const existingWindows = document.querySelectorAll('.cesium-info-window');
       existingWindows.forEach(win => win.remove());
-
-
       // 获取实体位置的屏幕坐标
       const position = entity.position.getValue(this.viewer.clock.currentTime);
       const canvasPosition = this.viewer.scene.cartesianToCanvasCoordinates(position);
       if (!canvasPosition) return; // 位置不可见时返回
-
       // 创建信息列表DOM（可替换为框架组件）
       const container = document.createElement('div');
       container.className = 'cesium-info-window';
-
       // 计算窗口位置（基于屏幕坐标偏移）
       const left = canvasPosition.x + 250; // 右侧显示
       const top = canvasPosition.y + 20; // 垂直居中
-
       container.style.cssText = `
         position: absolute;
         left: ${left}px;
@@ -1122,7 +854,6 @@ export default {
             </div>
         `;
       }
-
       // 添加以下 CSS 样式，让表格更美观
       const style = document.createElement('style');
       style.textContent = `
@@ -1195,7 +926,6 @@ export default {
         this.closHisHisDasTableVisibility();
       });
     },
-
     adjustWindowPosition(container) {
       const rect = container.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
@@ -1217,7 +947,6 @@ export default {
       }
     },
     flashPoints(){
-      // console.log(99999,this.riskzone)
       const flag = [];
       const poin = [];
       this.weather_data.forEach(i => {
@@ -1225,7 +954,6 @@ export default {
           flag.push(i.name);
         }
       });
-      // console.log(7897897987,flag)
       if (flag.length === 0) {
         if (this.flashInterval) {
           clearInterval(this.flashInterval);
@@ -1256,8 +984,6 @@ export default {
           poin.push(item)
         }
       });
-      // console.log(45646,poin)
-
       // 获取所有区县（需要预警和不需要预警的）
       const allCounties = [
         ...new Set(this.warn_point.map(item => item.county)),
@@ -1271,17 +997,14 @@ export default {
             this.warn_point.filter(item => item.county === county).length : 0;
         return acc;
       }, {});
-
       this.countByCounty = Object.entries(sortedCounties)
           .sort((a, b) => a[1] - b[1])
           .reduce((obj, [county, count]) => {
             obj[county] = count;
             return obj;
           }, {});
-      console.log(789789,this.countByCounty)
+      // console.log(789789,this.countByCounty)
       this.AddChart();
-      // console.log(66666666,countByCounty)
-      // console.log(46556456464,this.warn_point)
     },
 
     addPulseAnimation(haloEntity, baseColor){
