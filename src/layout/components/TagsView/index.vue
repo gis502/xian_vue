@@ -65,7 +65,7 @@ const theme = computed(() => useSettingsStore().theme);
 
 watch(route, () => {
   addTags()
-  moveToCurrentTag()
+  // moveToCurrentTag()
 })
 
 watch(visible, (value) => {
