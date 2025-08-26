@@ -1,3 +1,15 @@
+@font-face {
+  font-family: 'OPPOSans40'; // 给你自定义的字体起个名字
+  src: url('../fonts/OPPO_Sans_40.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; // 可选，用于控制字体加载期间的显示行为
+}
+
+:root{
+  --el-font-family: 'OPPOSans40', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+}
+
 // base color
 $blue: #324157;
 $light-blue: #3A71A8;
