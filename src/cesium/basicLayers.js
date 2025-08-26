@@ -66,6 +66,11 @@ let basicLayers = {
     shelterPoints: [],//避难所点
     storePoints: [],//储备站点
     dangerSourcePoints: [],//危险源点
+    hospitalData: null,
+    shelterData: null,
+    storeData: null,
+    fireFighterData: null,
+    dangerSourceData: null,
     peopleLayer: null, //人口网格
     cropsLayer: null,   //农田网格
     waterPipeLayer: null,//管网
@@ -319,41 +324,45 @@ let basicLayers = {
     async loadFlashFlood(){
         getFlashFlood().then((res) => {
             console.log(111, res.data);
-            this.addHiddenDangerPoints('山洪隐患点' ,res.data, flashIcon);
+            this.flashFloodPoints = this.addHiddenDangerPoints('山洪隐患点' ,res.data, flashIcon);
         })
     },
     async loadWater(){
         getWater().then((res) => {
             console.log(222, res.data);
-            this.addHiddenDangerPoints('内涝隐患点', res.data, waterIcon);
+            this.waterPoints = this.addHiddenDangerPoints('内涝隐患点', res.data, waterIcon);
         })
     },
     async loadHospital(){
         getHospital().then((res) => {
-            this.loadEntities('医院', res.data, hospitalIcon);
+            this.hospitalData = res.data;
+            this.hospitalPoints = this.loadEntities('医院', res.data, hospitalIcon);
         })
     },
     async loadEmergencyShelter(){
         getShelter().then((res) => {
-            this.loadEntities('避难所', res.data, shelterIcon);
+            this.shelterData = res.data;
+            this.shelterPoints = this.loadEntities('避难所', res.data, shelterIcon);
         })
     },
     async loadFireFighter(){
         getFire().then((res) => {
-            this.loadEntities('消防站', res.data, fireFighterIcon);
+            this.fireFighterData = res.data;
+            this.fireFighterPoints = this.loadEntities('消防站', res.data, fireFighterIcon);
         })
     },
     async loadStorePoint(){
         getStore().then((res) => {
-            this.loadEntities('储备点', res.data, storePointsIcon);
+            this.storeData = res.data;
+            this.storePoints = this.loadEntities('储备点', res.data, storePointsIcon);
         })
     },
     async loadDangerSource(){
         getDangerous().then((res) => {
-            this.loadEntities('风险源', res.data, dangerSourceIcon);
+            this.dangerSourceData = res.data;
+            this.dangerSourcePoints = this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
     },
-
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
         let disasterPoints = [];
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
@@ -390,6 +399,10 @@ let basicLayers = {
                     longitude: lon,
                     latitude: lat,
                 },
+                geometry: {
+                    lon: lon,
+                    lat: lat,
+                },
             });
             this.disasterEntities.push(entity);
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
@@ -398,11 +411,13 @@ let basicLayers = {
     },
     //加载点
     loadEntities(type, data, icon){
+        let points = [];
         try{
             //添加储备站点
             data.features.forEach(point => {
                 const longitude = point.geometry.coordinates[0];
                 const latitude = point.geometry.coordinates[1];
+                points.push([longitude, latitude]);
                 // 创建实体
                 const entity = window.viewer.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
@@ -425,13 +440,9 @@ let basicLayers = {
                     originalPixelSize: 15,
                     // 标记灾害类型
                     disasterType: 'disaster',
-                    disasterData: point,
+                    disasterData: point
                 });
-
-                if(['山洪隐患点', '内涝隐患点'].includes(type)){
-                    this.disasterEntities.push(entity);
-                }
-                else if(type == '医院'){
+                if(type == '医院'){
                     this.hospitalEntities.push(entity);
                 }
                 else if(type == '消防站'){
@@ -446,8 +457,8 @@ let basicLayers = {
                 else if(type == '风险源'){
                     this.dangerEntities.push(entity);
                 }
-
             })
+            return points;
         }catch(error){
             console.error("处理点数据失败.")
         }

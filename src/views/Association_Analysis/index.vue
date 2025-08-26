@@ -141,7 +141,7 @@
     </div>
 
     <!-- 图表容器 -->
-    <div class="chart-container">
+    <div v-if="showChart" class="chart-container">
       <div id="main" style="height: 100%"></div>
     </div>
   </div>
@@ -178,6 +178,7 @@ export default {
       debrisFlowPrimitive: null,
       flowSpeed: 5,
       flowProgress: 0,
+      showChart: false,
       animationCallback: null,
       tempEntities: [],
       popupVisible: false, // 弹窗的显示与隐藏，传值给子组件
@@ -1004,7 +1005,12 @@ export default {
             return obj;
           }, {});
       // console.log(789789,this.countByCounty)
-      this.AddChart();
+      if(this.countByCounty){
+        this.showChart = true;
+        this.$nextTick(() => {
+          this.AddChart();
+        });
+      }
     },
 
     addPulseAnimation(haloEntity, baseColor){
