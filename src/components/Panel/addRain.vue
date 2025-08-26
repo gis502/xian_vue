@@ -11,16 +11,29 @@
         <!--        <label class="form-label district-label">区县:</label>-->
         <span class="district-name">{{ entry.name }}</span>
         <label :for="'rainfall-' + index" class="form-label rain-label">降雨量:</label>
-        <input style="margin-right: 10px;" v-model.number="entry.rainfall" type="number" min="0" max="500" step="1" :id="'rainfall-' + index"/>
+        <input style="margin-right: 10px;" v-model.number="entry.rainfall" type="number" min="0" max="500" step="1"
+               :id="'rainfall-' + index"/>
         <span style="margin-right: 20px;">毫米</span>
         <label style="margin-right: 10px" :for="'duration-' + index" class="form-label duration-label">持续时间:</label>
         <input v-model.number="entry.duration" type="number" min="0" max="72" step="1" :id="'duration-' + index"/>
         <span style="margin-left: 5px ;margin-right: 5px;">小时</span>
       </div>
-
+      <!--正式测试暴雨触发-->
+      <div class="radio-group" style="display: flex; width: 50%; justify-content: space-around; margin: 15px 0;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" v-model="rainType" value="Z" style="margin-right: 5px;">
+          <span>正式</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="radio" v-model="rainType" value="T" style="margin-right: 5px;">
+          <span>测试</span>
+        </label>
+      </div>
       <div class="button-group">
         <button @click="confirmRainPoint"
-            :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall || !entry.duration)" style="width: 80px">确认添加</button>
+                :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall || !entry.duration)"
+                style="width: 80px">确认添加
+        </button>
         <button @click="cancelRainPoint" style="width: 80px">取消</button>
       </div>
     </div>
@@ -70,6 +83,7 @@ export default {
       positionArry: [],
       rainfallArry: [],
       durationArry: [],
+      rainType: 'T',
     };
   },
   watch: {
@@ -147,6 +161,7 @@ export default {
         "position": this.positionArry.join(","),
         "disasterName": timeTransfer.timestampToTimeChina(new Date) + this.adminArea.name + "暴雨",
         "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
+        "rainType": this.rainType
       };
       console.log(requestData, "requestData saveRain")
       let res = await saveRain(requestData);
@@ -245,11 +260,11 @@ export default {
           entityId = "风险区域" + item.geologicalDisasterHideDTO.unitCode;
         } else if (item.geologicalDisasterHideDTO.disasterType === "滑坡") {
           entityId = "滑坡隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "泥石流"){
+        } else if (item.geologicalDisasterHideDTO.disasterType === "泥石流") {
           entityId = "泥石流隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "内涝"){
+        } else if (item.geologicalDisasterHideDTO.disasterType === "内涝") {
           entityId = "内涝隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "山洪"){
+        } else if (item.geologicalDisasterHideDTO.disasterType === "山洪") {
           entityId = "山洪隐患点" + item.geologicalDisasterHideDTO.id;
         }
 

@@ -49,6 +49,7 @@
         :onceLoadLayer="onceLoadLayer"
         @update:onceLoadLayer="onceLoadLayer = $event"
         @update:realDisasterPoint="handleRealDisasterPointUpdate"
+        @update:realDisasterPointWithInfo="handleRealDisasterPointUpdateWithInfo"
         @update:hiddenDisasterPoint="handleHiddenDisasterPointUpdate"
     />
 
@@ -610,10 +611,12 @@ export default {
         }
       });
     },
-
     handleRealDisasterPointUpdate(data) {
-      console.log(data,"handleRealDisasterPointUpdate")
       this.realDisasterPoint = data
+    },
+    handleRealDisasterPointUpdateWithInfo(data) {
+      console.log(data,"handleRealDisasterPointUpdate")
+
 
       this.dataTypesRealDisater.type1.data = [];
       this.dataTypesRealDisater.type2.data = [];
@@ -621,37 +624,45 @@ export default {
 
 
       // 风险区数据，滑坡数据，泥石流数据
-      this.realDisasterPoint.forEach((item) => {
-        if(item.disasterType=="失踪人员"||item.disasterType=="轻伤人员"||item.disasterType=="重伤人员"||item.disasterType=="危重伤人员"||item.disasterType=="死亡人员"){
+      data.forEach((item) => {
+        let plotInfo=item.plotInfo
+        let plotTypeInfo=item.plotTypeInfo
+
+        console.log(plotInfo,plotTypeInfo,"plotInfo,plotTypeInfo")
+        if(plotInfo.plotType=="失踪人员"||plotInfo.plotType=="轻伤人员"||plotInfo.plotType=="重伤人员"||plotInfo.plotType=="危重伤人员"||plotInfo.plotType=="死亡人员"){
           this.dataTypesRealDisater.type1.data.push({
-            field1: timeTransfer.timestampToTimeChina(item.startTime),
-            field2: item.belongCounty+item.belongTown,
-            field3: item.disasterType,
-            field4: "",
-            field5: parsePointString(item.geom).longitude,
-            field6: parsePointString(item.geom).latitude,
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty+plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: plotTypeInfo.newCount,
+            field5: parsePointString(plotInfo.geom).longitude,
+            field6: parsePointString(plotInfo.geom).latitude,
             type:"type1",
           });
         }
-        else if(item.disasterType=="已出发队伍"||item.disasterType=="正在参与队伍"||item.disasterType=="待命队伍"){
+        else if(plotInfo.plotType=="已出发队伍"||plotInfo.plotType=="正在参与队伍"||plotInfo.plotType=="待命队伍"){
           this.dataTypesRealDisater.type2.data.push({
-            field1: timeTransfer.timestampToTimeChina(item.startTime),
-            field2: item.belongCounty+item.belongTown,
-            field3: item.disasterType,
-            field4: "",
-            field5: parsePointString(item.geom).longitude,
-            field6: parsePointString(item.geom).latitude,
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty+plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: plotTypeInfo.teamName,
+            field5: parsePointString(plotInfo.geom).longitude,
+            field6: parsePointString(plotInfo.geom).latitude,
             type:"type2",
           });
         }
         else {
+          let casualties="-"
+          if(plotTypeInfo.casualties){
+            casualties=plotTypeInfo.casualties
+          }
           this.dataTypesRealDisater.type3.data.push({
-            field1: timeTransfer.timestampToTimeChina(item.startTime),
-            field2: item.belongCounty+item.belongTown,
-            field3: item.disasterType,
-            field4: "",
-            field5: parsePointString(item.geom).longitude,
-            field6: parsePointString(item.geom).latitude,
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty+plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: casualties,
+            field5: parsePointString(plotInfo.geom).longitude,
+            field6: parsePointString(plotInfo.geom).latitude,
             type:"type3",
           });
         }

@@ -44,3 +44,25 @@ export function getRainPeriodInfoByDisasterId(data){
         params:data
     })
 }
+
+export function getPlotInfos(query) {
+    return request({
+        url: '/system/ploy/getplotinfo',
+        method: 'get',
+        params: query
+    })
+}
+export function getExcelPlotInfo(plotIds, plotTypes) {
+    const params = {
+        plotIds: plotIds,
+        plotTypes: plotTypes
+    };
+    return request({
+        url: '/XianDisasterReal/getExcelPlotInfo',
+        method: 'post',
+        data: JSON.stringify(params),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+}

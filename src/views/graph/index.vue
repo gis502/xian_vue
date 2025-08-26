@@ -332,13 +332,20 @@ const monthDisasterMap = [
 
 
 // 点击月份切换
-const handleMonthClick = (index) => {
+const handleMonthClick = async (index) => {
   currentMonth.value = index;
   scrollToCurrentMonth();
-  currentPage.value = 1; // 切换月份后重置到第1页
-  fetchData(); // 关键：调用fetchData请求后端数据（带当前月份的筛选条件）
-  resetTimer();
+  currentPage.value = 1; // 重置分页
+
+  await fetchData(); // ✅ 等数据更新完成
+
+  if (tableData.value.length > 0) {
+    await getData(tableData.value[0]); // ✅ 切换月份后展示第一条
+  }
+
+  resetTimer(); // 时间轴轮播重置
 };
+
 
 // 切换到下一个月
 const nextMonth = () => {
@@ -491,27 +498,6 @@ const handlePageChangeDisaster = (page) => {
   fetchData();
 };
 
-// 根据月份过滤灾害数据
-const filterDisasterByMonth = (monthIndex) => {
-  // 获取当前月份对应的允许展示的灾害类型
-  const allowedTypes = monthDisasterMap[monthIndex];
-
-  if (allowedTypes.length === 0) {
-    // 若当月无限制，展示所有数据
-    tableData.value = [...allTableData.value];
-  } else {
-    // 否则只展示允许的灾害类型
-    tableData.value = allTableData.value.filter(item =>
-        allowedTypes.includes(item.disasterType)
-    );
-    console.log("过滤后数据",tableData.value)
-  }
-
-  // 重置分页（避免过滤后页码超出范围）
-  if (currentPage.value > 1 && tableData.value.length <= (currentPage.value - 1) * pageSizeNum.value) {
-    currentPage.value = 1;
-  }
-};
 
 
 const closePanel = () => {
@@ -1347,6 +1333,10 @@ const handleChildClick = (child) => {
 // 生命周期钩子
 onMounted(async () => {
   await fetchData()
+  if (tableData.value.length > 0) {
+    await getData(tableData.value[0]);
+  }
+
   resetTimer()
 });
 
