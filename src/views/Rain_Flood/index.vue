@@ -1644,10 +1644,10 @@ export default {
 }
 
 .rain-btn, .weather-btn, .admin-btn, .table-btn {
-  background-color: rgba(35, 158, 187, 1);
+  background-color: #3c86ff;
   color: white;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.3s;
@@ -1659,13 +1659,13 @@ export default {
 }
 
 .rain-btn:hover, .weather-btn:hover:not(.disabled), .admin-btn:hover {
-  background-color: rgba(33, 158, 188, 1);
+  background-color: #3c86ff;
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .weather-btn.disabled {
-  background-color: rgba(150, 150, 150, 0.8);
+  background-color: #373e52;
   cursor: not-allowed;
 }
 

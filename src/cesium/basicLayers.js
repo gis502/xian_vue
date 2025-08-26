@@ -56,6 +56,16 @@ let basicLayers = {
     storePointsEntities: [],//储备点
     fireFighterEntities: [],//消防站
     shelterEntities: [],//避难所
+    landslidePoints: [],//滑坡点
+    nishiliuPoints: [],//泥石流点
+    dangerPoints: [],//危险区点
+    flashFloodPoints: [],//山洪点
+    waterPoints: [],
+    hospitalPoints: [],//医院点
+    fireFighterPoints: [],//消防站点
+    shelterPoints: [],//避难所点
+    storePoints: [],//储备站点
+    dangerSourcePoints: [],//危险源点
     peopleLayer: null, //人口网格
     cropsLayer: null,   //农田网格
     waterPipeLayer: null,//管网
@@ -284,12 +294,12 @@ let basicLayers = {
 
     async Addmudslide(){
         dataOnHiddenDangerPointsOfDebrisFlow().then((res) => {
-            this.addHiddenDangerPoints('泥石流隐患点', res.data, debrisFlowIcon);
+            this.nishiliuPoints = this.addHiddenDangerPoints('泥石流隐患点', res.data, debrisFlowIcon);
         });
     },
     async loadLandSlide(){
         landslideHazardPointData().then((res) => {
-            this.addHiddenDangerPoints("滑坡隐患点", res.data, landslideIcon);
+            this.landslidePoints = this.addHiddenDangerPoints("滑坡隐患点", res.data, landslideIcon);
         });
     },
     async AddDangerAreaDataSource(){
@@ -303,7 +313,7 @@ let basicLayers = {
                     geologicalDisasterHideDTO: item.properties,
                 });
             });
-            this.addHiddenDangerPoints("风险区域",datas, riskArea);
+            this.dangerPoints = this.addHiddenDangerPoints("风险区域",datas, riskArea);
         });
     },
     async loadFlashFlood(){
@@ -314,6 +324,7 @@ let basicLayers = {
     },
     async loadWater(){
         getWater().then((res) => {
+            console.log(222, res.data);
             this.addHiddenDangerPoints('内涝隐患点', res.data, waterIcon);
         })
     },
@@ -344,9 +355,11 @@ let basicLayers = {
     },
 
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
+        let disasterPoints = [];
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
             let lon = hiddenDangerPoint.geologicalDisasterHideDTO.lon;
             let lat = hiddenDangerPoint.geologicalDisasterHideDTO.lat;
+            disasterPoints.push([lon, lat]);
             let entityId = '';
             if (type == "风险区域") {
                 entityId = type + hiddenDangerPoint.geologicalDisasterHideDTO.unitCode
@@ -381,6 +394,7 @@ let basicLayers = {
             this.disasterEntities.push(entity);
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
+        return disasterPoints;
     },
     //加载点
     loadEntities(type, data, icon){

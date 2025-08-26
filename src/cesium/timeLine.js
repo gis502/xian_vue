@@ -1008,6 +1008,7 @@ let timeLine = {
             //     );
             // }
             if (plot.drawtype === 'point') {
+                // console.log()
                 entity = window.pointDataSource.entities.getById(plot.plotId);
             } else {
                 entity = window.viewer.entities.getById(plot.plotId); // 假设每个点都有一个唯一的id
