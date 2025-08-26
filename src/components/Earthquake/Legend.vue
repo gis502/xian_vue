@@ -1,9 +1,9 @@
 <template>
     <div class="legend">
       <div class="legend-title">图例</div>
-      <div class="legend-item">
-        <span class="legend-color" id="earthquake"></span>灾害中心
-      </div>
+<!--      <div class="legend-item">-->
+<!--        <span class="legend-color" id="earthquake"></span>灾害中心-->
+<!--      </div>-->
       <div class="legend-item">
         <div class="legend-color" id="landslide"></div>
         滑坡隐患点
@@ -69,21 +69,26 @@
 
 <style scoped>
 .legend-title {
+  width: 100%;
   font-weight: bold;
   margin-bottom: 10px;
+  text-align: center;
 }
 
 .legend {
   position: absolute;
-  bottom: 20px; /* 可选调整 */
-  right: 15px; /* 可选调整 */
+  bottom: 70px;
+  right: 15px;
   background-color: rgba(255, 255, 255, 0.75);
   border: 1px solid #ffffff;
   color: black;
-  padding: 10px; /* 缩小内边距 */
+  padding: 10px;
   border-radius: 16px;
   z-index: 1000;
-  max-width: 180px; /* 缩小最大宽度 */
+  display: flex;
+  flex-wrap: wrap;
+  width: 310px;
+  height: 240px;
 }
 
 .legend-item {
@@ -91,6 +96,7 @@
   align-items: center;
   margin: 3px 0; /* 减少行间距 */
   font-size: 14px; /* 缩小字体 */
+  width: 50%;
 }
 
 .legend-color {
