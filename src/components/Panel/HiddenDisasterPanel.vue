@@ -92,7 +92,7 @@ watch(() => props.riskPointsInformation, (newVal, oldVal) => {
 });
 
 watch(() => props.position, (newVal, oldVal) => {
-  console.log('position updated:', newVal);
+  // console.log('position updated:', newVal);
 });
 
 watch(() => props.position.y, (newY) => {

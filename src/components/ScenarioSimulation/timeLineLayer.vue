@@ -30,11 +30,11 @@ import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
 import {reactive} from "vue";
-import {selectDisasterRealByDisasterId} from '@/api/system/disasterEvents'
+import {selectDisasterRealByDisasterId} from '@/api/system/plot.js'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
-import {getExcelPlotInfo} from "@/api/system/disasterEvents.js";
+import {getExcelPlotInfo} from "@/api/system/plot.js";
 export default {
   data() {
     return {

@@ -17,7 +17,7 @@
     </div>
     <!-- 点击弹窗 -->
     <HiddenDisasterPanel
-        v-if="showBaseInfo"
+        v-show="showBaseInfo"
         :title="baseInfoTitle"
         :position="PanelPosition"
         :showDisasterInformation="showDisasterInformation"
@@ -32,9 +32,15 @@
         :showFloodDisasterInformation="showFloodDisasterInformation"
         :floodDisasterInformation="floodDisasterInformation"
         :trigger="'暴雨'"
-        :rainInfo="rainInfo"
-    />
 
+    />
+<!--    :rainInfo="rainInfo"-->
+    <PlotPanel
+        :visible="PlotPanelVisible"
+        :position="PanelPosition"
+        :popupData="PanelData"
+        :ifedit="false"
+    />
 
     <timeLinePlay
         :viewer="viewer"
@@ -91,6 +97,7 @@ import RealDisasterTable from "@/components/ScenarioSimulation/RealDisasterTable
 import RainInfoTable from "@/components/ScenarioSimulation/rainInfoTable.vue";
 import Table from "@/components/Earthquake/Table.vue";
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
+import PlotPanel from "@/components/Panel/PlotPanel.vue"
 
 export default {
   name: "thdTimeLine",
@@ -108,6 +115,7 @@ export default {
       PanelData: {}, // TimeLinePanel弹窗的数据
       eqCenterPanelVisible: false,
       rainCenterPanelVisible: false,
+      PlotPanelVisible:false,
       baseInfoTitle: false,
       showDisasterInformation: false,
       showdebrisFlowInformation: false,
@@ -123,9 +131,6 @@ export default {
       //鼠标位置经纬度
       coordinateBoxData: {longitude: 108, latitude: 34},
       //时间尺
-      // stopTimePlay: false,
-      // isTimeRunning: false,
-      // isMarkingLayerLocal: true,
       currentTime: new Date(),
       onceLoadLayer: false,
 
@@ -241,11 +246,12 @@ export default {
     eqCenterPanel,
     rainCenterPanel,
     HiddenDisasterPanel,
-
+    PlotPanel,
     timeLinePlay,
     timeLineLayer,
 
     Legend,
+
     //表格
     RealDisasterTable,
     RainInfoTable,
@@ -340,11 +346,6 @@ export default {
         if (clock.currentTime) {
           that.currentTime = clock.currentTime;
         }
-        // if (viewer.clockViewModel.shouldAnimate) {
-        //   that.isTimeRunning = true
-        // } else {
-        //   that.isTimeRunning = false
-        // }
       })
 
 
@@ -388,6 +389,7 @@ export default {
       } else if (this.disasterEvent.trigger == "暴雨") {
         this.rainCenterPanelVisible = true;
       }
+      this.PanelData = {}
       this.PanelData =clickPointsAndShowPanel.extractDataForPanel(this.centerpoint,this.matchedHiddenHighlightEntities)
 
       this.selectedEntity = this.centerpoint
@@ -405,7 +407,7 @@ export default {
       this.updatePopupPosition(); // 确保位置已更新
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo||this.PlotPanelVisible) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -421,7 +423,6 @@ export default {
 
     //-------信息面板弹框-----
     entitiesClickPonpHandler()  {
-
       // 在屏幕空间事件处理器中添加左键点击事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
             // 检查点击位置是否拾取到实体
@@ -444,6 +445,8 @@ export default {
               if (!entity.name) {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
+                this.showBaseInfo = false;
+                this.PlotPanelVisible=false;
                 return;
               }
               // 如果点击的是标绘点
@@ -451,18 +454,21 @@ export default {
                 this.eqCenterPanelVisible = true;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = false;
+                this.PlotPanelVisible=false;
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
                 this.showBaseInfo = false;
+                this.PlotPanelVisible=false;
                 this.PanelData = {}
                 this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                this.PlotPanelVisible=false;
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = true;
                 this.showdebrisFlowInformation = false;
@@ -482,6 +488,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                this.PlotPanelVisible=false;
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = true;
@@ -498,6 +505,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                this.PlotPanelVisible=false;
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
                 this.showdebrisFlowInformation = false;
@@ -514,6 +522,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                this.PlotPanelVisible=false;
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
@@ -533,6 +542,7 @@ export default {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
                 this.showBaseInfo = true;
+                this.PlotPanelVisible=false;
                 // this.PanelPosition = this.selectedEntityPosition; // 更新位置
                 this.baseInfoTitle = entity.name;
                 this.showDisasterInformation = false;
@@ -547,10 +557,20 @@ export default {
                 this.waterDisasterInformation = null
                 this.floodDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
 
-              } else {
+              }
+              else if (entity.name === "标绘点") {
+                this.eqCenterPanelVisible = false;
+                this.rainCenterPanelVisible =false ;
+                this.showBaseInfo = false;
+                this.PlotPanelVisible=true;
+                this.PanelData = {}
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+              }
+              else {
                 this.rainCenterPanelVisible = false;
                 this.eqCenterPanelVisible = false;
                 this.showBaseInfo = false;
+                this.PlotPanelVisible=false;
               }
             }
             //没有拾取到实体
@@ -558,13 +578,14 @@ export default {
               this.eqCenterPanelVisible = false;
               this.rainCenterPanelVisible = false;
               this.showBaseInfo = false;
+              this.PlotPanelVisible=false;
             }
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK
       );
 // 在屏幕空间事件处理器中添加鼠标移动事件的处理逻辑
       window.viewer.screenSpaceEventHandler.setInputAction(movement => {
         // 如果时间线弹窗或路由弹窗可见，则更新弹窗位置
-        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo || this.showInfoPanel) {
+        if (this.eqCenterPanelVisible || this.rainCenterPanelVisible || this.showBaseInfo || this.showInfoPanel||this.PlotPanelVisible) {
           this.updatePopupPosition();
         }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
