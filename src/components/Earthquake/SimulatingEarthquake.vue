@@ -387,37 +387,39 @@ async function confirmEarthquake(formEl) {
         latitude: position.latitude,
       });
       const base = layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
-      let circle_param = reactive({
-        name: form.name,
-        fullName: form.fullName,
-        position: form.position,
-        magnitude: form.magnitude,
-        depth: form.depth,
-        longitude: position.longitude,
-        latitude: position.latitude,
-        dateTime: form.dateTime,
-        type: form.type,
-        circleArea: base.CircleArea,
-        rotation: base.rotation,
-        semiMajorAxis: base.semiMajorAxis,
-        semiMinorAxis: base.semiMinorAxis,
-        // 下面数据非必须数据
-        source: "",
-        countyCode: "",
-        townshipCode: "",
-        district: position.name,
-        province: province,
-        city: city,
-      });
-      console.log(878787,circle_param);
-      // 调用函数发送请求
-      addEarthquake(circle_param)
-          .then(response => {
-            console.log("灾害信息添加成功", response);
-          })
-          .catch(error => {
-            console.error("灾害信息添加失败", error);
-          });
+      if (form.magnitude>6){
+        let circle_param = reactive({
+          name: form.name,
+          fullName: form.fullName,
+          position: form.position,
+          magnitude: form.magnitude,
+          depth: form.depth,
+          longitude: position.longitude,
+          latitude: position.latitude,
+          dateTime: form.dateTime,
+          type: form.type,
+          circleArea: base.CircleArea,
+          rotation: base.rotation,
+          semiMajorAxis: base.semiMajorAxis,
+          semiMinorAxis: base.semiMinorAxis,
+          // 下面数据非必须数据
+          source: "",
+          countyCode: "",
+          townshipCode: "",
+          district: position.name,
+          province: province,
+          city: city,
+        });
+        console.log(878787,circle_param);
+        // 调用函数发送请求
+        addEarthquake(circle_param)
+            .then(response => {
+              console.log("灾害信息添加成功", response);
+            })
+            .catch(error => {
+              console.error("灾害信息添加失败", error);
+            });
+      }
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
       console.log("inEllipsePoints", inEllipsePoints);
