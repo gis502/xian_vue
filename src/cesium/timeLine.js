@@ -1,9 +1,8 @@
 import * as Cesium from 'cesium'
-import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 // import cesiumPlot from "@/cesium/plot/cesiumPlot.js";
 import plotCompute from "@/cesium/plotCompute.js";
 import {xp} from "@/cesium/ArrowalGorithm.js";
-// import {getPlotInfos} from "@/api/system/plot.js";
+import {getPlotInfos} from "@/api/system/plot.js";
 import img from "@/assets/icons/TimeLine/黄点点.png";
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import {geomToCoordinates} from "./geomTransfer.js";
@@ -424,19 +423,20 @@ let timeLine = {
                 },
                 id: item.plotId,
                 plottype: item.plotType,
-                layer: type,
+                name: type,
                 properties: {...item}
             })
-            // console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
-            // let plotId = item.plotId
-            // let plotType = item.plotType
+            console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
+            let plotId = item.plotId
+            let plotType = item.plotType
 
-            // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
-            //     getPlotInfos({plotId, plotType}).then(res => {
-            //         let labeltext = this.labeltext(plotType, res)
-            //         this.addPointLabel(item, labeltext)
-            //     })
-            // }
+            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+                getPlotInfos({plotId, plotType}).then(res => {
+                    let labeltext = this.labeltext(plotType, res)
+                    // console.log(labeltext,"labeltext")
+                    this.addPointLabel(item, labeltext)
+                })
+            }
         }
     },
     // 选择当前线的material
@@ -520,7 +520,7 @@ let timeLine = {
                 })]),
                 id: item.plotId,
                 plottype: item.plotType,
-                layer: type,
+                name: type,
                 polyline: {
                     positions: positionsArr,
                     width: 5,
@@ -558,7 +558,7 @@ let timeLine = {
                         stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
                     })]),
                     id: item.plotId,
-                    layer: type,
+                    name: type,
                     polygon: {
                         hierarchy: new Cesium.PolygonHierarchy(polygonPoints),
                         material: new Cesium.ImageMaterialProperty({
@@ -595,7 +595,7 @@ let timeLine = {
                     })]),
                     id: item.plotId + "_polygon",
                     position: center, // 圆心为大多边形的中心点
-                    layer: '中心图标',
+                    name: '中心图标',
                     ellipse: {
                         semiMajorAxis: diameter / 2, // 对角线的一半作为半径
                         semiMinorAxis: diameter / 2, // 保证是一个正圆
@@ -635,7 +635,7 @@ let timeLine = {
                         stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
                     })]),
                     id: item.plotId,
-                    layer: type,
+                    name: type,
                     polygon: {
                         hierarchy: new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(polygonPoints), false),
                         material: img,
@@ -701,7 +701,7 @@ let timeLine = {
                         fill: true,
                         material: Cesium.Color.BLUE  // 蓝色，透明度0.5
                     }),
-                    layer: type,
+                    name: type,
                     properties: {
                         ...item
                     }
@@ -748,7 +748,7 @@ let timeLine = {
                     fill: true,
                     material: Cesium.Color.RED
                 }),
-                layer: type,
+                name: type,
                 properties: {
                     ...item
                 }
@@ -793,7 +793,7 @@ let timeLine = {
                     fill: true,
                     material: Cesium.Color.YELLOW
                 }),
-                layer: type,
+                name: type,
                 properties: {
                     ...item
                 }
@@ -801,88 +801,90 @@ let timeLine = {
         }
     },
     // //标签（点线面）
-    // labeltext(plotType, res) {
-    //     // console.log("标签",res)
-    //     let labeltext =res.plotInfo.belongCounty+ res.plotInfo.belongTown+"新增"+plotType
-    //     //人员伤亡类文字：xxx人员xx人
-    //     if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员") {
-    //         if (res.plotTypeInfo && res.plotTypeInfo.newCount) {
-    //             labeltext = labeltext + res.plotTypeInfo.newCount + "人"
-    //         }
-    //     }
-    //     //救援队伍 单位,人数人
-    //     if (plotType === "已出发队伍" || plotType === "正在参与队伍" || plotType === "待命队伍") {
-    //         if (res.plotTypeInfo && res.plotTypeInfo.teamName) {
-    //             labeltext = labeltext + ":" + res.plotTypeInfo.teamName
-    //         }
-    //         if (res.plotTypeInfo && res.plotTypeInfo.personnelCount) {
-    //             labeltext = labeltext + res.plotTypeInfo.personnelCount + "人"
-    //         }
-    //         if (res.plotTypeInfo && res.plotTypeInfo.teamName && res.plotTypeInfo.teamName == null && res.plotTypeInfo.personnelCount && res.plotTypeInfo.personnelCount == 0) {
-    //             labeltext = labeltext + "1队"
-    //         }
-    //     }
-    //     // 是否出现人员伤亡，是否处置（次生灾害）
-    //     if (res.plotTypeInfo && res.plotTypeInfo.casualties) {
-    //         labeltext = labeltext + res.plotTypeInfo.casualties + "人员伤亡"
-    //     }
-    //     // if (res.plotTypeInfo && res.plotTypeInfo.initialDisposalPhase) {
-    //     //     labeltext = labeltext + "," + res.plotTypeInfo.initialDisposalPhase
-    //     // }
-    //     return labeltext
-    // },
-    // addPointLabel(data, labeltext) {
-    //     // console.log(data,"data addPointLabel")
-    //     let labeldataSource = this.addDataSourceLayer("label")
-    //     if (labeldataSource) {
-    //         let id = data.plotId + '_label'
-    //         // if()
-    //         if (labeldataSource.entities.getById(id)) {
-    //             labeldataSource.entities.removeById(id);  // 删除已存在的多边形实体
-    //         }
-    //         labeldataSource.entities.add({
-    //             availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-    //                 start: Cesium.JulianDate.fromDate(new Date(data.startTime)),
-    //                 stop: Cesium.JulianDate.fromDate(new Date(data.endTime))
-    //             })]),
-    //             id: data.plotId + '_label',
-    //             plottype: data.plotType,
-    //             layer: "标绘点标签",
-    //             // layers: "聚合标绘点",
-    //             position: Cesium.Cartesian3.fromDegrees(Number(data.longitude), Number(data.latitude), Number(data.elevation || 0)),
-    //             labeltext: labeltext,
-    //             billboard: {
-    //                 image: import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + data.icon + '.png?t=' + new Date().getTime(),
-    //                 width: 50, // 图片宽度,单位px
-    //                 height: 50, // 图片高度，单位px
-    //                 eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-    //                 color: Cesium.Color.WHITE.withAlpha(1),//颜色
-    //                 scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1), // 近大远小
-    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-    //                 depthTest: false, // 禁止深度测试
-    //                 disableDepthTestDistance: Number.POSITIVE_INFINITY // 不再进行深度测试
-    //             },
-    //             properties: {
-    //                 data
-    //             }
-    //         })
-    //         // labeldataSource.entities.add({
-    //         //   id: data.plotId + '_base',
-    //         //   position: Cesium.Cartesian3.fromDegrees(Number(data.longitude), Number(data.latitude), Number(data.elevation || 0)),
-    //         //   billboard: {
-    //         //     image: '/images/图标外框.png', // 圆形底座图片
-    //         //     width: 110, // 底座宽度
-    //         //     height: 110, // 底座高度
-    //         //     eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-    //         //     scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1), // 近大远小
-    //         //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
-    //         //     depthTest: false, // 禁止深度测试
-    //         //     disableDepthTestDistance: Number.POSITIVE_INFINITY // 不再进行深度测试
-    //         //   },
-    //         // });
-    //     }
-    // },
-    //
+    labeltext(plotType, res) {
+        // console.log("标签",res)
+        let labeltext =res.plotInfo.belongCounty+ res.plotInfo.belongTown+"新增"+plotType
+        //人员伤亡类文字：xxx人员xx人
+        if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员") {
+            if (res.plotTypeInfo && res.plotTypeInfo.newCount) {
+                labeltext = labeltext + res.plotTypeInfo.newCount + "人"
+            }
+        }
+        //救援队伍 单位,人数人
+        if (plotType === "已出发队伍" || plotType === "正在参与队伍" || plotType === "待命队伍") {
+            if (res.plotTypeInfo && res.plotTypeInfo.teamName) {
+                labeltext = labeltext + ":" + res.plotTypeInfo.teamName
+            }
+            if (res.plotTypeInfo && res.plotTypeInfo.personnelCount) {
+                labeltext = labeltext + res.plotTypeInfo.personnelCount + "人"
+            }
+            if (res.plotTypeInfo && res.plotTypeInfo.teamName && res.plotTypeInfo.teamName == null && res.plotTypeInfo.personnelCount && res.plotTypeInfo.personnelCount == 0) {
+                labeltext = labeltext + "1队"
+            }
+        }
+        // 是否出现人员伤亡，是否处置（次生灾害）
+        if (res.plotTypeInfo && res.plotTypeInfo.casualties) {
+            labeltext = labeltext + res.plotTypeInfo.casualties + "人员伤亡"
+        }
+        if (res.plotTypeInfo && res.plotTypeInfo.initialDisposalPhase) {
+            labeltext = labeltext + "," + res.plotTypeInfo.initialDisposalPhase
+        }
+        return labeltext
+    },
+    addPointLabel(data, labeltext) {
+        // console.log(data,"data addPointLabel")
+        let img =  '/images/PlotsPic/' + data.plotType + '.png'
+        let labeldataSource = this.addDataSourceLayer("label")
+        if (labeldataSource) {
+            let id = data.plotId + '_label'
+            // if()
+            if (labeldataSource.entities.getById(id)) {
+                labeldataSource.entities.removeById(id);  // 删除已存在的多边形实体
+            }
+            labeldataSource.entities.add({
+                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start: Cesium.JulianDate.fromDate(new Date(data.startTime)),
+                    stop: Cesium.JulianDate.fromDate(new Date(data.endTime))
+                })]),
+                id: data.plotId + '_label',
+                plottype: data.plotType,
+                name: "标绘点标签",
+                // layers: "聚合标绘点",
+                position: Cesium.Cartesian3.fromDegrees(Number(data.longitude), Number(data.latitude), Number(data.elevation || 0)),
+                labeltext: labeltext,
+                billboard: {
+                    // image: import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + data.icon + '.png?t=' + new Date().getTime(),
+                    image: img,
+                    width: 50, // 图片宽度,单位px
+                    height: 50, // 图片高度，单位px
+                    eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                    color: Cesium.Color.WHITE.withAlpha(1),//颜色
+                    scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1), // 近大远小
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                    depthTest: false, // 禁止深度测试
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY // 不再进行深度测试
+                },
+                properties: {
+                    data
+                }
+            })
+            // labeldataSource.entities.add({
+            //   id: data.plotId + '_base',
+            //   position: Cesium.Cartesian3.fromDegrees(Number(data.longitude), Number(data.latitude), Number(data.elevation || 0)),
+            //   billboard: {
+            //     image: '/images/图标外框.png', // 圆形底座图片
+            //     width: 110, // 底座宽度
+            //     height: 110, // 底座高度
+            //     eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+            //     scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1), // 近大远小
+            //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+            //     depthTest: false, // 禁止深度测试
+            //     disableDepthTestDistance: Number.POSITIVE_INFINITY // 不再进行深度测试
+            //   },
+            // });
+        }
+    },
+
     // //--------删除-------------
     // deletePointById(plotId, drawType) {
     //     if (drawType === "point") {
@@ -956,33 +958,33 @@ let timeLine = {
     // },
     // //标签显示隐藏
     // //隐藏所有标签
-    // markerLabelsHidden(plots) {
-    //     plots.forEach(item => {
-    //         let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-    //         if (entity) {
-    //             entity.show = false
-    //         }
-    //     })
-    // },
+    markerLabelsHidden(plots) {
+        plots.forEach(item => {
+            let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
+            if (entity) {
+                entity.show = false
+            }
+        })
+    },
     // //只显示人员伤亡和救援队伍
-    // makerLabelsShowPersonAndResouce(plots) {
-    //     console.log("makerLabelsShowPersonAndResouce")
-    //     plots.forEach(item => {
-    //         if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
-    //             let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-    //             // console.log(entity, "entity show")
-    //             if (entity) {
-    //                 entity.show = true
-    //             }
-    //         } else {
-    //             let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-    //             // console.log(item.plotId, entity, "entity not show")
-    //             if (entity) {
-    //                 entity.show = false
-    //             }
-    //         }
-    //     })
-    // },
+    makerLabelsShowPersonAndResouce(plots) {
+        console.log(plots,"makerLabelsShowPersonAndResouce")
+        plots.forEach(item => {
+            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+                let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
+                // console.log(entity, "entity show")
+                if (entity) {
+                    entity.show = true
+                }
+            } else {
+                let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
+                // console.log(item.plotId, entity, "entity not show")
+                if (entity) {
+                    entity.show = false
+                }
+            }
+        })
+    },
     // //删除标签
     // deleteMakerLabel(plotId) {
     //     let entity = window.labeldataSource.entities.getById(plotId + '_label')

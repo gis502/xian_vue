@@ -55,7 +55,7 @@ export default {
   watch: {
     popupData() {
       this.earthquakeInfo=this.popupData
-      console.log(this.earthquakeInfo,"this.earthquakeInfo")
+      // console.log(this.earthquakeInfo,"this.earthquakeInfo")
     },
     position() {
       this.positionEntity = this.position

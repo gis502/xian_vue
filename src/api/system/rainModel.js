@@ -1,6 +1,5 @@
 import request from "@/utils/request.js";
 
-// ��������
 export function rainSlideTrigger(data) {
     return request({
         url: '/model/rain/trigger',
@@ -10,7 +9,6 @@ export function rainSlideTrigger(data) {
     });
 }
 
-// ���²���
 export function rainSlideFactorUpdata(data) {
     return request({
         url: '/model/rainSlideFactorUpdata',
@@ -25,4 +23,12 @@ export function saveRain(data) {
         method: 'post',
         data: data,
     });
+}
+
+// 获取雷达云图
+export function getRadarData() {
+    return request({
+        url: '/radar/latest',
+        method: 'get'
+    })
 }

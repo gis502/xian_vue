@@ -29,13 +29,7 @@ export function getDisasterRainById(data){
     })
 }
 
-export function selectDisasterRealByDisasterId(data) {
-    return request({
-        url: '/XianDisasterReal/selectDisasterRealByDisasterId',
-        method: 'post',
-        params:data
-    })
-}
+
 
 export function getRainPeriodInfoByDisasterId(data){
     return request({
@@ -51,18 +45,4 @@ export function getPlotInfos(query) {
         method: 'get',
         params: query
     })
-}
-export function getExcelPlotInfo(plotIds, plotTypes) {
-    const params = {
-        plotIds: plotIds,
-        plotTypes: plotTypes
-    };
-    return request({
-        url: '/XianDisasterReal/getExcelPlotInfo',
-        method: 'post',
-        data: JSON.stringify(params),
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
 }
