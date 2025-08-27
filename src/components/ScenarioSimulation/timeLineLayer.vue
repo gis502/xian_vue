@@ -586,7 +586,7 @@ export default {
 <style scoped>
 .positionFlyToButton {
   position: absolute;
-  right: 3vh;
+  right: 2vw;
   top: 2vh;
   width: 32px;
   height: 32px;
@@ -608,9 +608,10 @@ export default {
 .universalPanel {
   position: absolute;
   top: 2vh;
-  right: 7vh;
-  background-color: rgba(40, 40, 40, 1);
-  color: white;
+  right: 4vw;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  color: black;
   padding: 10px;
   border-radius: 4px;
   z-index: 1000;

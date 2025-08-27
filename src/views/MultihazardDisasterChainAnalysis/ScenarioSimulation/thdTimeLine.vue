@@ -6,11 +6,11 @@
         :position="PanelPosition"
         :popupData="PanelData"
     />
-<!--    <rainCenterPanel-->
-<!--        v-show="rainCenterPanelVisible"-->
-<!--        :position="PanelPosition"-->
-<!--        :popupData="PanelData"-->
-<!--    />-->
+    <rainCenterPanel
+        v-show="rainCenterPanelVisible"
+        :position="PanelPosition"
+        :popupData="PanelData"
+    />
     <!-- 鼠标悬停时显示的经纬度坐标 -->
     <div class="coordinate-box">
       经度: {{ coordinateBoxData.longitude }} &nbsp;&nbsp;纬度: {{ coordinateBoxData.latitude }}
@@ -32,7 +32,6 @@
         :showFloodDisasterInformation="showFloodDisasterInformation"
         :floodDisasterInformation="floodDisasterInformation"
         :trigger="'暴雨'"
-
     />
 <!--    :rainInfo="rainInfo"-->
     <PlotPanel
@@ -58,7 +57,7 @@
         @update:realDisasterPointWithInfo="handleRealDisasterPointUpdateWithInfo"
         @update:hiddenDisasterPoint="handleHiddenDisasterPointUpdate"
     />
-
+<timeLineLegend/>
     <!--    表格-->
     <RealDisasterTable
         :dataTypes="dataTypesRealDisater"
@@ -91,6 +90,7 @@ import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 //时间轴组件
 import timeLinePlay from "@/components/ScenarioSimulation/timeLinePlay.vue";
 import timeLineLayer from "@/components/ScenarioSimulation/timeLineLayer.vue";
+import timeLineLegend from "@/components/ScenarioSimulation/timeLineLegend.vue";
 //组件
 import Legend from "@/components/Earthquake/Legend.vue";
 import RealDisasterTable from "@/components/ScenarioSimulation/RealDisasterTable.vue";
@@ -249,7 +249,7 @@ export default {
     PlotPanel,
     timeLinePlay,
     timeLineLayer,
-
+    timeLineLegend,
     Legend,
 
     //表格
