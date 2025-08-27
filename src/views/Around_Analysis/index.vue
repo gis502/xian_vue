@@ -2102,4 +2102,8 @@ export default {
   gap: 10px; /* 统一元素间距 */
 }
 
+.legend {
+  bottom: 10px;
+}
+
 </style>
