@@ -306,23 +306,31 @@ export default {
 
   methods: {
     init() {
-      this.viewer = initCesium("cesiumContainer")
+      this.viewer = initCesium("cesiumContainer");
+
       // 注释版权信息
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
-      init_cesium_navigation(108.948024, 34.263161, 200000, this.viewer);
-      window.viewer=this.viewer
-      //定位到西安
-      // this.locatedXiAn();
-      // 调整到指定位置
-      window.viewer.cesiumWidget.creditContainer.style.display = "none";
-      window.viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
-        orientation: {
-          heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-90),
-          roll: 0.0,
-        },
-      });
+      window.viewer = this.viewer;
+
+      // 添加短暂延迟确保 Viewer 完全初始化
+      setTimeout(() => {
+        try {
+          init_cesium_navigation(108.948024, 34.263161, 200000, this.viewer);
+          // 调整到指定位置
+          window.viewer.cesiumWidget.creditContainer.style.display = "none";
+          window.viewer.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
+            orientation: {
+              heading: Cesium.Math.toRadians(0),
+              pitch: Cesium.Math.toRadians(-90),
+              roll: 0.0,
+            },
+          });
+        } catch (error) {
+          console.error("导航控件初始化失败:", error);
+          // 可以在这里添加重试逻辑
+        }
+      }, 100);
       // 添加风险区
       this.Addriskzone();
       //添加滑坡隐患点
