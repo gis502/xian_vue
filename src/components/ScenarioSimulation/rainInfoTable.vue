@@ -108,11 +108,11 @@ export default {
         return;
       }
       let currentTime = new Date(this.currentTime);
-      console.log("timeselect")
+      // console.log("timeselect")
       let dataIntime = this.RainPeriodInfo.filter(item => {
-        console.log(item, "item")
+        // console.log(item, "item")
         let occurTime = new Date(item.rainPeriodEnd);
-        console.log(currentTime, occurTime, "currentTime,occurTime")
+        // console.log(currentTime, occurTime, "currentTime,occurTime")
         if (!occurTime || !currentTime) {
           console.error(`Invalid date format for field2: ${item.field2}`);
           return false;
@@ -120,7 +120,7 @@ export default {
         return occurTime < currentTime;
       });
 
-      console.log(dataIntime, "dataIntime")
+      // console.log(dataIntime, "dataIntime")
 
       // 步骤 2: 累加每个区县的降雨量
       const countyRainfallTotalMap = new Map();
@@ -143,7 +143,7 @@ export default {
           countyRainfallEndMap.set(position, endTime);
         }
       });
-      console.log(this.countyStartRainTimeMap, countyRainfallTotalMap, countyRainfallEndMap, "this.countyStartRainTimeMap,countyRainfallTotalMap，countyRainfallEndMap")
+      // console.log(this.countyStartRainTimeMap, countyRainfallTotalMap, countyRainfallEndMap, "this.countyStartRainTimeMap,countyRainfallTotalMap，countyRainfallEndMap")
 
       const countyRainDurationMap = new Map();
       // 计算每个区域的降雨持续时间
@@ -267,16 +267,15 @@ export default {
 // }
 
 </script>
-
 <style scoped lang="scss">
 .data-table {
   position: absolute;
   top: 2vh; /* 距离顶部20px */
-  right: 9vh; /* 距离左侧20px */
-  background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
-  color: white;
+  right: 4vw; /* 距离左侧20px */
+  background-color: rgba(255,255,255,0.75); /* 与图例背景色一致 */
+  color: black;
   padding: 15px;
-  border-radius: 4px;
+  border-radius: 8px;
   z-index: 10;
   width: 456px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
@@ -288,13 +287,15 @@ export default {
   position: absolute;
   top: 5px; /* 调整按钮位置 */
   left: 5px; /* 调整按钮位置 */
-  background-color: #007bff;
+  //background-color: #007bff;
+  background-image: linear-gradient(159deg, #1c9fff 2%, #9be7ff 128%);
+  //border-radius: 24px;
   color: white;
   border: none;
   border-radius: 50%; /* 圆形按钮 */
   width: 25px; /* 按钮宽度 */
   height: 25px; /* 按钮高度 */
-  font-size: 12px;
+  font-size: 20px;
   line-height: 1; /* 垂直居中文本 */
   text-align: center;
   cursor: pointer;
@@ -325,19 +326,19 @@ export default {
 .data-table th,
 .data-table td {
   height: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
+  border: 1px solid #FFFFFF; /* 浅色边框 */
   padding: 8px 12px;
   text-align: center;
   font-size: 12px;
 }
 
 .data-table th {
-  background-color: rgba(60, 60, 60, 0.9); /* 表头背景色 */
+  background-color: rgba(255,255,255,0.5); /* 表头背景色 */
   font-weight: bold;
 }
 
 .data-table tbody tr:nth-child(even) {
-  background-color: rgba(50, 50, 50, 0.7); /* 斑马纹效果 */
+  background-color: rgba(255,255,255,0.5); /* 斑马纹效果 */
 }
 
 .data-table tbody tr:hover {
@@ -353,7 +354,7 @@ export default {
 }
 
 .pagination-controls button {
-  background-color: #007bff;
+  background-color: #3c86ff;
   color: white;
   border: none;
   padding: 5px 10px;
@@ -363,7 +364,7 @@ export default {
 }
 
 .pagination-controls button:disabled {
-  background-color: #6c757d;
+  background-color: #373e52;
   cursor: not-allowed;
 }
 
@@ -378,8 +379,8 @@ export default {
 
 .total-items {
   margin-left: 10px;
-  font-size: 14px;
-  color: #ccc;
+  font-size: 12px;
+  color: black;
 }
 
 /* 新增样式 */
@@ -396,9 +397,9 @@ export default {
   height: 34px; /* 统一高度 */
   padding: 5px 10px;
   border-radius: 4px;
-  background-color: rgba(60, 60, 60, 0.9);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255,255,255,0.5);
+  color: black;
+  border: 1px solid #FFFFFF;
   box-sizing: border-box; /* 确保padding和border包含在height内 */
 }
 
@@ -415,7 +416,7 @@ export default {
 }
 
 .search-box button {
-  background-color: #007bff;
+  background-color: #3c86ff;
   color: white;
   border: none;
   padding: 8px 12px;

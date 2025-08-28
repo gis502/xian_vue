@@ -36,11 +36,8 @@ export default {
     getPlotPicture() {
       let that=this
       getPlotIcon().then(res => {
-        // console.log(res,"getPlotIcon")
         that.getPicData = res.data;
-        // console.log(that.getPicData,"that.getPicData")
       });
-
     }
   }
 };

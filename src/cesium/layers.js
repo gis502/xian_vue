@@ -713,99 +713,103 @@ let layers = {
     //         });
     //     })
     // },
-    // addHiddenBreathCircle(probabilityPoints) {
-    //     const disasterTypeMap = {
-    //         "滑坡": "landslide",
-    //         "泥石流": "debris_flow",
-    //         "山洪": "torrential_flood",
-    //         "内涝": "water_logging",
-    //         "堰塞湖": "barrier_lake"
-    //     };
-    //     if (!probabilityPoints || probabilityPoints.length === 0) return;
-    //     console.log(probabilityPoints, "probabilityPoints addHiddenBreathCircle")
-    //     probabilityPoints.forEach(item => {
-    //         // 跳过无效数据（检查必要字段是否存在）
-    //         if (!item?.disasterType || !Array.isArray(item.disaster) ||
-    //             !Array.isArray(item.level) || !Array.isArray(item.probability)) {
-    //             return;
-    //         }
-    //
-    //         // 获取当前disasterType对应的disaster数组元素
-    //         const disasterKey = disasterTypeMap[item.disasterType];
-    //         if (!disasterKey) {
-    //             console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
-    //             return;
-    //         }
-    //
-    //         // 找到对应的索引（disaster、level、probability数组顺序一一对应）
-    //         const index = item.disaster.indexOf(disasterKey);
-    //         if (index === -1 || index >= item.level.length || index >= item.probability.length) {
-    //             console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
-    //             return;
-    //         }
-    //
-    //         // 获取对应的等级和概率
-    //         const level = item.level[index];
-    //
-    //         let lon = item.geologicalDisasterHideDTO.lon
-    //         let lat = item.geologicalDisasterHideDTO.lat
-    //         item.entityId = '隐患点呼吸圈_' + item.entityId
-    //         if (!window.viewer.entities.getById(item.entityId)) {
-    //             if (level == '高') {
-    //                 viewer.entities.add({
-    //                     name: '隐患点呼吸圈',
-    //                     id: item.entityId,
-    //                     position: Cesium.Cartesian3.fromDegrees(lon, lat),
-    //                     point: {
-    //                         pixelSize: 40,
-    //                         color: Cesium.Color.RED.withAlpha(0.5),
-    //                     },
-    //                     properties: {
-    //                         longitude: lon,
-    //                         latitude: lat,
-    //                     },
-    //                 });
-    //             }
-    //             else if (level == "中") {
-    //                 viewer.entities.add({
-    //                     name: '隐患点呼吸圈',
-    //                     id: item.entityId,
-    //                     position: Cesium.Cartesian3.fromDegrees(lon, lat),
-    //                     point: {
-    //                         pixelSize: 40,
-    //                         color: Cesium.Color.YELLOW.withAlpha(0.5),
-    //                     },
-    //                     properties: {
-    //                         longitude: lon,
-    //                         latitude: lat,
-    //                     },
-    //                 });
-    //             }
-    //         }
-    //     })
-    // },
-    // notShowHiddenBreathCircle() {
-    //     let toRemove = window.viewer.entities.values.filter(
-    //         e => e.name === '隐患点呼吸圈'
-    //     );
-    //     if (toRemove) {
-    //         // 2. 逐个删除
-    //         toRemove.forEach(entity => {
-    //             entity.show = false
-    //         });
-    //     }
-    // },
-    // showHiddenBreathCircle() {
-    //     let toRemove = window.viewer.entities.values.filter(
-    //         e => e.name === '隐患点呼吸圈'
-    //     );
-    //     if (toRemove) {
-    //         // 2. 逐个删除
-    //         toRemove.forEach(entity => {
-    //             entity.show = true
-    //         });
-    //     }
-    // },
+    addHiddenBreathCircle(probabilityPoints) {
+        // const disasterTypeMap = {
+        //     "滑坡": "landslide",
+        //     "泥石流": "debris_flow",
+        //     "山洪": "torrential_flood",
+        //     "内涝": "water_logging",
+        //     "堰塞湖": "barrier_lake"
+        // };
+        if (!probabilityPoints || probabilityPoints.length === 0) return;
+        console.log(probabilityPoints, "probabilityPoints addHiddenBreathCircle")
+        probabilityPoints.forEach(item => {
+            // 跳过无效数据（检查必要字段是否存在）
+            // if (!item?.disasterType || !Array.isArray(item.disaster) ||
+            //     !Array.isArray(item.level) || !Array.isArray(item.probability)) {
+            //     return;
+            // }
+            if (!item.disaster_type || !item.level[1] || !item.disaster_probability) {
+                return;
+            }
+
+            // 获取当前disasterType对应的disaster数组元素
+            // const disasterKey = disasterTypeMap[item.disasterType];
+            // if (!disasterKey) {
+            //     console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
+            //     return;
+            // }
+
+            // 找到对应的索引（disaster、level、probability数组顺序一一对应）
+            // const index = item.disaster.indexOf(disasterKey);
+            // if (index === -1 || index >= item.level.length || index >= item.probability.length) {
+            //     console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+            //     return;
+            // }
+
+            // 获取对应的等级和概率
+            const level = item.level[1];
+            let lon = item.lon
+            let lat = item.lat
+            // console.log(item,level,lon,lat,"level,lon,lat")
+            // item.entityId = '隐患点呼吸圈_' + item.entityId
+            // if (!window.viewer.entities.getById(item.entityId)) {
+                if (level == '高') {
+
+                    viewer.entities.add({
+                        name: '隐患点呼吸圈',
+                        // id: item.entityId,
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: 40,
+                            color: Cesium.Color.RED.withAlpha(0.5),
+                        },
+                        properties: {
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                }
+                else if (level == "中") {
+                    viewer.entities.add({
+                        name: '隐患点呼吸圈',
+                        // id: item.entityId,
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: 40,
+                            color: Cesium.Color.YELLOW.withAlpha(0.5),
+                        },
+                        properties: {
+                            longitude: lon,
+                            latitude: lat,
+                        },
+                    });
+                }
+            // }
+        })
+    },
+    notShowHiddenBreathCircle() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '隐患点呼吸圈'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = false
+            });
+        }
+    },
+    showHiddenBreathCircle() {
+        let toRemove = window.viewer.entities.values.filter(
+            e => e.name === '隐患点呼吸圈'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = true
+            });
+        }
+    },
 
     addRealDisaterPlot(plots){
         let pointArr = plots.filter(e => e.drawtype === 'point')
@@ -851,12 +855,12 @@ let layers = {
             if (matchesName && matchesPosition) {
                 console.log('匹配的实体：', e.name, entityLongitude); // 打印匹配的实体的名称和位置
             } else {
-                console.log('不匹配的实体：', e.name, entityLongitude); // 打印不匹配的实体的名称和位置
+                // console.log('不匹配的实体：', e.name, entityLongitude); // 打印不匹配的实体的名称和位置
             }
 
             return matchesName && matchesPosition;
         });
-        console.log(entities, "flash match")
+        // console.log(entities, "flash match")
 
 
         if (entities.length === 0) {

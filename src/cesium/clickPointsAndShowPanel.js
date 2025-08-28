@@ -14,16 +14,16 @@ let clickPointsAndShowPanel = {
             if (matchedHiddenHighlightEntities) {
                 let matchedEntity = null;
                 matchedEntity = matchedHiddenHighlightEntities.find((item, index) => {
-                    console.log(item.geologicalDisasterHideDTO.id,entity.properties._data._value.geologicalDisasterHideDTO.id,"item.geologicalDisasterHideDTO.id")
-                    return item.geologicalDisasterHideDTO.id === entity.properties._data._value.geologicalDisasterHideDTO.id;
+                    // console.log(item.geologicalDisasterHideDTO.id,entity.properties._data._value.geologicalDisasterHideDTO.id,"item.geologicalDisasterHideDTO.id")
+                    return item.hide_id === entity.properties._data._value.geologicalDisasterHideDTO.id;
                 });
                 console.log(matchedEntity,"matchedEntity")
 
                 if (matchedEntity) {
-                    predictData.probability = matchedEntity.probability;
-                    predictData.level = matchedEntity.level;
-                    predictData.disaster = matchedEntity.disaster;
-                    predictData.disasterType = matchedEntity.disasterType;
+                    predictData.probability =[matchedEntity.disaster_probability];
+                    predictData.level = [...matchedEntity.level[1]];
+                    predictData.disaster = matchedEntity.disaster_name;
+                    predictData.disasterType = matchedEntity.disaster_type;
                 }
                 else {
                     predictData = {
@@ -49,6 +49,7 @@ let clickPointsAndShowPanel = {
 
         }
         else {
+            // console.log("222222222222")
             entity.properties.propertyNames.forEach(name => {
                 properties[name] = entity.properties[name].getValue();
             });

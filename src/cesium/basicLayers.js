@@ -423,6 +423,7 @@ let basicLayers = {
                     },
                     originalColor: Cesium.Color.RED,
                     originalPixelSize: 15,
+                    name:"type",
                     // 标记灾害类型
                     disasterType: 'disaster',
                     disasterData: point,
@@ -452,6 +453,7 @@ let basicLayers = {
             console.error("处理点数据失败.")
         }
     },
+
     addPeopleLayer(){
         this.peopleLayer = this.addLayers(this.peopleLayerName);
     },

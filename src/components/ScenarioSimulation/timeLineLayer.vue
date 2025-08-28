@@ -5,7 +5,6 @@
       {{ calculationMessage }}
     </div>
 
-
     <div @click="toggleLayerFeatures" class="positionFlyToButton" style="pointer-events: auto; margin-left: 5px;">
       <img src="../../assets/icons/TimeLine/layerFeatures.svg" title="图层要素"
            style="width: 31px; height: 31px;">
@@ -35,6 +34,7 @@ import timeTransfer from "@/cesium/timeTransfer.js";
 import {parsePointString} from "@/cesium/geomTransfer.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
 import {getExcelPlotInfo} from "@/api/system/plot.js";
+import {queryDisasterEstimationGetAll} from "@/api/system/disasterHide.js";
 export default {
   data() {
     return {
@@ -46,10 +46,11 @@ export default {
         {id: '2', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
 
 
-        {id: '3', name: '泥石流隐患点', disabled: false},
-        {id: '4', name: '滑坡隐患点', disabled: false},
-        {id: '5', name: '山洪隐患点', disabled: false},
-        {id: '6', name: '内涝隐患点', disabled: false},
+        // {id: '3', name: '泥石流隐患点', disabled: false},
+        // {id: '4', name: '滑坡隐患点', disabled: false},
+        // {id: '5', name: '山洪隐患点', disabled: false},
+        // {id: '6', name: '内涝隐患点', disabled: false},
+        {id: '6', name: '隐患点', disabled: false},
         {id: '7', name: '风险区域', disabled: false},
 
 
@@ -73,15 +74,17 @@ export default {
       ],
       //是否第一次加载，进入页面就加载的，默认值为true.第一次add加载，之后显示隐藏
       firstLoad: {
-        '行政区划': false,
-        '预警点': false,
+        '行政区划': true,
+        '预警点': true,
         '灾害点': true,
+        //
+        // '泥石流隐患点': true,
+        // '滑坡隐患点': true,
+        // '山洪隐患点': true,
+        // '内涝隐患点': true,
 
-        '泥石流隐患点': false,
-        '滑坡隐患点': false,
-        '山洪隐患点': false,
-        '内涝隐患点': false,
-        '风险区域': false,
+        '隐患点': true,
+        // '风险区域': true,
 
         '烈度圈': true,
         '断裂带': false,
@@ -103,9 +106,11 @@ export default {
       },
 
       // selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
+      selectedlayers: ['行政区划', '隐患点'],
       // prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
-      selectedlayers: [],
-      prevSelectedLayers:[],
+      prevSelectedLayers: ['行政区划', '隐患点'],
+      // selectedlayers: [],
+      // prevSelectedLayers:[],
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
@@ -117,6 +122,9 @@ export default {
       positionArry: [],
       rainfallArry: [],
       durationArry: [],
+
+      plotsInfoisReady:false,
+      PredictInfoIsReady:false,
     }
   },
   name: "timeLineLayer",
@@ -124,36 +132,47 @@ export default {
   watch: {
     async viewer() {
       this.currentTime = viewer.clock.currentTime
-      // await Promise.all([
-        // basicLayers.Addmudslide(),
-        // basicLayers.loadLandSlide(),
-        // basicLayers.AddDangerAreaDataSource(),
-        // basicLayers.loadAdminData(),
-        // basicLayers.loadFlashFlood(),
-        // basicLayers.loadWater()
-      // ]);
+      await Promise.all([
+        basicLayers.loadAdminData(),
+        basicLayers.Addmudslide(),
+        basicLayers.loadLandSlide(),
+        basicLayers.AddDangerAreaDataSource(),
+        basicLayers.loadFlashFlood(),
+        basicLayers.loadWater(),
+
+
+      ]);
     },
     async onceLoadLayer() {
       if (this.onceLoadLayer) {
-          if (this.disasterEvent.trigger == "地震") {
-            this.selectedlayers = ["灾害点","烈度圈"];
-            await this.updateMapLayers();
-            // if (this.onceLoadLayer) {
-            //   this.$emit('update:onceLoadLayer', false);
-            //   viewer.clockViewModel.shouldAnimate = true;
-            // }
-          }
+        if (this.disasterEvent.trigger == "地震") {
+          // this.selectedlayers = ['烈度圈', '断裂带','预警点', "灾害点", '行政区划',  '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'];
+          this.selectedlayers = ['烈度圈', '断裂带','预警点', "灾害点", '行政区划',  '隐患点'];
+          this.updateMapLayers();
+        } else if (this.disasterEvent.trigger == "暴雨") {
+          // this.selectedlayers = ['预警点', "灾害点",'行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',  '山洪隐患点', '内涝隐患点'];
+          this.selectedlayers = ['预警点', "灾害点",'行政区划', '隐患点'];
+          this.updateMapLayers();
+        }
+          // if (this.plotsInfoisReady && this.PredictInfoIsReady) {
+          //   this.viewer.clockViewModel.shouldAnimate = true;
+          // }
       }
-      // if (this.onceLoadLayer) {
-      //   if (this.disasterEvent.trigger == "地震") {
-      //     this.selectedlayers = ['行政区划', '烈度圈', '断裂带', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
-      //     this.updateMapLayers();
-      //   } else if (this.disasterEvent.trigger == "暴雨") {
-      //     this.selectedlayers = ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '预警点', "灾害点", '山洪隐患点', '内涝隐患点'];
-      //     this.updateMapLayers();
-      //   }
-      //
-      // }
+    },
+    plotsInfoisReady(newVal) {
+      if (newVal && this.PredictInfoIsReady) {
+        setTimeout(() => {
+          this.viewer.clockViewModel.shouldAnimate = true;
+        }, 3000);
+      }
+    },
+    PredictInfoIsReady(newVal) {
+      if (newVal && this.plotsInfoisReady) {
+        setTimeout(() => {
+          this.viewer.clockViewModel.shouldAnimate = true;
+        }, 3000);
+
+      }
     },
     async disasterEvent() {
       if (this.disasterEvent.trigger == "暴雨") {
@@ -173,14 +192,15 @@ export default {
 
       const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
       const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
-      console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
+      // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
       const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
       console.log("updatedRes processDataEqid",batchData)
       this.$emit("update:realDisasterPointWithInfo", batchData);
-      if (this.onceLoadLayer) {
-        this.$emit('update:onceLoadLayer', false);
-        viewer.clockViewModel.shouldAnimate = true;
-      }
+      this.plotsInfoisReady=true;
+      // if (this.onceLoadLayer) {
+      //   this.$emit('update:onceLoadLayer', false);
+      //   viewer.clockViewModel.shouldAnimate = true;
+      // }
 
 
 
@@ -250,79 +270,104 @@ export default {
           }
         },
         {
-          name: '泥石流隐患点',
+          name: '隐患点',
           add: () => {
-            console.log(this.firstLoad.泥石流隐患点, "this.firstLoad.泥石流隐患点")
-            if (this.firstLoad.泥石流隐患点 == false) {
-              basicLayers.showHiddenEntity("泥石流隐患点")
-            } else {
-              basicLayers.Addmudslide()
-              this.firstLoad.泥石流隐患点 = false
-            }
-          },
-          remove: () => {
-            basicLayers.hideHiddenEntity("泥石流隐患点")
-          }
-        },
-        {
-          name: '滑坡隐患点',
-          add: () => {
-            if (this.firstLoad.滑坡隐患点 == false) {
-              basicLayers.showHiddenEntity("滑坡隐患点")
-            } else {
-              basicLayers.loadLandSlide()
-              this.firstLoad.滑坡隐患点 = false
-            }
-          },
-          remove: () => {
-            basicLayers.hideHiddenEntity("滑坡隐患点")
-          }
-        },
-
-
-        {
-          name: '山洪隐患点',
-          add: () => {
-            if (this.firstLoad.山洪隐患点 == false) {
+            console.log(this.firstLoad.隐患点, "this.firstLoad.隐患点")
+            if (this.firstLoad.隐患点 == false) {
               basicLayers.showHiddenEntity("山洪隐患点")
+              basicLayers.showHiddenEntity("内涝隐患点")
+              basicLayers.showHiddenEntity("泥石流隐患点")
+              basicLayers.showHiddenEntity("滑坡隐患点")
+              basicLayers.showHiddenEntity("风险区域")
             } else {
-              basicLayers.loadFlashFlood()
-              this.firstLoad.山洪隐患点 = false
+              basicLayers.loadLandSlide();
+              basicLayers.Addmudslide();
+              basicLayers.AddDangerAreaDataSource();
+              basicLayers.loadFlashFlood();
+              basicLayers.loadWater();
+              this.firstLoad.隐患点 = false
             }
           },
           remove: () => {
             basicLayers.hideHiddenEntity("山洪隐患点")
-          }
-        },
-        {
-          name: '内涝隐患点',
-          add: () => {
-            if (this.firstLoad.内涝隐患点 == false) {
-              basicLayers.showHiddenEntity("内涝隐患点")
-            } else {
-              basicLayers.loadWater()
-              this.firstLoad.内涝隐患点 = false
-            }
-          },
-          remove: () => {
             basicLayers.hideHiddenEntity("内涝隐患点")
-          }
-        },
-
-        {
-          name: '风险区域',
-          add: () => {
-            if (this.firstLoad.风险区域 == false) {
-              basicLayers.showHiddenEntity("风险区域")
-            } else {
-              basicLayers.AddDangerAreaDataSource()
-              this.firstLoad.风险区域 = false
-            }
-          },
-          remove: () => {
+            basicLayers.hideHiddenEntity("泥石流隐患点")
+            basicLayers.hideHiddenEntity("滑坡隐患点")
             basicLayers.hideHiddenEntity("风险区域")
           }
         },
+        // {
+        //   name: '泥石流隐患点',
+        //   add: () => {
+        //     console.log(this.firstLoad.泥石流隐患点, "this.firstLoad.泥石流隐患点")
+        //     if (this.firstLoad.泥石流隐患点 == false) {
+        //       basicLayers.showHiddenEntity("泥石流隐患点")
+        //     } else {
+        //       basicLayers.Addmudslide()
+        //       this.firstLoad.泥石流隐患点 = false
+        //     }
+        //   },
+        //   remove: () => {
+        //     basicLayers.hideHiddenEntity("泥石流隐患点")
+        //   }
+        // },
+        // {
+        //   name: '滑坡隐患点',
+        //   add: () => {
+        //     if (this.firstLoad.滑坡隐患点 == false) {
+        //       basicLayers.showHiddenEntity("滑坡隐患点")
+        //     } else {
+        //       basicLayers.loadLandSlide()
+        //       this.firstLoad.滑坡隐患点 = false
+        //     }
+        //   },
+        //   remove: () => {
+        //     basicLayers.hideHiddenEntity("滑坡隐患点")
+        //   }
+        // },
+        // {
+        //   name: '山洪隐患点',
+        //   add: () => {
+        //     if (this.firstLoad.山洪隐患点 == false) {
+        //       basicLayers.showHiddenEntity("山洪隐患点")
+        //     } else {
+        //       basicLayers.loadFlashFlood()
+        //       this.firstLoad.山洪隐患点 = false
+        //     }
+        //   },
+        //   remove: () => {
+        //     basicLayers.hideHiddenEntity("山洪隐患点")
+        //   }
+        // },
+        // {
+        //   name: '内涝隐患点',
+        //   add: () => {
+        //     if (this.firstLoad.内涝隐患点 == false) {
+        //       basicLayers.showHiddenEntity("内涝隐患点")
+        //     } else {
+        //       basicLayers.loadWater()
+        //       this.firstLoad.内涝隐患点 = false
+        //     }
+        //   },
+        //   remove: () => {
+        //     basicLayers.hideHiddenEntity("内涝隐患点")
+        //   }
+        // },
+
+        // {
+        //   name: '风险区域',
+        //   add: () => {
+        //     if (this.firstLoad.风险区域 == false) {
+        //       basicLayers.showHiddenEntity("风险区域")
+        //     } else {
+        //       basicLayers.AddDangerAreaDataSource()
+        //       this.firstLoad.风险区域 = false
+        //     }
+        //   },
+        //   remove: () => {
+        //     basicLayers.hideHiddenEntity("风险区域")
+        //   }
+        // },
         {
           name: '预警点',
           add: async () => {
@@ -332,69 +377,83 @@ export default {
               // 第一次加载，计算预警点
               this.isCalculating = true; // 设置为正在计算
               this.calculationMessage = '正在计算预警点...';
-              if (this.disasterEvent.trigger == "地震") {
+              let probabilityPoints = await queryDisasterEstimationGetAll({
+                disasterId: this.disasterEvent.disasterId,
+                disasterTrigger: this.disasterEvent.trigger
+              })
+              console.log(probabilityPoints,"probabilityPoints")
+              //
+              // if (this.disasterEvent.trigger == "地震") {
+              //   EARTHQUAKE
+              // }
+              // else if (this.disasterEvent.trigger == "暴雨") {
+              //   RAINSTORM
+              // }
 
-                let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
-                console.log(allHiddeninEllipse, "allHiddeninEllipse")
-                let [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
-                console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
-                // this.pulse.removePulseEntity();
+                // let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
+                // console.log(allHiddeninEllipse, "allHiddeninEllipse")
+                // let [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
+                // console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
+                // // this.pulse.removePulseEntity();
                 layers.addHiddenBreathCircle(probabilityPoints)
-                // this.pulse.createPause(probabilityPoints);
-                // layers.flashHiddenDisasterPoints(probabilityPoints);
+                // // this.pulse.createPause(probabilityPoints);
+                // // layers.flashHiddenDisasterPoints(probabilityPoints);
                 this.$emit("update:hiddenDisasterPoint", probabilityPoints);
-
-                // 设置计算完成
+                //
+                // // 设置计算完成
                 this.isCalculating = false;
                 this.calculationMessage = '预警点计算完成！';
-                // 3 秒后关闭提示框
+                // // 3 秒后关闭提示框
                 setTimeout(() => {
                   this.calculationMessage = '';
                 }, 3000);
-
+                this.PredictInfoIsReady=true
                 // // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
                 // if (this.onceLoadLayer) {
                 //   this.$emit('update:onceLoadLayer', false);
                 //   viewer.clockViewModel.shouldAnimate = true;
                 // }
-              } else if (this.disasterEvent.trigger == "暴雨") {
-                // 汇总所有区县的匹配数据
-                let allMatchedHuapoData = [];
-                let allPointSet = new Set();
+              // } else if (this.disasterEvent.trigger == "暴雨") {
+                // {level=[高], city=西安市, disaster_type=内涝, lon=108.85848576, position=郭杜街道长安区朱雀市场, disaster_probability=90.42, village=郭杜街道, lat=34.156657595},
 
-                // 遍历所有行政区划，收集数据
-                for (let i = 0; i < this.positionArry.length; i++) {
-                  let adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
-                  let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
-                  // 获取当前区县的匹配数据
-                  let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
-                      allPointsInside,
-                      i,
-                      this.rainfallArry[i],
-                      this.durationArry[i],
-                  );
-                  // 合并到总数据集
-                  allMatchedHuapoData.push(...matchedHuapoData);
-                }
-                console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
-                // 一次性发送所有数据到接口
-                let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
-                console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
-                layers.addHiddenBreathCircle(matchedHuapoEntities)
-                this.$emit("update:hiddenDisasterPoint", matchedHuapoEntities);
-                // 存储预警点结果
-                this.isCalculating = false;
-                this.calculationMessage = '预警点计算完成！';
-                // 3 秒后关闭提示框
-                setTimeout(() => {
-                  this.calculationMessage = '';
-                }, 3000);
-                // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+                // // 汇总所有区县的匹配数据
+                // let allMatchedHuapoData = [];
+                // let allPointSet = new Set();
+                //
+                // // 遍历所有行政区划，收集数据
+                // for (let i = 0; i < this.positionArry.length; i++) {
+                //   let adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
+                //   let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
+                //   // 获取当前区县的匹配数据
+                //   let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
+                //       allPointsInside,
+                //       i,
+                //       this.rainfallArry[i],
+                //       this.durationArry[i],
+                //   );
+                //   // 合并到总数据集
+                //   allMatchedHuapoData.push(...matchedHuapoData);
+                // }
+                // console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
+                // // 一次性发送所有数据到接口
+                // let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
+                // console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
+                // layers.addHiddenBreathCircle(matchedHuapoEntities)
+                // this.$emit("update:hiddenDisasterPoint", matchedHuapoEntities);
+                // // 存储预警点结果
+                // this.isCalculating = false;
+                // this.calculationMessage = '预警点计算完成！';
+                // // 3 秒后关闭提示框
+                // setTimeout(() => {
+                //   this.calculationMessage = '';
+                // }, 3000);
+                // // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
+                // this.PredictInfoIsReady=true
                 // if (this.onceLoadLayer) {
                 //   this.$emit('update:onceLoadLayer', false);
                 //   viewer.clockViewModel.shouldAnimate = true;
                 // }
-              }
+              // }
               this.firstLoad.预警点 = false
             }
           },
