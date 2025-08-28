@@ -1,7 +1,7 @@
 import request from "@/utils/request.js";
 
 
-// »ñÈ¡»¬ÆÂÒþ»¼µãÊý¾Ý
+// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 export function getGeologicalDisasterHideByLandSlideList() {
     return request({
         url: '/hide/slide',
@@ -10,7 +10,7 @@ export function getGeologicalDisasterHideByLandSlideList() {
     });
 }
 
-// »ñÈ¡ÄàÊ¯Á÷Òþ»¼µãÊý¾Ý
+// ï¿½ï¿½È¡ï¿½ï¿½Ê¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 export function getGeologicalDisasterHideByFlowList() {
     return request({
         url: '/hide/flow',
@@ -19,7 +19,7 @@ export function getGeologicalDisasterHideByFlowList() {
     });
 }
 
-// »ñÈ¡É½ºé
+// ï¿½ï¿½È¡É½ï¿½ï¿½
 export function getGeologicalDisasterAllFlashFloodList(){
     return request({
         url: '/hide/getFlashFlood',
@@ -28,11 +28,19 @@ export function getGeologicalDisasterAllFlashFloodList(){
     });
 }
 
-// »ñÈ¡ÄÚÀÔ
+// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
 export function getGeologicalDisasterAllWaterList(){
     return request({
         url: '/hide/getWater',
         method: 'get',
         timeout:50000
     });
+}
+
+export function queryDisasterEstimationGetAll(data) {
+    return request({
+        url: '/XianFactorAnalysis/queryDisasterEstimationGetAll',
+        method: 'post',
+        params:data
+    })
 }

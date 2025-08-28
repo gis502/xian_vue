@@ -296,8 +296,8 @@ export default {
       layerHandler: null,
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
-      flashFloodPoints: [],
       secondaryRiskPoints: [], // 次生灾害风险点
+      flashFloodPoints: [],
       dangerSourcePoints: [],
       hospitalPoints: [],
       fireFighterPoints: [],
@@ -438,11 +438,9 @@ export default {
     load() {
       // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
-
       this.viewer = initCesium(container)
       this.viewer._cesiumWidget._creditContainer.style.display = "none";
       window.viewer = this.viewer;//全局绑定viewer，此举是为了点击表格可以跳转对应的点。
-
       this.viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
         orientation: {
@@ -463,7 +461,6 @@ export default {
       }
       this.isLoading = true;
       this.loadingText = '加载湖面数据...';
-
       this.lakeDataSource = new Cesium.GeoJsonDataSource();
       this.lakeDataSource.load(this.lakeData, {
         enableFeatureStyles: false,
@@ -483,9 +480,7 @@ export default {
     // 配置湖面样式
     configureLakeStyles() {
       if (!this.lakeDataSource) return;
-
       const entities = this.lakeDataSource.entities.values;
-
       entities.forEach(entity => {
         const properties = entity.properties || {};
         const name = properties.NAME || `湖面${entity.id}`;
@@ -985,7 +980,7 @@ export default {
       // 存储圆坐标数据
       ellipseEntity.coordinates = ellipseCoordinates;
       // 检测灾害点是否在圆范围内
-      this.checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, Radius);
+      this.checkDisasterPointsInEllipse(centerCartesian, Radius);
       return ellipseEntity;
     },
     // 计算圆形边界的经纬度坐标
@@ -1014,7 +1009,7 @@ export default {
       return coordinates;
     },
     // 检查灾害点是否在圆范围内
-    checkDisasterPointsInEllipse(ellipseEntity, centerCartesian, majorRadius) {
+    checkDisasterPointsInEllipse(centerCartesian, majorRadius) {
       // 存储在圆内的灾害点坐标
       const landslidePointsInside = [];
       const debrisFlowPointsInside = [];
@@ -1125,11 +1120,11 @@ export default {
           }
         });
 
-        this.checkOtherPointsInEllipse(ellipseEntity, centerCartesian, majorRadius);
+        this.checkOtherPointsInEllipse(centerCartesian, majorRadius);
       }
     },
     //检查其他店是否在圆内
-    checkOtherPointsInEllipse(ellipseEntity, centerCartesian, radius){
+    checkOtherPointsInEllipse(centerCartesian, radius){
       //储存各点坐标
       const hospitalPointsInside = [];
       const dangerSourcePointsInside = [];
@@ -1137,31 +1132,31 @@ export default {
       const storePointsInside = [];
       const fireFighterPointsInside = [];
 
-      this.hospitalPoints.forEach(point =>{
+      basicLayers.hospitalPoints.forEach(point =>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
           hospitalPointsInside.push(point);
         }
       })
 
-      this.dangerSourcePoints.forEach(point=>{
+      basicLayers.dangerSourcePoints.forEach(point=>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
           dangerSourcePointsInside.push(point);
         }
       })
 
-      this.shelterPoints.forEach(point=>{
+      basicLayers.shelterPoints.forEach(point=>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
           shelterPointsInside.push(point);
         }
       })
 
-      this.storePoints.forEach(point=>{
+      basicLayers.storePoints.forEach(point=>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
           storePointsInside.push(point);
         }
       })
 
-      this.fireFighterPoints.forEach(point=>{
+      basicLayers.fireFighterPoints.forEach(point=>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
           fireFighterPointsInside.push(point);
         }
@@ -1210,11 +1205,11 @@ export default {
         });
 
         // 主逻辑
-        const hospitalDates = this.HospitalData.features;
-        const dangerSourceDates = this.DangerSourceData.features;
-        const shelterDates = this.ShelterData.features;
-        const fireDates = this.FireFighterData.features;
-        const storeDates = this.StorePointsData.features;
+        const hospitalDates = basicLayers.hospitalData.features;
+        const dangerSourceDates = basicLayers.dangerSourceData.features;
+        const shelterDates = basicLayers.shelterData.features;
+        const fireDates = basicLayers.fireFighterData.features;
+        const storeDates = basicLayers.storeData.features;
 
         //医院表数据加载
         hospitalDates.forEach(entity => {
@@ -1261,7 +1256,7 @@ export default {
               field1: entity.properties.shelterName,
               field2: entity.properties.position,
               field3: entity.properties.shelterType,
-              field4: entity.properties.shelterVolume,
+              field4: entity.properties.effectiveNumber,
               field5: entity.properties.lon,
               field6: entity.properties.lat,
             });
@@ -1732,7 +1727,7 @@ export default {
   border-radius: 4px;
   text-align: center;
   background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: black;
   height: 30px; /* 固定高度确保垂直居中 */
   box-sizing: border-box; /* 包含内边距 */
 }
@@ -2105,6 +2100,10 @@ export default {
   align-items: center;
   margin-bottom: 15px;
   gap: 10px; /* 统一元素间距 */
+}
+
+.legend {
+  bottom: 10px;
 }
 
 </style>

@@ -77,3 +77,10 @@ export function getTest() {
         method: 'get'
     })
 }
+
+export function getRain() {
+    return request({
+        url: '/association/getRainPH',
+        method: 'get'
+    })
+}

@@ -33,13 +33,13 @@ import request from '@/utils/request'
 //   })
 // }
 //
-// // 查询全部标绘图片
-// export function getPlotIcon() {
-//   return request({
-//     url: '/system/ploticon/getploticon',
-//     method: 'post',
-//   })
-// }
+// 查询全部标绘图片
+export function getPlotIcon() {
+  return request({
+    url: '/ploticon/getploticon',
+    method: 'post',
+  })
+}
 //
 // // 查询全部标绘图片
 // export function searchploticon(menuName) {
