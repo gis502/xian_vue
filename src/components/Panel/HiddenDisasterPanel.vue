@@ -132,22 +132,12 @@ const displayDisasterCausingFactors = ref(false);
 const hazards = computed(() => {
   // console.log(props.disasterInformation,props.debrisFlowInformation,"hazards")
   if (props.showDisasterInformation) {
-    // props.disasterInformation.factorVoList.forEach((element) => {
-    //   element.type = element.unit == "" ? "select" : "input:number";
-    //   element.isModified = true;
-    //   element.isShow = true;
-    // });
     handleRainfallAndDuration(props.disasterInformation, props.trigger);
     return {
       ...props.disasterInformation,
       title: '滑坡隐患点' // 替换成你需要的标题
     };
   } else if (props.showdebrisFlowInformation) {
-    // props.debrisFlowInformation.factorVoList.forEach((element) => {
-    //   element.type = element.unit == "" ? "select" : "input:number";
-    //   element.isModified = true;
-    //   element.isShow = true;
-    // })
     handleRainfallAndDuration(props.debrisFlowInformation, props.trigger);
     return {
       ...props.debrisFlowInformation,
