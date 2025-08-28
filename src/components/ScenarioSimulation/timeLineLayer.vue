@@ -24,17 +24,12 @@
 import layers from "@/cesium/layers.js";
 import * as Cesium from "cesium";
 import basicLayers from "@/cesium/basicLayers.js";
-import {obtainTheProbabilityOfSimulatedPointRisk} from "@/api/earthquake/hazards.js";
-// import {PulseTool} from "@/cesium/pulse.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
-
-import {reactive} from "vue";
 import {selectDisasterRealByDisasterId} from '@/api/system/plot.js'
-import timeTransfer from "@/cesium/timeTransfer.js";
-import {parsePointString} from "@/cesium/geomTransfer.js";
 import {rainSlideTrigger} from "@/api/system/rainModel.js";
 import {getExcelPlotInfo} from "@/api/system/plot.js";
 import {queryDisasterEstimationGetAll} from "@/api/system/disasterHide.js";
+
 export default {
   data() {
     return {
@@ -44,16 +39,7 @@ export default {
         {id: '0', name: '行政区划', disabled: false},
         {id: '1', name: '预警点', disabled: false},
         {id: '2', name: '灾害点', disabled: true}, // 设置为 true 使其不可取消勾选
-
-
-        // {id: '3', name: '泥石流隐患点', disabled: false},
-        // {id: '4', name: '滑坡隐患点', disabled: false},
-        // {id: '5', name: '山洪隐患点', disabled: false},
-        // {id: '6', name: '内涝隐患点', disabled: false},
         {id: '6', name: '隐患点', disabled: false},
-        {id: '7', name: '风险区域', disabled: false},
-
-
         {id: '8', name: '烈度圈', disabled: false},
         {id: '9', name: '断裂带', disabled: false},
 
@@ -77,14 +63,7 @@ export default {
         '行政区划': true,
         '预警点': true,
         '灾害点': true,
-        //
-        // '泥石流隐患点': true,
-        // '滑坡隐患点': true,
-        // '山洪隐患点': true,
-        // '内涝隐患点': true,
-
         '隐患点': true,
-        // '风险区域': true,
 
         '烈度圈': true,
         '断裂带': false,
@@ -104,17 +83,11 @@ export default {
         '水库': false,
         '地铁站': false,
       },
-
-      // selectedlayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
       selectedlayers: ['行政区划', '隐患点'],
-      // prevSelectedLayers: ['行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'],
       prevSelectedLayers: ['行政区划', '隐患点'],
-      // selectedlayers: [],
-      // prevSelectedLayers:[],
       isCalculating: false, // 消息提示框显示隐藏
       calculationMessage: '', // 提示信息
 
-      // pulse: null,
       realDisasterPoint: null,
       currentTime: new Date(),
       showBaseInfo: false,
@@ -123,8 +96,8 @@ export default {
       rainfallArry: [],
       durationArry: [],
 
-      plotsInfoisReady:false,
-      PredictInfoIsReady:false,
+      plotsInfoisReady: false,
+      PredictInfoIsReady: false,
     }
   },
   name: "timeLineLayer",
@@ -139,24 +112,17 @@ export default {
         basicLayers.AddDangerAreaDataSource(),
         basicLayers.loadFlashFlood(),
         basicLayers.loadWater(),
-
-
       ]);
     },
     async onceLoadLayer() {
       if (this.onceLoadLayer) {
         if (this.disasterEvent.trigger == "地震") {
-          // this.selectedlayers = ['烈度圈', '断裂带','预警点', "灾害点", '行政区划',  '泥石流隐患点', '滑坡隐患点', '风险区域', '山洪隐患点', '内涝隐患点'];
-          this.selectedlayers = ['烈度圈', '断裂带','预警点', "灾害点", '行政区划',  '隐患点'];
+          this.selectedlayers = ['烈度圈', '断裂带', '预警点', "灾害点", '行政区划', '隐患点'];
           this.updateMapLayers();
         } else if (this.disasterEvent.trigger == "暴雨") {
-          // this.selectedlayers = ['预警点', "灾害点",'行政区划', '泥石流隐患点', '滑坡隐患点', '风险区域',  '山洪隐患点', '内涝隐患点'];
-          this.selectedlayers = ['预警点', "灾害点",'行政区划', '隐患点'];
+          this.selectedlayers = ['预警点', "灾害点", '行政区划', '隐患点'];
           this.updateMapLayers();
         }
-          // if (this.plotsInfoisReady && this.PredictInfoIsReady) {
-          //   this.viewer.clockViewModel.shouldAnimate = true;
-          // }
       }
     },
     plotsInfoisReady(newVal) {
@@ -171,7 +137,6 @@ export default {
         setTimeout(() => {
           this.viewer.clockViewModel.shouldAnimate = true;
         }, 3000);
-
       }
     },
     async disasterEvent() {
@@ -180,7 +145,7 @@ export default {
           return str.split(',').map(item => item.trim());
         }
 
-// 使用示例
+        // 使用示例
         this.positionArry = convertToArray(this.disasterEvent.position);
         this.rainfallArry = convertToArray(this.disasterEvent.rainfall);
         this.durationArry = convertToArray(this.disasterEvent.duration);
@@ -194,25 +159,12 @@ export default {
       const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
       // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
       const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
-      console.log("updatedRes processDataEqid",batchData)
+      // console.log("updatedRes processDataEqid",batchData)
       this.$emit("update:realDisasterPointWithInfo", batchData);
-      this.plotsInfoisReady=true;
-      // if (this.onceLoadLayer) {
-      //   this.$emit('update:onceLoadLayer', false);
-      //   viewer.clockViewModel.shouldAnimate = true;
-      // }
-
-
-
-      // const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
-
-
+      this.plotsInfoisReady = true;
     }
   },
   components: {},
-  // mounted() {
-  //   this.pulse = new PulseTool(window.viewer);
-  // },
   methods: {
     toggleLayerFeatures() {
       this.showLayerFeatures = !this.showLayerFeatures;
@@ -296,78 +248,6 @@ export default {
             basicLayers.hideHiddenEntity("风险区域")
           }
         },
-        // {
-        //   name: '泥石流隐患点',
-        //   add: () => {
-        //     console.log(this.firstLoad.泥石流隐患点, "this.firstLoad.泥石流隐患点")
-        //     if (this.firstLoad.泥石流隐患点 == false) {
-        //       basicLayers.showHiddenEntity("泥石流隐患点")
-        //     } else {
-        //       basicLayers.Addmudslide()
-        //       this.firstLoad.泥石流隐患点 = false
-        //     }
-        //   },
-        //   remove: () => {
-        //     basicLayers.hideHiddenEntity("泥石流隐患点")
-        //   }
-        // },
-        // {
-        //   name: '滑坡隐患点',
-        //   add: () => {
-        //     if (this.firstLoad.滑坡隐患点 == false) {
-        //       basicLayers.showHiddenEntity("滑坡隐患点")
-        //     } else {
-        //       basicLayers.loadLandSlide()
-        //       this.firstLoad.滑坡隐患点 = false
-        //     }
-        //   },
-        //   remove: () => {
-        //     basicLayers.hideHiddenEntity("滑坡隐患点")
-        //   }
-        // },
-        // {
-        //   name: '山洪隐患点',
-        //   add: () => {
-        //     if (this.firstLoad.山洪隐患点 == false) {
-        //       basicLayers.showHiddenEntity("山洪隐患点")
-        //     } else {
-        //       basicLayers.loadFlashFlood()
-        //       this.firstLoad.山洪隐患点 = false
-        //     }
-        //   },
-        //   remove: () => {
-        //     basicLayers.hideHiddenEntity("山洪隐患点")
-        //   }
-        // },
-        // {
-        //   name: '内涝隐患点',
-        //   add: () => {
-        //     if (this.firstLoad.内涝隐患点 == false) {
-        //       basicLayers.showHiddenEntity("内涝隐患点")
-        //     } else {
-        //       basicLayers.loadWater()
-        //       this.firstLoad.内涝隐患点 = false
-        //     }
-        //   },
-        //   remove: () => {
-        //     basicLayers.hideHiddenEntity("内涝隐患点")
-        //   }
-        // },
-
-        // {
-        //   name: '风险区域',
-        //   add: () => {
-        //     if (this.firstLoad.风险区域 == false) {
-        //       basicLayers.showHiddenEntity("风险区域")
-        //     } else {
-        //       basicLayers.AddDangerAreaDataSource()
-        //       this.firstLoad.风险区域 = false
-        //     }
-        //   },
-        //   remove: () => {
-        //     basicLayers.hideHiddenEntity("风险区域")
-        //   }
-        // },
         {
           name: '预警点',
           add: async () => {
@@ -381,79 +261,19 @@ export default {
                 disasterId: this.disasterEvent.disasterId,
                 disasterTrigger: this.disasterEvent.trigger
               })
-              console.log(probabilityPoints,"probabilityPoints")
+              console.log(probabilityPoints, "probabilityPoints")
+
+              layers.addHiddenBreathCircle(probabilityPoints)
+              this.$emit("update:hiddenDisasterPoint", probabilityPoints);
               //
-              // if (this.disasterEvent.trigger == "地震") {
-              //   EARTHQUAKE
-              // }
-              // else if (this.disasterEvent.trigger == "暴雨") {
-              //   RAINSTORM
-              // }
-
-                // let allHiddeninEllipse = layers.getAllHiddeninEllipse(this.disasterEvent.longitude, this.disasterEvent.latitude, this.disasterEvent.magnitude);
-                // console.log(allHiddeninEllipse, "allHiddeninEllipse")
-                // let [pointsWithCausingFactors, probabilityPoints] = await obtainTheProbabilityOfSimulatedPointRisk(allHiddeninEllipse);
-                // console.log(allHiddeninEllipse, pointsWithCausingFactors, probabilityPoints, "inEllipsePoints,points, probabilityPoints");
-                // // this.pulse.removePulseEntity();
-                layers.addHiddenBreathCircle(probabilityPoints)
-                // // this.pulse.createPause(probabilityPoints);
-                // // layers.flashHiddenDisasterPoints(probabilityPoints);
-                this.$emit("update:hiddenDisasterPoint", probabilityPoints);
-                //
-                // // 设置计算完成
-                this.isCalculating = false;
-                this.calculationMessage = '预警点计算完成！';
-                // // 3 秒后关闭提示框
-                setTimeout(() => {
-                  this.calculationMessage = '';
-                }, 3000);
-                this.PredictInfoIsReady=true
-                // // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-                // if (this.onceLoadLayer) {
-                //   this.$emit('update:onceLoadLayer', false);
-                //   viewer.clockViewModel.shouldAnimate = true;
-                // }
-              // } else if (this.disasterEvent.trigger == "暴雨") {
-                // {level=[高], city=西安市, disaster_type=内涝, lon=108.85848576, position=郭杜街道长安区朱雀市场, disaster_probability=90.42, village=郭杜街道, lat=34.156657595},
-
-                // // 汇总所有区县的匹配数据
-                // let allMatchedHuapoData = [];
-                // let allPointSet = new Set();
-                //
-                // // 遍历所有行政区划，收集数据
-                // for (let i = 0; i < this.positionArry.length; i++) {
-                //   let adminCoordinates = layers.getAdminCoordinatesByName(this.positionArry[i]);
-                //   let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates);
-                //   // 获取当前区县的匹配数据
-                //   let {matchedHuapoData} = this.getHiddenDisasterPointswithCausingFactors(
-                //       allPointsInside,
-                //       i,
-                //       this.rainfallArry[i],
-                //       this.durationArry[i],
-                //   );
-                //   // 合并到总数据集
-                //   allMatchedHuapoData.push(...matchedHuapoData);
-                // }
-                // console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet);
-                // // 一次性发送所有数据到接口
-                // let matchedHuapoEntities = await this.caculateRainSlideTrigger(allMatchedHuapoData);
-                // console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
-                // layers.addHiddenBreathCircle(matchedHuapoEntities)
-                // this.$emit("update:hiddenDisasterPoint", matchedHuapoEntities);
-                // // 存储预警点结果
-                // this.isCalculating = false;
-                // this.calculationMessage = '预警点计算完成！';
-                // // 3 秒后关闭提示框
-                // setTimeout(() => {
-                //   this.calculationMessage = '';
-                // }, 3000);
-                // // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-                // this.PredictInfoIsReady=true
-                // if (this.onceLoadLayer) {
-                //   this.$emit('update:onceLoadLayer', false);
-                //   viewer.clockViewModel.shouldAnimate = true;
-                // }
-              // }
+              // // 设置计算完成
+              this.isCalculating = false;
+              this.calculationMessage = '预警点计算完成！';
+              // // 3 秒后关闭提示框
+              setTimeout(() => {
+                this.calculationMessage = '';
+              }, 3000);
+              this.PredictInfoIsReady = true
               this.firstLoad.预警点 = false
             }
           },
@@ -464,60 +284,22 @@ export default {
         {
           name: '灾害点',
           add: async () => {
-
-            let disaterEndTime=new Date(new Date(this.disasterEvent.occurrenceTime).getTime() + 10 * 24 * 3600 * 1000);
-            // console.log(disaterEndTime,"disaterEndTime")
-            // if (!this.realDisasterPoint) {
-              // this.realDisasterPoint = await selectDisasterRealByDisasterId({
-              //   disasterId: this.disasterEvent.disasterId,
-              //   disasterTrigger: this.disasterEvent.trigger
-              // })
-              // console.log(this.realDisasterPoint,"this.realDisasterPoint before")
-              this.realDisasterPoint.forEach(item => {
-                // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
-                if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
-                  // 为没有结束时间的点设置默认结束时间
-                  item.endTime = disaterEndTime  //20天 错误时间设置结束时间地震发生20天以后
-                }
-                if (!item.startTime) {
-                  // 为没有开始时间的点设置默认开始时间
-                  item.startTime = this.disasterEvent.occurrenceTime;
-                }
-              })
-              this.$emit("update:realDisasterPoint", this.realDisasterPoint);
-              // console.log(this.realDisasterPoint,"this.realDisasterPoint")
-
-              // const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
-              // const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
-              // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
-              // const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
-              // console.log("updatedRes processDataEqid",batchData)
-
-              layers.addRealDisaterPlot(this.realDisasterPoint)
-            // 如果是第一次加载，通知父组件更新 onceLoadLayer 并启动时间轴
-            // if (this.onceLoadLayer) {
-            //   this.$emit('update:onceLoadLayer', false);
-            //   viewer.clockViewModel.shouldAnimate = true;
-            // }
-              // layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            // }
-            // else {
-              // layers.addRealDisaterPlot(this.realDisasterPoint)
-              // layers.judgeandaddRealDisasterNewPoint(this.realDisasterPoint)
-            // }
+            let disaterEndTime = new Date(new Date(this.disasterEvent.occurrenceTime).getTime() + 10 * 24 * 3600 * 1000);
+            this.realDisasterPoint.forEach(item => {
+              // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
+              if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
+                // 为没有结束时间的点设置默认结束时间
+                item.endTime = disaterEndTime  //20天 错误时间设置结束时间地震发生20天以后
+              }
+              if (!item.startTime) {
+                // 为没有开始时间的点设置默认开始时间
+                item.startTime = this.disasterEvent.occurrenceTime;
+              }
+            })
+            this.$emit("update:realDisasterPoint", this.realDisasterPoint);
+            layers.addRealDisaterPlot(this.realDisasterPoint)
           },
           remove: () => {
-            // 移除滑坡事件实体
-            // let entity = viewer.entities.getById('landslideEvent');
-            // if (entity) {
-            //   viewer.entities.remove(entity);
-            // }
-            //
-            // // 移除黑色光圈效果
-            // let halo = viewer.entities.getById('landslideEventHalo');
-            // if (halo) {
-            //   viewer.entities.remove(halo);
-            // }
           }
         },
       ];
@@ -538,105 +320,6 @@ export default {
           layer.remove();
         }
       });
-    },
-    getHiddenDisasterPointswithCausingFactors(landslidePointsInside, index, rainfall, duration) {
-      console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
-      let matchedHuapoData = [];
-      let pointSet = new Set();
-      if (landslidePointsInside.length > 0) {
-        // 创建经纬度字符串集合用于快速匹配
-        landslidePointsInside.forEach(point => {
-          let lon = point[0];
-          let lat = point[1];
-          pointSet.add(`${lon},${lat}`);
-        });
-        useSimulationPointStore().simulationPoints.forEach((item) => {
-          let lon = item.geologicalDisasterHideDTO.lon;
-          let lat = item.geologicalDisasterHideDTO.lat;
-          let key = `${lon},${lat}`;
-          if (pointSet.has(key)) {
-            matchedHuapoData.push(item);
-            item.factorVoList.forEach(factor => {
-              if (factor.attributeName === "降雨量") {
-                factor.factorValue = rainfall;
-              }
-              if (factor.attributeName === "持续时间") {
-                factor.factorValue = duration;
-              }
-            });
-          }
-        });
-
-        console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet")
-        // 降雨量值放到致灾因子里面去（修复原代码中数组嵌套错误）
-        matchedHuapoData.forEach(huapoItem => {
-          // 检查factorVoList是否存在且为数组
-          if (Array.isArray(huapoItem.factorVoList)) {
-            huapoItem.factorVoList.forEach(factor => {
-              if (factor.attributeName === "降雨量") {
-                factor.factorValue = rainfall;
-              }
-              if (factor.attributeName === "持续时间") {
-                factor.factorValue = duration;
-              }
-            });
-          }
-        });
-      }
-      return {matchedHuapoData};
-    },
-    // 获取区县所有数据
-    async caculateRainSlideTrigger(matchedHuapoData) {
-      console.log(matchedHuapoData, "汇总后的matchedHuapoData")
-      let requestData = {
-        data: []
-      };
-      matchedHuapoData.forEach(item => {
-        let entityId = '';
-        if (item.geologicalDisasterHideDTO.disasterType === "风险区域") {
-          entityId = "风险区域" + item.geologicalDisasterHideDTO.unitCode;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "滑坡") {
-          entityId = "滑坡隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "泥石流") {
-          entityId = "泥石流隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "内涝") {
-          entityId = "内涝隐患点" + item.geologicalDisasterHideDTO.id;
-        } else if (item.geologicalDisasterHideDTO.disasterType === "山洪") {
-          entityId = "山洪隐患点" + item.geologicalDisasterHideDTO.id;
-        }
-
-        // 确保 factors 是一个数组
-        let factors = Array.isArray(item.factorVoList) ? item.factorVoList : item.factorVoList ? [item.factorVoList] : [];
-        let itemFormat = {
-          entityId: entityId,
-          probability: [],
-          level: [],
-          disaster: [],
-          disasterType: item.geologicalDisasterHideDTO.disasterType,
-          factors: factors,
-          lon: item.geologicalDisasterHideDTO.lon,
-          lat: item.geologicalDisasterHideDTO.lat,
-          geologicalDisasterHideDTO: item.geologicalDisasterHideDTO,
-        };
-
-        requestData.data.push(itemFormat);
-      });
-      try {
-        let matchedHuapoEntities = [];
-        console.log("一次性发送的请求数据：", requestData);
-        let res1111 = await rainSlideTrigger(requestData);
-        console.log(res1111, "rainSlideTrigger返回结果")
-        let formatAnalyzedData = res1111.data || [];
-
-        formatAnalyzedData.forEach(item => {
-          matchedHuapoEntities.push(item);
-        });
-
-        return matchedHuapoEntities;
-      } catch (error) {
-        console.error("Error in rainSlideTrigger:", error);
-        return [];
-      }
     },
   }
 }
