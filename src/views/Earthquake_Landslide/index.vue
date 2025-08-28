@@ -8,6 +8,7 @@
     element-loading-background="rgba(122, 122, 122, 0.8)"
   >
     <!-- 图例 -->
+    <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
     <Legend></Legend>
 
     <!-- 表格 -->
@@ -82,6 +83,8 @@ import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
+import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
+
 // 加载
 let loading = ref(false);
 
@@ -164,9 +167,11 @@ let showEarthquakeSimulation = ref(false);
 let earthquakeSimulationPosition = ref({});
 let isMonitoringEarthquake = false;
 let earthquakeClickHandler = null;
+let viewer = null;
 let entityClickHandler = ref(null);
 onMounted(() => {
-  window.viewer = initCesium("cesium-container");
+  viewer = initCesium("cesium-container");
+  window.viewer = viewer;
 
   // 断裂带
   basicLayers.addFaultZone();
@@ -211,6 +216,38 @@ function displayChart() {
 // 隐藏chart
 function hideChart() {
   showChart.value = false;
+}
+
+function setupEntityClickHandler() {
+
+  // 清除之前的点击事件处理程序
+  if (this.clickHandler) {
+    this.clickHandler.destroy();
+  }
+
+  // 为左键点击添加事件处理程序
+  this.clickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
+  this.clickHandler.setInputAction((movement) => {
+    // 检查点击是否在实体上
+    const pickedObject = this.viewer.scene.pick(movement.position);
+    // 判断是否有disasterName属性
+    if (pickedObject.id.disasterData === undefined) {
+      return;
+    }
+    // 隐藏之前的弹出面板
+    this.closePopup();
+
+    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+      const entity = pickedObject.id;
+      // 获取实体的灾害数据
+      this.selectedEntityData = entity.disasterData || {};
+      // 计算弹出框位置并显示面板
+      this.calculateAndShowPopup(entity, movement.position);
+    } else {
+      // 如果点击在空白处，隐藏信息框
+      this.viewer.selectedEntity = undefined;
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 //面板
