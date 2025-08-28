@@ -37,7 +37,6 @@
                     <div class="legend-item-value">10</div>
                 </div>
             </div>
-
         </div>
 
         <div class="timeline-wrapper">
@@ -69,76 +68,80 @@
     </div>
 </template>
 
-<script>
-export default {
-    name: 'TimeLine',
-    props: {
-        timeDate: {
-            default: []
-        }
-    },
-    computed: {
-        progressWidth() {
-            return `${(this.currentTimeIndex / (this.timeDate.length - 1)) * 100}%`;
-        },
-        currentTimeDisplay() {
-            return this.timeDate[this.currentTimeIndex] || '无雷达云图';
-        }
-    },
-    data() {
-        return {
-            // 时间轴相关数据
-            isPlaying: false,
-            currentTime: 0,
-            currentTimeIndex: 0, // 添加当前时间节点索引
-        }
-    },
-    beforeDestroy() {
-        this.stopPlayback()
-    },
+<script setup>
+import { ref, computed, onBeforeUnmount } from 'vue'
 
-    methods: {
-        // 时间轴相关方法
-        togglePlay() {
-            this.isPlaying = !this.isPlaying;
-            if (this.isPlaying) {
-                this.startPlayback();
-            } else {
-                this.stopPlayback();
-            }
-        },
+/* 定义 props */
+const props = defineProps({
+    timeDate: {
+        type: Array,
+        default: () => []
+    }
+})
 
-        startPlayback() {
-            this.playbackInterval = setInterval(() => {
-                this.currentTimeIndex += 1;
-                if (this.currentTimeIndex >= this.timeDate.length) {
-                    this.currentTimeIndex = 0;
-                }
-                this.$emit('radarIndex', this.currentTimeIndex)
-            }, 500); // 每秒切换一个时间节点
-        },
+/* 定义 emits */
+const emit = defineEmits(['radarIndex'])
 
-        stopPlayback() {
-            clearInterval(this.playbackInterval);
-        },
+/* 暴露给父组件,ps:只能暴露function类型函数，const声明的不行 */
+defineExpose({ stopPlayback })
 
-        // 新增：点击跳转到指定时间节点
-        jumpToTime(index) {
-            this.currentTimeIndex = index;
-            this.$emit('radarIndex', this.currentTimeIndex)
-            // 如果正在播放，重新开始播放
-            if (this.isPlaying) {
-                this.stopPlayback();
-                this.startPlayback();
-            }
-        },
+/* 响应式数据 */
+const isPlaying = ref(false)
+const currentTime = ref(0)
+const currentTimeIndex = ref(0)
+let playbackInterval = null
 
-        updateTimelineDisplay() {
-            // 这里可以添加根据时间更新地图显示的逻辑
-            console.log('当前时间:', this.currentTimeDisplay);
-        },
+const progressWidth = computed(() => {
+    return `${(currentTimeIndex.value / (props.timeDate.length - 1)) * 100}%`
+})
+
+const currentTimeDisplay = computed(() => {
+    return props.timeDate[currentTimeIndex.value] || '无雷达云图'
+})
+
+// 方法
+const togglePlay = () => {
+    isPlaying.value = !isPlaying.value
+    if (isPlaying.value) {
+        startPlayback()
+    } else {
+        stopPlayback()
     }
 }
+
+const startPlayback = () => {
+    playbackInterval = setInterval(() => {
+        currentTimeIndex.value += 1
+        if (currentTimeIndex.value >= props.timeDate.length) {
+            currentTimeIndex.value = 0
+        }
+        emit('radarIndex', currentTimeIndex.value)
+    }, 500) // 每秒切换一个时间节点
+}
+
+function stopPlayback(){
+    clearInterval(playbackInterval)
+}
+
+const jumpToTime = (index) => {
+    currentTimeIndex.value = index
+    emit('radarIndex', currentTimeIndex.value)
+    // 如果正在播放，重新开始播放
+    if (isPlaying.value) {
+        stopPlayback()
+        startPlayback()
+    }
+}
+
+const updateTimelineDisplay = () => {
+    // 这里可以添加根据时间更新地图显示的逻辑
+    console.log('当前时间:', currentTimeDisplay.value)
+}
+
+// 生命周期钩子
+onBeforeUnmount(() => {
+    stopPlayback()
+})
 </script>
 
 <style scoped>
