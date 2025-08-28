@@ -216,3 +216,15 @@ export const addEarthquake = (data) => {
   })
 }
 
+/**
+ * 获取历史分析页面中的所有影响点数据
+ * @param{*} data - 历史地震的相关数据
+ * @returns
+ */
+export const getAllAffectPoints = (data) => {
+  return request({
+    url: "/XianEarthquakeList/allAffectPoints/get",
+    method: "post",
+    data,
+  })
+}

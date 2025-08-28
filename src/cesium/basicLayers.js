@@ -350,6 +350,7 @@ let basicLayers = {
     },
     async loadDangerSource(){
         getDangerous().then((res) => {
+            console.log(5252,res.data)
             this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
     },
@@ -520,9 +521,9 @@ let basicLayers = {
             });
         }
     },
-    removeHiddenEntity(type) {
+    removeHiddenEntity() {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === 'type'
+            e => e.name === '风险源'||'医院'
         );
         if (toRemove) {
             // 2. 逐个删除
