@@ -71,7 +71,7 @@ export default {
       let disasterRainList = await getAllDisasterRain();
       console.log(earthquakeList,disasterRainList, "disasterRainList")
       earthquakeList.data.forEach((item) => {
-        console.log(item, "earthquakeListforEach")
+        // console.log(item, "earthquakeListforEach")
         this.eventList.push({
           id:item.disasterId,
           name: item.disasterName,
@@ -83,7 +83,7 @@ export default {
         })
       });
       disasterRainList.data.forEach((item) => {
-        console.log(item, "disasterRainListforEach")
+        // console.log(item, "disasterRainListforEach")
         this.eventList.push({
           id:item.disasterId,
           name: item.disasterName,

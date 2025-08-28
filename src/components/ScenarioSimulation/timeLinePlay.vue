@@ -124,9 +124,9 @@ export default {
     disasterEvent(newVal) {
       this.startTime = new Date(this.disasterEvent.occurrenceTime);
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
-      console.log(this.disasterEvent, "this.startTime,this.endTime,")
-      console.log(this.startTime, "this.startTime,this.endTime,")
-      console.log(this.endTime, "this.startTime,this.endTime,")
+      // console.log(this.disasterEvent, "this.startTime,this.endTime,")
+      // console.log(this.startTime, "this.startTime,this.endTime,")
+      // console.log(this.endTime, "this.startTime,this.endTime,")
       let realTime = new Date()
       if (realTime >= this.startTime && realTime <= this.endTime) {
         this.ifNewEq = true
