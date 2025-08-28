@@ -11,8 +11,6 @@
     <Legend></Legend>
     <!-- 表格 -->
     <Table v-if="showTable" :dataTypes="dataTypes"></Table>
-    <!-- chart -->
-    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <HiddenDisasterPanel
         v-if="showBaseInfo"
         :title="baseInfoTitle"
@@ -51,45 +49,59 @@ let loading = ref(false);
 const dataTypes = reactive({
   filterCriteria: [
     {
-      name: "滑坡预警点",
+      name: "暴雨滑坡",
       value: "type1",
     },
     {
-      name: "泥石流预警点",
+      name: "暴雨泥石流",
       value: "type2",
     },
     {
-      name: "风险区预警点",
+      name: "暴雨山洪",
       value: "type3",
+    },
+    {
+      name: "暴雨内涝",
+      value: "type4",
+    },
+    {
+      name: "地震滑坡",
+      value: "type5",
+    },
+    {
+      name: "地震泥石流",
+      value: "type6",
     },
   ],
   type1: {
-    headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
   type2: {
-    headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
   type3: {
-    headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
+  type4: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  },
+  type5: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  },
+  type6: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  }
 });
 
 // 显示表格
-const showTable = ref(false);
-// 显示chart
-const showChart = ref(false);
+const showTable = ref(true);
 
-// chart数据
-const chartDatas = reactive({
-  title: "地震模拟",
-  xAxis: {
-    data: ["滑坡受影响点", "泥石流受影响点", "风险区受影响点"],
-  },
-  seriesDatas: [0, 0, 0],
-});
 // 使用 ref 初始化基本类型的响应式引用
 let selectedEntityPosition = ref(null); // 拾取的点的弹框位置
 let eqCenterPanelVisible = ref(false);
@@ -145,16 +157,6 @@ function displayTable() {
 // 隐藏表格
 function hideTable() {
   showTable.value = false;
-}
-
-// 显示chart
-function displayChart() {
-  showChart.value = true;
-}
-
-// 隐藏chart
-function hideChart() {
-  showChart.value = false;
 }
 
 //面板

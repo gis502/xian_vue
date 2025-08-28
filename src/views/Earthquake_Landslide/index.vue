@@ -8,7 +8,7 @@
     element-loading-background="rgba(122, 122, 122, 0.8)"
   >
     <!-- 图例 -->
-    <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
+    <rain-layer-control :viewer="viewer"/>
     <Legend></Legend>
 
     <!-- 表格 -->
@@ -172,19 +172,12 @@ let entityClickHandler = ref(null);
 onMounted(() => {
   viewer = initCesium("cesium-container");
   window.viewer = viewer;
-
   // 断裂带
   basicLayers.addFaultZone();
-
   // 行政区
   basicLayers.loadAdminData();
-
   // 点击隐患点触发
   entitiesClickPonpHandler();
-
-  // 罗盘
-  // init_cesium_navigation(108.948024, 34.263161, 200000, window.viewer);
-
   // 调整到指定位置
   window.viewer.cesiumWidget.creditContainer.style.display = "none";
   window.viewer.camera.setView({
@@ -195,7 +188,6 @@ onMounted(() => {
       roll: 0.0,
     },
   });
-
 });
 
 // 显示表格
@@ -216,38 +208,6 @@ function displayChart() {
 // 隐藏chart
 function hideChart() {
   showChart.value = false;
-}
-
-function setupEntityClickHandler() {
-
-  // 清除之前的点击事件处理程序
-  if (this.clickHandler) {
-    this.clickHandler.destroy();
-  }
-
-  // 为左键点击添加事件处理程序
-  this.clickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
-  this.clickHandler.setInputAction((movement) => {
-    // 检查点击是否在实体上
-    const pickedObject = this.viewer.scene.pick(movement.position);
-    // 判断是否有disasterName属性
-    if (pickedObject.id.disasterData === undefined) {
-      return;
-    }
-    // 隐藏之前的弹出面板
-    this.closePopup();
-
-    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
-      const entity = pickedObject.id;
-      // 获取实体的灾害数据
-      this.selectedEntityData = entity.disasterData || {};
-      // 计算弹出框位置并显示面板
-      this.calculateAndShowPopup(entity, movement.position);
-    } else {
-      // 如果点击在空白处，隐藏信息框
-      this.viewer.selectedEntity = undefined;
-    }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 //面板
