@@ -135,20 +135,20 @@ const hazards = computed(() => {
     handleRainfallAndDuration(props.disasterInformation, props.trigger);
     return {
       ...props.disasterInformation,
-      title: '滑坡隐患点' // 替换成你需要的标题
+      title: '滑坡隐患点'
     };
   } else if (props.showdebrisFlowInformation) {
     handleRainfallAndDuration(props.debrisFlowInformation, props.trigger);
     return {
       ...props.debrisFlowInformation,
-      title: '泥石流隐患点' // 替换成你需要的标题
+      title: '泥石流隐患点'
     };
   } else if (props.showRiskPointsInformation) {
     props.riskPointsInformation.factorVoList = staticHazardsDatas;
     handleRainfallAndDuration(props.riskPointsInformation, props.trigger);
     return {
       ...props.riskPointsInformation,
-      title: '风险区域' // 替换成你需要的标题
+      title: '风险区域'
     };
   } else if (props.showWaterDisasterInformation) {
     handleRainfallAndDuration(props.waterDisasterInformation, props.trigger);
@@ -165,7 +165,7 @@ const hazards = computed(() => {
   }
 });
 
-// console.log(8746551,hazards.value);
+console.log(8746551,hazards.value);
 
 function handleRainfallAndDuration(info, trigger) {
   info.factorVoList.forEach((element) => {

@@ -28,7 +28,7 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points) {
         item.probability = [];
         item.disaster = [];
 
-        console.log(item, "item...")
+        // console.log(item, "item...")
         data.push(item);
         // 写入实体id
         entityIds.push(points[i].entityId);
