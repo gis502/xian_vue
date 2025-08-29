@@ -46,7 +46,7 @@ const settings = computed(() => settingsStore)
   width: 100%;
   height: 50px;
   line-height: 50px;
-  background: url("../../../../public/images/background_image.png")center center no-repeat #2b2f3a;
+  background: url("/images/background_image.png")center center no-repeat #2b2f3a;
   background-size: cover;
   text-align: center;
   overflow: hidden;

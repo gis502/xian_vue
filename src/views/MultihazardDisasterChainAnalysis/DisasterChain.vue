@@ -5,22 +5,22 @@
       v-loading="loading"
       :element-loading-spinner="svg"
       element-loading-svg-view-box="-10, -10, 50, 50"
-      element-loading-background="rgba(122, 122, 122, 0.8)">
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+  >
+    <div class="controls">
+      <div class="rain-btn" @click="selectDisasterChain">
+        灾害链模型选择
+      </div>
+    </div>
+    <div v-if="showSelect" class="layerControl-panel">
+      <div class="panel-content">
+        <label><input type="checkbox" v-model="showDisaster" @change="toggleDisaster"> 显示隐患点 </label>
+      </div>
+    </div>
     <!-- 图例 -->
-    <rain-layer-control :viewer="viewer"/>
     <Legend></Legend>
-
     <!-- 表格 -->
     <Table v-if="showTable" :dataTypes="dataTypes"></Table>
-
-    <!-- chart -->
-    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
-
-    <eqCenterPanel
-        v-show="eqCenterPanelVisible"
-        :position="PanelPosition"
-        :popupData="PanelData"
-    />
     <HiddenDisasterPanel
         v-if="showBaseInfo"
         :title="baseInfoTitle"
@@ -34,35 +34,6 @@
         :trigger="'地震'"
         :rainfall="'0'"
     />
-    <!-- 地震模拟 -->
-    <div class="btns-box">
-      <el-button type="warning" @click="startEarthquakeSimulation">地震模拟</el-button>
-      <el-button type="danger" @click="removeEarthquakeSimulation">清除地震模拟</el-button>
-      <el-button type="primary" @click="toggleReportPanel">图件报告产出</el-button>
-    </div>
-    <!-- 图件报告产出面板组件 -->
-    <ThematicPanel
-        v-if = "isReportPanelVisible"
-        :thematicMaps="customThematicMaps"
-        :disasterReports="customDisasterReports"
-        maxHeight="70vh">
-    </ThematicPanel>
-    <!-- 模拟地震弹窗 -->
-    <SimulatingEarthquake
-      v-if="showEarthquakeSimulation"
-      :position="earthquakeSimulationPosition"
-      :dataTypes="dataTypes"
-      :chartDatas="chartDatas"
-      @displayTable="displayTable"
-      @hideTable="hideTable"
-      @displayChart="displayChart"
-      @hideChart="hideChart"
-      @cancelEarthquake="cancelEarthquake"
-      @startLoading="startLoading"
-      @stopLoading="stopLoading"
-      @updateEqInfo="updateEqInfo"
-    ></SimulatingEarthquake>
-
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
     <SimulationPoint></SimulationPoint>
   </div>
@@ -73,24 +44,13 @@ import * as Cesium from "cesium";
 
 import { initCesium } from "@/cesium/initLayer.js";
 import { onMounted, reactive, ref } from "vue";
-import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
-import {init_cesium_navigation} from "../../cesium/initLayer.js";
-import layers from "../../cesium/layers";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
-import Chart from "../../components/Earthquake/Chart.vue";
-
-import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
-import ThematicPanel from "@/components/Panel/ThematicPanel.vue";
-
-
-import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
-
 // 加载
 let loading = ref(false);
 
@@ -98,55 +58,65 @@ let loading = ref(false);
 const dataTypes = reactive({
   filterCriteria: [
     {
-      name: "滑坡预警点",
+      name: "暴雨滑坡",
       value: "type1",
     },
     {
-      name: "泥石流预警点",
+      name: "暴雨泥石流",
       value: "type2",
     },
     {
-      name: "风险区预警点",
+      name: "暴雨山洪",
       value: "type3",
+    },
+    {
+      name: "暴雨内涝",
+      value: "type4",
+    },
+    {
+      name: "地震滑坡",
+      value: "type5",
+    },
+    {
+      name: "地震泥石流",
+      value: "type6",
     },
   ],
   type1: {
-    headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
   type2: {
-    headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
   type3: {
-    headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
+  type4: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  },
+  type5: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  },
+  type6: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  }
 });
 
 // 显示表格
-const showTable = ref(false);
-
-// 显示chart
-const showChart = ref(false);
-
-// chart数据
-const chartDatas = reactive({
-  title: "地震模拟",
-  xAxis: {
-    data: ["滑坡受影响点", "泥石流受影响点", "风险区受影响点"],
-  },
-  seriesDatas: [0, 0, 0],
-});
-
-// 弹窗信息
+const showTable = ref(true);
+const showSelect = ref(false);
 
 // 使用 ref 初始化基本类型的响应式引用
 let selectedEntityPosition = ref(null); // 拾取的点的弹框位置
 let eqCenterPanelVisible = ref(false);
 let rainCenterPanelVisible = ref(false);
 let showBaseInfo = ref(false);
-
 // 使用 reactive 初始化对象类型的响应式状态
 let PanelPosition = reactive({x: 0, y: 0}); // TimeLinePanel弹窗的位置
 let PanelData = reactive({}); // TimeLinePanel弹窗的数据
@@ -157,7 +127,6 @@ let baseInfoPosition = reactive({
 });
 // 弹窗标题
 let baseInfoTitle = ref("");
-
 // 显示滑坡
 let showDisasterInformation = ref(false);
 let disasterInformation = ref({});
@@ -167,43 +136,17 @@ let debrisFlowInformation = ref({});
 // 风险点
 let showRiskPointsInformation = ref(false);
 let riskPointsInformation = ref({});
-let matchedHiddenHighlightEntities = ref([])
-// 模拟地震
-let showEarthquakeSimulation = ref(false);
-let earthquakeSimulationPosition = ref({});
-let isMonitoringEarthquake = false;
-let earthquakeClickHandler = null;
+let matchedHiddenHighlightEntities=ref([])
+
 let viewer = null;
-let entityClickHandler = ref(null);
-
-// 图件报告产出
-let isReportPanelVisible = ref(false);
-
-let customThematicMaps = ref([
-  {name: '地震烈度分布图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E4%BA%A4%E9%80%9A%E5%9B%BE?e=1755938078&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:vDr49kWfxDngsOQRyi92MGCVxS0=', type: 'image'},
-  {name: '地质构造示意图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%81%BF%E9%9A%BE%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938079&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:CfvFW13VAzCI3w50poMWRcIlMIc=', type: 'image'},
-  {name: '震后建筑评估图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'},
-  {name: '人员伤亡分布图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'},
-  {name: '救援力量部署图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'},
-  {name: '次生灾害风险图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'}
-]);
-
-let customDisasterReports = ref([
-  {name: '地震灾情速报', url: '/reports/earthquake-brief.docx', size: '2.4MB', type: 'document'},
-  {name: '人员伤亡统计报告', url: '/reports/casualty-statistics.docx', size: '1.8MB', type: 'document'},
-  {name: '建筑物损毁评估报告', url: '/reports/building-damage.docx', size: '3.2MB', type: 'document'},
-  {name: '基础设施受损报告', url: '/reports/infrastructure-damage.docx', size: '2.1MB', type: 'document'}
-]);
 
 onMounted(() => {
   viewer = initCesium("cesium-container");
   window.viewer = viewer;
   // 断裂带
   basicLayers.addFaultZone();
-
   // 行政区
   basicLayers.loadAdminData();
-
   // 点击隐患点触发
   entitiesClickPonpHandler();
   // 调整到指定位置
@@ -228,14 +171,8 @@ function hideTable() {
   showTable.value = false;
 }
 
-// 显示chart
-function displayChart() {
-  showChart.value = true;
-}
+function selectDisasterChain() {
 
-// 隐藏chart
-function hideChart() {
-  showChart.value = false;
 }
 
 //面板
@@ -339,16 +276,6 @@ function entitiesClickPonpHandler() {
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
 
-// 更新地震信息
-function updateEqInfo(data) {
-
-  data.forEach(item => {
-    console.log(item, "item...要点击的，，，")
-    matchedHiddenHighlightEntities.value.push(item)
-  })
-
-}
-
 //计算点击位置的经纬度和高度
 function calculatePosition(clickPosition) {
   // 根据点击位置获取射线
@@ -395,103 +322,6 @@ function updatePopupPosition() {
     }
   });
 }
-
-
-// 模拟地震
-function startEarthquakeSimulation() {
-  // 如果已经在监听则不再重复添加
-  if (isMonitoringEarthquake) return;
-
-  // 保存事件处理函数以便后续移除
-  earthquakeClickHandler = new Cesium.ScreenSpaceEventHandler(
-      window.viewer.canvas
-  );
-
-  // 设置事件监听
-  earthquakeClickHandler.setInputAction((event) => {
-    if (!showEarthquakeSimulation.value) {
-      const pick = window.viewer.scene.pick(event.position);
-      const entity = pick && pick.id;
-
-      // 显示弹窗
-      showEarthquakeSimulation.value = true;
-      earthquakeSimulationPosition.value = event.position;
-      const latitudeAndLongitude = getClickedPosition(event.position);
-      earthquakeSimulationPosition.value.latitude =
-          latitudeAndLongitude.latitude;
-      earthquakeSimulationPosition.value.longitude =
-          latitudeAndLongitude.longitude;
-
-      // 添加地点
-      earthquakeSimulationPosition.value.name = entity && entity._name;
-    } else {
-      cancelEarthquake();
-    }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-  // 更新监听状态
-  isMonitoringEarthquake = true;
-}
-
-// 获取点击位置的经纬度
-function getClickedPosition(screenPosition) {
-  const ray = window.viewer.camera.getPickRay(screenPosition);
-  if (!ray) return null;
-
-  const cartesian = window.viewer.scene.globe.pick(ray, window.viewer.scene);
-  if (!cartesian) return null;
-  const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-  return {
-    longitude: Cesium.Math.toDegrees(cartographic.longitude),
-    latitude: Cesium.Math.toDegrees(cartographic.latitude),
-    cartesian: cartesian,
-  };
-}
-
-// 取消地震模拟
-function cancelEarthquake() {
-  showEarthquakeSimulation.value = false;
-
-  // 如果正在监听则移除事件
-  if (isMonitoringEarthquake && earthquakeClickHandler) {
-    earthquakeClickHandler.removeInputAction(
-        Cesium.ScreenSpaceEventType.LEFT_CLICK
-    );
-    isMonitoringEarthquake = false;
-    earthquakeClickHandler = null;
-  }
-}
-
-// 清除地震模拟
-function removeEarthquakeSimulation() {
-  // 清除地震中心点
-  basicLayers.removeCenterPoint("earthquakeCenter");
-
-  // 清除烈度圈实体
-  layers.removeIsoseismalCircle();
-
-
-  // 隐藏表格
-  showTable.value = false;
-
-  // 隐藏chart
-  showChart.value = false;
-}
-
-// 产出报告面板
-function toggleReportPanel() {
-  isReportPanelVisible.value = !isReportPanelVisible.value
-}
-
-// 加载
-function startLoading() {
-  loading.value = true;
-}
-
-// 停止加载
-function stopLoading() {
-  loading.value = false;
-}
 </script>
 
 <style scoped>
@@ -506,11 +336,61 @@ function stopLoading() {
 .btns-box {
   position: absolute;
   top: 20px;
-  left: 38%;
+  left: 580px;
   z-index: 1000;
 }
 
 .legend {
   bottom: 10px;
 }
+
+.controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+}
+
+.rain-btn{
+  background-color: #3c86ff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px; /* 最小宽度确保按钮不挤压 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rain-btn:hover {
+  background-color: #3c86ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.layerControl-panel {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  border-radius: 16px;
+  color: black;
+  padding: 10px; /* 缩小内边距 */
+  z-index: 1000;
+  width: 160px; /* 缩小面板宽度 */
+}
+
+.panel-content {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px; /* 缩小字体 */
+  gap: 6px; /* 缩小子元素间距 */
+}
+
 </style>

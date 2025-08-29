@@ -73,7 +73,7 @@
 <script>
 
 import * as Cesium from 'cesium'
-// import {getPlotInfos, getPlotwithStartandEndTime} from '@/api/system/plot.js'
+import {getPlotInfos} from '@/api/system/plot.js'
 import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
 import {getDisasterRainById, getEarthquakeEventById} from "@/api/system/disasterEvents.js";
@@ -122,13 +122,11 @@ export default {
       }
     },
     disasterEvent(newVal) {
-
-      // this.getPlotwithStartandEndTime(this.eqid)
       this.startTime = new Date(this.disasterEvent.occurrenceTime);
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
-      console.log(this.disasterEvent, "this.startTime,this.endTime,")
-      console.log(this.startTime, "this.startTime,this.endTime,")
-      console.log(this.endTime, "this.startTime,this.endTime,")
+      // console.log(this.disasterEvent, "this.startTime,this.endTime,")
+      // console.log(this.startTime, "this.startTime,this.endTime,")
+      // console.log(this.endTime, "this.startTime,this.endTime,")
       let realTime = new Date()
       if (realTime >= this.startTime && realTime <= this.endTime) {
         this.ifNewEq = true
@@ -186,13 +184,8 @@ export default {
     // }
   },
   mounted() {
-
-    // this.getPlotwithStartandEndTime()
   },
   methods: {
-    // getPlotwithStartandEndTime() {
-    //
-    // },
     selectButton(id) {
       this.selectedId = id; // 更新选中的按钮ID
     },
@@ -236,7 +229,7 @@ export default {
       this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
       this.selectButton("playEnd")
       // console.log(this.isMarkingLayer, "this.isMarkingLayer playEnd")
-      // timeLine.makerLabelsShowPersonAndResouce(this.plots)
+      timeLine.makerLabelsShowPersonAndResouce(this.plots)
     },
     playStart() {
       if (new Date(this.currentTime) >= new Date()) {
@@ -281,7 +274,7 @@ export default {
         }
       }
     },
-    //
+
     async flyToPointsSequentially() {
       for (let index = 0; index < this.plotArrinOneTime.length; index++) {
         const item = this.plotArrinOneTime[index];
@@ -291,34 +284,31 @@ export default {
         }
 
         //标签
-        // let entitylabel = null
-        // let plotId = item.plotId
-        // let plotType = item.plotType
-        // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
-        //   entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-        //   entitylabel.show = true
-        //   this.lastRecordContent = entitylabel.labeltext
-        // } else {
-        //   getPlotInfos({plotId, plotType}).then(res => {
-        //     let labeltext = timeLine.labeltext(plotType, res)
-        //     timeLine.addPointLabel(item, labeltext)
-        //     entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-        //     this.lastRecordContent = labeltext
-        //   })
-        // }
+        let entitylabel = null
+        let plotId = item.plotId
+        let plotType = item.plotType
+        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+          entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
+          entitylabel.show = true
+          this.lastRecordContent = entitylabel.labeltext
+        } else {
+          getPlotInfos({plotId, plotType}).then(res => {
+            let labeltext = timeLine.labeltext(plotType, res)
+            timeLine.addPointLabel(item, labeltext)
+            entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
+            this.lastRecordContent = labeltext
+          })
+        }
 
         if (this.endflag) {
           console.log(index, this.plotArrinOneTime.length, "终止飞行1111");
           //相同时间有多个点，为了闪烁的效果能看清是哪个点，在判断这一组的时候，把标签隐藏了。这里停止之后，需要把隐藏的人员伤亡、救援出队标签给放出来。
-          // timeLine.makerLabelsShowPersonAndResouce(this.plots)
+          timeLine.makerLabelsShowPersonAndResouce(this.plots)
           break; // 终止循环
         }
         try {
-          console.log(item,"flyToPointsSequentially")
-          // let flylog=Number(parsePointString(item.geom).longitude)
-
-          // let flylat=Number(parsePointString(item.geom).latitude)
-          console.log(geomToCoordinates(item.geom),"geomToCoordinates(item.geom)")
+          // console.log(item,"flyToPointsSequentially")
+          // console.log(geomToCoordinates(item.geom),"geomToCoordinates(item.geom)")
           let flylog=Number(geomToCoordinates(item.geom)[0][0])
           let flylat=Number(geomToCoordinates(item.geom)[0][1])
           console.log(flylog,flylat,"flylog,flylat")
@@ -326,17 +316,17 @@ export default {
           await timeLine.fly(flylog, flylat, 20000);
           if (this.endflag) {
             console.log(index, this.plotArrinOneTime.length, "终止飞行222");
-            // timeLine.makerLabelsShowPersonAndResouce(this.plots)
+            timeLine.makerLabelsShowPersonAndResouce(this.plots)
             break; // 终止循环
           }
 
           // 点闪烁
           await timeLine.blinkMarker(item);
-          // console.log("blinkMarker else")
-          // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
-          // } else {
-          //   window.labeldataSource.entities.removeById(item.plotId + "_label");
-          // }
+          console.log("blinkMarker else")
+          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+          } else {
+            window.labeldataSource.entities.removeById(item.plotId + "_label");
+          }
         } catch (error) {
           console.error("飞行过程中发生错误:", error);
           break; // 发生错误时终止循环
@@ -360,7 +350,7 @@ export default {
       });
       if (this.endflag) {
         window.viewer.clockViewModel.shouldAnimate = false;
-        // timeLine.makerLabelsShowPersonAndResouce(this.plots)
+        timeLine.makerLabelsShowPersonAndResouce(this.plots)
 
         console.log("终止333");
         return
@@ -368,7 +358,7 @@ export default {
         if (this.plotArrinOneTime.length > 0) {
           window.viewer.clockViewModel.shouldAnimate = false;
           //先把这一时间点的标签隐藏，再一个一个弹出，
-          // timeLine.markerLabelsHidden(this.plotArrinOneTime)
+          timeLine.markerLabelsHidden(this.plotArrinOneTime)
           this.flyToPointsSequentially()
         }
       }
