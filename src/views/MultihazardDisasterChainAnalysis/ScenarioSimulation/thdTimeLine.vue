@@ -404,7 +404,7 @@ export default {
         this.rainCenterPanelVisible = true;
       }
       this.PanelData = {}
-      this.PanelData =clickPointsAndShowPanel.extractDataForPanel(this.centerpoint,this.matchedHiddenHighlightEntities)
+      this.PanelData =clickPointsAndShowPanel.extractDataForPanelWithOutGeo(this.centerpoint,this.matchedHiddenHighlightEntities)
 
       this.selectedEntity = this.centerpoint
       this.selectedEntityPosition = {
@@ -471,14 +471,14 @@ export default {
                 this.showBaseInfo = false;
                 this.PlotPanelVisible=false;
                 this.PanelData = {}
-                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "暴雨中心") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = true;
                 this.showBaseInfo = false;
                 this.PlotPanelVisible=false;
                 this.PanelData = {}
-                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "滑坡隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -492,7 +492,7 @@ export default {
                 this.showWaterDisasterInformation = false;
 
 
-                this.disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.disasterInformation = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = null
@@ -512,7 +512,7 @@ export default {
                 this.showWaterDisasterInformation = false;
 
                 this.disasterInformation = null
-                this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.debrisFlowInformation = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = null
                 this.floodDisasterInformation = null
@@ -532,7 +532,7 @@ export default {
                 this.debrisFlowInformation = null
                 this.waterDisasterInformation = null
                 this.floodDisasterInformation = null
-                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.riskPointsInformation = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
               } else if (entity.name === "内涝隐患点") {
                 this.eqCenterPanelVisible = false;
                 this.rainCenterPanelVisible = false;
@@ -550,7 +550,7 @@ export default {
                 this.debrisFlowInformation = null
                 this.floodDisasterInformation = null
                 this.riskPointsInformation = null
-                this.waterDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.waterDisasterInformation = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
 
               } else if (entity.name === "山洪隐患点") {
 
@@ -570,7 +570,7 @@ export default {
                 this.debrisFlowInformation = null
                 this.riskPointsInformation = null
                 this.waterDisasterInformation = null
-                this.floodDisasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.floodDisasterInformation = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
 
               }
               else if (entity.name === "标绘点") {
@@ -579,7 +579,7 @@ export default {
                 this.showBaseInfo = false;
                 this.PlotPanelVisible=true;
                 this.PanelData = {}
-                this.PanelData = clickPointsAndShowPanel.extractDataForPanel(entity, this.matchedHiddenHighlightEntities)
+                this.PanelData = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities)
               }
               else {
                 this.rainCenterPanelVisible = false;

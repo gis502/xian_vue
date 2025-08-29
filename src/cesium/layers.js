@@ -545,7 +545,6 @@ let layers = {
     flashHiddenDisasterPoints(entities) {
         let pulse = new PulseTool(window.viewer);
         console.log("传输过来的闪烁预警点实体是：", entities);
-
         if (!entities || entities.length === 0) return;
         pulse.removePulseEntity();
         pulse.createPause(entities);
@@ -754,37 +753,37 @@ let layers = {
             // console.log(item,level,lon,lat,"level,lon,lat")
             // item.entityId = '隐患点呼吸圈_' + item.entityId
             // if (!window.viewer.entities.getById(item.entityId)) {
-                if (level == '高') {
+            if (level == '高') {
 
-                    viewer.entities.add({
-                        name: '隐患点呼吸圈',
-                        // id: item.entityId,
-                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: 40,
-                            color: Cesium.Color.RED.withAlpha(0.5),
-                        },
-                        properties: {
-                            longitude: lon,
-                            latitude: lat,
-                        },
-                    });
-                }
-                else if (level == "中") {
-                    viewer.entities.add({
-                        name: '隐患点呼吸圈',
-                        // id: item.entityId,
-                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: 40,
-                            color: Cesium.Color.YELLOW.withAlpha(0.5),
-                        },
-                        properties: {
-                            longitude: lon,
-                            latitude: lat,
-                        },
-                    });
-                }
+                viewer.entities.add({
+                    name: '隐患点呼吸圈',
+                    // id: item.entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 40,
+                        color: Cesium.Color.RED.withAlpha(0.5),
+                    },
+                    properties: {
+                        longitude: lon,
+                        latitude: lat,
+                    },
+                });
+            }
+            else if (level == "中") {
+                viewer.entities.add({
+                    name: '隐患点呼吸圈',
+                    // id: item.entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 40,
+                        color: Cesium.Color.YELLOW.withAlpha(0.5),
+                    },
+                    properties: {
+                        longitude: lon,
+                        latitude: lat,
+                    },
+                });
+            }
             // }
         })
     },
