@@ -5,16 +5,16 @@
     <HistoricalDisasterList
         :chartDatas="chartDatas"
         :disasterList="disasterList"
-        @displayChart="displayChart"
-        @hideChart="hideChart"
+        @displayAnalysis="displayAnalysis"
+        @hideAnalysis="hideAnalysis"
     ></HistoricalDisasterList>
     <!-- 图例 -->
     <Legend></Legend>
     <!-- chart -->
-    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
+    <Chart v-if="showAnalysis" :chartDatas="chartDatas"></Chart>
     <!-- 历史相似灾害匹配 -->
     <HistoricalDisasterMatch
-        v-if="showChart"
+        v-if="showAnalysis"
         :disasterList="disasterList"
     ></HistoricalDisasterMatch>
 
@@ -32,7 +32,7 @@ import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
 import HistoricalDisasterMatch from "@/components/HistoricalDisaster/HistoricalDisasterMatch.vue";
 
-const showChart = ref(false);
+const showAnalysis = ref(false);
 const disasterList = ref([]);
 
 console.log("disasterList",disasterList)
@@ -62,13 +62,13 @@ const chartDatas = reactive({
 });
 
 // 显示chart
-function displayChart() {
-  showChart.value = true;
+function displayAnalysis() {
+  showAnalysis.value = true;
 }
 
 // 隐藏chart
-function hideChart() {
-  showChart.value = false;
+function hideAnalysis() {
+  showAnalysis.value = false;
 }
 
 </script>

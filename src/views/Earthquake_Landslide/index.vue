@@ -53,6 +53,7 @@
       :position="earthquakeSimulationPosition"
       :dataTypes="dataTypes"
       :chartDatas="chartDatas"
+      :pulse="pulse"
       @displayTable="displayTable"
       @hideTable="hideTable"
       @displayChart="displayChart"
@@ -78,6 +79,7 @@ import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
 import {init_cesium_navigation} from "../../cesium/initLayer.js";
 import layers from "../../cesium/layers";
+import {PulseTool} from "@/cesium/pulse.js";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
@@ -93,6 +95,9 @@ import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.v
 
 // 加载
 let loading = ref(false);
+
+// 脉冲
+let pulse = null;
 
 // 表格数据
 const dataTypes = reactive({
@@ -198,6 +203,9 @@ let customDisasterReports = ref([
 onMounted(() => {
   viewer = initCesium("cesium-container");
   window.viewer = viewer;
+
+  pulse = new PulseTool(window.viewer);
+
   // 断裂带
   basicLayers.addFaultZone();
 
@@ -286,6 +294,7 @@ function entitiesClickPonpHandler() {
             showRiskPointsInformation.value = false;
 
             disasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+            console.log("disasterInformation",disasterInformation)
 
             debrisFlowInformation.value = null
             riskPointsInformation.value = null
@@ -343,7 +352,7 @@ function entitiesClickPonpHandler() {
 function updateEqInfo(data) {
 
   data.forEach(item => {
-    console.log(item, "item...要点击的，，，")
+    // console.log(item, "item...要点击的，，，")
     matchedHiddenHighlightEntities.value.push(item)
   })
 
@@ -470,6 +479,8 @@ function removeEarthquakeSimulation() {
   // 清除烈度圈实体
   layers.removeIsoseismalCircle();
 
+  // 清除预警点脉冲
+  pulse.removePulseEntity();
 
   // 隐藏表格
   showTable.value = false;

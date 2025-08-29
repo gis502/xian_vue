@@ -158,8 +158,8 @@ const { chartDatas, disasterList } = defineProps([
 ]);
 //接收父组件传来的方法
 const emit = defineEmits([
-  "displayChart",
-  "hideChart",
+  "displayAnalysis",
+  "hideAnalysis",
 ]);
 
 
@@ -353,7 +353,7 @@ async function tiggerHistoryDaster(item){
     //加载西安断层数据
     basicLayers.addFaultZone();
 
-    emit("hideChart");
+    emit("hideAnalysis");
 
     layers.DrawEllipse(item.longitude, item.latitude, item.magnitude);
     ellipseParams.value = layers.calculateEllipseParams(item.magnitude);
@@ -378,7 +378,7 @@ async function tiggerHistoryDaster(item){
         chartDatas.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
       }
     }
-    emit("displayChart");
+    emit("displayAnalysis");
   }
   if (item.disasterType === "暴雨"){
 
@@ -391,7 +391,7 @@ async function tiggerHistoryDaster(item){
     //删除实体点
     basicLayers.removeHiddenEntity();
 
-    emit("hideChart");
+    emit("hideAnalysis");
 
     console.log("暴雨逻辑实现")
   }

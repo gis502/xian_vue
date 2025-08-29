@@ -333,10 +333,11 @@ let isShow = ref(true);
 let isShowMore = ref(false);
 
 // 获取位置以及表格中要呈现的内容
-const {position, dataTypes, chartDatas} = defineProps([
+const {position, dataTypes, chartDatas, pulse} = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
+    "pulse"
 ]);
 
 // 接收传递的方法
@@ -353,6 +354,7 @@ const emit = defineEmits([
 
 // 添加模拟
 async function confirmEarthquake(formEl) {
+  pulse.removePulseEntity();
   if (!formEl) return;
   // 验证
   formEl.validate(async (valid, fields) => {
@@ -410,7 +412,7 @@ async function confirmEarthquake(formEl) {
           province: province,
           city: city,
         });
-        console.log(878787,circle_param);
+        // console.log("circle_param",circle_param);
         // 调用函数发送请求
         addEarthquake(circle_param)
             .then(response => {
@@ -432,15 +434,15 @@ async function confirmEarthquake(formEl) {
           }
         }
       };
-      console.log("favEllipsePoints",favEllipsePoints);
       if (favEllipsePoints.length!==0){
         const [points, probabilityPoints] =
             await obtainTheProbabilityOfSimulatedPointRisk(favEllipsePoints);
         emit('updateEqInfo', probabilityPoints)
+        console.log("points",points)
         console.log("probabilityPoints",probabilityPoints)
-        layers.flashHiddenDisasterPoints(probabilityPoints)
+        layers.flashHiddenDisasterPoints(probabilityPoints, pulse)
         // 处理表格和chart数据
-        addDatasToTableAndChart(probabilityPoints);
+        addDatasToTableAndChart(points);
       }
       // 显示表格和chart
       emit("displayTable");
