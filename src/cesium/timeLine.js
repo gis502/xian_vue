@@ -426,7 +426,7 @@ let timeLine = {
                 name: type,
                 properties: {...item}
             })
-            console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
+            // console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
             let plotId = item.plotId
             let plotType = item.plotType
 
@@ -537,7 +537,7 @@ let timeLine = {
     },
     addPolygon(item, type) {
         let img =  '/images/PlotsPic/' + item.plotType + '.png'
-        console.log(item, "item")
+        // console.log(item, "item")
         if (window.viewer && window.viewer.entities) {
             if (item.plotType === "泥石流" || item.plotType === "滑坡" || item.plotType === "地面沉降" || item.plotType === "崩塌" || item.plotType === "地面塌陷") {
                 let polygonPoints = []
@@ -617,6 +617,40 @@ let timeLine = {
                         ...item //弹出框
                     }
                 });
+
+                // 黑色光圈的直径要比内圆大一圈，这里简单放大 1.2 倍，你可以按需调整
+                const outlineDiameter = diameter * 2;
+
+// 如果之前已经画过，先删掉
+                if (window.viewer.entities.getById(item.plotId + "_outline")) {
+                    window.viewer.entities.removeById(item.plotId + "_outline");
+                }
+
+// 添加黑色描边（光圈）
+                window.viewer.entities.add({
+                    availability: new Cesium.TimeIntervalCollection([
+                        new Cesium.TimeInterval({
+                            start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                            stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                        })
+                    ]),
+                    id: item.plotId + "_outline",
+                    position: center,               // 与中心圆同心
+                    name: '黑色光圈',
+                    ellipse: {
+                        semiMajorAxis: outlineDiameter / 2,
+                        semiMinorAxis: outlineDiameter / 2,
+                        material: Cesium.Color.BLACK.withAlpha(0.6), // 纯黑 + 透明度
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        depthTest: false,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                        clampToGround: true,
+                        // 如果想做“空心环”，再加一个内环即可
+                        // innerSemiMajorAxis: diameter / 2,
+                        // innerSemiMinorAxis: diameter / 2
+                    }
+                });
+
             }
             else {
                 // 1-1 经纬度

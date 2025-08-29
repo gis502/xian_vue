@@ -438,6 +438,7 @@ let basicLayers = {
                     },
                     originalColor: Cesium.Color.RED,
                     originalPixelSize: 15,
+                    name:type,
                     // 标记灾害类型
                     disasterType: 'disaster',
                     disasterData: point
@@ -463,6 +464,7 @@ let basicLayers = {
             console.error("处理点数据失败.")
         }
     },
+
     addPeopleLayer(){
         this.peopleLayer = this.addLayers(this.peopleLayerName);
     },
@@ -511,7 +513,7 @@ let basicLayers = {
 
     showHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === 'type'
+            e => e.name === type
         );
         if (toRemove) {
             // 2. 逐个删除
@@ -522,8 +524,9 @@ let basicLayers = {
     },
     hideHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === 'type'
+            e => e.name === type
         );
+        // console.log(toRemove,type,"hideHiddenEntity")
         if (toRemove) {
             // 2. 逐个删除
             toRemove.forEach(entity => {
@@ -533,7 +536,7 @@ let basicLayers = {
     },
     removeHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
-            e => e.name === 'type'
+            e => e.name === type
         );
         if (toRemove) {
             // 2. 逐个删除

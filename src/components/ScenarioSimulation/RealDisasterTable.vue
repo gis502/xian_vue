@@ -255,35 +255,34 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 
 }, {deep: true});
 </script>
-
-
 <style scoped lang="scss">
 .data-table {
   position: absolute;
   top: 52vh; /* 距离顶部20px */
   left: 20px; /* 距离左侧20px */
-  background-color: rgba(40, 40, 40, 0.8); /* 与图例背景色一致 */
-  color: white;
+  background-color: rgba(255,255,255,0.75); /* 与图例背景色一致 */
+  color: black;
   padding: 15px;
-  border-radius: 4px;
-  z-index: 10;
+  border-radius: 8px;
+  z-index: 1000;
   width: 550px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 12px; /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
 }
 
 .toggle-table-btn {
   position: absolute;
   top: 5px; /* 调整按钮位置 */
   left: 5px; /* 调整按钮位置 */
-  background-color: #007bff;
+  //background-color: #007bff;
+  background-image: linear-gradient(159deg, #1c9fff 2%, #9be7ff 128%);
+  //border-radius: 24px;
   color: white;
   border: none;
   border-radius: 50%; /* 圆形按钮 */
   width: 25px; /* 按钮宽度 */
   height: 25px; /* 按钮高度 */
-  font-size: 12px;
+  font-size: 20px;
   line-height: 1; /* 垂直居中文本 */
   text-align: center;
   cursor: pointer;
@@ -314,19 +313,19 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 .data-table th,
 .data-table td {
   height: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
+  border: 1px solid #FFFFFF; /* 浅色边框 */
   padding: 8px 12px;
   text-align: center;
   font-size: 12px;
 }
 
 .data-table th {
-  background-color: rgba(60, 60, 60, 0.9); /* 表头背景色 */
+  background-color: rgba(255,255,255,0.5); /* 表头背景色 */
   font-weight: bold;
 }
 
 .data-table tbody tr:nth-child(even) {
-  background-color: rgba(50, 50, 50, 0.7); /* 斑马纹效果 */
+  background-color: rgba(255,255,255,0.5); /* 斑马纹效果 */
 }
 
 .data-table tbody tr:hover {
@@ -342,7 +341,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 }
 
 .pagination-controls button {
-  background-color: #007bff;
+  background-color: #3c86ff;
   color: white;
   border: none;
   padding: 5px 10px;
@@ -352,7 +351,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 }
 
 .pagination-controls button:disabled {
-  background-color: #6c757d;
+  background-color: #373e52;
   cursor: not-allowed;
 }
 
@@ -367,8 +366,8 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 
 .total-items {
   margin-left: 10px;
-  font-size: 14px;
-  color: #ccc;
+  font-size: 12px;
+  color: black;
 }
 
 /* 新增样式 */
@@ -385,9 +384,9 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   height: 34px; /* 统一高度 */
   padding: 5px 10px;
   border-radius: 4px;
-  background-color: rgba(60, 60, 60, 0.9);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255,255,255,0.5);
+  color: black;
+  border: 1px solid #FFFFFF;
   box-sizing: border-box; /* 确保padding和border包含在height内 */
 }
 
@@ -404,7 +403,7 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
 }
 
 .search-box button {
-  background-color: #007bff;
+  background-color: #3c86ff;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -434,3 +433,4 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
   top: 120px;
 }
 </style>
+
