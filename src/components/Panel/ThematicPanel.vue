@@ -1,70 +1,81 @@
 <template>
   <div>
-    <div id="cesiumContainer" class="situation_cesiumContainer">
-      <!-- 功能面板：专题图/报告/仪器数据等 -->
-       <div class="eqPanel" v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
-        <h2>{{ outputData.themeName }}</h2>
-        <!-- 无数据提示 -->
-        <div style="width: 100%;height: calc(100% - 120px);text-align: center;color: #fff;font-size: 16px" v-if="isNoData">
-          该地震暂无评估图件产出
-        </div>
+    <!-- 功能面板：专题图/报告/仪器数据等 -->
+     <div class="eqPanel" v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
+      <h2>{{ outputData.themeName }}</h2>
+      <!-- 无数据提示 -->
+      <div style="width: 100%;height: calc(100% - 120px);text-align: center;color: #fff;font-size: 16px" v-if="isNoData">
+        该地震暂无评估图件产出
+      </div>
 
-        <!-- 专题图/仪器图展示（带下载/预览） -->
-        <div class="mapItem" v-if="outputData.type === `thematicMap` || outputData.type === `instrument`">
-          <div v-for="(item, index) in outputData.themeData" :key="index" class="map-item"
-               @mouseenter="handleOpen(index)" @mouseleave="handleClose()">
-            <!-- 鼠标悬浮显示的操作按钮 -->
-            <div class="panelButtons" v-if="showPanelButtonsIndex === index">
-              <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
-              <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
-            </div>
-            <img :src="item.imgUrl" style="width: 95%; height: 80%;"/>
-            <p style="margin: 10px; ">{{ item.theme }}</p>
+      <!-- 专题图/仪器图展示（带下载/预览） -->
+      <div class="mapItem" v-if="outputData.type === `thematicMap` || outputData.type === `instrument`">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="map-item"
+             @mouseenter="handleOpen(index)" @mouseleave="handleClose()">
+          <!-- 鼠标悬浮显示的操作按钮 -->
+          <div class="panelButtons" v-if="showPanelButtonsIndex === index">
+            <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
+            <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
           </div>
-        </div>
-
-        <!-- 灾情报告展示（点击下载） -->
-        <div class="reportItem" v-if="outputData.type === `report`">
-          <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleDownloadReport(item.docxUrl)">
-            <img src="../../assets/images/DamageAssessment/wordIcon.png" style="margin-right: 50px">
-            {{ item.theme }}
-          </div>
-        </div>
-
-        <!-- 辅助决策报告展示（点击下载） -->
-        <div class="reportItem" v-if="outputData.type === `AssistantDecision`">
-          <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleJueCeReport(item.docxUrl)">
-            <img src="../../assets/images/DamageAssessment/wordIcon.png" style="margin-right: 20px">
-            {{ item.theme }}
-          </div>
-        </div>
-
-        <!-- 仪器烈度报告展示（点击下载） -->
-        <div class="reportItem" v-if="outputData.type === `InstrumentIntensity`">
-          <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleInstrumentIntensity(item.xlsUrl)">
-            <img src="../../assets/images/DamageAssessment/wordIcon.png" style="margin-right: 50px">
-            {{ item.theme }}
-          </div>
+          <img :src="item.imgUrl" style="width: 95%; height: 80%;"/>
+          <p style="margin: 10px; ">{{ item.theme }}</p>
         </div>
       </div>
 
-      <!-- 图片预览弹窗 -->
-      <div class="thematicMapPreview" v-if="isPreviewShow">
-        <h2>{{ imgName }}</h2>
-        <img :src="imgUrl" style="width: 95%; height: 80%;">
-        <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
-          <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
-          <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
+
+      <!-- 灾情报告展示（点击下载） -->
+      <div class="reportItem" v-if="outputData.type === `report`">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleDownloadReport(item.docxUrl)">
+          <img src="../../assets/images/wordIcon.png" style="margin-right: 50px">
+          {{ item.theme }}
         </div>
+      </div>
+
+      <!-- 辅助决策报告展示（点击下载） -->
+      <div class="reportItem" v-if="outputData.type === `AssistantDecision`">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleJueCeReport(item.docxUrl)">
+          <img src="../../assets/images/wordIcon.png" style="margin-right: 20px">
+          {{ item.theme }}
+        </div>
+      </div>
+
+      <!-- 仪器烈度报告展示（点击下载） -->
+      <div class="reportItem" v-if="outputData.type === `InstrumentIntensity`">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleInstrumentIntensity(item.xlsUrl)">
+          <img src="../../assets/images/wordIcon.png" style="margin-right: 50px">
+          {{ item.theme }}
+        </div>
+      </div>
+    </div>
+
+    <div class="eqTheme">
+      <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
+      <el-button type="info" round @click="handlePanel(`report`); isPreviewShow = false;">灾情报告</el-button>
+      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
+    </div>
+
+    <!-- 图片预览弹窗 -->
+    <div class="thematicMapPreview" v-if="isPreviewShow">
+      <h2>{{ imgName }}</h2>
+      <img :src="imgUrl" style="width: 95%; height: 80%;">
+      <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
+        <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
+        <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import * as Cesium from "cesium";
+import {getEqOutputMaps, getEqOutputReports } from "@/api/system/damageassessment.js";
+import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
+  //接收父组件传来的数据
+  props:{
+    thematicMaps: [],
+    disasterReports: []
+  },
   components: {},
   data() {
     return {
@@ -92,24 +103,21 @@ export default {
     };
   },
   mounted() {
-    this.init(); // 初始化Cesium（需确保init方法已实现，若未实现可补充）
-    // this.getEq(); // 若getEq未实现或未使用，可删除
-  },
-  beforeUnmount() {
-    // Cesium 实例销毁（防止内存泄漏）
-    if (window.viewer) {
-      const viewer = window.viewer;
-      const gl = viewer.scene.context._gl;
-      viewer.entities.removeAll();
-      viewer.destroy();
-      gl.getExtension("WEBGL_lose_context").loseContext();
-      window.viewer = null;
-    }
+    this.init()
   },
   methods: {
 
+    //初始化方法
+    init(){
+      this.eqid = "T20240601171641511800";
+      this.eqqueueId = "T2024060117164151180001";
+    },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
+      const queryParams = {
+        eqId: this.eqid,
+        eqqueueId: this.eqqueueId
+      };
       // 先关闭其他所有面板
       Object.keys(this.isPanelShow).forEach(key => {
         if (key !== type) this.isPanelShow[key] = false;
@@ -132,8 +140,8 @@ export default {
       // 专题图/灾情报告：请求数据
       else if (this.isPanelShow.thematicMap || this.isPanelShow.report) {
         // 打印日志（保留原请求逻辑，若需实际请求可补充处理）
-        getEqOutputMaps(this.eqid, this.eqqueueId).then(res => console.log("专题图", res.data));
-        getEqOutputReports(this.eqid, this.eqqueueId).then(res => console.log("灾情报告", res.data));
+        // getEqOutputMaps(queryParams).then(res => console.log("专题图", res.data));
+        // getEqOutputReports(this.eqid, this.eqqueueId).then(res => console.log("灾情报告", res.data));
 
         // 核心数据赋值
         handleOutputData(this.eqid, this.eqqueueId, this.earthquakeFullName, type).then(res => {
@@ -282,13 +290,12 @@ export default {
 </script>
 
 <style scoped lang="less">
-/* Cesium 容器样式 */
-.situation_cesiumContainer {
-  height: calc(100vh - 50px) !important;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+
+.eqTheme {
+  position: absolute;
+  top: 80px;
+  left: 47%;
+  z-index: 100;
 }
 
 /* 功能面板样式（居中显示） */

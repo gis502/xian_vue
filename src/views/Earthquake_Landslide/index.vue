@@ -37,11 +37,12 @@
       <el-button type="primary" @click="toggleReportPanel">图件报告产出</el-button>
     </div>
     <!-- 图件报告产出面板组件 -->
-<!--    <ThematicPanel-->
-<!--        :visible.sync="isReportPanelVisible"-->
-<!--        :thematicMaps="customThematicMaps"-->
-<!--        :disasterReports="customDisasterReports"-->
-<!--        maxHeight="70vh"/>-->
+    <ThematicPanel
+        v-if = "isReportPanelVisible"
+        :thematicMaps="customThematicMaps"
+        :disasterReports="customDisasterReports"
+        maxHeight="70vh">
+    </ThematicPanel>
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
         v-if="showEarthquakeSimulation"
@@ -169,6 +170,7 @@ let entityClickHandler = ref(null);
 
 // 图件报告产出
 let isReportPanelVisible = ref(false);
+
 let customThematicMaps = ref([
   {name: '地震烈度分布图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E4%BA%A4%E9%80%9A%E5%9B%BE?e=1755938078&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:vDr49kWfxDngsOQRyi92MGCVxS0=', type: 'image'},
   {name: '地质构造示意图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%81%BF%E9%9A%BE%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938079&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:CfvFW13VAzCI3w50poMWRcIlMIc=', type: 'image'},
@@ -478,7 +480,6 @@ function toggleReportPanel() {
   isReportPanelVisible.value = !isReportPanelVisible.value
 }
 
-
 // 加载
 function startLoading() {
   loading.value = true;
@@ -502,7 +503,7 @@ function stopLoading() {
 .btns-box {
   position: absolute;
   top: 20px;
-  left: 580px;
+  left: 38%;
   z-index: 1000;
 }
 </style>
