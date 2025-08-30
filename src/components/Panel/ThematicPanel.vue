@@ -1,5 +1,13 @@
 <template>
   <div>
+
+    <div class="eqTheme">
+      <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
+      <el-button type="info" round @click="handlePanel(`report`); isPreviewShow = false;">灾情报告</el-button>
+      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
+    </div>
+
+
     <!-- 功能面板：专题图/报告/仪器数据等 -->
      <div class="eqPanel" v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
       <h2>{{ outputData.themeName }}</h2>
@@ -46,12 +54,6 @@
           {{ item.theme }}
         </div>
       </div>
-    </div>
-
-    <div class="eqTheme">
-      <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
-      <el-button type="info" round @click="handlePanel(`report`); isPreviewShow = false;">灾情报告</el-button>
-      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
 
     <!-- 图片预览弹窗 -->
@@ -109,11 +111,21 @@ export default {
 
     //初始化方法
     init(){
+      //测试用数据，后续修改
+      this.earthquakeFullName = "陕西省西安市长安区喂子坪村鸡窝子组6.1级地震";
       this.eqid = "T20240601171641511800";
       this.eqqueueId = "T2024060117164151180001";
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
+      for (const key in this.isPanelShow) {
+        if (this.isPanelShow.hasOwnProperty(key)) {
+          if (key !== type && this.isPanelShow[key] === true) {
+            this.isPanelShow[key] = false;
+          }
+        }
+      }
+      //目前测试用，后续删除
       const queryParams = {
         eqId: this.eqid,
         eqqueueId: this.eqqueueId
@@ -135,8 +147,8 @@ export default {
           };
           this.isNoData = res.themeData.length === 0;
         });
+        console.log('outputData',this.outputData);
       }
-
       // 专题图/灾情报告：请求数据
       else if (this.isPanelShow.thematicMap || this.isPanelShow.report) {
         // 打印日志（保留原请求逻辑，若需实际请求可补充处理）
@@ -208,12 +220,14 @@ export default {
         return;
       }
 
+      console.log("专题图URL", imageUrl)
       // 用fetch处理图片下载（支持跨域 blob 下载）
       fetch(imageUrl)
           .then(res => res.blob())
           .then(blob => {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
+            //获取下载图片的名字
             a.download = imageUrl.split('/').pop();
             a.style.display = 'none';
             document.body.appendChild(a);
@@ -308,7 +322,7 @@ export default {
   width: 70%;
   height: 70%;
   background-color: #2d3d51;
-  z-index: 1;
+  z-index: 100;
 }
 
 /* 图片列表容器（支持换行+横向滚动） */
@@ -328,6 +342,7 @@ export default {
   padding: 10px;
   text-align: center;
   border: 1px solid #ddd;
+
 }
 
 /* 图片项悬浮操作按钮 */
@@ -404,7 +419,7 @@ export default {
   text-align: center;
   background-color: #2d3d51;
   border-radius: 10px;
-  z-index: 4;
+  z-index: 200;
 }
 
 /* 基础文本样式（统一白色） */

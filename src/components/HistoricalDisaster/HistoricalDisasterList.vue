@@ -135,6 +135,10 @@ import basicLayers from "@/cesium/basicLayers.js";
 import {getAllAffectPoints} from "@/api/earthquake/datas.js";
 import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
+import landslideIcon from "@/assets/images/landslide.png";
+import riskArea from "@/assets/images/riskArea.png";
+import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
+import eqMark from "@/assets/images/eqMark.png";
 
 const tableData = ref([])
 const disTotal = ref(0)
@@ -247,15 +251,15 @@ const fetchData = async () => {
     }));
 
     // 处理暴雨数据，添加灾害类型为"暴雨"
-    const rainData = rainRes.data.map(item => ({
-      ...item,
-      disasterType: "暴雨",
-      uniqueId: `rain_${item.disasterId || Date.now() + Math.random()}`
-    }));
+    // const rainData = rainRes.data.map(item => ({
+    //   ...item,
+    //   disasterType: "暴雨",
+    //   uniqueId: `rain_${item.disasterId || Date.now() + Math.random()}`
+    // }));
 
     // 合并两种灾害数据到tableData
-    const mergedData = [...earthquakeData, ...rainData];
-
+    // const mergedData = [...earthquakeData, ...rainData];
+    const mergedData = [...earthquakeData];
     //按发生时间排序
     mergedData.sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime));
 
@@ -376,6 +380,23 @@ async function tiggerHistoryDaster(item){
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="医院"){
         basicLayers.loadEntities('医院', AllAffectPoints.value.data.affectPoints[i], hospitalIcon)
         chartDatas.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
+      }
+      if (AllAffectPoints.value.data.affectPoints[i].pointType==="隐患点"){
+        let List = AllAffectPoints.value.data.affectPoints[i].features;
+        let landslideNum = 0;
+        let debrisFlowNum = 0;
+        for (let i=0; i<List.length; i++){
+          if (List[i].properties.disaster_type === "滑坡"){
+            basicLayers.loadPoint('滑坡', List[i].geometry.coordinates, landslideIcon);
+            landslideNum++;
+          }
+          if (List[i].properties.disaster_type === "泥石流"){
+            basicLayers.loadPoint('泥石流', List[i].geometry.coordinates, debrisFlowIcon)
+            debrisFlowNum++;
+          }
+        }
+        chartDatas.seriesDatas[2] = landslideNum;
+        chartDatas.seriesDatas[3] = debrisFlowNum;
       }
     }
     emit("displayAnalysis");
