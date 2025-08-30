@@ -368,7 +368,7 @@ let basicLayers = {
     },
     async loadSchool(){
         getSchool().then((res) => {
-            this.SchoolData = res.data;
+            this.schoolData = res.data;
             this.schoolPoints = this.loadEntities('学校', res.data, schoolIcon);
         })
     },

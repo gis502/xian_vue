@@ -410,7 +410,7 @@ export default {
           data: [],
         },
         type9: {
-          headers: ["学校名称", "位置", "在校学生", "学校类型"],
+          headers: ["学校名称", "位置", "在校学生数", "是否重要"],
           data: [],
         }
       },
@@ -973,7 +973,7 @@ export default {
         this.rainControlUI.toggleBtn.style.backgroundColor = `hsl(${hue}, 80%, 45%)`;
       }
     },
-    // 添加暴雨影响区域圆
+    // 添加区域圆
     addRainEllipse(centerCartesian, rainfall) {
       // 根据所给量计算圆半径 (mm -> 米)
       const Radius = rainfall * this.rainEllipseScale; // 半径
@@ -1155,6 +1155,7 @@ export default {
       const shelterPointsInside = [];
       const storePointsInside = [];
       const fireFighterPointsInside = [];
+      const schoolPointsInside = [];
 
       basicLayers.hospitalPoints.forEach(point =>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
@@ -1186,12 +1187,19 @@ export default {
         }
       })
 
+      basicLayers.schoolPoints.forEach(point=>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          schoolPointsInside.push(point);
+        }
+      })
+
       const allPointsInside = [
           ...fireFighterPointsInside,
           ...dangerSourcePointsInside,
           ...shelterPointsInside,
           ...storePointsInside,
-          ...hospitalPointsInside
+          ...hospitalPointsInside,
+          ...schoolPointsInside
       ];
 
       if(allPointsInside.length > 0){
@@ -1201,6 +1209,7 @@ export default {
         console.log(`避难所: ${shelterPointsInside.length}`);
         console.log(`消防站: ${fireFighterPointsInside.length}`);
         console.log(`物资储备点: ${storePointsInside.length}`);
+        console.log(`学校: ${schoolPointsInside.length}`)
 
         // 预处理：将坐标数组转换为字符串集合
         const hospital = new Set();
@@ -1228,12 +1237,18 @@ export default {
           store.add(coords.join(','));
         });
 
+        const school = new Set();
+        schoolPointsInside.forEach(coords => {
+          school.add(coords.join(','));
+        })
+
         // 主逻辑
         const hospitalDates = basicLayers.hospitalData.features;
         const dangerSourceDates = basicLayers.dangerSourceData.features;
         const shelterDates = basicLayers.shelterData.features;
         const fireDates = basicLayers.fireFighterData.features;
         const storeDates = basicLayers.storeData.features;
+        const schoolDates = basicLayers.schoolData.features;
 
         //医院表数据加载
         hospitalDates.forEach(entity => {
@@ -1303,7 +1318,6 @@ export default {
             });
           }
         });
-
         //储备点表数据加载
         storeDates.forEach(entity => {
           const entityCoords5 = entity.geometry.coordinates;
@@ -1321,8 +1335,26 @@ export default {
             });
           }
         });
+        //学校表数据加载
+        schoolDates.forEach(entity =>{
+          const entityCode = entity.geometry.coordinates;
+          const coordsStr = entityCode.join(',');
+          if(school.has(coordsStr)) {
+            console.log("找到了匹配的坐标:", entityCode);
+            this.dataTypes.type9.data.push({
+              field1: entity.properties.schoolName,
+              field2: entity.properties.schoolAddress,
+              field3: entity.properties.students,
+              field4: entity.properties.isImportant,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
         this.showTable = true;
-        this.initColumGraph(hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside);
+        this.initColumGraph(
+            hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside, schoolPointsInside
+        );
       }
     },
     // 判断点是否在圆内（圆形是椭圆的特例，无需旋转参数）
@@ -1450,14 +1482,15 @@ export default {
       }, 50); // 每50ms更新一次
     },
     //加载柱状图
-    initColumGraph(hospital, danger, shelter, fire, store){
-      this.chartDatas.seriesDatas = [0, 0, 0, 0, 0];
+    initColumGraph(hospital, danger, shelter, fire, store, school){
+      this.chartDatas.seriesDatas = [0, 0, 0, 0, 0, 0];
 
       this.chartDatas.seriesDatas[0] = hospital.length;
       this.chartDatas.seriesDatas[1] = danger.length;
       this.chartDatas.seriesDatas[2] = shelter.length;
       this.chartDatas.seriesDatas[3] = fire.length;
       this.chartDatas.seriesDatas[4] = store.length;
+      this.chartDatas.seriesDatas[5] = school.length;
 
       this.showChart = true;
     },
