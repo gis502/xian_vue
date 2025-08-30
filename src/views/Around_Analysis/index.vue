@@ -82,6 +82,10 @@
             <th>储备站点名称</th>
             <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.schoolName">
+            <th>学校名称</th>
+            <td>{{ selectedEntityData.properties.schoolName || '未知' }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.shelterName">
             <th>避难所名称</th>
             <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
@@ -97,6 +101,10 @@
           <tr v-if="selectedEntityData.properties.teamType">
             <th>消防站类型</th>
             <td>{{ selectedEntityData.properties.teamType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolType">
+            <th>学校类型</th>
+            <td>{{ selectedEntityData.properties.schoolType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.storeType">
             <th>储备站类型</th>
@@ -141,6 +149,14 @@
           <tr v-if="selectedEntityData.properties.scaleGrade">
             <th>规模等级</th>
             <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.students">
+            <th>在校学生</th>
+            <td>{{ selectedEntityData.properties.students || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.isImportant">
+            <th>是否有重点保护目标</th>
+            <td>{{ selectedEntityData.properties.isImportant || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.riskGrade">
             <th>风险等级</th>
@@ -314,13 +330,13 @@ export default {
       chartDatas: {
         title: "各点数量统计",
         xAxis: {
-          data: ["医院", "风险源", "避难所", "消防站", "物资储备点"],
+          data: ["医院", "风险源", "避难所", "消防站", "物资储备点", "学校"],
         },
         attribute: {
           height: '400',
           width: '500',
         },
-        seriesDatas: [0, 0, 0, 0, 0],
+        seriesDatas: [0, 0, 0, 0, 0, 0],
       },
       dataTypes: {
         filterCriteria: [
@@ -356,6 +372,10 @@ export default {
             name: "物资储备点",
             value: "type8",
           },
+          {
+            name: "学校",
+            value: "type9",
+          },
         ],
         type1: {
           headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
@@ -389,6 +409,10 @@ export default {
           headers: ["储备点名称", "位置", "储备点类型", "有效库容"],
           data: [],
         },
+        type9: {
+          headers: ["学校名称", "位置", "在校学生", "学校类型"],
+          data: [],
+        }
       },
     }
   },

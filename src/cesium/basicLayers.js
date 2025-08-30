@@ -27,6 +27,7 @@ import hospitalIcon from "@/assets/images/hospital.png"
 import fireFighterIcon from "@/assets/images/firefighter.png"
 import storePointsIcon from "@/assets/images/storePoints.jpg"
 import shelterIcon from "@/assets/images/emergencyShelter.png"
+import schoolIcon from "@/assets/images/school.png"
 import {dataOnHiddenDangerPointsOfDebrisFlow, landslideHazardPointData, riskVillageData,} from "@/api/earthquake/datas";
 import {
     getDangerous,
@@ -35,7 +36,8 @@ import {
     getHospital,
     getShelter,
     getStore,
-    getWater
+    getWater,
+    getSchool
 } from "@/api/system/aroundanalysis.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 
@@ -55,6 +57,7 @@ let basicLayers = {
     dangerEntities: [],//危险源
     storePointsEntities: [],//储备点
     fireFighterEntities: [],//消防站
+    schoolEntities: [],
     shelterEntities: [],//避难所
     landslidePoints: [],//滑坡点
     nishiliuPoints: [],//泥石流点
@@ -66,11 +69,13 @@ let basicLayers = {
     shelterPoints: [],//避难所点
     storePoints: [],//储备站点
     dangerSourcePoints: [],//危险源点
+    schoolPoints: [],
     hospitalData: null,
     shelterData: null,
     storeData: null,
     fireFighterData: null,
     dangerSourceData: null,
+    schoolData: null,
     peopleLayer: null, //人口网格
     cropsLayer: null,   //农田网格
     waterPipeLayer: null,//管网
@@ -361,6 +366,12 @@ let basicLayers = {
             this.dangerSourcePoints = this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
     },
+    async loadSchool(){
+        getSchool().then((res) => {
+            this.SchoolData = res.data;
+            this.schoolPoints = this.loadEntities('学校', res.data, schoolIcon);
+        })
+    },
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
         let disasterPoints = [];
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
@@ -438,7 +449,6 @@ let basicLayers = {
                     originalPixelSize: 15,
                     name:type,
                     // 标记灾害类型
-                    disasterType: 'disaster',
                     disasterData: point
                 });
                 if(type == '医院'){
@@ -455,6 +465,9 @@ let basicLayers = {
                 }
                 else if(type == '风险源'){
                     this.dangerEntities.push(entity);
+                }
+                else if(type == '学校'){
+                    this.schoolEntities.push(entity);
                 }
             })
             return points;

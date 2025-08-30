@@ -172,7 +172,9 @@ function hideTable() {
 }
 
 function selectDisasterChain() {
-
+  if(!showSelect.value) {
+    showSelect.value = !showSelect.value;
+  }
 }
 
 //面板
@@ -375,7 +377,7 @@ function updatePopupPosition() {
 
 .layerControl-panel {
   position: absolute;
-  top: 10px;
+  top: 50px;
   right: 20px;
   background-color: rgba(255, 255, 255, 0.75);
   border: 1px solid #ffffff;
