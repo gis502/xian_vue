@@ -202,3 +202,29 @@ export const addDisaster = (data) => {
     data,
   });
 };
+
+/**
+ * 添加地震数据到灾害表中
+ * @param {*} data - 添加的数据
+ * @returns
+ */
+export const addEarthquake = (data) => {
+  return request({
+    url: "/XianEarthquakeList/earthquake/add",
+    method: "post",
+    data,
+  })
+}
+
+/**
+ * 获取历史分析页面中的所有影响点数据
+ * @param{*} data - 历史地震的相关数据
+ * @returns
+ */
+export const getAllAffectPoints = (data) => {
+  return request({
+    url: "/XianEarthquakeList/allAffectPoints/get",
+    method: "post",
+    data,
+  })
+}

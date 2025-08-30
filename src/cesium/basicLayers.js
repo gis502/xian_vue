@@ -324,13 +324,11 @@ let basicLayers = {
     },
     async loadFlashFlood(){
         getFlashFlood().then((res) => {
-            console.log(111, res.data);
             this.flashFloodPoints = this.addHiddenDangerPoints('山洪隐患点' ,res.data, flashIcon);
         })
     },
     async loadWater(){
         getWater().then((res) => {
-            console.log(222, res.data);
             this.waterPoints = this.addHiddenDangerPoints('内涝隐患点', res.data, waterIcon);
         })
     },
@@ -535,16 +533,8 @@ let basicLayers = {
             });
         }
     },
-    removeHiddenEntity(type) {
-        let toRemove = window.viewer.entities.values.filter(
-            e => e.name === type
-        );
-        if (toRemove) {
-            // 2. 逐个删除
-            toRemove.forEach(entity => {
-                window.viewer.entities.remove(entity);
-            });
-        }
+    removeHiddenEntity() {
+        window.viewer.entities.removeAll();
     },
 
 

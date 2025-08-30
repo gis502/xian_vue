@@ -33,7 +33,8 @@ let layers = {
         this.removeIsoseismalCircle()
         let rotation = this.calculateRotation(longitude, latitude, magnitude)
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
-        this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
+        let circle_param = this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
+        return circle_param;
     },
     calculateRotation(longitude, latitude) {
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
@@ -158,10 +159,12 @@ let layers = {
         let position = point;
         // 根据断裂带计算的角度
         let strikeDirection = rotation;
-
+        //八度以上烈度圈面积
+        let CircleArea;
         // 根据震级计算椭圆参数
         const ellipseParams = this.calculateEllipseParams(magnitude);
-        console.log(777777,ellipseParams)
+
+        // console.log("ellipseParams",ellipseParams)
         // 先添加遮罩层，确保它在最底层
         // const rotation = Cesium.Math.toRadians(strikeDirection - 90);
         // 循环创建多个同心椭圆，长轴方向与断裂带走向一致
@@ -213,6 +216,18 @@ let layers = {
                 }
             });
         });
+        for (let i=0;i<ellipseParams.length;i++){
+            if (ellipseParams[i].intensity===9){
+                CircleArea = Math.PI * ellipseParams[i].semiMajorAxis * ellipseParams[i].semiMinorAxis;
+                const Elliptic_param = {
+                    semiMajorAxis: ellipseParams[i].semiMajorAxis,
+                    semiMinorAxis: ellipseParams[i].semiMinorAxis,
+                    CircleArea: CircleArea,
+                    rotation: rotation
+                }
+                return Elliptic_param;
+            }
+        }
     },
     calculateEllipseParams(magnitude) {
 
@@ -277,9 +292,9 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 50;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 50;
             // console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;
@@ -450,13 +465,13 @@ let layers = {
         let validPoints = useSimulationPointStore().simulationPoints.filter(
             item => item && item.geologicalDisasterHideDTO
         );
-        console.log(963963,validPoints)
         validPoints.forEach((item) => {
-            if (this.isPointInEllipse(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+            if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
                 // item.predict = null;
                 allHiddenDisasterinEllipse.push(item)
             }
         })
+        // console.log(2323,allHiddenDisasterinEllipse)
         return allHiddenDisasterinEllipse
     },
 
@@ -542,12 +557,10 @@ let layers = {
 
     //找烈度圈相交点预警点结束
     //预警点闪烁
-    flashHiddenDisasterPoints(entities) {
-        let pulse = new PulseTool(window.viewer);
+    flashHiddenDisasterPoints(entities, pulse) {
+        pulse = pulse || new PulseTool(window.viewer);
         console.log("传输过来的闪烁预警点实体是：", entities);
-
         if (!entities || entities.length === 0) return;
-        pulse.removePulseEntity();
         pulse.createPause(entities);
     },
 
@@ -754,37 +767,37 @@ let layers = {
             // console.log(item,level,lon,lat,"level,lon,lat")
             // item.entityId = '隐患点呼吸圈_' + item.entityId
             // if (!window.viewer.entities.getById(item.entityId)) {
-                if (level == '高') {
+            if (level == '高') {
 
-                    viewer.entities.add({
-                        name: '隐患点呼吸圈',
-                        // id: item.entityId,
-                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: 40,
-                            color: Cesium.Color.RED.withAlpha(0.5),
-                        },
-                        properties: {
-                            longitude: lon,
-                            latitude: lat,
-                        },
-                    });
-                }
-                else if (level == "中") {
-                    viewer.entities.add({
-                        name: '隐患点呼吸圈',
-                        // id: item.entityId,
-                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: 40,
-                            color: Cesium.Color.YELLOW.withAlpha(0.5),
-                        },
-                        properties: {
-                            longitude: lon,
-                            latitude: lat,
-                        },
-                    });
-                }
+                viewer.entities.add({
+                    name: '隐患点呼吸圈',
+                    // id: item.entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 40,
+                        color: Cesium.Color.RED.withAlpha(0.5),
+                    },
+                    properties: {
+                        longitude: lon,
+                        latitude: lat,
+                    },
+                });
+            }
+            else if (level == "中") {
+                viewer.entities.add({
+                    name: '隐患点呼吸圈',
+                    // id: item.entityId,
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 40,
+                        color: Cesium.Color.YELLOW.withAlpha(0.5),
+                    },
+                    properties: {
+                        longitude: lon,
+                        latitude: lat,
+                    },
+                });
+            }
             // }
         })
     },

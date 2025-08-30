@@ -36,7 +36,6 @@ export class PulseTool {
       "内涝": "water_logging",
       "堰塞湖": "barrier_lake"
     };
-
     points.forEach((pt) => {
       // 跳过无效数据（检查必要字段是否存在）
       if (!pt?.disasterType || !Array.isArray(pt.disaster) ||
@@ -104,11 +103,11 @@ export class PulseTool {
    * @returns
    */
   createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
-    console.log("createOptimizedPulseCirclecreateOptimizedPulseCircle")
+    // console.log("createOptimizedPulseCirclecreateOptimizedPulseCircle")
     const startTime = Cesium.JulianDate.now();
 
     const entity = window.viewer.entities.add({
-      // id: pulseId,
+      id: pulseId,
       position: Cesium.Cartesian3.fromDegrees(lon, lat),
       billboard: {
         image: this._circle,
@@ -184,7 +183,7 @@ export class PulseTool {
    * @param {string} entityId - 实体id
    */
   deletePulseEntity(entityId) {
-    const pulseId = this._entityPulseMap[entityId];
+    const pulseId = this._entityPulseMap[entityId].pulseId;
     // 删除脉冲实体
     const entity = this._viewer.entities.getById(pulseId);
     if (entity) {
@@ -194,3 +193,4 @@ export class PulseTool {
     delete this._entityPulseMap[entityId];
   }
 }
+
