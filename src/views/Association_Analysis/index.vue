@@ -118,7 +118,7 @@
             {{ this.hisDas.locateName}}
           </td>
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.historyDisasterevent">
-            {{ this.hisDas.historyDisasterevent }}
+            {{ this.hisDas.historyDisasterevent}}
           </td>
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.historyDisastertype">
             {{ this.hisDas.historyDisastertype}}

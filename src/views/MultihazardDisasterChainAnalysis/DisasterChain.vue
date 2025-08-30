@@ -14,7 +14,12 @@
     </div>
     <div v-if="showSelect" class="layerControl-panel">
       <div class="panel-content">
-        <label><input type="checkbox" v-model="showDisaster" @change="toggleDisaster"> 显示隐患点 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨滑坡 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨泥石流 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨内涝 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨山洪 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 地震滑坡 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 地震泥石流 </label>
       </div>
     </div>
     <!-- 图例 -->
@@ -51,6 +56,8 @@ import Legend from "../../components/Earthquake/Legend.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
+
+const show = ref(false);
 // 加载
 let loading = ref(false);
 
@@ -172,6 +179,10 @@ function hideTable() {
 }
 
 function selectDisasterChain() {
+  showSelect.value = !showSelect.value;
+}
+
+function toggle(){
 
 }
 
@@ -375,7 +386,7 @@ function updatePopupPosition() {
 
 .layerControl-panel {
   position: absolute;
-  top: 10px;
+  top: 50px;
   right: 20px;
   background-color: rgba(255, 255, 255, 0.75);
   border: 1px solid #ffffff;

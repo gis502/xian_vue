@@ -49,151 +49,167 @@
       <div class="popup-content">
         <table class="disaster-table">
           <tbody>
-            <tr v-if="selectedEntityData.properties.disasterType">
-              <th>灾害类型</th>
-              <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.unitCode">
-              <th>统一编号</th>
-              <td>{{ selectedEntityData.properties.unitCode || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.fieldCode">
-              <th>野外编号</th>
-              <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.dangerName">
-              <th>危险源名称</th>
-              <td>{{ selectedEntityData.properties.dangerName || "未知" }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.hospitalName">
-              <th>医院名称</th>
-              <td>{{ selectedEntityData.properties.hospitalName || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.teamName">
-              <th>消防站/队名称</th>
-              <td>{{ selectedEntityData.properties.teamName || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.storeName">
-              <th>储备站点名称</th>
-              <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.shelterName">
-              <th>避难所名称</th>
-              <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.level">
-              <th>级别</th>
-              <td>{{ selectedEntityData.properties.level }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.enterpriseType">
-              <th>危险源类型</th>
-              <td>{{ selectedEntityData.properties.enterpriseType }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.teamType">
-              <th>消防站类型</th>
-              <td>{{ selectedEntityData.properties.teamType }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.storeType">
-              <th>储备站类型</th>
-              <td>{{ selectedEntityData.properties.storeType }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.shelterType">
-              <th>避难所类型</th>
-              <td>{{ selectedEntityData.properties.shelterType || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.position">
-              <th>地理位置</th>
-              <td>{{ selectedEntityData.properties.position || '未知' }}</td>
-            </tr>
-            <tr>
-              <th>经度</th>
-              <td>东经{{ selectedEntityData.properties.lon || '未知' }}</td>
-            </tr>
-            <tr>
-              <th>纬度</th>
-              <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.residentCounts">
-              <th>居民户数</th>
-              <td>{{ selectedEntityData.properties.residentCounts || '未知' }} 户</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.addressPopulation">
-              <th>户籍人口</th>
-              <td>{{ selectedEntityData.properties.addressPopulation || '未知' }} 人</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.riskProperty">
-              <th>威胁财产</th>
-              <td>{{ selectedEntityData.properties.riskProperty || '未知' }} 万元</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.permanentPopulation">
-              <th>常住人口</th>
-              <td>{{ selectedEntityData.properties.permanentPopulation || '未知' }} 人</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.housing">
-              <th>住房</th>
-              <td>{{ selectedEntityData.properties.housing || '未知' }} 间</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.scaleGrade">
-              <th>规模等级</th>
-              <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.riskGrade">
-              <th>风险等级</th>
-              <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.sumPeople">
-              <th>年度诊疗人数</th>
-              <td>{{ selectedEntityData.properties.sumPeople || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.teamSumNum">
-              <th>消防队人数</th>
-              <td>{{ selectedEntityData.properties.teamSumNum || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.fireCars">
-              <th>消防车数量</th>
-              <td>{{ selectedEntityData.properties.fireCars || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.fireDevices">
-              <th>消防器材数量</th>
-              <td>{{ selectedEntityData.properties.fireDevices || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.storeVolume">
-              <th>储备站有效库容</th>
-              <td>{{ selectedEntityData.properties.storeVolume || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.tent">
-              <th>救援帐篷数</th>
-              <td>{{ selectedEntityData.properties.tent || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.rubberBoat">
-              <th>橡皮艇数</th>
-              <td>{{ selectedEntityData.properties.rubberBoat || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.egenerator">
-              <th>发电机数</th>
-              <td>{{ selectedEntityData.properties.egenerator || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.emergencyLight">
-              <th>紧急探照灯数</th>
-              <td>{{ selectedEntityData.properties.emergencyLight || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.effectiveNumber">
-              <th>避难所最大容纳人数</th>
-              <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
-            </tr>
+          <tr v-if="selectedEntityData.properties.disasterType">
+            <th>灾害类型</th>
+            <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitCode">
+            <th>统一编号</th>
+            <td>{{ selectedEntityData.properties.unitCode || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fieldCode">
+            <th>野外编号</th>
+            <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.dangerName">
+            <th>危险源名称</th>
+            <td>{{ selectedEntityData.properties.dangerName || "未知" }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.hospitalName">
+            <th>医院名称</th>
+            <td>{{ selectedEntityData.properties.hospitalName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamName">
+            <th>消防站/队名称</th>
+            <td>{{ selectedEntityData.properties.teamName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeName">
+            <th>储备站点名称</th>
+            <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolName">
+            <th>学校名称</th>
+            <td>{{ selectedEntityData.properties.schoolName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterName">
+            <th>避难所名称</th>
+            <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.level">
+            <th>级别</th>
+            <td>{{ selectedEntityData.properties.level }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.enterpriseType">
+            <th>危险源类型</th>
+            <td>{{ selectedEntityData.properties.enterpriseType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamType">
+            <th>消防站类型</th>
+            <td>{{ selectedEntityData.properties.teamType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolType">
+            <th>学校类型</th>
+            <td>{{ selectedEntityData.properties.schoolType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeType">
+            <th>储备站类型</th>
+            <td>{{ selectedEntityData.properties.storeType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterType">
+            <th>避难所类型</th>
+            <td>{{ selectedEntityData.properties.shelterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.position">
+            <th>地理位置</th>
+            <td>{{ selectedEntityData.properties.position || '未知' }}</td>
+          </tr>
+          <tr>
+            <th>经度</th>
+            <td>东经{{ selectedEntityData.properties.lon || '未知' }}</td>
+          </tr>
+          <tr>
+            <th>纬度</th>
+            <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.residentCounts">
+            <th>居民户数</th>
+            <td>{{ selectedEntityData.properties.residentCounts || '未知' }} 户</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.addressPopulation">
+            <th>户籍人口</th>
+            <td>{{ selectedEntityData.properties.addressPopulation || '未知' }} 人</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.riskProperty">
+            <th>威胁财产</th>
+            <td>{{ selectedEntityData.properties.riskProperty || '未知' }} 万元</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.permanentPopulation">
+            <th>常住人口</th>
+            <td>{{ selectedEntityData.properties.permanentPopulation || '未知' }} 人</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.housing">
+            <th>住房</th>
+            <td>{{ selectedEntityData.properties.housing || '未知' }} 间</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.scaleGrade">
+            <th>规模等级</th>
+            <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.students">
+            <th>在校学生</th>
+            <td>{{ selectedEntityData.properties.students || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.isImportant">
+            <th>是否有重点保护目标</th>
+            <td>{{ selectedEntityData.properties.isImportant || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.riskGrade">
+            <th>风险等级</th>
+            <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.sumPeople">
+            <th>年度诊疗人数</th>
+            <td>{{ selectedEntityData.properties.sumPeople || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamSumNum">
+            <th>消防队人数</th>
+            <td>{{ selectedEntityData.properties.teamSumNum || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireCars">
+            <th>消防车数量</th>
+            <td>{{ selectedEntityData.properties.fireCars || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireDevices">
+            <th>消防器材数量</th>
+            <td>{{ selectedEntityData.properties.fireDevices || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeVolume">
+            <th>储备站有效库容</th>
+            <td>{{ selectedEntityData.properties.storeVolume || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.tent">
+            <th>救援帐篷数</th>
+            <td>{{ selectedEntityData.properties.tent || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.rubberBoat">
+            <th>橡皮艇数</th>
+            <td>{{ selectedEntityData.properties.rubberBoat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.egenerator">
+            <th>发电机数</th>
+            <td>{{ selectedEntityData.properties.egenerator || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.emergencyLight">
+            <th>紧急探照灯数</th>
+            <td>{{ selectedEntityData.properties.emergencyLight || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.effectiveNumber">
+            <th>避难所最大容纳人数</th>
+            <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
+          </tr>
 
-            <tr v-if="selectedEntityData.properties.username">
-              <th>巡查员</th>
-              <td>{{ selectedEntityData.properties.username || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.unitHead">
-              <th>负责人</th>
-              <td>{{ selectedEntityData.properties.unitHead || '未知' }}</td>
-            </tr>
-            <tr v-if="selectedEntityData.properties.phone">
-              <th>手机号</th>
-              <td>{{ selectedEntityData.properties.phone || '未知' }}</td>
-            </tr>
+          <tr v-if="selectedEntityData.properties.username">
+            <th>巡查员</th>
+            <td>{{ selectedEntityData.properties.username || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitHead">
+            <th>负责人</th>
+            <td>{{ selectedEntityData.properties.unitHead || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.phone">
+            <th>手机号</th>
+            <td>{{ selectedEntityData.properties.phone || '未知' }}</td>
+          </tr>
           </tbody>
         </table>
       </div>
