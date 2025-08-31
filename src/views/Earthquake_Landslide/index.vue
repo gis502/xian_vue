@@ -258,7 +258,7 @@ function entitiesClickPonpHandler() {
         // 如果拾取到实体
         if (Cesium.defined(pickedEntity)) {
           let entity = window.selectedEntity;
-          console.log(entity, "拾取entity")
+          console.log("拾取entity", entity)
           // 计算图标的世界坐标
           selectedEntityPosition.value = calculatePosition(click.position);
           setTimeout(() => {

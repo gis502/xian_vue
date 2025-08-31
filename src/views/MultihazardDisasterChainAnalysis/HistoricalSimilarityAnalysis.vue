@@ -56,9 +56,9 @@ onMounted(async () => {
 const chartDatas = reactive({
   title: "历史地震影响分析",
   xAxis: {
-    data: ["风险源", "医院"],
+    data: ["风险源", "医院", "滑坡", "泥石流"],
   },
-  seriesDatas: [0, 0],
+  seriesDatas: [0, 0, 0, 0],
 });
 
 // 显示chart

@@ -27,6 +27,8 @@ import hospitalIcon from "@/assets/images/hospital.png"
 import fireFighterIcon from "@/assets/images/firefighter.png"
 import storePointsIcon from "@/assets/images/storePoints.jpg"
 import shelterIcon from "@/assets/images/emergencyShelter.png"
+import schoolIcon from "@/assets/images/school.png"
+import eqMark from "@/assets/images/eqMark.png"
 import {dataOnHiddenDangerPointsOfDebrisFlow, landslideHazardPointData, riskVillageData,} from "@/api/earthquake/datas";
 import {
     getDangerous,
@@ -35,9 +37,11 @@ import {
     getHospital,
     getShelter,
     getStore,
-    getWater
+    getWater,
+    getSchool
 } from "@/api/system/aroundanalysis.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
+import {getAllEarthquakeList} from "@/api/system/disasterEvents.js";
 
 let basicLayers = {
     geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
@@ -55,6 +59,7 @@ let basicLayers = {
     dangerEntities: [],//危险源
     storePointsEntities: [],//储备点
     fireFighterEntities: [],//消防站
+    schoolEntities: [],
     shelterEntities: [],//避难所
     landslidePoints: [],//滑坡点
     nishiliuPoints: [],//泥石流点
@@ -66,11 +71,14 @@ let basicLayers = {
     shelterPoints: [],//避难所点
     storePoints: [],//储备站点
     dangerSourcePoints: [],//危险源点
+    schoolPoints: [],
     hospitalData: null,
     shelterData: null,
     storeData: null,
     fireFighterData: null,
     dangerSourceData: null,
+    schoolData: null,
+    historicalEarthquakeData: null,//历史数据
     peopleLayer: null, //人口网格
     cropsLayer: null,   //农田网格
     waterPipeLayer: null,//管网
@@ -368,6 +376,48 @@ let basicLayers = {
             this.dangerSourcePoints = this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
     },
+    async loadHistoricalEarthquake(){
+        getAllEarthquakeList().then((res) => {
+            this.historicalEarthquakeData = res.data;
+            this.historicalEarthquakeData.forEach((item) => {
+                if (item.eqType === 'Z'){
+                    const longitude = item.longitude;
+                    const latitude = item.latitude;
+                    const entity = window.viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+                        // 点
+                        billboard: {
+                            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                            image: eqMark,
+                            width: 40, // 图片宽度,单位px
+                            height: 40, // 图片高度，单位px
+                            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                            scale: 0.8, // 缩放比例
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                            scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                            depthTest: false, // 禁止深度测试
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                            show: true
+                        },
+                        // originalColor: Cesium.Color.RED,
+                        // originalPixelSize: 15,
+                        // name:type,
+                        // // 标记灾害类型
+                        // disasterType: 'disaster',
+                        // disasterData: point
+                    });
+                }
+            })
+            console.log("historicalEarthquakeData",this.historicalEarthquakeData)
+        })
+    },
+    async loadSchool(){
+        getSchool().then((res) => {
+            this.schoolData = res.data;
+            this.schoolPoints = this.loadEntities('学校', res.data, schoolIcon);
+        })
+    },
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
         let disasterPoints = [];
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
@@ -445,7 +495,6 @@ let basicLayers = {
                     originalPixelSize: 15,
                     name:type,
                     // 标记灾害类型
-                    disasterType: 'disaster',
                     disasterData: point
                 });
                 if(type == '医院'){
@@ -463,11 +512,36 @@ let basicLayers = {
                 else if(type == '风险源'){
                     this.dangerEntities.push(entity);
                 }
+                else if(type == '学校'){
+                    this.schoolEntities.push(entity);
+                }
             })
             return points;
         }catch(error){
             console.error("处理点数据失败.")
         }
+    },
+
+    //加载单独点
+    loadPoint(type, data, icon){
+        const entity = window.viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(data[0], data[1]),
+            // 点
+            billboard: {
+                // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                image: icon,
+                width: 40, // 图片宽度,单位px
+                height: 40, // 图片高度，单位px
+                eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                scale: 0.8, // 缩放比例
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                depthTest: false, // 禁止深度测试
+                disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                show: true
+            },
+        });
     },
 
     addPeopleLayer(){

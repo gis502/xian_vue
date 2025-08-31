@@ -8,6 +8,7 @@
       <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
       <label><input type="checkbox" v-model="showFire" @change="toggleFirePoints"> 显示消防站 </label>
       <label><input type="checkbox" v-model="showStore" @change="toggleStorePoints"> 显示储备点 </label>
+      <label><input type="checkbox" v-model="showSchool" @change="toggleSchool"> 显示学校 </label>
       <label><input type="checkbox" v-model="showPeople" @change="togglePeople"> 显示人口网格 </label>
       <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>
       <label><input type="checkbox" v-model="showPipe" @change="toggleWaterPipe"> 显示管网系统 </label>
@@ -37,6 +38,7 @@ const showDangerSource = ref(false); // 控制风险源显示/隐藏
 const showShelter = ref(false); // 控制避难所显示/隐藏
 const showFire = ref(false); // 控制消防站显示/隐藏
 const showStore = ref(false); // 控制储备点显示/隐藏
+const showSchool = ref(false);
 const showPeople = ref(false);
 const showCrops = ref(false);
 const showPipe = ref(false);
@@ -187,6 +189,17 @@ function toggleHospitalPoints() {
     });
   }
 
+}
+
+function toggleSchool() {
+  if(basicLayers.schoolEntities.length === 0 && showSchool.value){
+    basicLayers.loadSchool();
+    props.setupEntityClickHandler();
+  }else{
+    basicLayers.schoolEntities.forEach(entity => {
+      entity.show = showSchool.value;
+    })
+  }
 }
 
 function toggleDangerPoints() {

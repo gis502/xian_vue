@@ -84,3 +84,10 @@ export function getRain() {
         method: 'get'
     })
 }
+
+export function getSchool() {
+    return request({
+        url: '/around/getSchool',
+        method: 'get'
+    })
+}

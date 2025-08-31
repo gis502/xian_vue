@@ -27,13 +27,11 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
         if (type === "thematicMap"){
             getEqOutputMaps(DTO).then((res) => {
                 const data = res.data;
-                console.log(777777777,data)
                 const themeName = eqFullName + "-" + "专题图";
                 let thematicMapData = [];
                 console.log("专题图")
                 for (let i = 0; i < data.length; i++) {
                     const thematicMapObject = {
-                        // imgUrl: `${url}${data[i].localSourceFile}`,
                         imgUrl: data[i].sourceFile,
                         theme: data[i].fileName,
                     };

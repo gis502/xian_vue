@@ -22,6 +22,7 @@ basicLayers.loadLandSlide()
 basicLayers.Addmudslide()
 basicLayers.loadFlashFlood()
 basicLayers.loadWater()
+basicLayers.loadHistoricalEarthquake()
 onBeforeMount(() => {
   useSimulationPointStore().clearSimulationPoints();
 })

@@ -24,9 +24,6 @@
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">
-              <el-icon :style="iconStyle">
-                <User />
-              </el-icon>
               灾害名称
             </div>
           </template>
@@ -35,9 +32,6 @@
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">
-              <el-icon :style="iconStyle">
-                <Iphone />
-              </el-icon>
               发生时间
             </div>
           </template>
@@ -46,9 +40,6 @@
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">
-              <el-icon :style="iconStyle">
-                <Location />
-              </el-icon>
               发生地点
             </div>
           </template>
@@ -57,9 +48,6 @@
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">
-              <el-icon :style="iconStyle">
-                <Tickets />
-              </el-icon>
               经度
             </div>
           </template>
@@ -68,9 +56,6 @@
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">
-              <el-icon :style="iconStyle">
-                <OfficeBuilding />
-              </el-icon>
               纬度
             </div>
           </template>
@@ -86,22 +71,8 @@
 
 <script setup lang="ts" name="historicalDisasterMatch">
 import {ref, computed, defineProps, onMounted} from 'vue'
-import {
-  Iphone,
-  Location,
-  OfficeBuilding,
-  Tickets,
-  User,
-} from '@element-plus/icons-vue'
-
 const drawer = ref(false)
 const { disasterList } = defineProps(["disasterList"]);
-
-const iconStyle = computed(() => {
-  return {
-    marginRight: '6px'
-  }
-})
 
 </script>
 
@@ -115,10 +86,8 @@ const iconStyle = computed(() => {
 }
 
 .drawer-content {
-  padding: 20px;
+ top: 10px;
 }
-
-
 
 .el-descriptions {
   margin-top: 20px;
@@ -130,6 +99,6 @@ const iconStyle = computed(() => {
 }
 
 .margin-top {
-  margin-top: 20px;
+  margin-top: 0;
 }
 </style>
