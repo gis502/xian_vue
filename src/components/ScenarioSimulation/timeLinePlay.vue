@@ -287,10 +287,12 @@ export default {
         let entitylabel = null
         let plotId = item.plotId
         let plotType = item.plotType
-        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员"||item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-          entitylabel.show = true
-          this.lastRecordContent = entitylabel.labeltext
+          if(entitylabel){
+            entitylabel.show = true
+            this.lastRecordContent = entitylabel.labeltext
+          }
         } else {
           getPlotInfos({plotId, plotType}).then(res => {
             let labeltext = timeLine.labeltext(plotType, res)
@@ -313,7 +315,7 @@ export default {
           let flylat=Number(geomToCoordinates(item.geom)[0][1])
           console.log(flylog,flylat,"flylog,flylat")
           // 飞到指定点
-          await timeLine.fly(flylog, flylat, 20000);
+          await timeLine.fly(flylog, flylat, 2000);
           if (this.endflag) {
             console.log(index, this.plotArrinOneTime.length, "终止飞行222");
             timeLine.makerLabelsShowPersonAndResouce(this.plots)
@@ -323,7 +325,7 @@ export default {
           // 点闪烁
           await timeLine.blinkMarker(item);
           console.log("blinkMarker else")
-          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           } else {
             window.labeldataSource.entities.removeById(item.plotId + "_label");
           }

@@ -67,7 +67,7 @@ let timeLine = {
                     let dataSourcePromise = window.viewer.dataSources.add(pointDataSource)
                     dataSourcePromise.then(function (pointDataSource) {
                         let pixelRange = 10;
-                        let minimumClusterSize = 3;
+                        let minimumClusterSize = 5;
                         let enabled = true;
                         pointDataSource.clustering.enabled = enabled; //是否聚合
                         pointDataSource.clustering.pixelRange = pixelRange;
@@ -388,7 +388,7 @@ let timeLine = {
 
     addMakerPoint(item, type) {
         // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
-        // console.log(item, "addMakerPoint timeline")
+        console.log(item, "addMakerPoint timeline")
         //点的属性 震中点统用一一个方法
         // let labeltext = null
         item.longitude=parsePointString(item.geom).longitude
@@ -430,8 +430,10 @@ let timeLine = {
             let plotId = item.plotId
             let plotType = item.plotType
 
-            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+
+            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
                 getPlotInfos({plotId, plotType}).then(res => {
+                    console.log(item,res,"item")
                     let labeltext = this.labeltext(plotType, res)
                     // console.log(labeltext,"labeltext")
                     this.addPointLabel(item, labeltext)
@@ -836,10 +838,10 @@ let timeLine = {
     },
     // //标签（点线面）
     labeltext(plotType, res) {
-        // console.log("标签",res)
+        console.log("标签",plotType,res)
         let labeltext =res.plotInfo.belongCounty+ res.plotInfo.belongTown+"新增"+plotType
         //人员伤亡类文字：xxx人员xx人
-        if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员") {
+        if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员"||plotType === "被困人员") {
             if (res.plotTypeInfo && res.plotTypeInfo.newCount) {
                 labeltext = labeltext + res.plotTypeInfo.newCount + "人"
             }
@@ -866,8 +868,12 @@ let timeLine = {
         return labeltext
     },
     addPointLabel(data, labeltext) {
-        // console.log(data,"data addPointLabel")
+
+        console.log(data,"data addPointLabel")
         let img =  '/images/PlotsPic/' + data.plotType + '.png'
+        let log=Number(geomToCoordinates(data.geom)[0][0])
+        let lat=Number(geomToCoordinates(data.geom)[0][1])
+
         let labeldataSource = this.addDataSourceLayer("label")
         if (labeldataSource) {
             let id = data.plotId + '_label'
@@ -884,7 +890,7 @@ let timeLine = {
                 plottype: data.plotType,
                 name: "标绘点标签",
                 // layers: "聚合标绘点",
-                position: Cesium.Cartesian3.fromDegrees(Number(data.longitude), Number(data.latitude), Number(data.elevation || 0)),
+                position: Cesium.Cartesian3.fromDegrees(log, lat,  0),
                 labeltext: labeltext,
                 billboard: {
                     // image: import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + data.icon + '.png?t=' + new Date().getTime(),
@@ -1004,7 +1010,7 @@ let timeLine = {
     makerLabelsShowPersonAndResouce(plots) {
         console.log(plots,"makerLabelsShowPersonAndResouce")
         plots.forEach(item => {
-            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
                 let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
                 // console.log(entity, "entity show")
                 if (entity) {
