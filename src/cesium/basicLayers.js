@@ -206,6 +206,7 @@ let basicLayers = {
         function configureAdminStyles(dataSource, color) {
             if (!dataSource) return;
             dataSource.entities.values.forEach(entity => {
+                // entity.allowPicking = false;   // Cesium ≥ 1.97 有效
                 if (!entity.polygon) return;
                 const name = entity.properties.name._value || dataSource.name;
                 entity.polygon = {
@@ -269,6 +270,12 @@ let basicLayers = {
                 console.error(`加载 ${geojson.features?.[0]?.properties?.name || idx} 失败:`, err)
             )
         )
+        // Promise.all(tasks).then(() => {
+        //     // 0 层：区县面
+        //     viewer.dataSources.lowerToBottom(viewer.dataSources.getByName('区县-*')[0]);
+        //     console.log('所有区县加载完成')
+        //     // 1 层：其他业务图层（默认 zIndex=1）
+        // });
         Promise.all(tasks).then(() => console.log('所有区县加载完成'))
     },
     removeAdminData() {
