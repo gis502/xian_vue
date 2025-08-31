@@ -30,7 +30,7 @@ export function parsePointString(pointString) {
 export function geomToCoordinates(wkt) {
     if (!wkt) return [];
 
-    wkt = wkt.trim();
+    wkt = wkt.trim().replace(/^\uFEFF/, '');
 
     // 1. POINT
     if (/^POINT\s*\(/i.test(wkt)) {
@@ -50,6 +50,7 @@ export function geomToCoordinates(wkt) {
     // 3. 把所有块拆成点
     const result = [];
     coordBlocks.forEach(block => {
+        // console.log(block,"block")
         block.split(',').forEach(pt => {
             const [lng, lat] = pt.trim().split(/\s+/);
             if (lng && lat) result.push([Number(lng), Number(lat)]);

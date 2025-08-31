@@ -4,7 +4,6 @@ import plotCompute from "@/cesium/plotCompute.js";
 import {xp} from "@/cesium/ArrowalGorithm.js";
 import {getPlotInfos} from "@/api/system/plot.js";
 import img from "@/assets/icons/TimeLine/黄点点.png";
-import {parsePointString} from "@/cesium/geomTransfer.js";
 import {geomToCoordinates} from "./geomTransfer.js";
 let timeLine = {
     //
@@ -391,8 +390,8 @@ let timeLine = {
         console.log(item, "addMakerPoint timeline")
         //点的属性 震中点统用一一个方法
         // let labeltext = null
-        item.longitude=parsePointString(item.geom).longitude
-        item.latitude=parsePointString(item.geom).latitude
+        item.longitude=Number(geomToCoordinates(item.geom)[0][0])
+        item.latitude=Number(geomToCoordinates(item.geom)[0][1])
         let img =  '/images/PlotsPic/' + item.plotType + '.png'
         let pointDataSource = this.addDataSourceLayer("pointData")
         if (pointDataSource) {

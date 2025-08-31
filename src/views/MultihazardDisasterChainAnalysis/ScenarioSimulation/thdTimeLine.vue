@@ -77,7 +77,6 @@ import * as Cesium from "cesium";
 import "cesium/Source/Widgets/widgets.css";
 import {initCesium, init_cesium_navigation, setupMouseCoordinateDisplay} from '@/cesium/initLayer.js'
 import {getEarthquakeEventById, getDisasterRainById} from '@/api/system/disasterEvents'
-import {parsePointString} from "@/cesium/geomTransfer.js";
 import timeTransfer from "@/cesium/timeTransfer.js";
 import timeLine from "@/cesium/timeLine.js";
 import basicLayers from "@/cesium/basicLayers.js";
@@ -96,6 +95,7 @@ import RainInfoTable from "@/components/ScenarioSimulation/rainInfoTable.vue";
 import Table from "@/components/Earthquake/Table.vue";
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import PlotPanel from "@/components/Panel/PlotPanel.vue"
+import {geomToCoordinates} from "../../../cesium/geomTransfer.js";
 
 export default {
   name: "thdTimeLine",
@@ -704,8 +704,8 @@ export default {
             field2: plotInfo.belongCounty + plotInfo.belongTown,
             field3: plotInfo.plotType,
             field4: plotTypeInfo.newCount,
-            field5: parsePointString(plotInfo.geom).longitude,
-            field6: parsePointString(plotInfo.geom).latitude,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
             type: "type1",
           });
         } else if (plotInfo.plotType == "已出发队伍" || plotInfo.plotType == "正在参与队伍" || plotInfo.plotType == "待命队伍") {
@@ -714,8 +714,8 @@ export default {
             field2: plotInfo.belongCounty + plotInfo.belongTown,
             field3: plotInfo.plotType,
             field4: plotTypeInfo.teamName,
-            field5: parsePointString(plotInfo.geom).longitude,
-            field6: parsePointString(plotInfo.geom).latitude,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
             type: "type2",
           });
         } else {
@@ -728,12 +728,11 @@ export default {
             field2: plotInfo.belongCounty + plotInfo.belongTown,
             field3: plotInfo.plotType,
             field4: casualties,
-            field5: parsePointString(plotInfo.geom).longitude,
-            field6: parsePointString(plotInfo.geom).latitude,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
             type: "type3",
           });
         }
-
       });
     },
     handleHiddenDisasterPointUpdate(probabilityPoints) {
