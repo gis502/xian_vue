@@ -320,7 +320,7 @@ const formatDate = (dateStr) => {
 
 // 时间轴相关变量****************
 const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-const currentMonth = ref(0) // 当前选中月份索引
+const currentMonth = ref(new Date().getMonth());
 const timelineScroll = ref(null)
 const timelineWrapper = ref(null)
 const timer = ref(null)
@@ -599,12 +599,13 @@ const lastEqRainId = ref()
 const fetchData = async () => {
   try {
     const allowedTypes = monthDisasterMap[currentMonth.value] || [];
+    let page = 1;
     const allData = [];
 
     while (true) {
       const res = await getEarthquakeRainPage({
-        pageNum: currentPage.value,
-        pageSize:pageSizeNum.value ,
+        pageNum: page,
+        pageSize: 5, // 后端固定 5 条
         disasterTypes: allowedTypes
       });
 
@@ -614,7 +615,7 @@ const fetchData = async () => {
       allData.push(...records);
 
       if (allData.length >= res.data.total) break; // 拿完了
-      currentPage.value++;
+      page++;
     }
 
     tableData.value = allData;
