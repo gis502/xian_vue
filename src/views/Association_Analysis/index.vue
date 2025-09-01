@@ -352,37 +352,43 @@ export default {
       this.weather_data = [];
       this.districtWeather = [];
       const rainFeatures = this.rainData?.features || [];
-      console.log(112, rainFeatures);
-      console.log(113, rainFeatures.find(p => p.properties.stationName == '高新一中国际部'));
+
+      // 调试：输出所有接收到的行政区划代码
+      console.log("所有接收到的adminCode:", rainFeatures.map(f => f.properties.adminCode));
+
+      // 调试：输出所有前端需要的行政区划代码
+      console.log("所有需要的adcode:", this.districts.map(d => d.adcode));
+
       // 处理数据，过滤掉 null 值
       const allResults = this.districts
           .map((district) => {
             const point = rainFeatures.find(p =>
-                p.properties.adminCode == district.adcode &&
-                p.properties.relativeHumidity != null
+                p.properties.adminCode == district.adcode
             );
+
+            // 调试：输出匹配结果
+            console.log(`匹配 ${district.name} (${district.adcode}):`, point ? "成功" : "失败");
+
             if (!point) {
               console.warn(`未找到 ${district.name} 的天气数据`);
-              return { ...district, rainfall: 0, temperature: 0, humidity: 0};
-            }
-            if (point) {
               return {
                 ...district,
-                rainfall: point.properties.rainPreHours ?? 0,
-                temperature: point.properties.temperature ?? 0,
-                humidity: point.properties.relativeHumidity ?? 0,
+                rainfall: 0,
+                temperature: 0,
+                humidity: 0
               };
             }
-            // 即使理论上不会出现，也返回一个标记对象
+
             return {
               ...district,
-              rainfall: 0, // 默认值
-              temperature: 0,
-              humidity: 0,
-              missingData: true // 添加标记
+              rainfall: point.properties.rainPreHours ?? 0,
+              temperature: point.properties.temperature ?? 0,
+              humidity: point.properties.relativeHumidity ?? 15,
             };
-          })
+          });
+
       this.districtWeather = allResults;
+
       // 直接使用 allResults，不需要再次映射
       const sortedWeatherData = [...allResults]
           .sort((a, b) => b.rainfall - a.rainfall)
@@ -393,6 +399,7 @@ export default {
             temperature: item.temperature,
             humidity: item.humidity,
           }));
+
       this.weather_data = sortedWeatherData;
       this.flashPoints();
     },

@@ -6,6 +6,203 @@
       :element-loading-spinner="svg"
       element-loading-svg-view-box="-10, -10, 50, 50"
       element-loading-background="rgba(122, 122, 122, 0.8)">
+
+    <div
+        v-if="selectedEntityData"
+        class="disaster-popup"
+        :style="{
+    left: `${calculatePopupLeft()}px`,
+    top: `${calculatePopupTop()}px`,
+    display: popupVisible ? 'block' : 'none',
+    opacity: popupVisible ? '1' : '0',
+    transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
+        @click.stop="stopPropagation">
+      <div class="popup-header">
+        <h3 v-if="selectedEntityData.properties.teamName">{{
+            selectedEntityData.properties.teamName || '消防站'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.hospitalName">{{
+            selectedEntityData.properties.hospitalName || '医院'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.dangerName">{{
+            selectedEntityData.properties.dangerName || '风险源'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.storeName">{{
+            selectedEntityData.properties.storeName || '储备点'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.shelterName">{{
+            selectedEntityData.properties.shelterName || '避难所'
+          }} </h3>
+        <button @click="closePopup"> 关闭</button>
+      </div>
+      <div class="popup-content">
+        <table class="disaster-table">
+          <tbody>
+          <tr v-if="selectedEntityData.properties.disasterType">
+            <th>灾害类型</th>
+            <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitCode">
+            <th>统一编号</th>
+            <td>{{ selectedEntityData.properties.unitCode || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fieldCode">
+            <th>野外编号</th>
+            <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.dangerName">
+            <th>危险源名称</th>
+            <td>{{ selectedEntityData.properties.dangerName || "未知" }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.hospitalName">
+            <th>医院名称</th>
+            <td>{{ selectedEntityData.properties.hospitalName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamName">
+            <th>消防站/队名称</th>
+            <td>{{ selectedEntityData.properties.teamName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeName">
+            <th>储备站点名称</th>
+            <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolName">
+            <th>学校名称</th>
+            <td>{{ selectedEntityData.properties.schoolName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterName">
+            <th>避难所名称</th>
+            <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.level">
+            <th>级别</th>
+            <td>{{ selectedEntityData.properties.level }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.enterpriseType">
+            <th>危险源类型</th>
+            <td>{{ selectedEntityData.properties.enterpriseType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamType">
+            <th>消防站类型</th>
+            <td>{{ selectedEntityData.properties.teamType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolType">
+            <th>学校类型</th>
+            <td>{{ selectedEntityData.properties.schoolType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeType">
+            <th>储备站类型</th>
+            <td>{{ selectedEntityData.properties.storeType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterType">
+            <th>避难所类型</th>
+            <td>{{ selectedEntityData.properties.shelterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.position">
+            <th>地理位置</th>
+            <td>{{ selectedEntityData.properties.position || '未知' }}</td>
+          </tr>
+          <tr>
+            <th>经度</th>
+            <td>东经{{ selectedEntityData.properties.lon || '未知' }}</td>
+          </tr>
+          <tr>
+            <th>纬度</th>
+            <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.residentCounts">
+            <th>居民户数</th>
+            <td>{{ selectedEntityData.properties.residentCounts || '未知' }} 户</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.addressPopulation">
+            <th>户籍人口</th>
+            <td>{{ selectedEntityData.properties.addressPopulation || '未知' }} 人</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.riskProperty">
+            <th>威胁财产</th>
+            <td>{{ selectedEntityData.properties.riskProperty || '未知' }} 万元</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.permanentPopulation">
+            <th>常住人口</th>
+            <td>{{ selectedEntityData.properties.permanentPopulation || '未知' }} 人</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.housing">
+            <th>住房</th>
+            <td>{{ selectedEntityData.properties.housing || '未知' }} 间</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.scaleGrade">
+            <th>规模等级</th>
+            <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.students">
+            <th>在校学生</th>
+            <td>{{ selectedEntityData.properties.students || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.isImportant">
+            <th>是否有重点保护目标</th>
+            <td>{{ selectedEntityData.properties.isImportant || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.riskGrade">
+            <th>风险等级</th>
+            <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.sumPeople">
+            <th>年度诊疗人数</th>
+            <td>{{ selectedEntityData.properties.sumPeople || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamSumNum">
+            <th>消防队人数</th>
+            <td>{{ selectedEntityData.properties.teamSumNum || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireCars">
+            <th>消防车数量</th>
+            <td>{{ selectedEntityData.properties.fireCars || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireDevices">
+            <th>消防器材数量</th>
+            <td>{{ selectedEntityData.properties.fireDevices || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeVolume">
+            <th>储备站有效库容</th>
+            <td>{{ selectedEntityData.properties.storeVolume || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.tent">
+            <th>救援帐篷数</th>
+            <td>{{ selectedEntityData.properties.tent || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.rubberBoat">
+            <th>橡皮艇数</th>
+            <td>{{ selectedEntityData.properties.rubberBoat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.egenerator">
+            <th>发电机数</th>
+            <td>{{ selectedEntityData.properties.egenerator || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.emergencyLight">
+            <th>紧急探照灯数</th>
+            <td>{{ selectedEntityData.properties.emergencyLight || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.effectiveNumber">
+            <th>避难所最大容纳人数</th>
+            <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
+          </tr>
+
+          <tr v-if="selectedEntityData.properties.username">
+            <th>巡查员</th>
+            <td>{{ selectedEntityData.properties.username || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitHead">
+            <th>负责人</th>
+            <td>{{ selectedEntityData.properties.unitHead || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.phone">
+            <th>手机号</th>
+            <td>{{ selectedEntityData.properties.phone || '未知' }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <!-- 图例 -->
     <rain-layer-control :viewer="viewer"/>
     <Legend></Legend>
@@ -96,6 +293,10 @@ import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.v
 // 加载
 let loading = ref(false);
 
+let selectedEntityData = ref(null);
+let popupVisible = ref(false);
+let popupPosition =  ref({x: 0, y: 0});
+let clickHandler = ref(null);
 // 脉冲
 let pulse = null;
 
@@ -179,7 +380,7 @@ let earthquakeSimulationPosition = ref({});
 let isMonitoringEarthquake = false;
 let earthquakeClickHandler = null;
 let viewer = null;
-let entityClickHandler = ref(null);
+
 
 // 图件报告产出
 let isReportPanelVisible = ref(false);
@@ -224,6 +425,7 @@ onMounted(() => {
       roll: 0.0,
     },
   });
+
 });
 
 // 显示表格
@@ -246,11 +448,112 @@ function hideChart() {
   showChart.value = false;
 }
 
+function setupEntityClickHandler() {
+  // 清除之前的点击事件处理程序
+  if (clickHandler.value) {
+    clickHandler.value.destroy();
+    clickHandler.value = null;
+  }
+
+  // 为左键点击添加事件处理程序
+  clickHandler.value = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+  clickHandler.value.setInputAction((movement) => {
+    const pickedObject = viewer.scene.pick(movement.position);
+
+    // 判断是否有disasterName属性 - 需要添加空值检查
+    if (!pickedObject || !pickedObject.id || pickedObject.id.disasterData === undefined) {
+      return;
+    }
+
+    // 隐藏之前的弹出面板
+    closePopup();
+
+    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+      const entity = pickedObject.id;
+      // 获取实体的灾害数据
+      selectedEntityData.value = entity.disasterData || {};
+      // 计算弹出框位置并显示面板
+      calculateAndShowPopup(entity, movement.position);
+    } else {
+      // 如果点击在空白处，隐藏信息框
+      viewer.selectedEntity = undefined;
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+function closePopup() {
+  popupVisible.value = false;
+  selectedEntityData.value = null;
+}
+
+async function calculateAndShowPopup(entity, movementPosition) {
+  try {
+    const scene = viewer.scene;
+    const clock = viewer.clock;
+    const currentTime = clock.currentTime;
+    const position = entity.position.getValue(currentTime);
+
+    if (!position ||
+        isNaN(position.x) || isNaN(position.y) || isNaN(position.z) ||
+        !isFinite(position.x) || !isFinite(position.y) || !isFinite(position.z)) {
+      console.log('位置无效或未定义');
+      return;
+    }
+
+    const windowPosition = scene.cartesianToCanvasCoordinates(position);
+    if (windowPosition) {
+      // 更新响应式变量
+      popupPosition.value = {
+        x: windowPosition.x + 20,
+        y: windowPosition.y - 10
+      };
+
+      popupVisible.value = true;
+
+      await viewer.flyTo(entity, {
+        duration: 0.5,
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+      });
+    }
+  } catch (error) {
+    console.error("计算弹出面板位置出错:", error);
+  }
+}
+
+// 计算弹出面板位置（在模板中使用时）
+function calculatePopupLeft() {
+  return popupPosition.value.x + 'px';
+}
+
+function calculatePopupTop() {
+  return popupPosition.value.y + 'px';
+}
+
 //面板
 //-------信息面板弹框-----
 function entitiesClickPonpHandler() {
   // 在屏幕空间事件处理器中添加左键点击事件的处理逻辑
   window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
+        // 假设你想在点击时获取经纬度
+        const scene = window.viewer.scene;
+        const globe = scene.globe;
+        try {
+          const cartesianPosition = scene.pickPosition(click.position);
+          if (cartesianPosition) {
+            // 将笛卡尔坐标转换为弧度表示的制图坐标
+            const cartographic = Cesium.Cartographic.fromCartesian(cartesianPosition);
+            // 将弧度转换为度数得到经纬度，以及获取高度
+            const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+            const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+            const height = cartographic.height;
+
+            console.log("经度:", longitude, "纬度:", latitude, "高度 (米):", height);
+          } else {
+            console.warn("无法获取点击位置的三维坐标。");
+          }
+        } catch (error) {
+          console.error("在坐标转换过程中发生错误:", error);
+        }
         // 检查点击位置是否拾取到实体
         let pickedEntity = window.viewer.scene.pick(click.position);
         window.selectedEntity = pickedEntity?.id;
@@ -259,6 +562,7 @@ function entitiesClickPonpHandler() {
         if (Cesium.defined(pickedEntity)) {
           let entity = window.selectedEntity;
           console.log("拾取entity", entity)
+          console.log(111, entity.disasterData)
           // 计算图标的世界坐标
           selectedEntityPosition.value = calculatePosition(click.position);
           setTimeout(() => {
@@ -329,6 +633,7 @@ function entitiesClickPonpHandler() {
             rainCenterPanelVisible.value = false;
             eqCenterPanelVisible.value = false;
             showBaseInfo.value = false;
+            setupEntityClickHandler();
           }
         }
         //没有拾取到实体

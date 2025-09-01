@@ -1,5 +1,5 @@
 import * as Cesium from "cesium";
-import lineData from "@/assets/西安断层数据.json";
+import lineData from "@/assets/西安断层数据（新）.json";
 
 
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
@@ -31,15 +31,21 @@ let layers = {
         let latitude = Number(lat)
         this.removeIsoseismalCircle()
         let rotation = this.calculateRotation(longitude, latitude, magnitude)
+        let fountNmae = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData);
         Cesium.Cartesian3.fromDegrees(longitude, latitude)
         let circle_param = this.DrawCircle({x: longitude, y: latitude}, rotation, magnitude);
-        return circle_param;
+        let earthquake_param = {
+            circleParam: circle_param,
+            name: fountNmae.properties.Name
+        }
+        console.log(8528528,earthquake_param)
+        return earthquake_param;
     },
     calculateRotation(longitude, latitude) {
         let min_line = this.pointToLineDistance_getMinLine({longitude, latitude}, lineData)
         // console.log(min_line,"==================")
-        let first_point = min_line.coordinates[0]
-        let last_point = min_line.coordinates[min_line.coordinates.length - 1]
+        let first_point = min_line.geometry.coordinates[0]
+        let last_point = min_line.geometry.coordinates[min_line.geometry.coordinates.length - 1]
         // 计算角度，将角度转换为弧度
         const radLat1 = Cesium.Math.toRadians(first_point[1]);
         const radLon1 = Cesium.Math.toRadians(first_point[0]);
@@ -130,14 +136,10 @@ let layers = {
 
         // 断裂带数据导入
         lineData.features.forEach(line => {
-            line_data.push(line.geometry)
-        })
-
-        line_data.forEach(lonlat => {
             let min = 100000000000
-            for (let i = 0; i < lonlat.coordinates.length - 1; i++) {
-                let linePoint1 = lonlat.coordinates[i]
-                let linePoint2 = lonlat.coordinates[i + 1]
+            for (let i = 0; i < line.geometry.coordinates.length - 1; i++) {
+                let linePoint1 = line.geometry.coordinates[i]
+                let linePoint2 = line.geometry.coordinates[i + 1]
                 des = distancePointToLine(point, linePoint1, linePoint2).distance
                 if (des <= min) {
                     min = des;
@@ -146,10 +148,9 @@ let layers = {
             if (min < min_line_distance) {
                 min_line_distance = min
                 //把距离最近的断裂带数组传递给min_line
-                min_line = lonlat
+                min_line = line
             }
         })
-
         return min_line
     },
     DrawCircle(point, rotation, magnitude) {
@@ -215,18 +216,19 @@ let layers = {
                 }
             });
         });
+        const EllipticArry = [];
         for (let i=0;i<ellipseParams.length;i++){
-            if (ellipseParams[i].intensity===9){
                 CircleArea = Math.PI * ellipseParams[i].semiMajorAxis * ellipseParams[i].semiMinorAxis;
                 const Elliptic_param = {
+                    intensity: ellipseParams[i].intensity,
                     semiMajorAxis: ellipseParams[i].semiMajorAxis,
                     semiMinorAxis: ellipseParams[i].semiMinorAxis,
                     CircleArea: CircleArea,
                     rotation: rotation
                 }
-                return Elliptic_param;
-            }
+                EllipticArry.push(Elliptic_param)
         }
+        return EllipticArry;
     },
     calculateEllipseParams(magnitude) {
 

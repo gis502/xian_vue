@@ -228,3 +228,14 @@ export const getAllAffectPoints = (data) => {
     data,
   })
 }
+
+/**
+ * 生成地震报告
+ */
+export const getEarthQuakeReport = (data) => {
+  return request({
+    url: "/feign/eq/trigger",
+    method: "post",
+    data
+  })
+}
