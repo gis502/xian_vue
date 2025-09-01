@@ -420,8 +420,9 @@ const getEqId = (item) => {
   const key = disasterIdMap[item.disasterType];
   return key ? item[key] : null;
 };
-
 // 获取优先展示的灾害结束
+
+
 function showTooltip(index, event) {
   currentDisasters.value = monthDisasterMap[index]
   tooltipVisible.value = true
@@ -598,21 +599,34 @@ const lastEqRainId = ref()
 const fetchData = async () => {
   try {
     const allowedTypes = monthDisasterMap[currentMonth.value] || [];
-    console.log('allowedTypes:', allowedTypes)
-    const res = await getEarthquakeRainPage({
-      pageNum: currentPage.value,
-      pageSize: pageSizeNum.value,
-      disasterTypes: allowedTypes // 数组参数名与后端DTO一致
-    });
+    const allData = [];
 
-    tableData.value = res.data.records || [];
-    disTotal.value = res.data.total || 0;
+    while (true) {
+      const res = await getEarthquakeRainPage({
+        pageNum: currentPage.value,
+        pageSize:pageSizeNum.value ,
+        disasterTypes: allowedTypes
+      });
+
+      const records = res.data.records || [];
+      if (records.length === 0) break;
+
+      allData.push(...records);
+
+      if (allData.length >= res.data.total) break; // 拿完了
+      currentPage.value++;
+    }
+
+    tableData.value = allData;
+    disTotal.value = allData.length;
+    console.log('全量数据:', tableData.value);
   } catch (error) {
     console.error('请求数据失败', error);
     tableData.value = [];
     disTotal.value = 0;
   }
 };
+
 
 const handlePageChangeDisaster = (page) => {
   currentPage.value = page;
