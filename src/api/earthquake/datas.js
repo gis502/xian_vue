@@ -234,7 +234,7 @@ export const getAllAffectPoints = (data) => {
  */
 export const getEarthQuakeReport = (data) => {
   return request({
-    url: "/api/open/eq/report/trigger",
+    url: "/feign/eq/trigger",
     method: "post",
     data
   })

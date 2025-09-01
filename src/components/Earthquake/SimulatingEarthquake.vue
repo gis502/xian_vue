@@ -430,7 +430,7 @@ async function confirmEarthquake(formEl) {
       let report_param = reactive({
         eqName: form.fullName,
         eqAddr: form.position,
-        eqTime: form.dateTime,
+        eqTime: String(form.dateTime).replace(' ', 'T'),
         longitude: position.longitude,
         latitude: position.latitude,
         eqDepth: form.depth,
