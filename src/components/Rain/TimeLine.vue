@@ -57,7 +57,7 @@
                 <div class="timeline-labels">
                     <span v-for="(time, index) in timeDate" :key="index" class="time-label"
                         :class="{ active: currentTimeIndex === index }" @click="jumpToTime(index)">
-                        {{ time }}
+                        {{time }}
                     </span>
                 </div>
             </div>
@@ -96,7 +96,11 @@ const progressWidth = computed(() => {
 })
 
 const currentTimeDisplay = computed(() => {
-    return props.timeDate[currentTimeIndex.value] || '无雷达云图'
+    let date = new Date()
+    let year = date.getFullYear() //获取完整的年份(4位)
+    let month = date.getMonth() + 1 //获取当前月份(0-11,0代表1月)
+    let strDate = date.getDate()
+    return `${year}年${month}月${strDate}日` +" "+ props.timeDate[currentTimeIndex.value] || '无雷达云图'
 })
 
 // 方法

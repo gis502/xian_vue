@@ -9,8 +9,11 @@
     <div v-if="isLoading" class="loading-indicator">
       {{ loadingText }}
     </div>
+
     <Table :show="showRiskTable" :dataTypes="dataTypeHiddenDisaster" />
+
     <AffectedChart v-if="showLegend" :dimensions="dimensions" :source="districtDisasterData" />
+
     <AddRain v-if="showInfoPanel"
              :selectedPositionLonAndLat="selectedPosition"
              :PanelPosition="PanelPosition"
@@ -19,32 +22,220 @@
              @update:handleWeather="handleWeather"
              @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
              @update:update-rain-info="(value)=>rainInfo = value" />
+
+    <div v-if="selectedEntityData" class="disaster-popup" :style="{
+        left: `${calculatePopupLeft()}px`,
+        top: `${calculatePopupTop()}px`,
+        display: popupVisible ? 'block' : 'none',
+        opacity: popupVisible ? '1' : '0',
+        transform: popupVisible ? 'scale(1)' : 'scale(0.5)'
+      }" @click.stop="stopPropagation">
+      <div class="popup-header">
+        <h3 v-if="selectedEntityData.properties.teamName">{{ selectedEntityData.properties.teamName || '消防站' }} </h3>
+        <h3 v-if="selectedEntityData.properties.hospitalName">{{
+            selectedEntityData.properties.hospitalName || '医院'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.dangerName">{{
+            selectedEntityData.properties.dangerName || '风险源'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.storeName">{{
+            selectedEntityData.properties.storeName || '储备点'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.shelterName">{{
+            selectedEntityData.properties.shelterName || '避难所'
+          }} </h3>
+        <button @click="closePopup"> 关闭</button>
+      </div>
+      <div class="popup-content">
+        <table class="disaster-table">
+          <tbody>
+          <tr v-if="selectedEntityData.properties.disasterType">
+            <th>灾害类型</th>
+            <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitCode">
+            <th>统一编号</th>
+            <td>{{ selectedEntityData.properties.unitCode || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fieldCode">
+            <th>野外编号</th>
+            <td>{{ selectedEntityData.properties.fieldCode || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.dangerName">
+            <th>危险源名称</th>
+            <td>{{ selectedEntityData.properties.dangerName || "未知" }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.hospitalName">
+            <th>医院名称</th>
+            <td>{{ selectedEntityData.properties.hospitalName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamName">
+            <th>消防站/队名称</th>
+            <td>{{ selectedEntityData.properties.teamName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeName">
+            <th>储备站点名称</th>
+            <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterName">
+            <th>避难所名称</th>
+            <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.level">
+            <th>级别</th>
+            <td>{{ selectedEntityData.properties.level }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.enterpriseType">
+            <th>危险源类型</th>
+            <td>{{ selectedEntityData.properties.enterpriseType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamType">
+            <th>消防站类型</th>
+            <td>{{ selectedEntityData.properties.teamType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeType">
+            <th>储备站类型</th>
+            <td>{{ selectedEntityData.properties.storeType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.shelterType">
+            <th>避难所类型</th>
+            <td>{{ selectedEntityData.properties.shelterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.position">
+            <th>地理位置</th>
+            <td>{{ selectedEntityData.properties.position || '未知' }}</td>
+          </tr>
+          <tr>
+            <th>经度</th>
+            <td>东经{{ selectedEntityData.properties.lon || '未知' }}</td>
+          </tr>
+          <tr>
+            <th>纬度</th>
+            <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.residentCounts">
+            <th>居民户数</th>
+            <td>{{ selectedEntityData.properties.residentCounts || '未知' }} 户</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.addressPopulation">
+            <th>户籍人口</th>
+            <td>{{ selectedEntityData.properties.addressPopulation || '未知' }} 人</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.riskProperty">
+            <th>威胁财产</th>
+            <td>{{ selectedEntityData.properties.riskProperty || '未知' }} 万元</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.permanentPopulation">
+            <th>常住人口</th>
+            <td>{{ selectedEntityData.properties.permanentPopulation || '未知' }} 人</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.housing">
+            <th>住房</th>
+            <td>{{ selectedEntityData.properties.housing || '未知' }} 间</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.scaleGrade">
+            <th>规模等级</th>
+            <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.riskGrade">
+            <th>风险等级</th>
+            <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.sumPeople">
+            <th>年度诊疗人数</th>
+            <td>{{ selectedEntityData.properties.sumPeople || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.teamSumNum">
+            <th>消防队人数</th>
+            <td>{{ selectedEntityData.properties.teamSumNum || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireCars">
+            <th>消防车数量</th>
+            <td>{{ selectedEntityData.properties.fireCars || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.fireDevices">
+            <th>消防器材数量</th>
+            <td>{{ selectedEntityData.properties.fireDevices || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.storeVolume">
+            <th>储备站有效库容</th>
+            <td>{{ selectedEntityData.properties.storeVolume || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.tent">
+            <th>救援帐篷数</th>
+            <td>{{ selectedEntityData.properties.tent || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.rubberBoat">
+            <th>橡皮艇数</th>
+            <td>{{ selectedEntityData.properties.rubberBoat || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.egenerator">
+            <th>发电机数</th>
+            <td>{{ selectedEntityData.properties.egenerator || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.emergencyLight">
+            <th>紧急探照灯数</th>
+            <td>{{ selectedEntityData.properties.emergencyLight || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.effectiveNumber">
+            <th>避难所最大容纳人数</th>
+            <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
+          </tr>
+
+          <tr v-if="selectedEntityData.properties.username">
+            <th>巡查员</th>
+            <td>{{ selectedEntityData.properties.username || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.unitHead">
+            <th>负责人</th>
+            <td>{{ selectedEntityData.properties.unitHead || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.phone">
+            <th>手机号</th>
+            <td>{{ selectedEntityData.properties.phone || '未知' }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <rainCenterPanel v-show="rainCenterPanelVisible" :position="PanelPosition" :popupData="PanelData" />
+
+    <HiddenDisasterPanel v-if="showBaseInfo" :title="baseInfoTitle" :position="PanelPosition"
+                         :showDisasterInformation="showDisasterInformation" :dataTypeHiddenDisaster="dataTypeHiddenDisaster"
+                         :disasterInformation="disasterInformation" :showdebrisFlowInformation="showdebrisFlowInformation"
+                         :debrisFlowInformation="debrisFlowInformation" :showRiskPointsInformation="showRiskPointsInformation"
+                         :riskPointsInformation="riskPointsInformation" :showWaterDisasterInformation="showWaterDisasterInformation"
+                         :waterDisasterInformation="waterDisasterInformation" :showFloodDisasterInformation="showFloodDisasterInformation"
+                         :floodDisasterInformation="floodDisasterInformation" :trigger="'暴雨'" :rainInfo="rainInfo" />
+
     <Legend ref="legendRef" />
+
     <TimeLine :timeDate="timeLabels" v-if="showRadarSatelliteMap" ref="timeLineRef" @radarIndex="radarIndex" />
+
     <div class="rain-btn-group">
       <div class="btn-group">
         <div class="rain-btn" @click="toggleRainMode">
-          <!--          {{ rainMode ? '取消暴雨标记' : '标记暴雨点' }}-->
           暴雨模拟
         </div>
         <div class="weather-btn" @click="radars">
           卫星云图
-          <!-- {{ showRadarSatelliteMap ? '隐藏卫星云图' : '卫星云图' }} -->
         </div>
         <div class="admin-btn" @click="toggleAdminLayer">
-<!--          {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}-->
           行政区划
         </div>
         <div class="table-btn" @click="showRiskTable = !showRiskTable">
-<!--          {{ showRiskTable ? '信息隐藏' : '信息展示' }}-->
           信息表格
         </div>
         <div class="table-btn" @click="downloadRainReport">
           报告下载
         </div>
-        <div>
-          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>
+        <div class="table-btn" @click="refreshComponent">
+          场景重置
         </div>
+<!--        <div>-->
+<!--          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>-->
+<!--        </div>-->
         <!--        <div class="weather-btn" @click="toggleWeatherEffect" :class="{ 'disabled': rainMode }">-->
         <!--          {{ weatherActive ? '停止降雨' : '模拟降雨' }}-->
         <!--        </div>-->
@@ -74,8 +265,8 @@ import { saveCanvas, generateRainReport } from '@/api/system/reportDownLoad.js'
 /* 读取数据 */
 import riverData from '@/assets/static/json/river.json';
 import lakeData from '@/assets/static/json/lake.json';
-
-
+import rainCenterPanel from "@/components/Panel/rainCenterPanel.vue";
+import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 
 let viewer = null
 let rainEffect = null
@@ -109,8 +300,11 @@ let loadingModel = ref(false)
 let isLoading = ref(false)
 let loadingText = ref('加载数据中...')
 let showAdminLayer = ref(true)
+let popupVisible = ref(false)
 
+let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
+let popupPosition = reactive({x: 0, y: 0})
 let PanelPosition = reactive({x: 0, y: 0})
 let PanelData = reactive({})
 let disasterInformation = reactive(null)
@@ -356,7 +550,7 @@ function initEntitiesClickPonpHandler() {
         // 如果拾取到实体
         if (Cesium.defined(pickedEntity)) {
           let entity = window.selectedEntity;
-          console.log(entity, "拾取entity")
+          // console.log(entity, "拾取entity")
           // 计算图标的世界坐标
           selectedEntityPosition = calculatePosition(click.position);
           setTimeout(() => {
@@ -545,7 +739,7 @@ function updatePopupPosition() {
 /* 触发暴雨信息弹窗 */
 function toggleRainMode() {
   // 若不允许标记且当前为开启状态，则直接关闭
-  if (rainMode) {
+  if (rainMode.value) {
     rainMode.value = false;
     if (handler) {
       handler.destroy();
@@ -573,7 +767,6 @@ function toggleRainMode() {
 /* 触发暴雨信息弹窗 */
 function onMapClick(movement){
   if (!rainMode.value) return;
-  console.log(123)
   const ray = viewer.camera.getPickRay(movement.position);
   const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
   selectedEntityPosition = calculatePosition(movement.position);
@@ -595,13 +788,32 @@ function onMapClick(movement){
   }
 }
 
+/* 返回弹窗位置 */
+function calculatePopupLeft() {
+  return popupPosition.x;
+}
+
+/* 计算弹出面板上坐标（带过渡动画） */
+function calculatePopupTop() {
+  return popupPosition.y;
+}
+
+// 阻止事件冒泡
+function stopPropagation(e) {
+  e.stopPropagation();
+}
+
+/* 关闭弹窗 */
+function closePopup() {
+  popupVisible.value = false;
+  selectedEntityData = null;
+}
+
 /* 显示雷达图开关 */
 function radars() {
   if (showRadarSatelliteMap.value) {
     // 隐藏卫星云图
-    console.log(123)
     if (radarSatelliteEntity) {
-      console.log(234)
       viewer.entities.remove(radarSatelliteEntity);
       timeLineRef.value.stopPlayback() // 清除时间轴的Interval
       radarSatelliteEntity = null;
@@ -629,12 +841,11 @@ function radarData() {
       let pad = n => n.toString().padStart(2, '0');
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-      // console.log(time);
       // that.radarImages.push()   图片在这添加
       timeLabels.push(time)
     })
     timeLabels.reverse()
-    console.log(timeLabels, 'radardata')
+    // console.log(timeLabels, 'radardata')
   })
   // this.timeLabels = getRadarData()
 }
@@ -688,16 +899,16 @@ function addRadarSatelliteEntity(url) {
 
 /* 子组件传输雷达云图数据的index */
 function radarIndex(index) {
-  console.log(index, "radarsIndex");
+  // console.log(index, "radarsIndex");
   viewer.entities.remove(radarSatelliteEntity);
   addRadarSatelliteEntity(radarImages[index])
 }
 
 /* 子组件调用父组件的天气效果 */
 function handleWeather() {
-  console.log("handleWeather")
+  // console.log("handleWeather")
   // 标记后自动开启下雨效果
-  weatherActive = true;
+  weatherActive.value = true;
   rainEffect.enabled = weatherActive;
 
   rainMode.value = false;
@@ -723,7 +934,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
 
   // 风险区数据，滑坡数据，泥石流数据
   probabilityPoints.forEach((item) => {
-    console.log(item, "probabilityPoints.forEach")
+    // console.log(item, "probabilityPoints.forEach")
     switch (item.disasterType) {
       case "滑坡":
         dataTypeHiddenDisaster.type1.data.push({
@@ -817,7 +1028,8 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
   });
   // 统计结果转换为数组格式
   districtDisasterData = Object.values(districtStats);
-  showLegend = !showLegend;
+  showLegend.value = !showLegend.value;
+
 }
 
 /* 加载河流图层数据 */
@@ -897,7 +1109,7 @@ function loadLakeData() {
     return;
   }
   isLoading.value = true;
-  loadingText = '加载湖面数据...';
+  loadingText.value = '加载湖面数据...';
 
   lakeDataSource = new Cesium.GeoJsonDataSource();
   lakeDataSource.load(lakeData, {
@@ -956,77 +1168,198 @@ function configureLakeStyles() {
 /* 结束页面时释放所有 */
 function releaseAllResources() {
   // 1. 清理Cesium核心资源
-  if (viewer) {
-    // 移除所有实体
-    viewer.entities.removeAll();
-    // 移除所有数据源
-    viewer.dataSources.removeAll();
-    // 移除所有图元
-    viewer.scene.primitives.removeAll();
-    // 移除所有 imagery图层
-    viewer.imageryLayers.removeAll();
-    // 销毁viewer实例
-    viewer.destroy();
-    viewer = null;
-  }
-
-  // 2. 清理定时器和动画帧
-  // this.timers.forEach(id => {
-  //   if (typeof id === 'number') {
-  //     clearInterval(id);
-  //     clearTimeout(id);
-  //   } else {
-  //     cancelAnimationFrame(id);
-  //   }
-  // });
-  // this.timers = [];
-
-  // 3. 清理事件监听
-  // if (this.clickHandler) {
-  //   this.clickHandler.destroy();
-  //   this.clickHandler = null;
-  // }
-  // if (this.handler) {
-  //   this.handler.destroy();
-  //   this.handler = null;
-  // }
-  // document.removeEventListener('keydown', this.onKeyDown);
-  // if (this.viewer?.camera?.moveEnd) {
-  //   this.viewer.camera.moveEnd.removeEventListener(this.handleCameraMoveEnd);
-  // }
-
-  // 4. 清理自定义数据结构
-  // this.rainPoints = [];
-  // this.entityCache.clear(); // 清空实体缓存
-
-  // 5. 清理DOM元素
-  // const rainControl = document.getElementById('rain-control-panel');
-  // if (rainControl) rainControl.remove();
-  // const legend = this.$refs.legendContent;
-  // if (legend) legend.innerHTML = '';
-
-  // 6. 强制垃圾回收（浏览器环境下触发）
-  if (window.gc) {
+  if (viewer && !viewer.isDestroyed()) {
     try {
-      window.gc();
-    } catch (e) {
-      console.log('触发垃圾回收失败:', e);
+      // 移除所有实体
+      viewer.entities.removeAll();
+      // 移除所有数据源
+      viewer.dataSources.removeAll();
+      // 移除所有图元
+      viewer.scene.primitives.removeAll();
+      // 移除所有 imagery图层
+      viewer.imageryLayers.removeAll();
+      // 销毁viewer实例
+      viewer.destroy();
+    } catch (error) {
+      console.warn('清理 Cesium 资源时出错:', error)
     }
   }
+  viewer = null;
 
-  console.log('所有资源已释放');
+  // 2. 清理事件处理器
+  if (handler && !handler.isDestroyed()) {
+    try {
+      handler.destroy()
+    } catch (error) {
+      console.warn('清理事件处理器时出错:', error)
+    }
+  }
+  handler = null
+
+  // 3. 清理雨效
+  if (rainEffect) {
+    rainEffect = null
+  }
+
+  // 4. 清理数据源
+  riverDataSource = null
+  lakeDataSource = null
+  radarSatelliteEntity = null
 }
 
 /* 行政区划按钮 */
 function toggleAdminLayer() {
-  showAdminLayer = !showAdminLayer;
-  if (showAdminLayer) {
+  showAdminLayer.value = !showAdminLayer.value;
+  if (showAdminLayer.value) {
     basicLayers.loadAdminData()
   } else {
     basicLayers.removeAdminData()
   }
 }
 
+/* 刷新组件方法 */
+async function refreshComponent(){
+  try {
+    // 显示加载状态
+    loadingModel.value = true
+    // loadingText.value = '正在刷新页面...'
+
+    // 先停止所有可能的异步操作和事件监听
+    if (handler) {
+      handler.destroy()
+      handler = null
+    }
+
+    // 移除所有事件监听器
+    if (viewer && !viewer.isDestroyed()) {
+      viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+      viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+    }
+
+    // 清理所有资源
+    releaseAllResources()
+
+    // 重置所有状态变量
+    resetAllStates()
+
+    // 等待一小段时间确保资源清理完成
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // 重新初始化
+    viewer = initCesium("cesiumContainer")
+    window.viewer = viewer
+
+    // 确保 viewer 初始化完成后再调用 init
+    await nextTick()
+    init()
+
+  } catch (error) {
+    console.error('刷新组件时出错:', error)
+  } finally {
+    // 隐藏加载状态
+    loadingModel.value = false
+  }
+}
+
+/* 重置所有状态变量 */
+function resetAllStates(){
+  // 重置基本状态
+  baseInfoTitle.value = ""
+  showBaseInfo.value = false
+  rainMode.value = false
+  rainCenterPanelVisible.value = false
+  showDisasterInformation.value = false
+  showdebrisFlowInformation.value = false
+  showRiskPointsInformation.value = false
+  showFloodDisasterInformation.value = false
+  showWaterDisasterInformation.value = false
+  showInfoPanel.value = false
+  showRadarSatelliteMap.value = false
+  showRiskTable.value = true
+  showLegend.value = false
+  weatherActive.value = false
+  isLoading.value = false
+  loadingText.value = '加载数据中...'
+  showAdminLayer.value = true
+  popupVisible.value = false
+
+  // 重置响应式对象 - 使用更安全的方式
+  if (selectedEntityData) {
+    Object.keys(selectedEntityData).forEach(key => {
+      delete selectedEntityData[key]
+    })
+  }
+
+  if (selectedEntityPosition) {
+    Object.keys(selectedEntityPosition).forEach(key => {
+      delete selectedEntityPosition[key]
+    })
+  }
+
+  Object.assign(popupPosition, {x: 0, y: 0})
+  Object.assign(PanelPosition, {x: 0, y: 0})
+
+  // 清空对象
+  Object.keys(PanelData).forEach(key => delete PanelData[key])
+
+  // 重置为 null 的对象
+  if (disasterInformation) {
+    Object.keys(disasterInformation).forEach(key => delete disasterInformation[key])
+  }
+  if (debrisFlowInformation) {
+    Object.keys(debrisFlowInformation).forEach(key => delete debrisFlowInformation[key])
+  }
+  if (riskPointsInformation) {
+    Object.keys(riskPointsInformation).forEach(key => delete riskPointsInformation[key])
+  }
+  if (waterDisasterInformation) {
+    Object.keys(waterDisasterInformation).forEach(key => delete waterDisasterInformation[key])
+  }
+  if (floodDisasterInformation) {
+    Object.keys(floodDisasterInformation).forEach(key => delete floodDisasterInformation[key])
+  }
+  if (selectedPosition) {
+    Object.keys(selectedPosition).forEach(key => delete selectedPosition[key])
+  }
+
+  // 清空数组
+  timeLabels.splice(0)
+  rainInfo.splice(0)
+
+  // 重置数据类型
+  dataTypeHiddenDisaster.type1.data.splice(0)
+  dataTypeHiddenDisaster.type2.data.splice(0)
+  dataTypeHiddenDisaster.type3.data.splice(0)
+  dataTypeHiddenDisaster.type4.data.splice(0)
+  dataTypeHiddenDisaster.type5.data.splice(0)
+  dataTypeHiddenDisaster.type6.data.splice(0)
+  dataTypeHiddenDisaster.type7.data.splice(0)
+  dataTypeHiddenDisaster.type8.data.splice(0)
+  dataTypeHiddenDisaster.type9.data.splice(0)
+  dataTypeHiddenDisaster.type10.data.splice(0)
+
+  // 重置灾害数据
+  districtDisasterData.splice(0, districtDisasterData.length, {
+    district: '',
+    disasters: [
+      { type: '滑坡', '高': 0, '中': 0, '低': 0 },
+      { type: '泥石流', '高': 0, '中': 0, '低': 0 },
+      { type: '山洪', '高': 0, '中': 0, '低': 0 },
+      { type: '内涝', '高': 0, '中': 0, '低': 0 }
+    ]
+  })
+
+  // 重置全局变量
+  rainEffect = null
+  setRainIntensity = null
+  eqCenterPanelVisible = false
+  matchedHiddenHighlightEntities = []
+  radarSatelliteEntity = null
+  riverDataSource = null
+  lakeDataSource = null
+}
+
+/* 报告产出 */
 async function downloadRainReport(){
   loadingModel.value = true
   // 1. 截三维画布
@@ -1061,10 +1394,10 @@ async function downloadRainReport(){
     formData.append('file', blob, 'cesium_with_legend.png')
 
     // ✅ 正确解析 fetch 返回的 JSON
-    // const response = await saveCanvas(formData)
-    // const res = await response.json() // 关键：这里也要 await
-    // const imgUrl = res.data
-    // console.log(imgUrl, "imgUrl")
+    const response = await saveCanvas(formData)
+    const res = await response.json() // 关键：这里也要 await
+    const imgUrl = res.data
+    console.log(imgUrl, "imgUrl")
 
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)

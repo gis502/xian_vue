@@ -390,7 +390,7 @@ let layers = {
     },
     //找一个区域里的隐患点（区域为json数据）
     findAllHiddenDisasterPointsInAffectedArea(adminCoordinates) {
-        console.log(adminCoordinates, "findAllHiddenDisasterPointsInAffectedArea")
+        // console.log(adminCoordinates, "findAllHiddenDisasterPointsInAffectedArea")
 
         // console.log(adminCoordinates[0],"adminCoordinates[0]")
         let landslidePointsInside = this.findHiddenDisasterPointsInAdminCoordinates("滑坡隐患点", adminCoordinates)
@@ -407,7 +407,7 @@ let layers = {
             ...waterPointsInside,
             ...floodPointsInside
         ];
-        console.log(allPointsInside, "allPointsInside")
+        // console.log(allPointsInside, "allPointsInside")
         return allPointsInside
     },
     findHiddenDisasterPointsInAdminCoordinates(type, adminCoordinates) {
@@ -559,7 +559,7 @@ let layers = {
     //预警点闪烁
     flashHiddenDisasterPoints(entities, pulse) {
         pulse = pulse || new PulseTool(window.viewer);
-        console.log("传输过来的闪烁预警点实体是：", entities);
+        // console.log("传输过来的闪烁预警点实体是：", entities);
         if (!entities || entities.length === 0) return;
         pulse.createPause(entities);
     },
@@ -735,7 +735,7 @@ let layers = {
         //     "堰塞湖": "barrier_lake"
         // };
         if (!probabilityPoints || probabilityPoints.length === 0) return;
-        console.log(probabilityPoints, "probabilityPoints addHiddenBreathCircle")
+        // console.log(probabilityPoints, "probabilityPoints addHiddenBreathCircle")
         probabilityPoints.forEach(item => {
             // 跳过无效数据（检查必要字段是否存在）
             // if (!item?.disasterType || !Array.isArray(item.disaster) ||

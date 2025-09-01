@@ -236,7 +236,7 @@ let basicLayers = {
                         const positions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions; // 输入一组坐标
                         const boundingSphere = Cesium.BoundingSphere.fromPoints(positions); // 自动计算中心位置和半径
                         entity.position = boundingSphere.center;
-                        console.log(boundingSphere.center,name)
+                        // console.log(boundingSphere.center,name)
                     } else {
                         let point1 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[0];
                         let point2 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length / 6)];
@@ -264,7 +264,7 @@ let basicLayers = {
             Cesium.GeoJsonDataSource.load(geojson, {
                 enableFeatureStyles: false,
                 clampToGround: true,
-                suppressPointLabels: true
+                suppresuppressPointLabels: true
             }).then(ds => {
                 ds.name = `区县-${geojson.features?.[0]?.properties?.name || idx}`
                 const color = pickColor(idx)

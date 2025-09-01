@@ -113,7 +113,7 @@ watch(
 )
 
 // Methods
-const updateEntryDistrict = (position) => {
+function updateEntryDistrict(position){
   adminArea.value = layers.getAdministrationByPoint(position.longitude, position.latitude)
   const district = districts.value.find((d) => d.name === adminArea.value?.name)
   if (district) {
@@ -125,7 +125,7 @@ const updateEntryDistrict = (position) => {
 }
 
 const confirmRainPoint = async () => {
-  console.log("确认添加数据：", entries.value)
+  // console.log("确认添加数据：", entries.value)
   emit('update:update-rain-info', entries.value)
   if (!props.selectedPositionLonAndLat) return
   let { longitude, latitude } = props.selectedPositionLonAndLat
@@ -154,9 +154,10 @@ const confirmRainPoint = async () => {
     "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
     "rainType": rainType.value
   }
-  console.log(requestData, "requestData saveRain")
+  // console.log(requestData, "requestData saveRain")
   let res = await saveRain(requestData)
   console.log(res, "saveRain")
+  emit("passRainId",res.data.rainDisasterId)
 
   if (adminArea.value) {
     let entity = {
@@ -194,11 +195,11 @@ const processAllDistricts = async () => {
     allMatchedHuapoData.push(...matchedHuapoData)
     Array.from(pointSet).forEach(key => allPointSet.add(key))
   }
-  console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet)
+  // console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet)
   let matchedHuapoEntities = await caculateRainSlideTrigger(allMatchedHuapoData, allPointSet)
   emit('update:matched-huapo-entities', matchedHuapoEntities)
   matchedHiddenHighlightEntities.value = matchedHuapoEntities
-  console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
+  // console.log(matchedHuapoEntities, "matchedHuapoEntities这是匹配的所有点")
   layers.flashHiddenDisasterPoints(matchedHuapoEntities)
 }
 
@@ -212,7 +213,7 @@ const cancelRainPoint = () => {
 }
 
 const getHiddenDisasterPointswithCausingFactors = (landslidePointsInside, index, rainfallArry) => {
-  console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
+  // console.log(landslidePointsInside, "getHiddenDisasterPointswithCausingFactors")
   let matchedHuapoData = []
   let pointSet = new Set()
   if (landslidePointsInside.length > 0) {
@@ -230,7 +231,7 @@ const getHiddenDisasterPointswithCausingFactors = (landslidePointsInside, index,
       }
     })
 
-    console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet")
+    // console.log(matchedHuapoData, pointSet, "matchedHuapoData,pointSet")
     matchedHuapoData.forEach(huapoItem => {
       if (Array.isArray(huapoItem.factorVoList)) {
         huapoItem.factorVoList.forEach(factor => {
@@ -245,7 +246,7 @@ const getHiddenDisasterPointswithCausingFactors = (landslidePointsInside, index,
 }
 
 const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
-  console.log(matchedHuapoData, "汇总后的matchedHuapoData")
+  // console.log(matchedHuapoData, "汇总后的matchedHuapoData")
   let requestData = {
     data: []
   }
@@ -278,11 +279,11 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
 
     requestData.data.push(itemFormat)
   })
-  console.log("一次性发送的请求数据：", requestData)
+  // console.log("一次性发送的请求数据：", requestData)
   try {
     let matchedHuapoEntities = []
     const res = await rainSlideTrigger(requestData)
-    console.log(res.data, "rainSlideTrigger返回结果")
+    // console.log(res.data, "rainSlideTrigger返回结果")
     let formatAnalyzedData = res.data || []
 
     formatAnalyzedData.forEach(item => {
