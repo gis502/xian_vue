@@ -1196,6 +1196,16 @@ const focusNode = (keyword) => {
       expandNodePath(node.name);
     });
   }
+  // 检查 link 是否不可见，如果不可见，自动展开其路径
+  const invisibleLinks = matchedLinks.filter(l => !l.isVisible);
+  if (invisibleLinks.length > 0) {
+    ElMessage.info(`正在展开包含"${keyword}"的关系...`);
+    invisibleLinks.forEach(link => {
+      expandNodePath(link.source); // 从 link 的 source 开始展开
+      expandNodePath(link.target); // 确保 target 也展开
+    });
+  }
+
   // 恢复默认视图
   echartsInstance.value.dispatchAction({ type: 'restore' });
   // 高亮匹配节点
