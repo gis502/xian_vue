@@ -311,7 +311,6 @@ const handlePageChange = (newPage) => {
   pageNum.value = newPage
   fetchNewsData() // 使用已有 lastItem
 }
-
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleString()
@@ -366,9 +365,9 @@ const disasterMap = {
   drought: '干旱',
   sandstorm: '沙尘暴',
   bioDisaster: '生物灾害',
-  collapse: '塌方',
+  collapse: '崩塌',
   landslide: '滑坡',
-  galeHail: '大风冰雹',
+  galeHail: '风雹',
   heatwave: '高温',
   wildfire: '森林火灾',
   rain: '暴雨',
@@ -399,21 +398,22 @@ const hasChartData = async (item) => {
 
 // 获取灾害 ID（支持14种类型）
 const disasterIdMap = {
-  rain: 'rainDisasterId',
-  earthquake: 'earthquakeDisasterId',
-  flood: 'floodDisasterId',
-  typhoon: 'typhoonDisasterId',
-  landslide: 'landslideDisasterId',
-  mudslide: 'mudslideDisasterId',
-  drought: 'droughtDisasterId',
-  wildfire: 'wildfireDisasterId',
-  snowstorm: 'snowstormDisasterId',
-  hail: 'hailDisasterId',
-  sandstorm: 'sandstormDisasterId',
-  tsunami: 'tsunamiDisasterId',
-  volcano: 'volcanoDisasterId',
-  epidemic: 'epidemicDisasterId'
+  earthquake: 'earthquakeDisasterId',  // 地震
+  rain: 'rainDisasterId',              // 暴雨
+  snow: 'snowDisasterId',              // 积雪
+  coldDamage: 'coldDamageDisasterId',  // 冷害
+  collapse: 'collapseDisasterId',      // 崩塌
+  landslide: 'landslideDisasterId',    // 滑坡
+  debrisFlow: 'debrisFlowDisasterId',  // 泥石流
+  galeHail: 'galeHailDisasterId',      // 风雹
+  sandstorm: 'sandstormDisasterId',    // 沙尘暴
+  drought: 'droughtDisasterId',        // 干旱
+  heatwave: 'heatwaveDisasterId',      // 高温
+  wildfire: 'wildfireDisasterId',      // 森林火灾
+  bioDisaster: 'bioDisasterId',        // 生物灾害
+  safetyAccident: 'safetyAccidentDisasterId' // 安全事故
 };
+
 
 const getEqId = (item) => {
   if (!item?.disasterType) return null;
@@ -502,7 +502,6 @@ const resetTimer = () => {
     nextMonth()
   }, 180000) //
 }
-
 //时间轴结束**************
 
 
@@ -708,6 +707,7 @@ const getData = async (item) => {
       { name: '国家级应急预案' },
       { name: '省级应急预案' },
       { name: '市级应急预案' },
+      { name: '县级应急预案' },
       { name: '基层应急预案' },
       { name: '企业级应急预案' },
       { name: '军队应急预案' },
@@ -740,9 +740,9 @@ const getData = async (item) => {
           isOpen: false,
           children: [
             { id: 21, value: '自然灾害风险隐患区' },
-            { id: 22, value: '事故灾难风险隐患区' },
-            { id: 23, value: '公共卫生风险隐患区' },
-            { id: 24, value: '社会安全风险隐患区' }
+            { id: 22, value: '事故灾难危险源' },
+            { id: 23, value: '公共卫生危险源' },
+            { id: 24, value: '社会安全隐患' }
           ],
           fatherCount: 4
         },
@@ -790,9 +790,10 @@ const getData = async (item) => {
             { id: 61, value: '国家级应急预案' },
             { id: 62, value: '省级应急预案' },
             { id: 63, value: '市级应急预案' },
-            { id: 64, value: '基层应急预案' },
-            { id: 65, value: '企业级应急预案' },
-            { id: 66, value: '军队应急预案' }
+            { id: 64, value: '县级应急预案' },
+            { id: 65, value: '基层应急预案' },
+            { id: 66, value: '企业级应急预案' },
+            { id: 67, value: '军队应急预案' }
           ],
           fatherCount: 6
         },
