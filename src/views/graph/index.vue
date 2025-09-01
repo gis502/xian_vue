@@ -376,17 +376,19 @@ const disasterMap = {
 
 // 获取优先展示的灾害（优先有图谱，否则第一条）
 const getPreferredItem = async () => {
-  if (tableData.value.length === 0) return null;
+  if (allData.value.length === 0) return null;
 
   const checks = await Promise.all(
-      tableData.value.map(async (item) => ({
+      allData.value.map(async (item) => ({
         item,
         hasChart: await hasChartData(item)
       }))
   );
+
   const firstWithChart = checks.find(c => c.hasChart);
-  return firstWithChart ? firstWithChart.item : tableData.value[0];
+  return firstWithChart ? firstWithChart.item : allData.value[0];
 };
+
 
 // 判断是否有图谱数据
 const hasChartData = async (item) => {
@@ -458,29 +460,46 @@ function showTooltip(index, event) {
 function hideTooltip() {
   tooltipVisible.value = false
 }
+const autoPlayEnabled = ref(true);
 
 // 点击月份切换
 const handleMonthClick = async (index) => {
+  autoPlayEnabled.value = false // 暂停自动轮播
   currentMonth.value = index;
   scrollToCurrentMonth();
   currentPage.value = 1;
 
-  await fetchData(); // ✅ 等数据更新完成
-
+  await fetchData();
   const targetItem = await getPreferredItem();
   if (targetItem) await getData(targetItem);
-
-  resetTimer();
 };
 
-// 切换到下一个月
-const nextMonth = () => {
+// 切换到下一个月（自动轮播用）
+const nextMonth = async () => {
+  if (!autoPlayEnabled.value) return; // 用户操作后直接返回，不跳转
+
   currentMonth.value = (currentMonth.value + 1) % months.length;
   scrollToCurrentMonth();
-  currentPage.value = 1; // 重置页码
-  fetchData(); // 重新请求后端数据
-  resetTimer();
+  currentPage.value = 1;
+
+  await fetchData();
+  const targetItem = await getPreferredItem();
+  if (targetItem) await getData(targetItem);
 };
+
+// 鼠标悬停或点击恢复自动轮播
+const enableAutoPlay = () => {
+  autoPlayEnabled.value = true
+}
+
+// 初始化自动轮播
+const resetTimer = () => {
+  if (timer.value) clearInterval(timer.value)
+  timer.value = setInterval(() => {
+    nextMonth()
+  }, 180000)
+}
+
 
 // 滚动到当前选中月份
 const scrollToCurrentMonth = () => {
@@ -492,16 +511,6 @@ const scrollToCurrentMonth = () => {
       behavior: 'smooth'
     })
   }
-}
-
-// 重置自动轮播定时器
-const resetTimer = () => {
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
-  timer.value = setInterval(() => {
-    nextMonth()
-  }, 180000) //
 }
 //时间轴结束**************
 
@@ -586,7 +595,8 @@ const echartsOption = ref({
 
 
 // 多灾害列表数据***************
-const tableData = ref([])
+const allData = ref([]); // 保存全量数据
+const tableData = ref([]); // 当前页数据
 //默认最新灾害数据
 let lastItem = null;
 // 最新的灾害数据
@@ -595,44 +605,57 @@ const lastDisasterData = ref([])
 const lastDiasterId = ref()
 const lastEqRainId = ref()
 
-
 const fetchData = async () => {
   try {
     const allowedTypes = monthDisasterMap[currentMonth.value] || [];
     let page = 1;
-    const allData = [];
+    const tempData = [];
 
     while (true) {
       const res = await getEarthquakeRainPage({
         pageNum: page,
-        pageSize: 5, // 后端固定 5 条
+        pageSize: 5, // 后端分页固定 5 条
         disasterTypes: allowedTypes
       });
 
       const records = res.data.records || [];
       if (records.length === 0) break;
 
-      allData.push(...records);
+      tempData.push(...records);
 
-      if (allData.length >= res.data.total) break; // 拿完了
+      if (tempData.length >= res.data.total) break; // 已加载完所有数据
       page++;
     }
 
-    tableData.value = allData;
-    disTotal.value = allData.length;
-    console.log('全量数据:', tableData.value);
+    allData.value = tempData;
+    disTotal.value = tempData.length;
+
+    // 初始化第一页数据
+    updateTableData();
+
+    console.log('全量数据:', allData.value);
   } catch (error) {
     console.error('请求数据失败', error);
+    allData.value = [];
     tableData.value = [];
     disTotal.value = 0;
   }
 };
 
+// 更新当前页数据
+const updateTableData = () => {
+  const start = (currentPage.value - 1) * pageSizeNum.value;
+  const end = currentPage.value * pageSizeNum.value;
+  tableData.value = allData.value.slice(start, end);
+};
 
+
+// 翻页事件
 const handlePageChangeDisaster = (page) => {
   currentPage.value = page;
-  fetchData();
+  updateTableData();
 };
+
 
 const closePanel = () => {
   showChat.value = false
@@ -645,6 +668,43 @@ const router = useRouter();
 // 计算一共有多少个实体球
 const chartDataCount = ref();
 // 获取数据并初始化图表
+/**
+ * 过滤图谱数据，只保留与当前灾害 eqid 对应的关系
+ * @param {Array} data - 后端返回的原始图谱数组
+ * @param {String} disasterType - 当前灾害类型，例如 'rain', 'earthquake'
+ * @param {String} eqid - 当前灾害 ID
+ * @returns {Array} 过滤后的图谱数组
+ */
+const filterGraphByDisasterType = (data, disasterType, eqid) => {
+  const fieldMap = {
+    earthquake: 'earthquakeDisasterId',
+    rain: 'rainDisasterId',
+    snow: 'snowDisasterId',
+    coldDamage: 'coldDamageDisasterId',
+    collapse: 'collapseDisasterId',
+    landslide: 'landslideDisasterId',
+    debrisFlow: 'debrisFlowDisasterId',
+    galeHail: 'galeHailDisasterId',
+    sandstorm: 'sandstormDisasterId',
+    drought: 'droughtDisasterId',
+    heatwave: 'heatwaveDisasterId',
+    wildfire: 'wildfireDisasterId',
+    bioDisaster: 'bioDisasterId',
+    safetyAccident: 'safetyAccidentDisasterId'
+  };
+  const idField = fieldMap[disasterType];
+  if (!idField || !eqid) return [];
+
+  return data.filter(item => {
+    const targetId = item.target[idField];
+    // 严格判断 target 中是否包含当前 eqid
+    return targetId === eqid;
+  });
+};
+
+
+
+
 const getData = async (item) => {
   console.log("item", item)
   await fetchNewsData(item);
@@ -829,18 +889,21 @@ const getData = async (item) => {
         }
       ];
     // 获取图谱数据
-    const res = await getChartDataBy(eqid,disasterType);
-    console.log("res的图谱结果",res)
-    // 构建 links
-    chartLinks.value = res.map(item => ({
+    const res = await getChartDataBy(eqid, disasterType);
+
+// 只保留 target 中属于当前灾害 ID 的关系
+    const filteredRes = filterGraphByDisasterType(res, disasterType, eqid);
+
+// 构建 links
+    chartLinks.value = filteredRes.map(item => ({
       source: item.source.name,
       target: item.target.name,
       value: item.value.type
     }));
 
-    // 构建节点（去重+保留结构）
+// 构建节点
     const nodeMap = new Map();
-    res.forEach(item => {
+    filteredRes.forEach(item => {
       nodeMap.set(item.source.name, item.source);
       nodeMap.set(item.target.name, item.target);
     });
