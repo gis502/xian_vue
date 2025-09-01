@@ -199,13 +199,13 @@
 </template>
 
 <script setup name="SimulatingEarthquake">
-import {reactive} from "vue";
+import {reactive, ref} from "vue";
 import {useSimulationPointStore} from "../../store/earthquake/simulation_points";
 import {obtainTheProbabilityOfSimulatedPointRisk} from "../../api/earthquake/hazards";
 import layers from "../../cesium/layers";
 import basicLayers from "../../cesium/basicLayers";
 // (hazardsParams)致灾因子后端数据（此处是模拟）
-import {addDisaster, addEarthquake, hazardsParams} from "../../api/earthquake/datas";
+import {addDisaster, addEarthquake, getEarthQuakeReport, hazardsParams} from "../../api/earthquake/datas";
 import {parseTime} from "../../utils/ruoyi";
 
 
@@ -220,7 +220,7 @@ let showBaseInfo = ref(true);
 
 // 表单对象
 const ruleFormRef = ref();
-
+const earthquakeDamage = ref([])
 
 // 表单元素
 let form = reactive({
@@ -389,6 +389,7 @@ async function confirmEarthquake(formEl) {
         latitude: position.latitude,
       });
       const base = layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
+      //计算人员伤亡
       if (form.magnitude>6){
         let circle_param = reactive({
           name: form.name,
@@ -400,10 +401,10 @@ async function confirmEarthquake(formEl) {
           latitude: position.latitude,
           dateTime: form.dateTime,
           type: form.type,
-          circleArea: base.CircleArea,
-          rotation: base.rotation,
-          semiMajorAxis: base.semiMajorAxis,
-          semiMinorAxis: base.semiMinorAxis,
+          circleArea: base.circleParam[0].CircleArea,
+          rotation: base.circleParam[0].rotation,
+          semiMajorAxis: base.circleParam[0].semiMajorAxis,
+          semiMinorAxis: base.circleParam[0].semiMinorAxis,
           // 下面数据非必须数据
           source: "",
           countyCode: "",
@@ -412,16 +413,49 @@ async function confirmEarthquake(formEl) {
           province: province,
           city: city,
         });
-        // console.log("circle_param",circle_param);
+        //地震页面修改完成后使用
+        console.log("circle_param",circle_param);
         // 调用函数发送请求,将地震添加到数据库
-        // addEarthquake(circle_param)
-        //     .then(response => {
-        //       console.log("灾害信息添加成功", response);
-        //     })
-        //     .catch(error => {
-        //       console.error("灾害信息添加失败", error);
-        //     });
+        await addEarthquake(circle_param)
+            .then(response => {
+              console.log("灾害信息添加成功", response);
+              earthquakeDamage.value = response.data;
+            })
+            .catch(error => {
+              console.error("灾害信息添加失败", error);
+            });
       }
+      console.log(9630214578,earthquakeDamage)
+      //报告所需参数
+      let report_param = reactive({
+        eqName: form.fullName,
+        eqAddr: form.position,
+        eqTime: form.dateTime,
+        longitude: position.longitude,
+        latitude: position.latitude,
+        eqDepth: form.depth,
+        magnitude: form.magnitude,
+        eqType: form.type,
+        faultZone: base.name,
+        circleArea: base.circleParam[0].CircleArea,
+        rotation: base.circleParam[0].rotation,
+        semiMajorAxis: base.circleParam[0].semiMajorAxis,
+        semiMinorAxis: base.circleParam[0].semiMinorAxis,
+        affectPop: earthquakeDamage.value.affectPop,
+        diePop: earthquakeDamage.value.diePop,
+        country: earthquakeDamage.value.country,
+        densityPop: earthquakeDamage.value.densityPop,
+        intensity: base.circleParam[0].intensity,
+        sumGdp: earthquakeDamage.value.sumGdp
+      })
+      console.log(96321025,report_param)
+      await getEarthQuakeReport(report_param)
+          .then(response => {
+            console.log("获取报告成功", response);
+          })
+          .catch(error => {
+            console.log("获取报告失败", error)
+          })
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
       console.log("inEllipsePoints", inEllipsePoints);
