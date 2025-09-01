@@ -1,9 +1,9 @@
 <template>
     <div class="legend">
       <div class="legend-title">图例</div>
-<!--      <div class="legend-item">-->
-<!--        <span class="legend-color" id="earthquake"></span>灾害中心-->
-<!--      </div>-->
+      <div class="legend-item">
+        <span class="legend-color" id="earthquake"></span>历史地震震中
+      </div>
       <div class="legend-item">
         <div class="legend-color" id="landslide"></div>
         滑坡隐患点
@@ -106,7 +106,7 @@
 }
 
 #earthquake {
-  background-image: url("../../assets/icons/TimeLine/黄点点.png");
+  background-image: url("../../assets/images/eqMark.png");
   background-size: cover;
 }
 #debrisflow {

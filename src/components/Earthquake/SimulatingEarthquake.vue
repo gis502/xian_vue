@@ -413,14 +413,14 @@ async function confirmEarthquake(formEl) {
           city: city,
         });
         // console.log("circle_param",circle_param);
-        // 调用函数发送请求
-        addEarthquake(circle_param)
-            .then(response => {
-              console.log("灾害信息添加成功", response);
-            })
-            .catch(error => {
-              console.error("灾害信息添加失败", error);
-            });
+        // 调用函数发送请求,将地震添加到数据库
+        // addEarthquake(circle_param)
+        //     .then(response => {
+        //       console.log("灾害信息添加成功", response);
+        //     })
+        //     .catch(error => {
+        //       console.error("灾害信息添加失败", error);
+        //     });
       }
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);

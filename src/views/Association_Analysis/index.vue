@@ -257,7 +257,7 @@ export default {
       isTableVisible: true, // 控制表格显示/隐藏的状态
       searchQuery: '搜索',
       currentPage: 1,
-      tableHeaders: ['区县名称','降水量', '温度', '湿度'],
+      tableHeaders: ['区县名称','12H降水量', '温度', '湿度'],
       point_tableHeaders: ['预警点名称', '预警灾害类型','预警点危险等级','预警灾害规模', '预警点位置'],
       history_disasterHeaders: ['灾害位置', '灾害名称','灾害类型','遇难人数', '倒塌房屋'],
       pageSize: 4,
@@ -353,11 +353,12 @@ export default {
       this.districtWeather = [];
       const rainFeatures = this.rainData?.features || [];
       console.log(112, rainFeatures);
+      console.log(113, rainFeatures.find(p => p.properties.stationName == '高新一中国际部'));
       // 处理数据，过滤掉 null 值
       const allResults = this.districts
           .map((district) => {
             const point = rainFeatures.find(p =>
-                p.properties.adminCode == district.adcode&&
+                p.properties.adminCode == district.adcode &&
                 p.properties.relativeHumidity != null
             );
             if (!point) {

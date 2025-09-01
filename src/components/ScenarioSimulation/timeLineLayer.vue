@@ -158,9 +158,9 @@ export default {
       const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
       const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
       // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
-      const batchData = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
-      // console.log("updatedRes processDataEqid",batchData)
-      this.$emit("update:realDisasterPointWithInfo", batchData);
+      const PlotInfoWithInfo = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
+      console.log("updatedRes processDataEqid",PlotInfoWithInfo)
+      this.$emit("update:realDisasterPointWithInfo", PlotInfoWithInfo);
       this.plotsInfoisReady = true;
     }
   },
