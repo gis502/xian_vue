@@ -216,10 +216,11 @@ function timeSelect(){
 function handleTableClick(item) {
   const longitude = item.field5; // 获取经度
   const latitude = item.field6; // 获取纬度
+  console.log(item,longitude,latitude,"handleTableClick")
   // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
   // if (cesiumViewer) {
   window.viewer.scene.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 4000),
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 2000),
     orientation: {
       heading: Cesium.Math.toRadians(0.0),
       pitch: Cesium.Math.toRadians(-90.0),

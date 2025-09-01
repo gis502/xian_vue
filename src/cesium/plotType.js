@@ -1167,7 +1167,86 @@ const plotType = {
             value: ""
         }
     },
+    trappePerson: {
+        name: "被困人员",
+        location: {
+            type: "text",
+            name: "所在位置",
+            value: ""
+        },
 
+        casualtyStatus: {
+            type: "select",
+            name: "人员伤亡状态",
+            value: "",
+            content: [
+                {
+                    value: "casualtyStatus",
+                    label: "轻伤"
+                },
+                {
+                    value: "casualtyStatus",
+                    label: "重伤"
+                },
+                {
+                    value: "casualtyStatus",
+                    label: "危重伤"
+                },
+                {
+                    value: "casualtyStatus",
+                    label: "死亡"
+                }
+            ]
+        },
+        abcdScore: {
+            type: "select",
+            name: "ABCD评分",
+            value: "",
+            content: [
+                {
+                    value: "abcdScore",
+                    label: "窒息与呼吸困难"
+                },
+                {
+                    value: "abcdScore",
+                    label: "出血与失血性休克"
+                },
+                {
+                    value: "abcdScore",
+                    label: "昏迷与颅脑外伤"
+                },
+                {
+                    value: "abcdScore",
+                    label: "正在发生的突然死亡"
+                }
+            ]
+        },
+        newCount: {
+            type: "text",
+            name: "新增总数",
+            value: ""
+        },
+        totalCount: {
+            type: "text",
+            name: "累计总数",
+            value: ""
+        },
+        medicalRescueTeam: {
+            type: "text",
+            name: "医疗救援队伍",
+            value: ""
+        },
+        contactPerson: {
+            type: "text",
+            name: "联系人员",
+            value: ""
+        },
+        contactPhone: {
+            type: "text",
+            name: "联系电话",
+            value: ""
+        }
+    },
     collapse: {
         name: "崩塌",
         lengthM: {

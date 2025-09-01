@@ -44,16 +44,16 @@ import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {getAllEarthquakeList} from "@/api/system/disasterEvents.js";
 
 let basicLayers = {
-    geoUrl: '/geoserver/test/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
-    peopleLayerName: 'test:xian_people', // 格式：工作空间名:图层名
-    cropsLayerName: 'test:xian_crops',
-    waterPipeLayerName: 'test:xian_water_pipe',
-    roadLayerName: 'test:xian_road',
-    bridgeLayerName: 'test:xian_bridge_points',
-    highwayLayerName: 'test:xian_highway',
-    nationalRoadLayerName: 'test:xian_national_road',
-    reservoirLayerName: 'test:xian_reservoir_list',
-    subwayLayerName: 'test:xian_subway',
+    geoUrl: '/geoserver/xian/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
+    peopleLayerName: 'xian:xian_people', // 格式：工作空间名:图层名
+    cropsLayerName: 'xian:xian_crops',
+    waterPipeLayerName: 'xian:xian_water_pipe',
+    roadLayerName: 'xian:xian_road',
+    bridgeLayerName: 'xian:xian_bridge_points',
+    highwayLayerName: 'xian:xian_highway',
+    nationalRoadLayerName: 'xian:xian_national_road',
+    reservoirLayerName: 'xian:xian_reservoir_list',
+    subwayLayerName: 'xian:xian_subway',
     disasterEntities: [],//灾害点实体
     hospitalEntities: [],//医院实体
     dangerEntities: [],//危险源
@@ -214,6 +214,7 @@ let basicLayers = {
         function configureAdminStyles(dataSource, color) {
             if (!dataSource) return;
             dataSource.entities.values.forEach(entity => {
+                // entity.allowPicking = false;   // Cesium ≥ 1.97 有效
                 if (!entity.polygon) return;
                 const name = entity.properties.name._value || dataSource.name;
                 entity.polygon = {
@@ -239,6 +240,7 @@ let basicLayers = {
                         const positions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions; // 输入一组坐标
                         const boundingSphere = Cesium.BoundingSphere.fromPoints(positions); // 自动计算中心位置和半径
                         entity.position = boundingSphere.center;
+                        // console.log(boundingSphere.center,name)
                     } else {
                         let point1 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[0];
                         let point2 = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions[parseInt(entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions.length / 6)];
@@ -266,7 +268,7 @@ let basicLayers = {
             Cesium.GeoJsonDataSource.load(geojson, {
                 enableFeatureStyles: false,
                 clampToGround: true,
-                suppressPointLabels: true
+                suppresuppressPointLabels: true
             }).then(ds => {
                 ds.name = `区县-${geojson.features?.[0]?.properties?.name || idx}`
                 const color = pickColor(idx)
@@ -277,6 +279,12 @@ let basicLayers = {
                 console.error(`加载 ${geojson.features?.[0]?.properties?.name || idx} 失败:`, err)
             )
         )
+        // Promise.all(tasks).then(() => {
+        //     // 0 层：区县面
+        //     viewer.dataSources.lowerToBottom(viewer.dataSources.getByName('区县-*')[0]);
+        //     console.log('所有区县加载完成')
+        //     // 1 层：其他业务图层（默认 zIndex=1）
+        // });
         Promise.all(tasks).then(() => console.log('所有区县加载完成'))
     },
     removeAdminData() {

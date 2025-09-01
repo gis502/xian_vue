@@ -179,10 +179,22 @@
               :key="index"
               :class="{ active: currentMonth === index }"
               @click="handleMonthClick(index)"
+              @mouseenter="showTooltip(index, $event)"
+              @mouseleave="hideTooltip"
           >
             <div class="month-circle"></div>
             <div class="month-label">{{ month }}</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 灾害提示框 -->
+    <div v-if="tooltipVisible" class="tooltip" :style="tooltipStyle">
+      <div class="tooltip-title">频发灾害</div>
+      <div class="tooltip-content">
+        <div v-for="(disaster, idx) in currentDisasters" :key="idx">
+          {{ disasterMap[disaster] || disaster }}
         </div>
       </div>
     </div>
@@ -299,7 +311,6 @@ const handlePageChange = (newPage) => {
   pageNum.value = newPage
   fetchNewsData() // 使用已有 lastItem
 }
-
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleString()
@@ -309,43 +320,158 @@ const formatDate = (dateStr) => {
 
 // 时间轴相关变量****************
 const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-const currentMonth = ref(0) // 当前选中月份索引
+const currentMonth = ref(new Date().getMonth());
 const timelineScroll = ref(null)
 const timelineWrapper = ref(null)
 const timer = ref(null)
 // 月份与灾害类型的映射关系（索引0=1月，11=12月）
 const monthDisasterMap = [
-  ['earthquake'], // 1月：默认展示所有
-  ['fire'], // 2月：默认展示所有
-  ['fire'], // 3月：默认展示所有
-  ['fire'], // 4月：仅展示火灾
-  ['fire'], // 5月：仅展示火灾
-  ['rain','earthquake'], // 6月：仅展示暴雨
-  ['rain'], // 7月：仅展示暴雨
-  ['rain'], // 8月：仅展示暴雨
-  ['fire'], // 9月：默认展示所有
-  ['fire'], // 10月：默认展示所有
-  ['fire'], // 11月：默认展示所有
-  ['fire']  // 12月：默认展示所有
+  // 1月
+  ['snow', 'coldDamage', 'earthquake', 'safetyAccident'],
+  // 2月
+  ['snow', 'coldDamage', 'earthquake', 'safetyAccident'],
+  // 3月
+  ['snow', 'drought', 'sandstorm', 'bioDisaster', 'earthquake', 'safetyAccident'],
+  // 4月
+  ['collapse', 'landslide', 'galeHail', 'bioDisaster', 'earthquake', 'safetyAccident'],
+  // 5月
+  ['collapse', 'landslide', 'heatwave', 'drought', 'galeHail', 'sandstorm', 'bioDisaster', 'wildfire', 'earthquake', 'safetyAccident'],
+  // 6月
+  ['rain', 'debrisFlow', 'collapse', 'landslide', 'heatwave', 'bioDisaster', 'earthquake', 'safetyAccident'],
+  // 7月
+  ['rain', 'debrisFlow', 'collapse', 'landslide', 'heatwave', 'galeHail', 'bioDisaster', 'earthquake', 'safetyAccident'],
+  // 8月
+  ['rain', 'debrisFlow', 'collapse', 'landslide', 'heatwave', 'bioDisaster', 'earthquake', 'safetyAccident'],
+  // 9月
+  ['rain', 'debrisFlow', 'collapse', 'landslide', 'earthquake', 'safetyAccident'],
+  // 10月
+  ['collapse', 'landslide', 'wildfire', 'earthquake', 'safetyAccident'],
+  // 11月
+  ['snow', 'coldDamage', 'wildfire', 'earthquake', 'safetyAccident'],
+  // 12月
+  ['snow', 'coldDamage', 'earthquake', 'safetyAccident']
 ];
+// 鼠标悬浮显示灾害
+const tooltipVisible = ref(false);
+const tooltipStyle = ref({ top: '0px', left: '0px' });
+const currentDisasters = ref([]);
+
+// 英文 -> 中文映射
+const disasterMap = {
+  snow: '雪灾',
+  coldDamage: '风雹',
+  earthquake: '地震',
+  safetyAccident: '安全事故',
+  drought: '干旱',
+  sandstorm: '沙尘暴',
+  bioDisaster: '生物灾害',
+  collapse: '崩塌',
+  landslide: '滑坡',
+  galeHail: '风雹',
+  heatwave: '高温',
+  wildfire: '森林火灾',
+  rain: '暴雨',
+  debrisFlow: '泥石流'
+}
+
+// 获取优先展示的灾害（优先有图谱，否则第一条）
+const getPreferredItem = async () => {
+  if (tableData.value.length === 0) return null;
+
+  const checks = await Promise.all(
+      tableData.value.map(async (item) => ({
+        item,
+        hasChart: await hasChartData(item)
+      }))
+  );
+  const firstWithChart = checks.find(c => c.hasChart);
+  return firstWithChart ? firstWithChart.item : tableData.value[0];
+};
+
+// 判断是否有图谱数据
+const hasChartData = async (item) => {
+  const eqid = getEqId(item);
+  if (!eqid) return false;
+  const res = await getChartDataBy(eqid, item.disasterType);
+  return res && res.length > 0;
+};
+
+// 获取灾害 ID（支持14种类型）
+const disasterIdMap = {
+  earthquake: 'earthquakeDisasterId',  // 地震
+  rain: 'rainDisasterId',              // 暴雨
+  snow: 'snowDisasterId',              // 积雪
+  coldDamage: 'coldDamageDisasterId',  // 冷害
+  collapse: 'collapseDisasterId',      // 崩塌
+  landslide: 'landslideDisasterId',    // 滑坡
+  debrisFlow: 'debrisFlowDisasterId',  // 泥石流
+  galeHail: 'galeHailDisasterId',      // 风雹
+  sandstorm: 'sandstormDisasterId',    // 沙尘暴
+  drought: 'droughtDisasterId',        // 干旱
+  heatwave: 'heatwaveDisasterId',      // 高温
+  wildfire: 'wildfireDisasterId',      // 森林火灾
+  bioDisaster: 'bioDisasterId',        // 生物灾害
+  safetyAccident: 'safetyAccidentDisasterId' // 安全事故
+};
 
 
+const getEqId = (item) => {
+  if (!item?.disasterType) return null;
+  const key = disasterIdMap[item.disasterType];
+  return key ? item[key] : null;
+};
+// 获取优先展示的灾害结束
+
+
+function showTooltip(index, event) {
+  currentDisasters.value = monthDisasterMap[index]
+  tooltipVisible.value = true
+
+  nextTick(() => { // 等DOM更新
+    const tooltipEl = document.querySelector('.tooltip')
+    if (!tooltipEl) return
+    const tooltipHeight = tooltipEl.offsetHeight
+    const offsetY = 30 // 弹框与鼠标的垂直间距
+    const offsetX = 20 // 弹框与鼠标的水平间距
+    let top = event.clientY - tooltipHeight - offsetY // 由下向上
+    let left = event.clientX - offsetX
+    // 边界处理
+    if (top < 0) top = event.clientY + offsetY
+    if (left < 0) left = 0
+
+    tooltipStyle.value = {
+      top: `${top}px`,
+      left: `${left}px`,
+      backgroundColor: 'rgba(255,255,255,0.95)', // 白底
+      color: '#000',
+      padding: '6px 10px',
+      borderRadius: '6px',
+      fontSize: '14px',
+      pointerEvents: 'none',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      maxWidth: '220px'
+    }
+  })
+}
+
+
+function hideTooltip() {
+  tooltipVisible.value = false
+}
 
 // 点击月份切换
 const handleMonthClick = async (index) => {
   currentMonth.value = index;
   scrollToCurrentMonth();
-  currentPage.value = 1; // 重置分页
+  currentPage.value = 1;
 
   await fetchData(); // ✅ 等数据更新完成
 
-  if (tableData.value.length > 0) {
-    await getData(tableData.value[0]); // ✅ 切换月份后展示第一条
-  }
+  const targetItem = await getPreferredItem();
+  if (targetItem) await getData(targetItem);
 
-  resetTimer(); // 时间轴轮播重置
+  resetTimer();
 };
-
 
 // 切换到下一个月
 const nextMonth = () => {
@@ -355,7 +481,6 @@ const nextMonth = () => {
   fetchData(); // 重新请求后端数据
   resetTimer();
 };
-
 
 // 滚动到当前选中月份
 const scrollToCurrentMonth = () => {
@@ -378,7 +503,6 @@ const resetTimer = () => {
     nextMonth()
   }, 180000) //
 }
-
 //时间轴结束**************
 
 
@@ -470,22 +594,33 @@ const lastDisasterData = ref([])
 // 最新的灾害的eqid
 const lastDiasterId = ref()
 const lastEqRainId = ref()
-// 新增：存储所有灾害原始数据（未过滤）
-const allTableData = ref([]);
 
 
 const fetchData = async () => {
   try {
     const allowedTypes = monthDisasterMap[currentMonth.value] || [];
-    console.log('allowedTypes:', allowedTypes)
-    const res = await getEarthquakeRainPage({
-      pageNum: currentPage.value,
-      pageSize: pageSizeNum.value,
-      disasterTypes: allowedTypes // 数组参数名与后端DTO一致
-    });
+    let page = 1;
+    const allData = [];
 
-    tableData.value = res.data.records || [];
-    disTotal.value = res.data.total || 0;
+    while (true) {
+      const res = await getEarthquakeRainPage({
+        pageNum: page,
+        pageSize: 5, // 后端固定 5 条
+        disasterTypes: allowedTypes
+      });
+
+      const records = res.data.records || [];
+      if (records.length === 0) break;
+
+      allData.push(...records);
+
+      if (allData.length >= res.data.total) break; // 拿完了
+      page++;
+    }
+
+    tableData.value = allData;
+    disTotal.value = allData.length;
+    console.log('全量数据:', tableData.value);
   } catch (error) {
     console.error('请求数据失败', error);
     tableData.value = [];
@@ -493,12 +628,11 @@ const fetchData = async () => {
   }
 };
 
+
 const handlePageChangeDisaster = (page) => {
   currentPage.value = page;
   fetchData();
 };
-
-
 
 const closePanel = () => {
   showChat.value = false
@@ -588,6 +722,7 @@ const getData = async (item) => {
       { name: '国家级应急预案' },
       { name: '省级应急预案' },
       { name: '市级应急预案' },
+      { name: '县级应急预案' },
       { name: '基层应急预案' },
       { name: '企业级应急预案' },
       { name: '军队应急预案' },
@@ -601,9 +736,7 @@ const getData = async (item) => {
       { name: '军队应急平台' },
       { name: '移动应急平台' }
     ];
-
-    if (item.disasterType === 'rain') {
-      list.value = [
+    list.value = [
         {
           id: 1,
           value: '突发事件',
@@ -622,9 +755,9 @@ const getData = async (item) => {
           isOpen: false,
           children: [
             { id: 21, value: '自然灾害风险隐患区' },
-            { id: 22, value: '事故灾难风险隐患区' },
-            { id: 23, value: '公共卫生风险隐患区' },
-            { id: 24, value: '社会安全风险隐患区' }
+            { id: 22, value: '事故灾难危险源' },
+            { id: 23, value: '公共卫生危险源' },
+            { id: 24, value: '社会安全隐患' }
           ],
           fatherCount: 4
         },
@@ -672,9 +805,10 @@ const getData = async (item) => {
             { id: 61, value: '国家级应急预案' },
             { id: 62, value: '省级应急预案' },
             { id: 63, value: '市级应急预案' },
-            { id: 64, value: '基层应急预案' },
-            { id: 65, value: '企业级应急预案' },
-            { id: 66, value: '军队应急预案' }
+            { id: 64, value: '县级应急预案' },
+            { id: 65, value: '基层应急预案' },
+            { id: 66, value: '企业级应急预案' },
+            { id: 67, value: '军队应急预案' }
           ],
           fatherCount: 6
         },
@@ -694,133 +828,9 @@ const getData = async (item) => {
           fatherCount: 7
         }
       ];
-
-    }  else if (item.disasterType === 'earthquake'){
-      firstData.value = [
-        { name: '地震震情信息' },
-        { name: '地震灾情信息' },
-        { name: '应急指挥协调信息' },
-        { name: '应急决策信息' },
-        { name: '态势标绘' },
-        { name: '社会反应动态信息' },
-        { name: '灾害现场动态信息' },
-        { name: '应急处置信息' }
-      ];
-
-      secondData.value = [
-        { "name": "地震参数" },
-        { "name": "强震监测信息" },
-        { "name": "测震监测信息" },
-        { "name": "预报信息" },
-        { "name": "余震情况" },
-        { "name": "人员伤亡" },
-        { "name": "房屋破坏" },
-        { "name": "经济损失" },
-        { "name": "会议信息" },
-        { "name": "生命线震害信息" },
-        { "name": "次生灾害信息" },
-        { "name": "人员伤亡" },
-        { "name": "灾区灾情简报" },
-        { "name": "用户上传会议信息" },
-        { "name": "应急响应信息" },
-        { "name": "应急决策基础信息" },
-        { "name": "应急处置基础信息" },
-        { "name": "态势标绘基础信息" },
-        { "name": "灾害现场动态基础信息" },
-        { "name": "社会反应动态基础信息" }
-      ];
-
-      list.value = [
-        {
-          id: 1,
-          value: '地震震情信息',
-          isOpen: false,
-          children: [
-            { id: 11, value: '地震参数' },
-            { id: 12, value: '强震检测信息' },
-            { id: 13, value: '测震监测信息' },
-            { id: 14, value: '预报信息' },
-            { id: 15, value: '余震情况' }
-          ],
-          fatherCount: 5
-        },
-        {
-          id: 2,
-          value: '地震灾情信息',
-          isOpen: false,
-          children: [
-            { id: 21, value: '人员伤亡' },
-            { id: 22, value: '房屋破坏' },
-            { id: 23, value: '生命线震害信息' },
-            { id: 24, value: '次生灾害信息' },
-            { id: 25, value: '人员伤亡' },
-            { id: 26, value: '灾区灾情简报' }
-          ],
-          fatherCount: 6
-        },
-        {
-          id: 3,
-          value: '应急指挥协调信息',
-          isOpen: false,
-          children: [
-            { id: 31, value: '会议信息' },
-            { id: 32, value: '应急响应信息' }
-          ],
-          fatherCount: 2
-        },
-        {
-          id: 4,
-          value: '应急决策信息',
-          isOpen: false,
-          children: [
-            { id: 41, value: '应急决策基础信息' }
-          ],
-          fatherCount: 1
-        },
-        {
-          id: 5,
-          value: '应急处置信息',
-          isOpen: false,
-          children: [
-            { id: 51, value: '应急处置基础信息' }
-          ],
-          fatherCount: 1
-        },
-        {
-          id: 6,
-          value: '态势标绘信息',
-          isOpen: false,
-          children: [
-            { id: 61, value: '态势标绘基础信息' }
-          ],
-          fatherCount: 1
-        },
-        {
-          id: 7,
-          value: '灾害现场动态信息',
-          isOpen: false,
-          children: [
-            { id: 71, value: '灾害现场动态基础信息' }
-          ],
-          fatherCount: 1
-        },
-        {
-          id: 8,
-          value: '社会反应动态信息',
-          isOpen: false,
-          children: [
-            { id: 81, value: '社会反应动态基础信息' }
-          ],
-          fatherCount: 1
-        }
-      ];
-    }
-
     // 获取图谱数据
     const res = await getChartDataBy(eqid,disasterType);
-
     console.log("res的图谱结果",res)
-
     // 构建 links
     chartLinks.value = res.map(item => ({
       source: item.source.name,
@@ -834,11 +844,9 @@ const getData = async (item) => {
       nodeMap.set(item.source.name, item.source);
       nodeMap.set(item.target.name, item.target);
     });
-
     chartData.value = Array.from(nodeMap.values());
-
+    console.log("图标匹配",chartData.value)
     allDataLinks = chartLinks.value;
-
     // 给每个子项计算 sonCount
     list.value.forEach(item => {
       item.children.forEach(child => {
@@ -849,7 +857,6 @@ const getData = async (item) => {
 
     // 给节点分配图标样式
     chartStartData.value = chartData.value.map(item => {
-      console.log("图标匹配",lastDisasterData.value.disasterName)
       if (item.name === lastDisasterData.value.disasterName) {
         item.symbol = `image:///images/eqentity1.png`;
         item.itemStyle = {
@@ -891,11 +898,9 @@ const getData = async (item) => {
     });
 
     chartStartLinks.value = chartLinks.value;
-
     StartData.value = chartStartData.value;
     StartLinks.value = chartStartLinks.value;
     chartDataCount.value = StartData.value.length;
-
     initChart(); // 渲染图表
   } catch (error) {
     console.error('获取图表数据失败:', error);
@@ -907,7 +912,6 @@ const filterTopThreeLevels = () => {
   // 假设lastDisasterData是根节点(第一级)
   const rootNode = lastDisasterData.value.disasterName;
   if (!rootNode) return { data: [], links: [] };
-
   // 层级映射表，根节点为第1级
   const nodeLevels = { [rootNode]: 1 };
   // 待处理的节点队列
@@ -952,7 +956,6 @@ const filterTopThreeLevels = () => {
   const filteredData = fullData.value.filter(node =>
       topThreeNodes.has(node.name)
   );
-
   return {
     data: filteredData,
     links: topThreeLinks
@@ -992,7 +995,6 @@ const initChart = () => {
 
   window.addEventListener('resize', handleResize);
 };
-
 
 
 // 点击节点触发函数,用于记录已展开的节点名
@@ -1056,12 +1058,10 @@ const removeDescendantsSafely = (nodeName) => {
       expandedNodes.delete(target);
     }
   });
-
   // 更新图谱
   chartChangeLinks.value = [...chartStartLinks.value];
   chartChangeData.value = [...chartStartData.value];
 };
-
 
 
 
@@ -1142,10 +1142,9 @@ const handleResize = () => {
   }
 };
 
-// 关闭助手并调整图表大小
+// 关闭多灾害信息列表
 const updateChartData = () => {
   showChat.value = !showChat.value;
-  // ifShowCatalog.value = !ifShowCatalog.value;
   nextTick(() => {
     handleResize();
   });
@@ -1196,16 +1195,13 @@ const focusNode = (keyword) => {
     inputValue.value = '';
     return;
   }
-
   const matchedNodes = findNodeIndexes(keyword);
   const matchedLinks = findLinkMatches(keyword);
-
   if (matchedNodes.length === 0 && matchedLinks.length === 0) {
     ElMessage.warning(`未找到包含 "${keyword}" 的节点或关系`);
     inputValue.value = '';
     return;
   }
-
   // 检查是否有匹配但不可见的节点，需要自动展开
   const invisibleNodes = matchedNodes.filter(n => !n.isVisible);
   if (invisibleNodes.length > 0) {
@@ -1215,10 +1211,18 @@ const focusNode = (keyword) => {
       expandNodePath(node.name);
     });
   }
+  // 检查 link 是否不可见，如果不可见，自动展开其路径
+  const invisibleLinks = matchedLinks.filter(l => !l.isVisible);
+  if (invisibleLinks.length > 0) {
+    ElMessage.info(`正在展开包含"${keyword}"的关系...`);
+    invisibleLinks.forEach(link => {
+      expandNodePath(link.source); // 从 link 的 source 开始展开
+      expandNodePath(link.target); // 确保 target 也展开
+    });
+  }
 
   // 恢复默认视图
   echartsInstance.value.dispatchAction({ type: 'restore' });
-
   // 高亮匹配节点
   matchedNodes.forEach(item => {
     // 从当前展示数据中找到索引
@@ -1246,8 +1250,6 @@ const focusNode = (keyword) => {
       });
     }
   });
-
-  // inputValue.value = '';
 };
 
 // 新增：自动展开节点路径（从根节点到目标节点）
@@ -1323,22 +1325,22 @@ const handleClick = () => {
   // 触发事件通知父组件
   emit('bigGraphShow', false)
 };
-
 const handleChildClick = (child) => {
   const newChild = { name: child.value };
   handleNodeClick(newChild);
   focusNode(newChild.name);
 };
 
-// 生命周期钩子
-onMounted(async () => {
-  await fetchData()
-  if (tableData.value.length > 0) {
-    await getData(tableData.value[0]);
-  }
 
-  resetTimer()
+
+onMounted(async () => {
+  await fetchData();
+  const targetItem = await getPreferredItem();
+  if (targetItem) await getData(targetItem);
+  resetTimer();
 });
+
+
 
 onBeforeUnmount(() => {
   if (echartsInstance.value) {
@@ -1580,14 +1582,9 @@ onBeforeUnmount(() => {
 
     .graphLagend{
       position: absolute;
-      bottom: 0px;
+      bottom: 2px;
       z-index:1;
       left:1vw;
-      // 基础样式
-      //background-color: rgba(59, 80, 149, .1);
-      //border: 1px solid rgba(255, 255, 255, 0.1);
-      //background-color: ;
-      //border: 1px solid ;
       background-color: rgba(52, 152, 219, 0.1); // 更蓝些
       border: 1px solid rgba(52, 73, 94, 0.3); // 柔和边框
       border-radius: 5px;
@@ -2124,11 +2121,36 @@ onBeforeUnmount(() => {
     }
   }
 }
-
 // 调整底部元素位置
 .knowledgeGraph {
   padding-bottom: 100px;
 }
+
+.tooltip {
+  position: fixed;
+  background-color: #ffffff;   /* 白底 */
+  color: #000000;              /* 黑字 */
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 9999;
+  width: 100px;
+}
+
+.tooltip div {
+  margin: 2px 0; /* 每条灾害间距 */
+}
+
+.tooltip-title {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+  font-size: 16px;
+  color: #333;
+}
+
 </style>
 
 
