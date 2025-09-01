@@ -7,12 +7,25 @@
       element-loading-svg-view-box="-10, -10, 50, 50"
       element-loading-background="rgba(122, 122, 122, 0.8)"
   >
+    <div class="controls">
+      <div class="rain-btn" @click="selectDisasterChain">
+        灾害链模型选择
+      </div>
+    </div>
+    <div v-if="showSelect" class="layerControl-panel">
+      <div class="panel-content">
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨滑坡 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨泥石流 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨内涝 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 暴雨山洪 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 地震滑坡 </label>
+        <label><input type="checkbox" v-model="show" @change="toggle"> 地震泥石流 </label>
+      </div>
+    </div>
     <!-- 图例 -->
     <Legend></Legend>
     <!-- 表格 -->
     <Table v-if="showTable" :dataTypes="dataTypes"></Table>
-    <!-- chart -->
-    <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <HiddenDisasterPanel
         v-if="showBaseInfo"
         :title="baseInfoTitle"
@@ -40,10 +53,11 @@ import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
-import Chart from "../../components/Earthquake/Chart.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import { nextTick } from 'vue';
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
+
+const show = ref(false);
 // 加载
 let loading = ref(false);
 
@@ -51,45 +65,60 @@ let loading = ref(false);
 const dataTypes = reactive({
   filterCriteria: [
     {
-      name: "滑坡预警点",
+      name: "暴雨滑坡",
       value: "type1",
     },
     {
-      name: "泥石流预警点",
+      name: "暴雨泥石流",
       value: "type2",
     },
     {
-      name: "风险区预警点",
+      name: "暴雨山洪",
       value: "type3",
+    },
+    {
+      name: "暴雨内涝",
+      value: "type4",
+    },
+    {
+      name: "地震滑坡",
+      value: "type5",
+    },
+    {
+      name: "地震泥石流",
+      value: "type6",
     },
   ],
   type1: {
-    headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
   type2: {
-    headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
   type3: {
-    headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
     data: [],
   },
+  type4: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  },
+  type5: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  },
+  type6: {
+    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+    data: [],
+  }
 });
 
 // 显示表格
-const showTable = ref(false);
-// 显示chart
-const showChart = ref(false);
+const showTable = ref(true);
+const showSelect = ref(false);
 
-// chart数据
-const chartDatas = reactive({
-  title: "地震模拟",
-  xAxis: {
-    data: ["滑坡受影响点", "泥石流受影响点", "风险区受影响点"],
-  },
-  seriesDatas: [0, 0, 0],
-});
 // 使用 ref 初始化基本类型的响应式引用
 let selectedEntityPosition = ref(null); // 拾取的点的弹框位置
 let eqCenterPanelVisible = ref(false);
@@ -116,8 +145,11 @@ let showRiskPointsInformation = ref(false);
 let riskPointsInformation = ref({});
 let matchedHiddenHighlightEntities=ref([])
 
+let viewer = null;
+
 onMounted(() => {
-  window.viewer = initCesium("cesium-container");
+  viewer = initCesium("cesium-container");
+  window.viewer = viewer;
   // 断裂带
   basicLayers.addFaultZone();
   // 行政区
@@ -134,7 +166,6 @@ onMounted(() => {
       roll: 0.0,
     },
   });
-
 });
 
 // 显示表格
@@ -147,14 +178,12 @@ function hideTable() {
   showTable.value = false;
 }
 
-// 显示chart
-function displayChart() {
-  showChart.value = true;
+function selectDisasterChain() {
+  showSelect.value = !showSelect.value;
 }
 
-// 隐藏chart
-function hideChart() {
-  showChart.value = false;
+function toggle(){
+
 }
 
 //面板
@@ -325,4 +354,54 @@ function updatePopupPosition() {
 .legend {
   bottom: 10px;
 }
+
+.controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+}
+
+.rain-btn{
+  background-color: #3c86ff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px; /* 最小宽度确保按钮不挤压 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rain-btn:hover {
+  background-color: #3c86ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.layerControl-panel {
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  border-radius: 16px;
+  color: black;
+  padding: 10px; /* 缩小内边距 */
+  z-index: 1000;
+  width: 160px; /* 缩小面板宽度 */
+}
+
+.panel-content {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px; /* 缩小字体 */
+  gap: 6px; /* 缩小子元素间距 */
+}
+
 </style>

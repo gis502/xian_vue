@@ -82,6 +82,10 @@
             <th>储备站点名称</th>
             <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.schoolName">
+            <th>学校名称</th>
+            <td>{{ selectedEntityData.properties.schoolName || '未知' }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.shelterName">
             <th>避难所名称</th>
             <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
@@ -97,6 +101,10 @@
           <tr v-if="selectedEntityData.properties.teamType">
             <th>消防站类型</th>
             <td>{{ selectedEntityData.properties.teamType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolType">
+            <th>学校类型</th>
+            <td>{{ selectedEntityData.properties.schoolType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.storeType">
             <th>储备站类型</th>
@@ -141,6 +149,14 @@
           <tr v-if="selectedEntityData.properties.scaleGrade">
             <th>规模等级</th>
             <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.students">
+            <th>在校学生</th>
+            <td>{{ selectedEntityData.properties.students || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.isImportant">
+            <th>是否有重点保护目标</th>
+            <td>{{ selectedEntityData.properties.isImportant || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.riskGrade">
             <th>风险等级</th>
@@ -314,13 +330,13 @@ export default {
       chartDatas: {
         title: "各点数量统计",
         xAxis: {
-          data: ["医院", "风险源", "避难所", "消防站", "物资储备点"],
+          data: ["医院", "风险源", "避难所", "消防站", "物资储备点", "学校"],
         },
         attribute: {
           height: '400',
           width: '500',
         },
-        seriesDatas: [0, 0, 0, 0, 0],
+        seriesDatas: [0, 0, 0, 0, 0, 0],
       },
       dataTypes: {
         filterCriteria: [
@@ -356,6 +372,10 @@ export default {
             name: "物资储备点",
             value: "type8",
           },
+          {
+            name: "学校",
+            value: "type9",
+          },
         ],
         type1: {
           headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
@@ -389,6 +409,10 @@ export default {
           headers: ["储备点名称", "位置", "储备点类型", "有效库容"],
           data: [],
         },
+        type9: {
+          headers: ["学校名称", "位置", "在校学生数", "是否重要"],
+          data: [],
+        }
       },
     }
   },
@@ -949,7 +973,7 @@ export default {
         this.rainControlUI.toggleBtn.style.backgroundColor = `hsl(${hue}, 80%, 45%)`;
       }
     },
-    // 添加暴雨影响区域圆
+    // 添加区域圆
     addRainEllipse(centerCartesian, rainfall) {
       // 根据所给量计算圆半径 (mm -> 米)
       const Radius = rainfall * this.rainEllipseScale; // 半径
@@ -1131,6 +1155,7 @@ export default {
       const shelterPointsInside = [];
       const storePointsInside = [];
       const fireFighterPointsInside = [];
+      const schoolPointsInside = [];
 
       basicLayers.hospitalPoints.forEach(point =>{
         if(this.isPointInCircle(point, centerCartesian, radius)){
@@ -1162,12 +1187,19 @@ export default {
         }
       })
 
+      basicLayers.schoolPoints.forEach(point=>{
+        if(this.isPointInCircle(point, centerCartesian, radius)){
+          schoolPointsInside.push(point);
+        }
+      })
+
       const allPointsInside = [
           ...fireFighterPointsInside,
           ...dangerSourcePointsInside,
           ...shelterPointsInside,
           ...storePointsInside,
-          ...hospitalPointsInside
+          ...hospitalPointsInside,
+          ...schoolPointsInside
       ];
 
       if(allPointsInside.length > 0){
@@ -1177,6 +1209,7 @@ export default {
         console.log(`避难所: ${shelterPointsInside.length}`);
         console.log(`消防站: ${fireFighterPointsInside.length}`);
         console.log(`物资储备点: ${storePointsInside.length}`);
+        console.log(`学校: ${schoolPointsInside.length}`)
 
         // 预处理：将坐标数组转换为字符串集合
         const hospital = new Set();
@@ -1204,12 +1237,18 @@ export default {
           store.add(coords.join(','));
         });
 
+        const school = new Set();
+        schoolPointsInside.forEach(coords => {
+          school.add(coords.join(','));
+        })
+
         // 主逻辑
         const hospitalDates = basicLayers.hospitalData.features;
         const dangerSourceDates = basicLayers.dangerSourceData.features;
         const shelterDates = basicLayers.shelterData.features;
         const fireDates = basicLayers.fireFighterData.features;
         const storeDates = basicLayers.storeData.features;
+        const schoolDates = basicLayers.schoolData.features;
 
         //医院表数据加载
         hospitalDates.forEach(entity => {
@@ -1279,7 +1318,6 @@ export default {
             });
           }
         });
-
         //储备点表数据加载
         storeDates.forEach(entity => {
           const entityCoords5 = entity.geometry.coordinates;
@@ -1297,8 +1335,26 @@ export default {
             });
           }
         });
+        //学校表数据加载
+        schoolDates.forEach(entity =>{
+          const entityCode = entity.geometry.coordinates;
+          const coordsStr = entityCode.join(',');
+          if(school.has(coordsStr)) {
+            console.log("找到了匹配的坐标:", entityCode);
+            this.dataTypes.type9.data.push({
+              field1: entity.properties.schoolName,
+              field2: entity.properties.schoolAddress,
+              field3: entity.properties.students,
+              field4: entity.properties.isImportant,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
         this.showTable = true;
-        this.initColumGraph(hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside);
+        this.initColumGraph(
+            hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside, schoolPointsInside
+        );
       }
     },
     // 判断点是否在圆内（圆形是椭圆的特例，无需旋转参数）
@@ -1426,14 +1482,15 @@ export default {
       }, 50); // 每50ms更新一次
     },
     //加载柱状图
-    initColumGraph(hospital, danger, shelter, fire, store){
-      this.chartDatas.seriesDatas = [0, 0, 0, 0, 0];
+    initColumGraph(hospital, danger, shelter, fire, store, school){
+      this.chartDatas.seriesDatas = [0, 0, 0, 0, 0, 0];
 
       this.chartDatas.seriesDatas[0] = hospital.length;
       this.chartDatas.seriesDatas[1] = danger.length;
       this.chartDatas.seriesDatas[2] = shelter.length;
       this.chartDatas.seriesDatas[3] = fire.length;
       this.chartDatas.seriesDatas[4] = store.length;
+      this.chartDatas.seriesDatas[5] = school.length;
 
       this.showChart = true;
     },

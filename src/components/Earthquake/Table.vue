@@ -7,19 +7,12 @@
     <div class="table-title">{{ dataTypes.title || '灾害链影响点列表' }}</div>
     <div class="table-header" v-if="isTableVisible">
       <div class="search-box">
-        <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="搜索表格数据..."
-        />
+        <input type="text" v-model="searchQuery" placeholder="搜索表格数据..." />
         <button @click="performSearch">搜索</button>
       </div>
       <select v-model="selectedDataType" @change="changeDataType">
-        <option
-            v-for="filterCriteria in dataTypes.filterCriteria"
-            :key="filterCriteria.value"
-            :value="filterCriteria.value"
-        >
+        <option v-for="filterCriteria in dataTypes.filterCriteria" :key="filterCriteria.value"
+          :value="filterCriteria.value">
           {{ filterCriteria.name }}
         </option>
       </select>
@@ -27,33 +20,22 @@
 
     <table v-if="isTableVisible" style="table-layout: fixed">
       <thead>
-      <tr>
-        <th
-            style="text-align: center"
-            v-for="(header, index) in tableHeaders"
-            :key="index"
-        >
-          {{ header }}
-        </th>
-      </tr>
+        <tr>
+          <th style="text-align: center" v-for="(header, index) in tableHeaders" :key="index">
+            {{ header }}
+          </th>
+        </tr>
       </thead>
 
       <tbody>
-      <tr
-          v-for="(item, index) in paginatedTableData"
-          :key="index"
-          @click="handleTableClick(item)"
-      >
-        <template v-for="(value, key) in item">
-          <td
-              v-if="key !== 'field5' && key !== 'field6'"
-              style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-              :title="value"
-          >
-            {{ value }}
-          </td>
-        </template>
-      </tr>
+        <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)">
+          <template v-for="(value, key) in item">
+            <td v-if="key !== 'field5' && key !== 'field6'"
+              style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="value">
+              {{ value }}
+            </td>
+          </template>
+        </tr>
       </tbody>
     </table>
     <div class="pagination-controls" v-if="isTableVisible">
@@ -78,7 +60,7 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  show:{
+  show: {
     type: Boolean,
     default: true // 或 true，根据需求
   }
@@ -102,14 +84,14 @@ const filteredTableData = computed(() => {
   const query = searchQuery.value.toLowerCase();
   return tableData.value.filter((item) => {
     return Object.values(item).some((value) =>
-        String(value).toLowerCase().includes(query)
+      String(value).toLowerCase().includes(query)
     );
   });
 });
 
 // 总页数
 const totalPages = computed(() =>
-    Math.ceil(filteredTableData.value.length / pageSize)
+  Math.ceil(filteredTableData.value.length / pageSize)
 );
 
 // 当前页的数据
@@ -149,7 +131,7 @@ function handleTableClick(item) {
   // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
   // if (cesiumViewer) {
   window.viewer.scene.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude,4000),
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 4000),
     orientation: {
       heading: Cesium.Math.toRadians(0.0),
       pitch: Cesium.Math.toRadians(-90.0),
@@ -190,36 +172,49 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 <style scoped lang="scss">
 .data-table {
   position: absolute;
-  top: 20px; /* 距离顶部20px */
-  left: 20px; /* 距离左侧20px */
-  background-color: rgba(255,255,255,0.75); /* 与图例背景色一致 */
+  top: 20px;
+  /* 距离顶部20px */
+  left: 20px;
+  /* 距离左侧20px */
+  background-color: rgba(255, 255, 255, 0.75);
+  /* 与图例背景色一致 */
   color: black;
   padding: 15px;
   border-radius: 8px;
   z-index: 1000;
-  width: 550px; /* 限制表格宽度 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
-  font-size: 14px; /* 调整字体大小 */
+  width: 550px;
+  /* 限制表格宽度 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  /* 添加阴影效果 */
+  font-size: 14px;
+  /* 调整字体大小 */
   /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
 }
 
 .toggle-table-btn {
   position: absolute;
-  top: 5px; /* 调整按钮位置 */
-  left: 5px; /* 调整按钮位置 */
+  top: 5px;
+  /* 调整按钮位置 */
+  left: 5px;
+  /* 调整按钮位置 */
   //background-color: #007bff;
   background-image: linear-gradient(159deg, #1c9fff 2%, #9be7ff 128%);
   //border-radius: 24px;
   color: white;
   border: none;
-  border-radius: 50%; /* 圆形按钮 */
-  width: 25px; /* 按钮宽度 */
-  height: 25px; /* 按钮高度 */
+  border-radius: 50%;
+  /* 圆形按钮 */
+  width: 25px;
+  /* 按钮宽度 */
+  height: 25px;
+  /* 按钮高度 */
   font-size: 20px;
-  line-height: 1; /* 垂直居中文本 */
+  line-height: 1;
+  /* 垂直居中文本 */
   text-align: center;
   cursor: pointer;
-  z-index: 1001; /* 确保按钮在表格内容之上 */
+  z-index: 1001;
+  /* 确保按钮在表格内容之上 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -234,35 +229,42 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
   margin-bottom: 5px;
   font-size: 16px;
   text-align: center;
-  margin-top: 0; /* 将 margin-top 设置为0，避免空白区域 */
-  padding-top: 0px; /* 增加内边距，为按钮留出空间 */
+  margin-top: 0;
+  /* 将 margin-top 设置为0，避免空白区域 */
+  padding-top: 0px;
+  /* 增加内边距，为按钮留出空间 */
 }
 
 .data-table table {
   width: 100%;
-  border-collapse: collapse; /* 合并边框 */
+  border-collapse: collapse;
+  /* 合并边框 */
 }
 
 .data-table th,
 .data-table td {
   height: 50px;
-  border: 1px solid #FFFFFF; /* 浅色边框 */
+  border: 1px solid #FFFFFF;
+  /* 浅色边框 */
   padding: 8px 12px;
   text-align: center;
   font-size: 14px;
 }
 
 .data-table th {
-  background-color: rgba(255,255,255,0.5); /* 表头背景色 */
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 表头背景色 */
   font-weight: bold;
 }
 
 .data-table tbody tr:nth-child(even) {
-  background-color: rgba(255,255,255,0.5); /* 斑马纹效果 */
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 斑马纹效果 */
 }
 
 .data-table tbody tr:hover {
-  background-color: rgba(70, 70, 70, 0.9); /* 鼠标悬停效果 */
+  background-color: rgba(70, 70, 70, 0.9);
+  /* 鼠标悬停效果 */
 }
 
 .pagination-controls {
@@ -309,30 +311,38 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  gap: 10px; /* 增加整体元素之间的间距 */
+  gap: 10px;
+  /* 增加整体元素之间的间距 */
 }
 
 .data-table select,
 .search-box input {
-  height: 34px; /* 统一高度 */
+  height: 34px;
+  /* 统一高度 */
   padding: 5px 10px;
   border-radius: 4px;
-  background-color: rgba(255,255,255,0.5);
+  background-color: rgba(255, 255, 255, 0.5);
   color: black;
   border: 1px solid #FFFFFF;
-  box-sizing: border-box; /* 确保padding和border包含在height内 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
 }
 
 .search-box {
-  display: flex; /* 使搜索框和按钮在同一行 */
+  display: flex;
+  /* 使搜索框和按钮在同一行 */
   align-items: center;
-  gap: 5px; /* 搜索框和按钮之间的间距 */
-  flex-grow: 1; /* 允许搜索框占据更多空间 */
+  gap: 5px;
+  /* 搜索框和按钮之间的间距 */
+  flex-grow: 1;
+  /* 允许搜索框占据更多空间 */
 }
 
 .search-box input {
-  flex-grow: 1; /* 搜索框占据剩余空间 */
-  width: auto; /* 移除固定宽度 */
+  flex-grow: 1;
+  /* 搜索框占据剩余空间 */
+  width: auto;
+  /* 移除固定宽度 */
 }
 
 .search-box button {
@@ -343,9 +353,12 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  height: 34px; /* 统一高度 */
-  box-sizing: border-box; /* 确保padding和border包含在height内 */
-  white-space: nowrap; /* 防止按钮文字换行 */
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
 }
 
 .search-box button:hover {
@@ -353,7 +366,8 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 }
 
 .data-table select {
-  flex-shrink: 0; /* 防止下拉菜单被压缩 */
+  flex-shrink: 0;
+  /* 防止下拉菜单被压缩 */
 }
 
 ::v-deep .compass {
