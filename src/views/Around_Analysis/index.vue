@@ -1198,16 +1198,16 @@ export default {
         });
 
         // 主逻辑
-        const dangerAreaDates = this.DangerAreaData.features?.features || [];
-        const landSlideDates = this.HuapoData.features?.features || [];
-        const flowDates = this.NishiliuData.features?.features || [];
+        const dangerAreaDates = this.DangerAreaData?.features || [];
+        const landSlideDates = this.HuapoData?.features || [];
+        const flowDates = this.NishiliuData?.features || [];
         //风险区表数据加载
         dangerAreaDates.forEach(entity => {
           const entityCoords1 = entity.geometry.coordinates;
           const coordsStr1 = entityCoords1.join(',');
           // 检查坐标字符串是否存在于集合中
           if (dangerA.has(coordsStr1)) {
-            // console.log("找到了匹配的坐标:", entityCoords1);
+            console.log("找到了匹配的坐标:", entityCoords1);
             this.dataTypes.type3.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1224,7 +1224,7 @@ export default {
           const coordsStr2 = entityCoords2.join(',');
           // 检查坐标字符串是否存在于集合中
           if (slideA.has(coordsStr2)) {
-            // console.log("找到了匹配的坐标:", entityCoords2);
+            console.log("找到了匹配的坐标:", entityCoords2);
             this.dataTypes.type1.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1241,7 +1241,7 @@ export default {
           const coordsStr3 = entityCoords3.join(',');
           // 检查坐标字符串是否存在于集合中
           if (flowA.has(coordsStr3)) {
-            // console.log("找到了匹配的坐标:", entityCoords3);
+            console.log("找到了匹配的坐标:", entityCoords3);
             this.dataTypes.type2.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1252,7 +1252,7 @@ export default {
             });
           }
         });
-
+        this.showTable = true;
         this.checkOtherPointsInEllipse(centerCartesian, majorRadius);
       }
     },
@@ -1461,7 +1461,6 @@ export default {
             });
           }
         });
-        this.showTable = true;
         this.initColumGraph(
             hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside, schoolPointsInside
         );
