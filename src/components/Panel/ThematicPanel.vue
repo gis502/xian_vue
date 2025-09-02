@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import {getEqOutputMaps, getEqOutputReports } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps, getDownloadReport } from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
