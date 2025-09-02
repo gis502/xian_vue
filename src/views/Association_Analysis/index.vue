@@ -1,23 +1,5 @@
 <template>
   <div id="cesiumContainer">
-
-    <div class="legend">
-      <div class="legend-title">图例</div>
-      <div class="legend-content" ref="legendContent"></div>
-      <div class="legend-item">
-        <div class="legend-icon" id="flow"></div>
-        泥石流隐患点
-      </div>
-      <div class="legend-item">
-        <div class="legend-icon" id="yhdlen"></div>
-        滑坡隐患点
-      </div>
-      <div class="legend-item">
-        <div class="legend-icon" id="risk_area"></div>
-        风险区
-      </div>
-    </div>
-
     <!-- 新增的西安各区县天气表格区域 -->
     <div class="data-table">
       <button @click="toggleTableVisibility" class="toggle-table-btn">{{ isTableVisible ? '-' : '+' }}</button>
@@ -102,42 +84,47 @@
     </div>
 
     <!-- 新增的历史案例表格区域 -->
-    <div  v-if="tableChange==false" class="warn-point-table">
-      <button @click="togglePointTableVisibility" class="toggle-point-table-btn">{{ iswarn_point_table ? '-' : '+' }}</button>
+    <div v-if="tableChange==false" class="warn-point-table">
+      <button @click="togglePointTableVisibility" class="toggle-point-table-btn">
+        {{ iswarn_point_table ? '-' : '+' }}
+      </button>
       <div class="table-title">历史案例信息</div>
-      <table v-if="iswarn_point_table" style="table-layout: fixed;">
+
+      <table v-if="iswarn_point_table && hisDas.length > 0" style="table-layout: fixed;">
         <thead>
-        <tr >
-          <th style="text-align: center" v-for="(header, index) in history_disasterHeaders" :key="index">{{ header }}</th>
+        <tr>
+          <th style="text-align: center" v-for="(header, index) in history_disasterHeaders" :key="index">
+            {{ header }}
+          </th>
         </tr>
         </thead>
 
         <tbody>
-        <tr>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.locateName">
-            {{ this.hisDas.locateName}}
+        <!-- 使用 v-for 遍历数组 -->
+        <tr v-for="(item, index) in hisDas" :key="index">
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.locateName">
+            {{ item.locateName }}
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.historyDisasterevent">
-            {{ this.hisDas.historyDisasterevent}}
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.historyDisasterevent">
+            {{ item.historyDisasterevent }}
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.historyDisastertype">
-            {{ this.hisDas.historyDisastertype}}
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.historyDisastertype">
+            {{ Array.isArray(item.historyDisastertype) ? item.historyDisastertype.join(', ') : item.historyDisastertype }}
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.missing_persons">
-            {{ this.hisDas.missing_persons }}
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.missing_persons">
+            {{ item.missing_persons }}
           </td>
-          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="this.hisDas.collapsedHouses">
-            {{ this.hisDas.collapsedHouses}}
+          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.collapsedHouses">
+            {{ item.collapsedHouses }}
           </td>
         </tr>
         </tbody>
       </table>
-<!--      <div class="pagination-controls" v-if="iswarn_point_table">-->
-<!--        <button @click="prevPointPage" :disabled="currentPointPage === 1">上一页</button>-->
-<!--        <span>{{ currentPointPage }} / {{ totalPointPages }}</span>-->
-<!--        <button @click="nextPointPage" :disabled="currentPointPage === totalPointPages">下一页</button>-->
-<!--        <span class="total-items">共 {{ warn_point.length }} 条</span>-->
-<!--      </div>-->
+
+      <!-- 添加空数据提示 -->
+      <div v-if="iswarn_point_table && hisDas.length === 0" class="no-data">
+        暂无历史案例数据
+      </div>
     </div>
 
     <!-- 图表容器 -->
@@ -352,23 +339,14 @@ export default {
       this.weather_data = [];
       this.districtWeather = [];
       const rainFeatures = this.rainData?.features || [];
-
-      // 调试：输出所有接收到的行政区划代码
-      console.log("所有接收到的adminCode:", rainFeatures.map(f => f.properties.adminCode));
-
-      // 调试：输出所有前端需要的行政区划代码
-      console.log("所有需要的adcode:", this.districts.map(d => d.adcode));
-
       // 处理数据，过滤掉 null 值
       const allResults = this.districts
           .map((district) => {
             const point = rainFeatures.find(p =>
                 p.properties.adminCode == district.adcode
             );
-
             // 调试：输出匹配结果
             console.log(`匹配 ${district.name} (${district.adcode}):`, point ? "成功" : "失败");
-
             if (!point) {
               console.warn(`未找到 ${district.name} 的天气数据`);
               return {
@@ -386,9 +364,7 @@ export default {
               humidity: point.properties.relativeHumidity ?? 15,
             };
           });
-
       this.districtWeather = allResults;
-
       // 直接使用 allResults，不需要再次映射
       const sortedWeatherData = [...allResults]
           .sort((a, b) => b.rainfall - a.rainfall)
@@ -569,6 +545,7 @@ export default {
             disasterName: point.properties.disasterName || "风险区名称",
             inspectorName: point.properties.inspectorName || "巡查员姓名",
             inspectorTele: point.properties.inspectorTele || "巡查员电话",
+            county: point.properties.county,
             lon: point.properties.lon || "经度",
             lat: point.properties.lat || "纬度",
             position: point.properties.position || "风险区位置",
@@ -936,7 +913,7 @@ export default {
       // 然后手动绑定事件
       const toggleBtn = container.querySelector('.toggle-btn');
       toggleBtn.addEventListener('click', () => {
-        this.GetHistoryDisaster();
+        this.GetHistoryDisaster(info.county);
       });
       const closeBtn = container.querySelector('.close-btn');
       closeBtn.addEventListener('click', () => {
@@ -1144,19 +1121,29 @@ export default {
     },
 
     //获取历史灾害数据
-    GetHistoryDisaster(){
-      getHistoryDisaster().then(history => {
-        let data = history.data.features[0];
-        this.history_desaster.push(data.properties);
-        this.toggleHisDasTableVisibility();
-      })
+    GetHistoryDisaster(county){
+      getHistoryDisaster(county).then(history => {
+        let data = history.data;
+        const dataFeatures = data?.features || [];
 
+        // 清空之前的数据
+        this.history_desaster = [];
+
+        dataFeatures.forEach(feature => {
+          this.history_desaster.push(feature.properties);
+        });
+
+        this.toggleHisDasTableVisibility();
+      }).catch(error => {
+        console.error('获取历史灾害数据失败:', error);
+      });
     },
 
     toggleHisDasTableVisibility(){
       this.tableChange = !this.tableChange;
-      this.hisDas = this.history_desaster[0]
-      console.log(7897,this.hisDas)
+      // 确保 hisDas 是响应式的数组
+      this.hisDas = [...this.history_desaster];
+      console.log('历史灾害数据:', this.hisDas);
     },
 
     closHisHisDasTableVisibility(){

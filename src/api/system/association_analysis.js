@@ -21,9 +21,12 @@ export function getRisk(){
     })
 }
 
-export function getHistoryDisaster(){
+export function getHistoryDisaster(regionName) {
     return request({
         url: '/association/getHistoryDisaster',
-        method: 'get'
+        method: 'get',
+        params: {
+            regionName: regionName
+        }
     })
 }
