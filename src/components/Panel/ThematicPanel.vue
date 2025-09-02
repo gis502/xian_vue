@@ -322,7 +322,7 @@ export default {
   width: 70%;
   height: 70%;
   background-color: #2d3d51;
-  z-index: 100;
+  z-index: 1000;
 }
 
 /* 图片列表容器（支持换行+横向滚动） */
