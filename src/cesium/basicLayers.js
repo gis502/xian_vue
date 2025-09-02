@@ -618,6 +618,5 @@ let basicLayers = {
         window.viewer.entities.removeAll();
     },
 
-
 }
 export default basicLayers;

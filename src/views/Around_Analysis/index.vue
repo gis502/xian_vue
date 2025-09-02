@@ -440,6 +440,14 @@ export default {
       this.riverDataSource = null;
     }
     if (this.lakeDataSource) this.viewer.dataSources.remove(this.lakeDataSource);
+    // 移除所有实体
+    this.viewer.entities.removeAll();
+    // 移除所有数据源
+    this.viewer.dataSources.removeAll();
+    // 移除所有图元
+    this.viewer.scene.primitives.removeAll();
+    // 移除所有 imagery图层
+    this.viewer.imageryLayers.removeAll();
     document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
