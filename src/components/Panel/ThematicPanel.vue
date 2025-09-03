@@ -3,7 +3,8 @@
 
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
-      <el-button type="info" round @click="handlePanel(`report`); isPreviewShow = false;">灾情报告</el-button>
+      <el-button type="info" round @click="downloadReport">灾情报告</el-button>
+      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
 
 
@@ -68,7 +69,7 @@
 </template>
 
 <script>
-import {getEqOutputMaps, getEqOutputReports } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps, getDownloadReport } from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
@@ -197,6 +198,17 @@ export default {
           ]
         };
       }
+    },
+
+    async downloadReport(){
+      const DTO = {
+        eqId: this.eqid,
+        equeueId: this.eqqueueId
+      }
+      await getDownloadReport(DTO).then(res => {
+        const data = res.data;
+        console.log(111111, data);
+      })
     },
 
     // 鼠标悬浮：显示操作按钮

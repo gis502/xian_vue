@@ -5,7 +5,7 @@ const CesiumIonDefaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdG
 // const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
 // const tdtToken = '78234e018ed03fe3bb28de976dcfa6d3'
 // const tdtToken = "ca190ab79716f01d331e8a744589b417"
- const tdtToken = "07f071d2d20098468ee7697112e8fc58"
+ const tdtToken = "2e8111f9bc84149cbf24f562ed4e9229"
 
 export function initCesium(container,clock) {
 

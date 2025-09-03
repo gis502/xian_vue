@@ -9,10 +9,10 @@ export function getEqOutputMaps(queryParams){
     })
 }
 
-//获取灾情报告
-export function getEqOutputReports(queryParams){
+
+export function getDownloadReport(queryParams) {
     return request({
-        url: '/feign/disaster/report',
+        url: '/feign/download/report',
         method: 'get',
         data: queryParams
     })
