@@ -4,7 +4,6 @@
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
       <el-button type="info" round @click="handlePanel(`report`); isPreviewShow = false;">灾情报告</el-button>
-      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
 
 
@@ -308,7 +307,7 @@ export default {
 .eqTheme {
   position: absolute;
   top: 80px;
-  left: 47%;
+  left: 49%;
   z-index: 100;
 }
 
