@@ -3,7 +3,7 @@
 
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
-      <el-button type="info" round @click="handlePanel(`report`); isPreviewShow = false;">灾情报告</el-button>
+      <el-button type="info" round @click="downloadReport">灾情报告</el-button>
       <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
 
@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import {getEqOutputMaps, getEqOutputReports } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps, getDownloadReport } from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
@@ -200,6 +200,17 @@ export default {
       }
     },
 
+    async downloadReport(){
+      const DTO = {
+        eqId: this.eqid,
+        equeueId: this.eqqueueId
+      }
+      await getDownloadReport(DTO).then(res => {
+        const data = res.data;
+        console.log(111111, data);
+      })
+    },
+
     // 鼠标悬浮：显示操作按钮
     handleOpen(index) {
       this.showPanelButtonsIndex = index;
@@ -322,7 +333,7 @@ export default {
   width: 70%;
   height: 70%;
   background-color: #2d3d51;
-  z-index: 100;
+  z-index: 1000;
 }
 
 /* 图片列表容器（支持换行+横向滚动） */

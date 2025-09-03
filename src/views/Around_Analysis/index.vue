@@ -5,6 +5,9 @@
         <div class="rain-btn" @click="toggleRainMode">
           {{ rainMode ? '取消区域分析' : '标记区域分析' }}
         </div>
+      <div class="refresh" @click="refreshView">
+        重置标记区域
+      </div>
     </div>
     <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
     <!-- 加载状态提示 -->
@@ -258,6 +261,7 @@ import Table from "../../components/Earthquake/Table.vue";
 import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
 import basicLayers from "@/cesium/basicLayers.js";
 import Legend from "@/components/Earthquake/Legend.vue";
+import {nextTick} from "vue";
 
 
 export default {
@@ -290,7 +294,6 @@ export default {
       riverDataSource: null,
       lakeDataSource: null, // 湖面数据数据源
       dataSource: null,
-      disasterDataSource: null, // 灾害点数据源
       administrationData: [BaQiaoArea, BeiLin, ChangAn, GaoLing, HuYi, LanTIan, LianHu, LinTong, WeiYang, XinCheng, YanLiang, YanTa, ZhouZhi],
       adminDataSources: [],
       faultZoneList: [],
@@ -300,8 +303,6 @@ export default {
       // 灾害点数据
       HuapoData: null,
       NishiliuData: null,
-      FlashFloodData: null,
-      DangerAreaData: null,
       DangerSourceData: null,//危险源数据
       isLoading: false,
       loadingText: '加载数据中...',
@@ -313,12 +314,6 @@ export default {
       landslidePoints: [],     // 滑坡点
       debrisFlowPoints: [],    // 泥石流点
       secondaryRiskPoints: [], // 次生灾害风险点
-      flashFloodPoints: [],
-      dangerSourcePoints: [],
-      hospitalPoints: [],
-      fireFighterPoints: [],
-      storePoints: [],
-      shelterPoints: [],
       selectedEntityData: null,
       popupPosition: {x: 0, y: 0},
       popupVisible: false,
@@ -427,20 +422,12 @@ export default {
     this.loadData();
   },
   beforeDestroy() {
-    if (this.viewer) {
-      this.viewer.destroy();
-      this.viewer = null;
+    this.releaseAllResources();
+
+    // 额外清理全局引用
+    if (window.viewer === this.viewer) {
+      window.viewer = null;
     }
-    if (this.adminDataSource) {
-      this.viewer.dataSources.remove(this.adminDataSource);
-      this.adminDataSource = null;
-    }
-    if (this.riverDataSource) {
-      this.viewer.dataSources.remove(this.riverDataSource);
-      this.riverDataSource = null;
-    }
-    if (this.lakeDataSource) this.viewer.dataSources.remove(this.lakeDataSource);
-    document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
     getNum(){
@@ -476,6 +463,128 @@ export default {
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
+    },
+    async refreshView() {
+      this.isLoading = true;
+
+      try {
+        // 1. 完全清理所有资源
+        this.releaseAllResources();
+        this.resetAllStates();
+
+        // 2. 等待清理完成
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // 3. 重新初始化
+        const container = this.$refs.cesiumContainer;
+        this.viewer = initCesium(container);
+        window.viewer = this.viewer;
+
+        await nextTick();
+
+        // 4. 设置初始视图
+        this.viewer.camera.setView({
+          destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
+          orientation: {
+            heading: Cesium.Math.toRadians(0),
+            pitch: Cesium.Math.toRadians(-90),
+            roll: 0.0
+          }
+        });
+
+        // 5. 重新初始化所有组件
+        this.initRainEffect();
+        document.addEventListener('keydown', this.onKeyDown);
+
+        // 6. 重新加载数据
+        this.getNum();
+        this.loadRiverData();
+        this.loadLakeData();
+        basicLayers.loadFlashFlood();
+        basicLayers.loadWater();
+        basicLayers.loadAdminData();
+        this.loadData();
+
+        // 7. 重新设置点击处理器（延迟执行确保viewer完全初始化）
+        setTimeout(() => {
+          this.setupEntityClickHandler();
+        }, 500);
+
+      } catch (error) {
+        console.error('刷新视图失败:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    releaseAllResources() {
+      // 1. 清理事件处理器
+      if (this.clickHandler && !this.clickHandler.isDestroyed()) {
+        try {
+          this.clickHandler.destroy();
+        } catch (error) {
+          console.warn('清理点击处理器时出错:', error);
+        }
+        this.clickHandler = null;
+      }
+
+      if (this.handler && !this.handler.isDestroyed()) {
+        try {
+          this.handler.destroy();
+        } catch (error) {
+          console.warn('清理地图点击处理器时出错:', error);
+        }
+        this.handler = null;
+      }
+
+      // 2. 清理闪烁动画
+      if (this.flashInterval) {
+        clearInterval(this.flashInterval);
+        this.flashInterval = null;
+      }
+
+      // 3. 清理光晕集合
+      if (this.haloCollection) {
+        try {
+          this.viewer.scene.primitives.remove(this.haloCollection);
+        } catch (error) {
+          console.warn('清理光晕集合时出错:', error);
+        }
+        this.haloCollection = null;
+      }
+
+      // 4. 清理Cesium核心资源
+      if (this.viewer && !this.viewer.isDestroyed()) {
+        try {
+          // 先移除所有事件监听器
+          this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(
+              Cesium.ScreenSpaceEventType.LEFT_CLICK
+          );
+          this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(
+              Cesium.ScreenSpaceEventType.LEFT_UP
+          );
+          this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(
+              Cesium.ScreenSpaceEventType.MOUSE_MOVE
+          );
+          // 停止所有动画
+          this.viewer.clock.shouldAnimate = false;
+
+          // 移除所有实体和数据源
+          this.viewer.entities.removeAll();
+          this.viewer.dataSources.removeAll();
+          this.viewer.scene.primitives.removeAll();
+          this.viewer.imageryLayers.removeAll();
+
+          // 销毁viewer
+          this.viewer.destroy();
+        } catch (error) {
+          console.warn('清理Cesium资源时出错:', error);
+        }
+      }
+      this.viewer = null;
+      // 5. 清理键盘事件
+      document.removeEventListener('keydown', this.onKeyDown);
+      // 6. 清理雨效
+      this.rainEffect = null;
     },
     // 加载湖面数据
     loadLakeData() {
@@ -1089,16 +1198,16 @@ export default {
         });
 
         // 主逻辑
-        const dangerAreaDates = this.DangerAreaData.features;
-        const landSlideDates = this.HuapoData.features;
-        const flowDates = this.NishiliuData.features;
+        const dangerAreaDates = this.DangerAreaData?.features || [];
+        const landSlideDates = this.HuapoData?.features || [];
+        const flowDates = this.NishiliuData?.features || [];
         //风险区表数据加载
         dangerAreaDates.forEach(entity => {
           const entityCoords1 = entity.geometry.coordinates;
           const coordsStr1 = entityCoords1.join(',');
           // 检查坐标字符串是否存在于集合中
           if (dangerA.has(coordsStr1)) {
-            // console.log("找到了匹配的坐标:", entityCoords1);
+            console.log("找到了匹配的坐标:", entityCoords1);
             this.dataTypes.type3.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1115,7 +1224,7 @@ export default {
           const coordsStr2 = entityCoords2.join(',');
           // 检查坐标字符串是否存在于集合中
           if (slideA.has(coordsStr2)) {
-            // console.log("找到了匹配的坐标:", entityCoords2);
+            console.log("找到了匹配的坐标:", entityCoords2);
             this.dataTypes.type1.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1132,7 +1241,7 @@ export default {
           const coordsStr3 = entityCoords3.join(',');
           // 检查坐标字符串是否存在于集合中
           if (flowA.has(coordsStr3)) {
-            // console.log("找到了匹配的坐标:", entityCoords3);
+            console.log("找到了匹配的坐标:", entityCoords3);
             this.dataTypes.type2.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
@@ -1143,7 +1252,7 @@ export default {
             });
           }
         });
-
+        this.showTable = true;
         this.checkOtherPointsInEllipse(centerCartesian, majorRadius);
       }
     },
@@ -1243,12 +1352,13 @@ export default {
         })
 
         // 主逻辑
-        const hospitalDates = basicLayers.hospitalData.features;
-        const dangerSourceDates = basicLayers.dangerSourceData.features;
-        const shelterDates = basicLayers.shelterData.features;
-        const fireDates = basicLayers.fireFighterData.features;
-        const storeDates = basicLayers.storeData.features;
-        const schoolDates = basicLayers.schoolData.features;
+        const hospitalDates = basicLayers.hospitalData?.features || [];
+        const dangerSourceDates = basicLayers.dangerSourceData?.features || [];
+        const shelterDates = basicLayers.shelterData?.features || [];
+        const fireDates = basicLayers.fireFighterData?.features || [];
+        const storeDates = basicLayers.storeData?.features || [];
+        const schoolDates = basicLayers.schoolData?.features || [];
+
 
         //医院表数据加载
         hospitalDates.forEach(entity => {
@@ -1351,7 +1461,6 @@ export default {
             });
           }
         });
-        this.showTable = true;
         this.initColumGraph(
             hospitalPointsInside, dangerSourcePointsInside, shelterPointsInside, fireFighterPointsInside, storePointsInside, schoolPointsInside
         );
@@ -1620,18 +1729,72 @@ export default {
       // 例如：在地图上标记该风险区位置
       console.log('高亮显示风险区:', row.disasterName);
     },
-    handleSizeChange(size) {
-      this.pageSize = size;
-      this.currentPage = 1;
-    },
-    handleCurrentChange(page) {
-      this.currentPage = page;
-    },
     loadData() {
       this.loading = true;
       setTimeout(() => {
         this.loading = false;
       }, 500);
+    },
+    resetAllStates() {
+      // 重置基本状态
+      this.rainMode = false;
+      this.showInfoPanel = false;
+      this.showLegend = false;
+      this.weatherActive = false;
+      this.isLoading = false;
+      this.loadingText = '加载数据中...';
+      this.showAdminLayer = true;
+      this.popupVisible = false;
+      this.eqCenterPanelVisible = false;
+
+      // 重置数组
+      this.disasterEntities = [];
+      this.wmsLayers = [];
+      this.rainPoints = [];
+      this.faultZoneList = [];
+
+      // 重置图表数据
+      this.chartDatas.seriesDatas = [0, 0, 0, 0, 0, 0];
+
+      // 重置数据类型的数据数组
+      for (const key in this.dataTypes) {
+        if (key !== 'filterCriteria' && Array.isArray(this.dataTypes[key].data)) {
+          this.dataTypes[key].data = [];
+        }
+      }
+
+      // 重置对象属性（不清除整个对象，只重置内容）
+      this.selectedEntityData = null;
+      this.selectedPosition = null;
+      this.popupPosition = {x: 0, y: 0};
+      this.PanelPosition = {x: 0, y: 0};
+
+      // 重置灾害信息对象
+      this.disasterInformation = {};
+      this.debrisFlowInformation = {};
+      this.riskPointsInformation = {};
+      this.waterDisasterInformation = {};
+      this.floodDisasterInformation = {};
+      this.PanelData = {};
+
+      // 重置数据源（不销毁，只置空引用）
+      this.adminDataSource = null;
+      this.riverDataSource = null;
+      this.lakeDataSource = null;
+      this.dataSource = null;
+      this.adminDataSources = [];
+
+      // 重置灾害数据
+      this.HuapoData = null;
+      this.NishiliuData = null;
+      this.DangerAreaData = null;
+
+      // 重置其他状态
+      this.rainEffect = null;
+      this.lastPickedEntity = null;
+      this.currentPage = 1;
+      this.isExpanded = false;
+      this.canMarkAgain = true;
     }
   }
 }
@@ -1656,7 +1819,7 @@ export default {
 }
 
 
-.rain-btn{
+.rain-btn, .refresh{
   background-color: #3c86ff;
   color: white;
   padding: 6px 12px;
@@ -1671,7 +1834,8 @@ export default {
   justify-content: flex-end;
 }
 
-.rain-btn:hover {
+
+.rain-btn, .refresh:hover {
   background-color: #3c86ff;
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -1718,7 +1882,7 @@ export default {
     gap: 6px;
   }
 
-  .rain-btn {
+  .rain-btn, .refresh {
     min-width: 80px;
   }
 }

@@ -1,4 +1,4 @@
-import {getEqOutputMaps, getEqOutputReports } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps, getDownloadReport } from "@/api/system/damageassessment.js";
 
 /**
  * 灾损接口：获取专题图件getMap与灾情报告getReport
@@ -48,7 +48,7 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
                 reject(err); // 如果请求失败，返回错误
             });
         }else if (type === "report"){
-            getEqOutputReports(DTO).then((res) => {
+            getDownloadReport(DTO).then((res) => {
                 console.log("灾情报告数据：", res);
                 const data = res.data;
                 const themeName = eqFullName + "-" + "灾情报告";
