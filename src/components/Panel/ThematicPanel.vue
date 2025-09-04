@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import {getEqOutputMaps, getDownloadReport } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps} from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
@@ -199,15 +199,59 @@ export default {
       }
     },
 
-    async downloadReport(){
-      const DTO = {
-        eqId: "T20250903132640610100",
-        eqqueueId: "T20250903132640610101"
+    async downloadReport() {
+      try {
+        // 获取认证token（根据您的存储方式调整）
+        const token = localStorage.getItem('access_token') ||
+            this.getCookie('Admin-Token');
+
+        const response = await fetch(
+            `http://localhost:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': '*/*'
+              }
+            });
+
+        if (response.status === 401) {
+          throw new Error('认证失败，请重新登录');
+        }
+
+        if (!response.ok) {
+          throw new Error(`下载失败: ${response.status}`);
+        }
+
+        // 获取文件名
+        let fileName = `report_${this.eqid}.docx`;
+
+        // 创建下载
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+
+        // 清理
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+        }, 100);
+
+      } catch (error) {
+        console.error('下载错误:', error);
+        alert(error.message || '文件下载失败');
       }
-      await getDownloadReport(DTO).then(res => {
-        const data = res.data;
-        console.log(111111, data);
-      })
+    },
+
+// 辅助函数：从cookie获取值
+    getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
     },
 
     // 鼠标悬浮：显示操作按钮
@@ -318,7 +362,7 @@ export default {
 .eqTheme {
   position: absolute;
   top: 80px;
-  left: 49%;
+  left: 47%;
   z-index: 100;
 }
 
