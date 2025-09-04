@@ -300,6 +300,7 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   font-size: 14px;
   width: 430px;
+  height: 400px;
 }
 
 .district-title {
@@ -312,7 +313,7 @@ export default {
 
 .chart {
   width: 100%;
-  height: 400px;
+  height: 300px;
   transition: all 0.3s ease;
 }
 
