@@ -227,7 +227,7 @@ let form = reactive({
   name: "",
   fullName: "",
   position: `${province}${city}${position.name ? position.name : ""}`,
-  magnitude: 7,
+  magnitude: 7.0,
   depth: 0,
   longitude: parseFloat(position.longitude.toFixed(4)),
   latitude: parseFloat(position.latitude.toFixed(4)),
@@ -333,11 +333,12 @@ let isShow = ref(true);
 let isShowMore = ref(false);
 
 // 获取位置以及表格中要呈现的内容
-const {position, dataTypes, chartDatas, pulse} = defineProps([
+const {position, dataTypes, chartDatas, pulse, earthquakeID} = defineProps([
   "position",
   "dataTypes",
   "chartDatas",
-    "pulse"
+  "pulse",
+  "earthquakeID"
 ]);
 
 // 接收传递的方法
@@ -390,7 +391,7 @@ async function confirmEarthquake(formEl) {
       });
       const base = layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
       //计算人员伤亡
-      if (form.magnitude>6){
+      if (form.magnitude<7.0){
         let circle_param = reactive({
           name: form.name,
           fullName: form.fullName,
@@ -424,38 +425,99 @@ async function confirmEarthquake(formEl) {
             .catch(error => {
               console.error("灾害信息添加失败", error);
             });
+        let report_param = reactive({
+          eqName: form.fullName,
+          eqAddr: form.position,
+          eqTime: String(form.dateTime).replace(' ', 'T'),
+          longitude: position.longitude,
+          latitude: position.latitude,
+          eqDepth: form.depth,
+          magnitude: form.magnitude,
+          eqType: form.type,
+          faultZone: base.name,
+          circleArea: base.circleParam[0].CircleArea,
+          affectPopMax: earthquakeDamage.value.affectPopMax,
+          affectPopMin: earthquakeDamage.value.affectPopMin,
+          diePopMax: earthquakeDamage.value.diePopMax,
+          diePopMin: earthquakeDamage.value.diePopMin,
+          intensity: base.circleParam[0].intensity,
+        })
+        console.log(96321025,report_param)
+        await getEarthQuakeReport(report_param)
+            .then(response => {
+              console.log("获取报告成功", response);
+              Object.assign(earthquakeID,response.data)
+            })
+            .catch(error => {
+              console.log("获取报告失败", error)
+            })
+      }else {
+        for (let i=0;i<base.circleParam.length;i++){
+          if (base.circleParam[i].intensity===9){
+            let circle_param = reactive({
+              name: form.name,
+              fullName: form.fullName,
+              position: form.position,
+              magnitude: form.magnitude,
+              depth: form.depth,
+              longitude: position.longitude,
+              latitude: position.latitude,
+              dateTime: form.dateTime,
+              type: form.type,
+              circleArea: base.circleParam[i].CircleArea,
+              rotation: base.circleParam[i].rotation,
+              semiMajorAxis: base.circleParam[i].semiMajorAxis,
+              semiMinorAxis: base.circleParam[i].semiMinorAxis,
+              // 下面数据非必须数据
+              source: "",
+              countyCode: "",
+              townshipCode: "",
+              district: position.name,
+              province: province,
+              city: city,
+            });
+            //地震页面修改完成后使用
+            console.log("circle_param",circle_param);
+            // 调用函数发送请求,将地震添加到数据库
+            await addEarthquake(circle_param)
+                .then(response => {
+                  console.log("灾害信息添加成功", response);
+                  earthquakeDamage.value = response.data;
+                })
+                .catch(error => {
+                  console.error("灾害信息添加失败", error);
+                });
+            let report_param = reactive({
+              eqName: form.fullName,
+              eqAddr: form.position,
+              eqTime: String(form.dateTime).replace(' ', 'T'),
+              longitude: position.longitude,
+              latitude: position.latitude,
+              eqDepth: form.depth,
+              magnitude: form.magnitude,
+              eqType: form.type,
+              faultZone: base.name,
+              circleArea: base.circleParam[i].CircleArea,
+              affectPopMax: earthquakeDamage.value.affectPopMax,
+              affectPopMin: earthquakeDamage.value.affectPopMin,
+              diePopMax: earthquakeDamage.value.diePopMax,
+              diePopMin: earthquakeDamage.value.diePopMin,
+              intensity: base.circleParam[i].intensity,
+            })
+            console.log(96321025,report_param)
+            await getEarthQuakeReport(report_param)
+                .then(response => {
+                  console.log("获取报告成功", response);
+                  Object.assign(earthquakeID,response.data)
+                })
+                .catch(error => {
+                  console.log("获取报告失败", error)
+                })
+          }
+        }
       }
-      console.log(9630214578,earthquakeDamage)
-      //报告所需参数
-      let report_param = reactive({
-        eqName: form.fullName,
-        eqAddr: form.position,
-        eqTime: String(form.dateTime).replace(' ', 'T'),
-        longitude: position.longitude,
-        latitude: position.latitude,
-        eqDepth: form.depth,
-        magnitude: form.magnitude,
-        eqType: form.type,
-        faultZone: base.name,
-        circleArea: base.circleParam[0].CircleArea,
-        rotation: base.circleParam[0].rotation,
-        semiMajorAxis: base.circleParam[0].semiMajorAxis,
-        semiMinorAxis: base.circleParam[0].semiMinorAxis,
-        affectPop: earthquakeDamage.value.affectPop,
-        diePop: earthquakeDamage.value.diePop,
-        country: earthquakeDamage.value.country,
-        densityPop: earthquakeDamage.value.densityPop,
-        intensity: base.circleParam[0].intensity,
-        sumGdp: earthquakeDamage.value.sumGdp
-      })
-      console.log(96321025,report_param)
-      await getEarthQuakeReport(report_param)
-          .then(response => {
-            console.log("获取报告成功", response);
-          })
-          .catch(error => {
-            console.log("获取报告失败", error)
-          })
+
+
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
       console.log("inEllipsePoints", inEllipsePoints);
@@ -467,7 +529,7 @@ async function confirmEarthquake(formEl) {
             favEllipsePoints.push(inEllipsePoints[i])
           }
         }
-      };
+      }
       if (favEllipsePoints.length!==0){
         const [points, probabilityPoints] =
             await obtainTheProbabilityOfSimulatedPointRisk(favEllipsePoints);

@@ -242,6 +242,7 @@
         v-if = "isReportPanelVisible"
         :thematicMaps="customThematicMaps"
         :disasterReports="customDisasterReports"
+        :earthquakeID="earthquakeID"
         maxHeight="70vh">
     </ThematicPanel>
     <!-- 模拟地震弹窗 -->
@@ -250,6 +251,7 @@
       :position="earthquakeSimulationPosition"
       :dataTypes="dataTypes"
       :chartDatas="chartDatas"
+      :earthquakeID="earthquakeID"
       :pulse="pulse"
       @displayTable="displayTable"
       @hideTable="hideTable"
@@ -296,6 +298,7 @@ let selectedEntityData = ref(null);
 let popupVisible = ref(false);
 let popupPosition =  ref({x: 0, y: 0});
 let clickHandler = ref(null);
+let earthquakeID = reactive({})
 // 脉冲
 let pulse = null;
 
