@@ -13,7 +13,7 @@ export function getEqOutputMaps(queryParams){
 export function getDownloadReport(queryParams) {
     return request({
         url: '/feign/download/report',
-        method: 'get',
+        method: 'post',
         data: queryParams
     })
 }

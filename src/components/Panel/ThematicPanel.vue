@@ -4,7 +4,6 @@
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
       <el-button type="info" round @click="downloadReport">灾情报告</el-button>
-      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
 
 
@@ -75,8 +74,9 @@ import {handleOutputData} from "@/api/system/eqThemes.js";
 export default {
   //接收父组件传来的数据
   props:{
-    thematicMaps: [],
-    disasterReports: []
+    thematicMaps: Array,
+    disasterReports: Array,
+    earthquakeID: Object
   },
   components: {},
   data() {
@@ -112,9 +112,8 @@ export default {
     //初始化方法
     init(){
       //测试用数据，后续修改
-      this.earthquakeFullName = "陕西省西安市长安区喂子坪村鸡窝子组6.1级地震";
-      this.eqid = "T20240601171641511800";
-      this.eqqueueId = "T2024060117164151180001";
+      this.eqid = this.$props.earthquakeID.eqId;
+      this.eqqueueId = this.$props.earthquakeID.eqqueueId;
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
@@ -202,8 +201,8 @@ export default {
 
     async downloadReport(){
       const DTO = {
-        eqId: this.eqid,
-        equeueId: this.eqqueueId
+        eqId: "T20250903132640610100",
+        eqqueueId: "T20250903132640610101"
       }
       await getDownloadReport(DTO).then(res => {
         const data = res.data;
