@@ -241,24 +241,26 @@
     <ThematicPanel
         v-if="isReportPanelVisible"
         :eqRequests="eqRequests"
+        :earthquakeID="earthquakeID"
         maxHeight="70vh">
     </ThematicPanel>
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
-        v-if="showEarthquakeSimulation"
-        :position="earthquakeSimulationPosition"
-        :dataTypes="dataTypes"
-        :chartDatas="chartDatas"
-        :pulse="pulse"
-        @displayTable="displayTable"
-        @hideTable="hideTable"
-        @displayChart="displayChart"
-        @hideChart="hideChart"
-        @cancelEarthquake="cancelEarthquake"
-        @startLoading="startLoading"
-        @stopLoading="stopLoading"
-        @updateEqInfo="updateEqInfo"
-        @thematicEqInfo="thematicEqInfo"
+      v-if="showEarthquakeSimulation"
+      :position="earthquakeSimulationPosition"
+      :dataTypes="dataTypes"
+      :chartDatas="chartDatas"
+      :earthquakeID="earthquakeID"
+      :pulse="pulse"
+      @displayTable="displayTable"
+      @hideTable="hideTable"
+      @displayChart="displayChart"
+      @hideChart="hideChart"
+      @cancelEarthquake="cancelEarthquake"
+      @startLoading="startLoading"
+      @stopLoading="stopLoading"
+      @updateEqInfo="updateEqInfo"
+      @thematicEqInfo="thematicEqInfo"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -283,7 +285,7 @@ import Chart from "../../components/Earthquake/Chart.vue";
 
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
-import {nextTick} from 'vue';
+import { nextTick } from 'vue';
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import ThematicPanel from "@/components/Panel/ThematicPanel.vue";
 
@@ -296,8 +298,9 @@ let loading = ref(false);
 
 let selectedEntityData = ref(null);
 let popupVisible = ref(false);
-let popupPosition = ref({x: 0, y: 0});
+let popupPosition =  ref({x: 0, y: 0});
 let clickHandler = ref(null);
+let earthquakeID = reactive({})
 // 脉冲
 let pulse = null;
 
@@ -395,10 +398,13 @@ onMounted(() => {
   window.viewer = viewer;
 
   pulse = new PulseTool(window.viewer);
+
   // 断裂带
   basicLayers.addFaultZone();
+
   // 行政区
   basicLayers.loadAdminData();
+
   // 点击隐患点触发
   entitiesClickPonpHandler();
   // 调整到指定位置
@@ -417,6 +423,10 @@ onMounted(() => {
 // 显示表格
 function displayTable() {
   showTable.value = true;
+}
+
+function stopPropagation(e) {
+  e.stopPropagation();
 }
 
 // 隐藏表格
@@ -472,7 +482,7 @@ function closePopup() {
   selectedEntityData.value = null;
 }
 
-async function calculateAndShowPopup(entity, movementPosition) {
+async function calculateAndShowPopup(entity) {
   try {
     const scene = viewer.scene;
     const clock = viewer.clock;
@@ -494,6 +504,8 @@ async function calculateAndShowPopup(entity, movementPosition) {
         y: windowPosition.y - 10
       };
 
+      checkPopupBoundary();
+
       popupVisible.value = true;
 
       await viewer.flyTo(entity, {
@@ -506,13 +518,42 @@ async function calculateAndShowPopup(entity, movementPosition) {
   }
 }
 
-// 计算弹出面板位置（在模板中使用时）
+// 检测弹出面板边界
+function checkPopupBoundary() {
+  const panelWidth = 280;
+  const panelHeight = 200;
+
+  if (!window.viewer || !window.viewer.canvas) return;
+
+  const canvas = window.viewer.canvas;
+  const rect = canvas.getBoundingClientRect();
+
+  // 防止面板超出右边界
+  if (popupPosition.value.x + panelWidth > rect.right) {
+    popupPosition.value.x = rect.right - panelWidth - 10;
+  }
+  // 防止面板超出下边界
+  if (popupPosition.value.y + panelHeight > rect.bottom) {
+    popupPosition.value.y = rect.bottom - panelHeight - 10;
+  }
+  // 防止面板超出左边界
+  if (popupPosition.value.x < 10) {
+    popupPosition.value.x = 10;
+  }
+  // 防止面板超出上边界
+  if (popupPosition.value.y < 10) {
+    popupPosition.value.y = 10;
+  }
+}
+
 function calculatePopupLeft() {
-  return popupPosition.value.x + 'px';
+  checkPopupBoundary(); // 确保在返回前检查边界
+  return popupPosition.value.x;
 }
 
 function calculatePopupTop() {
-  return popupPosition.value.y + 'px';
+  checkPopupBoundary(); // 确保在返回前检查边界
+  return popupPosition.value.y;
 }
 
 //面板
@@ -616,10 +657,30 @@ function entitiesClickPonpHandler() {
             debrisFlowInformation.value = null
             riskPointsInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
           } else {
+            // ============ 整合 setupEntityClickHandler 的逻辑到这里 ============
             rainCenterPanelVisible.value = false;
             eqCenterPanelVisible.value = false;
             showBaseInfo.value = false;
-            setupEntityClickHandler();
+
+            // 隐藏之前的弹出面板
+            closePopup();
+
+            if (Cesium.defined(pickedEntity) && Cesium.defined(pickedEntity.id)) {
+              const entity = pickedEntity.id;
+
+              // 检查是否有 disasterData 属性（灾害点实体）
+              if (entity.disasterData !== undefined) {
+                // 获取实体的灾害数据
+                selectedEntityData.value = entity.disasterData || {};
+
+                // 计算弹出框位置并显示面板
+                await calculateAndShowPopup(entity, click.position);
+              }
+            } else {
+              // 如果点击在空白处，隐藏信息框
+              window.viewer.selectedEntity = undefined;
+              closePopup();
+            }
           }
         }
         //没有拾取到实体
@@ -834,5 +895,88 @@ function stopLoading() {
 
 .legend {
   bottom: 10px;
+}
+
+.disaster-popup {
+  position: absolute;
+  z-index: 1000;
+  width: 330px; /* 减小宽度 */
+  background-color: white;
+  border-radius: 6px; /* 减小圆角 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
+  font-family: 'Source Han Sans CN', sans-serif;
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+  transform-origin: top left;
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+  border: 1px solid #e0e0e0;
+  font-size: 13px; /* 减小整体字体大小 */
+}
+
+.disaster-popup[style*="display: block"] {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  transition: all 0.3s ease;
+}
+
+
+.popup-header {
+  padding: 8px 12px; /* 减小内边距 */
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 14px; /* 减小标题字体大小 */
+  font-weight: 600;
+  color: #333;
+}
+
+.popup-header button {
+  background: none;
+  border: none;
+  font-size: 14px; /* 减小关闭按钮大小 */
+  cursor: pointer;
+  color: #6c757d;
+  transition: color 0.2s;
+}
+
+.popup-header button:hover {
+  color: #333;
+}
+
+.popup-content {
+  padding: 10px 12px; /* 减小内边距 */
+}
+
+
+.disaster-table th,
+.disaster-table td {
+  padding: 6px 8px; /* 减小单元格内边距 */
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.disaster-table th {
+  font-weight: 500;
+  color: #495057;
+  width: 35%; /* 固定标题列宽度 */
+}
+
+.disaster-table td {
+  color: #333;
+  word-break: break-all;
+}
+
+.disaster-table tr:last-child th,
+.disaster-table tr:last-child td {
+  border-bottom: none; /* 最后一行不显示底边 */
 }
 </style>

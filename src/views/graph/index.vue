@@ -62,7 +62,7 @@
               <th style="width: 130px">来源</th>
               <th style="width: 120px">标题</th>
               <th style="width: 160px">时间</th>
-              <th style="width: 80px">发布者</th>
+<!--              <th style="width: 80px">发布者</th>-->
               <th>内容</th>
               <th style="width: 90px">实体分类</th>
             </tr>
@@ -73,7 +73,7 @@
               <td class="truncate-content" :title="news.sourceName">{{ news.sourceName }}</td>
               <td class="truncate-content" :title="news.title">{{ news.title }}</td>
               <td class="truncate-content" :title="formatDate(news.publishTime)">{{ formatDate(news.publishTime) }}</td>
-              <td class="truncate-content" :title="news.publishName">{{ news.publishName }}</td>
+<!--              <td class="truncate-content" :title="news.publishName">{{ news.publishName }}</td>-->
               <td class="truncate-content" :title="news.content">{{ news.content }}</td>
               <td class="truncate-content" :title="news.newEntity">{{ news.newEntity }}</td>
             </tr>
@@ -375,30 +375,61 @@ const disasterMap = {
 }
 
 // 获取优先展示的灾害（优先有图谱，否则第一条）
-const getPreferredItem = async () => {
-  if (allData.value.length === 0) return null;
+// 缓存，避免重复请求同一个 eqid
+const chartCache = new Map();
 
-  const checks = await Promise.all(
-      allData.value.map(async (item) => ({
-        item,
-        hasChart: await hasChartData(item)
-      }))
-  );
-
-  const firstWithChart = checks.find(c => c.hasChart);
-  return firstWithChart ? firstWithChart.item : allData.value[0];
-};
-
-
-// 判断是否有图谱数据
+// 判断是否有图谱数据（带缓存）
 const hasChartData = async (item) => {
   const eqid = getEqId(item);
   if (!eqid) return false;
+
+  // 如果缓存里有，直接返回
+  if (chartCache.has(eqid)) {
+    return chartCache.get(eqid);
+  }
+
+  // 否则请求接口
   const res = await getChartDataBy(eqid, item.disasterType);
-  return res && res.length > 0;
+  const hasChart = res && res.length > 0;
+
+  // 存入缓存
+  chartCache.set(eqid, hasChart);
+  return hasChart;
 };
 
-// 获取灾害 ID（支持14种类型）
+// 获取优先展示的灾害（并发查找 + 提前返回）
+const getPreferredItem = async () => {
+  if (allData.value.length === 0) return null;
+
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    // 用 AbortController 来取消剩余请求（可选优化）
+    const controller = new AbortController();
+
+    // 并发请求
+    allData.value.forEach(async (item) => {
+      if (resolved) return;
+
+      const hasChart = await hasChartData(item);
+      if (hasChart && !resolved) {
+        resolved = true;
+        controller.abort(); // 取消剩余请求（如果后端支持）
+        resolve(item);
+      }
+    });
+
+    // 超时兜底：如果 1.5 秒内没有找到，返回第一条
+    setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve(allData.value[0]);
+      }
+    }, 1500);
+  });
+};
+
+// 获取灾害 ID（支持 14 种类型）
 const disasterIdMap = {
   earthquake: 'earthquakeDisasterId',  // 地震
   rain: 'rainDisasterId',              // 暴雨
@@ -412,11 +443,11 @@ const disasterIdMap = {
   drought: 'droughtDisasterId',        // 干旱
   heatwave: 'heatwaveDisasterId',      // 高温
   wildfire: 'wildfireDisasterId',      // 森林火灾
-  bioDisaster: 'bioDisasterId',        // 生物灾害
+  bioDisaster: 'bioDisasterDisasterId',// 生物灾害
   safetyAccident: 'safetyAccidentDisasterId' // 安全事故
 };
 
-
+// 获取灾害对应的 ID
 const getEqId = (item) => {
   if (!item?.disasterType) return null;
   const key = disasterIdMap[item.disasterType];
@@ -605,34 +636,55 @@ const lastDisasterData = ref([])
 const lastDiasterId = ref()
 const lastEqRainId = ref()
 
+// 更新当前页数据
+
+
+const updateTableData = () => {
+  const start = (currentPage.value - 1) * pageSizeNum.value;
+  const end = currentPage.value * pageSizeNum.value;
+  tableData.value = allData.value.slice(start, end);
+};
+// 翻页事件
+
+
+const handlePageChangeDisaster = (page) => {
+  currentPage.value = page;
+  updateTableData();
+};
 const fetchData = async () => {
   try {
     const allowedTypes = monthDisasterMap[currentMonth.value] || [];
-    let page = 1;
-    const tempData = [];
+    const firstPage = await getEarthquakeRainPage({
+      pageNum: 1,
+      pageSize: 5,
+      disasterTypes: allowedTypes
+    });
 
-    while (true) {
-      const res = await getEarthquakeRainPage({
-        pageNum: page,
-        pageSize: 5, // 后端分页固定 5 条
-        disasterTypes: allowedTypes
-      });
+    const total = firstPage.data.total;
+    const totalPages = Math.ceil(total / 5);
 
-      const records = res.data.records || [];
-      if (records.length === 0) break;
-
-      tempData.push(...records);
-
-      if (tempData.length >= res.data.total) break; // 已加载完所有数据
-      page++;
+    // 并发请求所有剩余页
+    const requests = [];
+    for (let i = 2; i <= totalPages; i++) {
+      requests.push(
+          getEarthquakeRainPage({
+            pageNum: i,
+            pageSize: 5,
+            disasterTypes: allowedTypes
+          })
+      );
     }
+
+    const results = await Promise.all(requests);
+
+    // 合并数据
+    const tempData = [...firstPage.data.records];
+    results.forEach(res => tempData.push(...(res.data.records || [])));
 
     allData.value = tempData;
     disTotal.value = tempData.length;
 
-    // 初始化第一页数据
     updateTableData();
-
     console.log('全量数据:', allData.value);
   } catch (error) {
     console.error('请求数据失败', error);
@@ -640,20 +692,6 @@ const fetchData = async () => {
     tableData.value = [];
     disTotal.value = 0;
   }
-};
-
-// 更新当前页数据
-const updateTableData = () => {
-  const start = (currentPage.value - 1) * pageSizeNum.value;
-  const end = currentPage.value * pageSizeNum.value;
-  tableData.value = allData.value.slice(start, end);
-};
-
-
-// 翻页事件
-const handlePageChangeDisaster = (page) => {
-  currentPage.value = page;
-  updateTableData();
 };
 
 
@@ -890,6 +928,7 @@ const getData = async (item) => {
       ];
     // 获取图谱数据
     const res = await getChartDataBy(eqid, disasterType);
+    console.log("图谱数据",res)
 
 // 只保留 target 中属于当前灾害 ID 的关系
     const filteredRes = filterGraphByDisasterType(res, disasterType, eqid);

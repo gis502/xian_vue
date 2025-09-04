@@ -222,14 +222,58 @@ export default {
     },
 
     async downloadReport() {
-      const DTO = {
-        eqId: this.eqid,
-        equeueId: this.eqqueueId
+      try {
+        // 获取认证token（根据您的存储方式调整）
+        const token = localStorage.getItem('access_token') ||
+            this.getCookie('Admin-Token');
+
+        const response = await fetch(
+            `http://localhost:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': '*/*'
+              }
+            });
+
+        if (response.status === 401) {
+          throw new Error('认证失败，请重新登录');
+        }
+
+        if (!response.ok) {
+          throw new Error(`下载失败: ${response.status}`);
+        }
+
+        // 获取文件名
+        let fileName = `report_${this.eqid}.docx`;
+
+        // 创建下载
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+
+        // 清理
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+        }, 100);
+
+      } catch (error) {
+        console.error('下载错误:', error);
+        alert(error.message || '文件下载失败');
       }
-      await getDownloadReport(DTO).then(res => {
-        const data = res.data;
-        console.log(111111, data);
-      })
+    },
+
+// 辅助函数：从cookie获取值
+    getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
     },
 
     // 鼠标悬浮：显示操作按钮
@@ -429,16 +473,13 @@ export default {
   text-align: center;
   align-items: center;
 }
-
 .report-item:hover {
   background-color: #1f5783 !important;
   color: #409eff !important;
 }
-
 .report-item:nth-child(odd) {
   background-color: #313a44;
 }
-
 .report-item:nth-child(even) {
   background-color: #304156;
 }
@@ -462,7 +503,6 @@ h2, p {
   color: #fff;
   margin: 10px;
 }
-
 h2 {
   text-align: center;
 }
@@ -471,11 +511,9 @@ h2 {
 ::-webkit-scrollbar-thumb {
   background-color: #2980b9;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background-color: #3498db;
 }
-
 ::-webkit-scrollbar-track {
   background-color: #2d3d51;
 }
@@ -485,7 +523,6 @@ h2 {
   z-index: 100 !important;
   background-color: #2b323a;
 }
-
 :deep(.cesium-baseLayerPicker-dropDown) {
   right: -5px !important;
 }

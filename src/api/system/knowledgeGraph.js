@@ -24,9 +24,7 @@ export function getNewsPage(pageNum, pageSize, lastItem) {
         params: {
             pageNum,
             pageSize,
-            disasterType: lastItem?.disasterType || '',
-            earthquakeDisasterId: lastItem?.earthquakeDisasterId || '',
-            rainDisasterId: lastItem?.rainDisasterId || '',
+            lastItem: lastItem ? JSON.stringify(lastItem) : null
         }
     })
 }

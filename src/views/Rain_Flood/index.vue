@@ -15,14 +15,14 @@
     <AffectedChart v-if="showLegend" :dimensions="dimensions" :source="districtDisasterData" />
 
     <AddRain v-if="showInfoPanel"
-             :selectedPositionLonAndLat="selectedPosition"
-             :PanelPosition="PanelPosition"
-             @passRainId="(value)=>{rainDisasterId = value}"
-             @update:show-info-panel="(value)=>{showInfoPanel = value}"
-             @update:loading-model="(value)=>{loadingModel = value}"
-             @update:handleWeather="handleWeather"
-             @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
-             @update:update-rain-info="(value)=>rainInfo = value" />
+       :selectedPositionLonAndLat="selectedPosition"
+       :PanelPosition="PanelPosition"
+       @passRainId="(value)=>{rainDisasterId = value}"
+       @update:show-info-panel="(value)=>{showInfoPanel = value}"
+       @update:loading-model="(value)=>{loadingModel = value}"
+       @update:handleWeather="handleWeather"
+       @update:matched-huapo-entities="handleHiddenDisasterPointUpdate"
+       @update:update-rain-info="(value)=>rainInfo = value" />
 
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
         left: `${calculatePopupLeft()}px`,
@@ -1406,13 +1406,14 @@ async function downloadRainReport(){
     formData.append('file', blob, 'cesium_with_legend.png')
 
     // ✅ 正确解析 fetch 返回的 JSON
-    const response = await saveCanvas(formData)
-    const res = await response.json() // 关键：这里也要 await
-    const imgUrl = res.data
-    console.log(imgUrl, "imgUrl") 
+    // const response = await saveCanvas(formData)
+    // const res = await response.json() // 关键：这里也要 await
+    // const imgUrl = res.data
+    // console.log(imgUrl, "imgUrl")
 
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
+    console.log(rainDisasterId)
     const wordRes = await generateRainReport(rainDisasterId)
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
@@ -1437,18 +1438,20 @@ async function downloadRainReport(){
   padding: 0;
   margin: 0;
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .rain-btn-group {
-  width: 100%;
+  /*width: 100%;*/
   height: 65px;
   position: absolute;
-  bottom: 0px;
-  background-color: rgba(255, 255, 255, 0.5);
+  /*bottom: 0px;
+  background-color: rgba(255, 255, 255, 0.5);*/
   color: black;
   z-index: 1000;
   display: flex;
   align-items: center;
+  top: -60px;
+  right:10px;
 }
 .btn-group {
   display: flex;
