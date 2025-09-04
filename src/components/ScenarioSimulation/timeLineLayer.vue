@@ -94,7 +94,7 @@ export default {
 
       positionArry: [],
       rainfallArry: [],
-      durationArry: [],
+      // durationArry: [],
 
       plotsInfoisReady: false,
       PredictInfoIsReady: false,
@@ -125,20 +125,20 @@ export default {
         }
       }
     },
-    plotsInfoisReady(newVal) {
-      if (newVal && this.PredictInfoIsReady) {
-        setTimeout(() => {
-          this.viewer.clockViewModel.shouldAnimate = true;
-        }, 3000);
-      }
-    },
-    PredictInfoIsReady(newVal) {
-      if (newVal && this.plotsInfoisReady) {
-        setTimeout(() => {
-          this.viewer.clockViewModel.shouldAnimate = true;
-        }, 3000);
-      }
-    },
+    // plotsInfoisReady(newVal) {
+    //   if (newVal && this.PredictInfoIsReady) {
+    //     setTimeout(() => {
+    //       this.viewer.clockViewModel.shouldAnimate = true;
+    //     }, 3000);
+    //   }
+    // },
+    // PredictInfoIsReady(newVal) {
+    //   if (newVal && this.plotsInfoisReady) {
+    //     setTimeout(() => {
+    //       this.viewer.clockViewModel.shouldAnimate = true;
+    //     }, 3000);
+    //   }
+    // },
     async disasterEvent() {
       if (this.disasterEvent.trigger == "暴雨") {
         function convertToArray(str) {
@@ -148,7 +148,7 @@ export default {
         // 使用示例
         this.positionArry = convertToArray(this.disasterEvent.position);
         this.rainfallArry = convertToArray(this.disasterEvent.rainfall);
-        this.durationArry = convertToArray(this.disasterEvent.duration);
+        // this.durationArry = convertToArray(this.disasterEvent.duration);
       }
       this.realDisasterPoint = await selectDisasterRealByDisasterId({
         disasterId: this.disasterEvent.disasterId,
@@ -161,7 +161,7 @@ export default {
       const PlotInfoWithInfo = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
       console.log("updatedRes processDataEqid",PlotInfoWithInfo)
       this.$emit("update:realDisasterPointWithInfo", PlotInfoWithInfo);
-      this.plotsInfoisReady = true;
+      // this.plotsInfoisReady = true;
     }
   },
   components: {},
@@ -285,19 +285,21 @@ export default {
           name: '灾害点',
           add: async () => {
             let disaterEndTime = new Date(new Date(this.disasterEvent.occurrenceTime).getTime() + 10 * 24 * 3600 * 1000);
-            this.realDisasterPoint.forEach(item => {
-              // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
-              if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
-                // 为没有结束时间的点设置默认结束时间
-                item.endTime = disaterEndTime  //20天 错误时间设置结束时间地震发生20天以后
-              }
-              if (!item.startTime) {
-                // 为没有开始时间的点设置默认开始时间
-                item.startTime = this.disasterEvent.occurrenceTime;
-              }
-            })
-            this.$emit("update:realDisasterPoint", this.realDisasterPoint);
-            layers.addRealDisaterPlot(this.realDisasterPoint)
+            if(this.realDisasterPoint){
+              this.realDisasterPoint.forEach(item => {
+                // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
+                if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
+                  // 为没有结束时间的点设置默认结束时间
+                  item.endTime = disaterEndTime  //20天 错误时间设置结束时间地震发生20天以后
+                }
+                if (!item.startTime) {
+                  // 为没有开始时间的点设置默认开始时间
+                  item.startTime = this.disasterEvent.occurrenceTime;
+                }
+              })
+              this.$emit("update:realDisasterPoint", this.realDisasterPoint);
+              layers.addRealDisaterPlot(this.realDisasterPoint)
+            }
           },
           remove: () => {
           }

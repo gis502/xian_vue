@@ -1008,21 +1008,23 @@ let timeLine = {
     // //只显示人员伤亡和救援队伍
     makerLabelsShowPersonAndResouce(plots) {
         console.log(plots,"makerLabelsShowPersonAndResouce")
-        plots.forEach(item => {
-            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
-                let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-                // console.log(entity, "entity show")
-                if (entity) {
-                    entity.show = true
+        if(plots){
+            plots.forEach(item => {
+                if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+                    let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
+                    // console.log(entity, "entity show")
+                    if (entity) {
+                        entity.show = true
+                    }
+                } else {
+                    let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
+                    // console.log(item.plotId, entity, "entity not show")
+                    if (entity) {
+                        entity.show = false
+                    }
                 }
-            } else {
-                let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-                // console.log(item.plotId, entity, "entity not show")
-                if (entity) {
-                    entity.show = false
-                }
-            }
-        })
+            })
+        }
     },
     // //删除标签
     // deleteMakerLabel(plotId) {
