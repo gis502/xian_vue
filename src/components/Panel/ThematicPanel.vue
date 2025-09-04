@@ -74,7 +74,6 @@
 </template>
 
 <script>
-import {getEqOutputMaps, getDownloadReport} from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
@@ -473,13 +472,16 @@ export default {
   text-align: center;
   align-items: center;
 }
+
 .report-item:hover {
   background-color: #1f5783 !important;
   color: #409eff !important;
 }
+
 .report-item:nth-child(odd) {
   background-color: #313a44;
 }
+
 .report-item:nth-child(even) {
   background-color: #304156;
 }
@@ -503,6 +505,7 @@ h2, p {
   color: #fff;
   margin: 10px;
 }
+
 h2 {
   text-align: center;
 }
@@ -511,9 +514,11 @@ h2 {
 ::-webkit-scrollbar-thumb {
   background-color: #2980b9;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background-color: #3498db;
 }
+
 ::-webkit-scrollbar-track {
   background-color: #2d3d51;
 }
@@ -523,6 +528,7 @@ h2 {
   z-index: 100 !important;
   background-color: #2b323a;
 }
+
 :deep(.cesium-baseLayerPicker-dropDown) {
   right: -5px !important;
 }
