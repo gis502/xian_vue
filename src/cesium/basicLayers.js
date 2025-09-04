@@ -33,12 +33,17 @@ import {dataOnHiddenDangerPointsOfDebrisFlow, landslideHazardPointData, riskVill
 import {
     getDangerous,
     getFire,
-    getFlashFlood,
     getHospital,
     getShelter,
     getStore,
-    getWater,
-    getSchool
+    getSchool,
+    getWater, //内涝
+    getFlashFlood, //山洪
+    getFlow, //泥石流
+    getSlide, //滑坡
+    getRisk,
+    getFlood,
+    getWaterDetail
 } from "@/api/system/aroundanalysis.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {getAllEarthquakeList} from "@/api/system/disasterEvents.js";
@@ -72,6 +77,10 @@ let basicLayers = {
     storePoints: [],//储备站点
     dangerSourcePoints: [],//危险源点
     schoolPoints: [],
+    landSlideData: null, //滑坡数据
+    debrisFlowData: null, //泥石流数据
+    waterData: null, //内涝数据
+    floodData: null, //山洪数据
     hospitalData: null,
     shelterData: null,
     storeData: null,
@@ -377,6 +386,35 @@ let basicLayers = {
             this.dangerSourcePoints = this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
     },
+    async loadLand(){
+        getSlide().then((res) => {
+            this.landSlideData = res.data;
+            this.landslidePoints = this.loadEntities('滑坡', res.data, landslideIcon);
+        })
+    },
+    async loadFlow(){
+        getFlow().then((res) => {
+            this.debrisFlowData = res.data;
+            this.nishiliuPoints = this.loadEntities('泥石流', res.data, debrisFlowIcon);
+        })
+    },
+    async loadWater1(){
+        getWaterDetail().then((res) => {
+            this.waterData = res.data;
+            this.waterPoints = this.loadEntities('内涝', res.data, waterIcon);
+        })
+    },
+    async loadFlood(){
+        getFlood().then((res) => {
+            this.floodData = res.data;
+            this.flashFloodPoints = this.loadEntities('山洪', res.data, flashIcon);
+        })
+    },
+    async loadRisk(){
+        getRisk().then((res) => {
+            this.loadEntities('风险区', res.data, riskArea);
+        })
+    },
     async loadHistoricalEarthquake(){
         getAllEarthquakeList().then((res) => {
             this.historicalEarthquakeData = res.data;
@@ -477,6 +515,7 @@ let basicLayers = {
                 // 创建实体
                 const entity = window.viewer.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+                    id: point.id,
                     // 点
                     billboard: {
                         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
@@ -515,6 +554,10 @@ let basicLayers = {
                 }
                 else if(type == '学校'){
                     this.schoolEntities.push(entity);
+                }
+                else if(type == '风险区'){}
+                else{
+                    this.disasterEntities.push(entity);
                 }
             })
             return points;
