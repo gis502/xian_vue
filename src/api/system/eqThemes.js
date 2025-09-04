@@ -1,4 +1,4 @@
-import {getEqOutputMaps, getDownloadReport } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps } from "@/api/system/damageassessment.js";
 
 /**
  * 灾损接口：获取专题图件getMap与灾情报告getReport
@@ -48,28 +48,28 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
                 reject(err); // 如果请求失败，返回错误
             });
         }else if (type === "report"){
-            getDownloadReport(DTO).then((res) => {
-                console.log("灾情报告数据：", res);
-                const data = res.data;
-                const themeName = eqFullName + "-" + "灾情报告";
-                let reportData = [];
-                console.log("报告")
-                for (let i = 0; i < res.data.length; i++) {
-                    const reportObject = {
-                        docxUrl: `${zaisunimageipLocal}${data[i].sourceFile}`,
-                        theme: data[i].fileName,
-                    };
-                    console.log(reportObject)
-                    reportData.push(reportObject);
-                }
-
-                returnData.themeName = themeName;
-                returnData.themeData = reportData;
-                console.log("返回报告数据：", returnData)
-                resolve(returnData); // 这里也是异步，所以也需要 resolve
-            }).catch(err => {
-                reject(err);
-            });
+            // getDownloadReport(DTO).then((res) => {
+            //     console.log("灾情报告数据：", res);
+            //     const data = res.data;
+            //     const themeName = eqFullName + "-" + "灾情报告";
+            //     let reportData = [];
+            //     console.log("报告")
+            //     for (let i = 0; i < res.data.length; i++) {
+            //         const reportObject = {
+            //             docxUrl: `${zaisunimageipLocal}${data[i].sourceFile}`,
+            //             theme: data[i].fileName,
+            //         };
+            //         console.log(reportObject)
+            //         reportData.push(reportObject);
+            //     }
+            //
+            //     returnData.themeName = themeName;
+            //     returnData.themeData = reportData;
+            //     console.log("返回报告数据：", returnData)
+            //     resolve(returnData); // 这里也是异步，所以也需要 resolve
+            // }).catch(err => {
+            //     reject(err);
+            // });
         }
     })
 }
