@@ -235,13 +235,13 @@
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation">地震模拟</el-button>
       <el-button type="danger" @click="removeEarthquakeSimulation">清除地震模拟</el-button>
-      <el-button type="primary" @click="toggleReportPanel">图件报告产出</el-button>
+      <el-button type="primary" :plain="true" @click="toggleReportPanel">图件报告产出</el-button>
     </div>
     <!-- 图件报告产出面板组件 -->
     <ThematicPanel
-        v-if = "isReportPanelVisible"
-        :thematicMaps="customThematicMaps"
-        :disasterReports="customDisasterReports"
+        v-if="isReportPanelVisible"
+        :eqRequests="eqRequests"
+        :earthquakeID="earthquakeID"
         maxHeight="70vh">
     </ThematicPanel>
     <!-- 模拟地震弹窗 -->
@@ -250,6 +250,7 @@
       :position="earthquakeSimulationPosition"
       :dataTypes="dataTypes"
       :chartDatas="chartDatas"
+      :earthquakeID="earthquakeID"
       :pulse="pulse"
       @displayTable="displayTable"
       @hideTable="hideTable"
@@ -259,6 +260,7 @@
       @startLoading="startLoading"
       @stopLoading="stopLoading"
       @updateEqInfo="updateEqInfo"
+      @thematicEqInfo="thematicEqInfo"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -269,11 +271,12 @@
 <script setup>
 import * as Cesium from "cesium";
 
-import { initCesium } from "@/cesium/initLayer.js";
-import { onMounted, reactive, ref } from "vue";
+import {initCesium} from "@/cesium/initLayer.js";
+import {onMounted, reactive, ref} from "vue";
 import SimulatingEarthquake from "../../components/Earthquake/SimulatingEarthquake.vue";
 import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
+import {init_cesium_navigation} from "../../cesium/initLayer.js";
 import layers from "../../cesium/layers";
 import {PulseTool} from "@/cesium/pulse.js";
 import Table from "../../components/Earthquake/Table.vue";
@@ -288,6 +291,7 @@ import ThematicPanel from "@/components/Panel/ThematicPanel.vue";
 
 
 import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
+import {ElMessage} from "element-plus";
 
 // 加载
 let loading = ref(false);
@@ -296,6 +300,7 @@ let selectedEntityData = ref(null);
 let popupVisible = ref(false);
 let popupPosition =  ref({x: 0, y: 0});
 let clickHandler = ref(null);
+let earthquakeID = reactive({})
 // 脉冲
 let pulse = null;
 
@@ -380,25 +385,13 @@ let isMonitoringEarthquake = false;
 let earthquakeClickHandler = null;
 let viewer = null;
 
-
 // 图件报告产出
 let isReportPanelVisible = ref(false);
-
-let customThematicMaps = ref([
-  {name: '地震烈度分布图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E4%BA%A4%E9%80%9A%E5%9B%BE?e=1755938078&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:vDr49kWfxDngsOQRyi92MGCVxS0=', type: 'image'},
-  {name: '地质构造示意图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%81%BF%E9%9A%BE%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938079&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:CfvFW13VAzCI3w50poMWRcIlMIc=', type: 'image'},
-  {name: '震后建筑评估图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'},
-  {name: '人员伤亡分布图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'},
-  {name: '救援力量部署图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'},
-  {name: '次生灾害风险图', url: 'http://sv25gsrnh.hb-bkt.clouddn.com/T2024060117164151180001_%E9%9C%87%E5%8C%BA%E9%99%84%E8%BF%91%E5%85%AC%E5%85%B1%E5%9C%BA%E6%89%80%E5%88%86%E5%B8%83%E5%9B%BE?e=1755938081&token=mheaTe3xRCkChSjwfueGYzB32yi7yk2sj8pemjvF:_2xdG05qqmHm_86m3FaxiHM8LnM=', type: 'image'}
-]);
-
-let customDisasterReports = ref([
-  {name: '地震灾情速报', url: '/reports/earthquake-brief.docx', size: '2.4MB', type: 'document'},
-  {name: '人员伤亡统计报告', url: '/reports/casualty-statistics.docx', size: '1.8MB', type: 'document'},
-  {name: '建筑物损毁评估报告', url: '/reports/building-damage.docx', size: '3.2MB', type: 'document'},
-  {name: '基础设施受损报告', url: '/reports/infrastructure-damage.docx', size: '2.1MB', type: 'document'}
-]);
+let eqRequests = {
+  earthquakeFullName: null,
+  eqId: null,
+  eqqueueId: null
+}
 
 onMounted(() => {
   viewer = initCesium("cesium-container");
@@ -449,6 +442,39 @@ function displayChart() {
 // 隐藏chart
 function hideChart() {
   showChart.value = false;
+}
+
+function setupEntityClickHandler() {
+  // 清除之前的点击事件处理程序
+  if (clickHandler.value) {
+    clickHandler.value.destroy();
+    clickHandler.value = null;
+  }
+
+  // 为左键点击添加事件处理程序
+  clickHandler.value = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+  clickHandler.value.setInputAction((movement) => {
+    const pickedObject = viewer.scene.pick(movement.position);
+
+    // 判断是否有disasterName属性 - 需要添加空值检查
+    if (!pickedObject || !pickedObject.id || pickedObject.id.disasterData === undefined) {
+      return;
+    }
+
+    // 隐藏之前的弹出面板
+    closePopup();
+
+    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+      const entity = pickedObject.id;
+      // 获取实体的灾害数据
+      selectedEntityData.value = entity.disasterData || {};
+      // 计算弹出框位置并显示面板
+      calculateAndShowPopup(entity, movement.position);
+    } else {
+      // 如果点击在空白处，隐藏信息框
+      viewer.selectedEntity = undefined;
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 function closePopup() {
@@ -599,7 +625,7 @@ function entitiesClickPonpHandler() {
             showRiskPointsInformation.value = false;
 
             disasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-            console.log("disasterInformation",disasterInformation)
+            console.log("disasterInformation", disasterInformation)
 
             debrisFlowInformation.value = null
             riskPointsInformation.value = null
@@ -682,6 +708,17 @@ function updateEqInfo(data) {
     matchedHiddenHighlightEntities.value.push(item)
   })
 
+}
+
+function thematicEqInfo(data) {
+
+  console.log(" eqId：" + data.eqId)
+  console.log(" eqqueueId：" + data.eqqueueId)
+  console.log(" earthquakeFullName：" + data.earthquakeFullName)
+  // 地震Id传给子组件
+  eqRequests.eqId = data.eqId
+  eqRequests.eqqueueId = data.eqqueueId
+  eqRequests.earthquakeFullName = data.earthquakeFullName
 }
 
 //计算点击位置的经纬度和高度
@@ -817,7 +854,16 @@ function removeEarthquakeSimulation() {
 
 // 产出报告面板
 function toggleReportPanel() {
-  isReportPanelVisible.value = !isReportPanelVisible.value
+
+  if (eqRequests.eqId == null && eqRequests.eqqueueId == null) {
+    ElMessage({
+      message: '暂无图件，请先模拟地震！',
+      type: 'warning',
+    })
+    return;
+  } else {
+    isReportPanelVisible.value = !isReportPanelVisible.value
+  }
 }
 
 // 加载

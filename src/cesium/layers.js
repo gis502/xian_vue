@@ -175,8 +175,6 @@ let layers = {
             const bearing = Cesium.Math.toRadians(adjustedDegrees);
             let ellipse = new Cesium.Entity({
                 position: Cesium.Cartesian3.fromDegrees(position.x, position.y), name: "地震影响区域", ellipse: {
-                    // semiMinorAxis: params.semiMinorAxis,
-                    // semiMajorAxis: params.semiMajorAxis,
                     semiMinorAxis: short,
                     semiMajorAxis: long,
                     material: Cesium.Color.fromCssColorString(params.color).withAlpha(0.3),
@@ -283,7 +281,7 @@ let layers = {
         }
         let sum = Math.floor(Math.min(Number(IaWhenAIsZero(magnitude)), Number(IbWhenBIsZero(magnitude))));
         let intensityLevels = [];
-        for (let i = sum; i >= 6; i--) {
+        for (let i = sum; i >= sum-2; i--) {
             intensityLevels.push({ia: i, ib: i});
         }
         let plphas = [0.1, 0.1, 0.1, 0.1, 0.1]
@@ -293,10 +291,10 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 50;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 200;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 50;
-            // console.log({"semiMinorAxis":semiMinorAxis,"semiMajorAxis":semiMajorAxis})
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 200;
+
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;
             let alpha = plphas[i]
