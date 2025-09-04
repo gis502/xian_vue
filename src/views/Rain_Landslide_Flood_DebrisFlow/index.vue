@@ -1401,7 +1401,7 @@ async function downloadRainReport(){
 
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
-    const wordRes = await generateRainReport("1")
+    const wordRes = await generateRainReport()
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
 
@@ -1425,39 +1425,41 @@ async function downloadRainReport(){
   padding: 0;
   margin: 0;
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .rain-btn-group {
-  width: 100%;
+  /*width: 100%;*/
   height: 65px;
   position: absolute;
-  bottom: 0px;
-  background-color: rgba(255, 255, 255, 0.5);
+  /*bottom: 0px;
+  background-color: rgba(255, 255, 255, 0.5);*/
   color: black;
   z-index: 1000;
   display: flex;
   align-items: center;
+  top: -60px;
+  right:10px;
 }
 .btn-group {
-  display: flex;
-  gap: 25px;
-  margin-left: 20px;
+display: flex;
+gap: 25px;
+margin-left: 20px;
 }
 .rain-btn,
 .weather-btn,
 .admin-btn,
 .table-btn {
-  background-color: rgb(60 134 255);
-  color: white;
-  padding: 12px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
-  white-space: nowrap;
-  min-width: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+background-color: rgb(60 134 255);
+color: white;
+padding: 12px 12px;
+border-radius: 12px;
+cursor: pointer;
+font-size: 16px;
+transition: all 0.3s;
+white-space: nowrap;
+min-width: 100px;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 </style>

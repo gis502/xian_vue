@@ -11,12 +11,12 @@
         <input style="margin-right: 10px;" v-model.number="entry.rainfall" type="number" min="0" max="500" step="1"
           :id="'rainfall-' + index" />
         <span style="margin-right: 20px;">毫米</span>
-        <label style="margin-right: 10px" :for="'duration-' + index" class="form-label duration-label">持续时间:</label>
-        <input v-model.number="entry.duration" type="number" min="0" max="72" step="1" :id="'duration-' + index" />
-        <span style="margin-left: 5px ;margin-right: 5px;">小时</span>
+<!--        <label style="margin-right: 10px" :for="'duration-' + index" class="form-label duration-label">持续时间:</label>-->
+<!--        <input v-model.number="entry.duration" type="number" min="0" max="72" step="1" :id="'duration-' + index" />-->
+<!--        <span style="margin-left: 5px ;margin-right: 5px;">小时</span>-->
       </div>
       <!--正式测试暴雨触发-->
-      <div class="radio-group" style="display: flex; width: 50%; justify-content: space-around; margin: 15px 0;">
+      <div class="radio-group" style="display: flex; width: 90%; justify-content: space-around; margin: 15px 0;">
         <label style="display: flex; align-items: center; cursor: pointer;">
           <input type="radio" v-model="rainType" value="Z" style="margin-right: 5px;">
           <span>正式</span>
@@ -28,7 +28,7 @@
       </div>
       <div class="button-group">
         <button @click="confirmRainPoint"
-          :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall || !entry.duration)"
+          :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall)"
           style="width: 80px">确认添加
         </button>
         <button @click="cancelRainPoint" style="width: 80px">取消</button>
@@ -45,6 +45,7 @@ import { rainSlideTrigger, saveRain } from "@/api/system/rainModel.js"
 import basicLayers from "@/cesium/basicLayers.js"
 import * as Cesium from 'cesium'
 import { useSimulationPointStore } from "@/store/earthquake/simulation_points.js"
+import {getRain} from '@/api/system/aroundanalysis.js'
 
 // Props
 const props = defineProps({
@@ -88,7 +89,7 @@ const entries = ref([])
 const adminArea = ref('')
 const positionArry = ref([])
 const rainfallArry = ref([])
-const durationArry = ref([])
+// const durationArry = ref([])
 const rainType = ref('T')
 const matchedHiddenHighlightEntities = ref([])
 
@@ -135,18 +136,18 @@ const confirmRainPoint = async () => {
   // 过滤并收集有效数据（降雨量>0的才存储）
   positionArry.value = []
   rainfallArry.value = []
-  durationArry.value = []
+  // durationArry.value = []
   entries.value.forEach(item => {
     if (item.rainfall > 0) { // 降雨量为0不存入数组
       positionArry.value.push(item.name)
       rainfallArry.value.push(item.rainfall)
-      durationArry.value.push(item.duration)
+      // durationArry.value.push(item.duration)
     }
   })
 
   let requestData = {
     "rainfall": rainfallArry.value.join(","),
-    "duration": durationArry.value.join(","),
+    // "duration": durationArry.value.join(","),
     "longitude": longitude,
     "latitude": latitude,
     "position": positionArry.value.join(","),
@@ -167,7 +168,7 @@ const confirmRainPoint = async () => {
       id: "test_rain",
       trigger: "暴雨",
       rainfall: rainfallArry.value[0] || 0,
-      duration: durationArry.value[0] || 0,
+      // duration: durationArry.value[0] || 0,
       occurrenceTime: new Date(),
       disasterName: timeTransfer.timestampToTimeChina(new Date()) + "西安市暴雨"
     }
@@ -208,7 +209,7 @@ const cancelRainPoint = () => {
   // 重置所有输入值
   entries.value.forEach(entry => {
     entry.rainfall = 0
-    entry.duration = 0
+    // entry.duration = 0
   })
 }
 
@@ -299,13 +300,31 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
 
 // Lifecycle
 onMounted(() => {
-  // 初始化所有区县
-  entries.value = districts.value.map(district => ({
-    name: district.name,
-    code: district.code,
-    rainfall: 0,
-    duration: 0
-  }))
+  entries.value = districts.value.map(district => {
+    return {
+      name: district.name,
+      code: district.code,
+      rainfall: 0,
+      duration: 0
+    }
+  })
+  getRain().then(res=>{
+    console.log(res.data.features)
+    // 初始化所有区县
+    let data = res.data.features
+    entries.value.forEach(item=>{
+      console.log(item)
+      let pos = data.find(i=>{
+        console.log(i.properties.adminCode,item.code)
+        return i.properties.adminCode===item.code
+      })
+      if(pos && pos.properties.rainPre12Hours!==0){
+        item.rainfall = pos.properties.rainPre12Hours.toFixed(2)
+      }
+      console.log(pos)
+    })
+  })
+
 })
 </script>
 
@@ -371,10 +390,10 @@ onMounted(() => {
   width: 80px;
 }
 
-.duration-label {
+/*.duration-label {
   width: 70px;
 }
-
+*/
 .panel-content input {
   width: 60px;
   padding: 6px 8px;
