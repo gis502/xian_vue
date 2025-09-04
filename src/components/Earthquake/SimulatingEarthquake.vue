@@ -351,6 +351,7 @@ const emit = defineEmits([
   "startLoading",
   "stopLoading",
   "updateEqInfo",
+  "thematicEqInfo",
 ]);
 
 // 添加模拟
@@ -415,7 +416,7 @@ async function confirmEarthquake(formEl) {
           city: city,
         });
         //地震页面修改完成后使用
-        console.log("circle_param",circle_param);
+        console.log("circle_param", circle_param);
         // 调用函数发送请求,将地震添加到数据库
         await addEarthquake(circle_param)
             .then(response => {
@@ -443,10 +444,27 @@ async function confirmEarthquake(formEl) {
           intensity: base.circleParam[0].intensity,
         })
         console.log(96321025,report_param)
+
+        let thematicEqInfo = {
+          // 震源地质+ 震级+ 地震
+          earthquakeFullName: form.position + form.magnitude + "级地震",
+          eqId: '',
+          eqqueueId: ''
+        }
+
         await getEarthQuakeReport(report_param)
             .then(response => {
-              console.log("获取报告成功", response);
+              console.log("触发成功...");
+              console.log("开始制作专题图...");
+              console.log("开始制作报告...");
+
               Object.assign(earthquakeID,response.data)
+
+              thematicEqInfo.eqId = response.data.eqId
+              thematicEqInfo.eqqueueId = response.data.eqqueueId
+              // 传递给父组件
+              emit("thematicEqInfo", thematicEqInfo)
+
             })
             .catch(error => {
               console.log("获取报告失败", error)
@@ -523,19 +541,20 @@ async function confirmEarthquake(formEl) {
       console.log("inEllipsePoints", inEllipsePoints);
       const favEllipsePoints = [];
       // 获取各个点的风险概率
-      if (inEllipsePoints.length!==0){
-        for (let i=0; i<inEllipsePoints.length;i++){
-          if (inEllipsePoints[i].factorVoList!=null){
+      if (inEllipsePoints.length !== 0) {
+        for (let i = 0; i < inEllipsePoints.length; i++) {
+          if (inEllipsePoints[i].factorVoList != null) {
             favEllipsePoints.push(inEllipsePoints[i])
           }
         }
       }
+      ;
       if (favEllipsePoints.length!==0){
         const [points, probabilityPoints] =
             await obtainTheProbabilityOfSimulatedPointRisk(favEllipsePoints);
         emit('updateEqInfo', probabilityPoints)
-        console.log("points",points)
-        console.log("probabilityPoints",probabilityPoints)
+        console.log("points", points)
+        console.log("probabilityPoints", probabilityPoints)
         layers.flashHiddenDisasterPoints(probabilityPoints, pulse)
         // 处理表格和chart数据
         addDatasToTableAndChart(points);

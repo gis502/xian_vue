@@ -4,14 +4,17 @@
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
       <el-button type="info" round @click="downloadReport">灾情报告</el-button>
+      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
 
 
     <!-- 功能面板：专题图/报告/仪器数据等 -->
-     <div class="eqPanel" v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
+    <div class="eqPanel"
+         v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
       <h2>{{ outputData.themeName }}</h2>
       <!-- 无数据提示 -->
-      <div style="width: 100%;height: calc(100% - 120px);text-align: center;color: #fff;font-size: 16px" v-if="isNoData">
+      <div style="width: 100%;height: calc(100% - 120px);text-align: center;color: #fff;font-size: 16px"
+           v-if="isNoData">
         该地震暂无评估图件产出
       </div>
 
@@ -32,7 +35,8 @@
 
       <!-- 灾情报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `report`">
-        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleDownloadReport(item.docxUrl)">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item"
+             @click="handleDownloadReport(item.docxUrl)">
           <img src="../../assets/images/wordIcon.png" style="margin-right: 50px">
           {{ item.theme }}
         </div>
@@ -40,7 +44,8 @@
 
       <!-- 辅助决策报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `AssistantDecision`">
-        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleJueCeReport(item.docxUrl)">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item"
+             @click="handleJueCeReport(item.docxUrl)">
           <img src="../../assets/images/wordIcon.png" style="margin-right: 20px">
           {{ item.theme }}
         </div>
@@ -48,7 +53,8 @@
 
       <!-- 仪器烈度报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `InstrumentIntensity`">
-        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleInstrumentIntensity(item.xlsUrl)">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item"
+             @click="handleInstrumentIntensity(item.xlsUrl)">
           <img src="../../assets/images/wordIcon.png" style="margin-right: 50px">
           {{ item.theme }}
         </div>
@@ -68,15 +74,17 @@
 </template>
 
 <script>
-import {getEqOutputMaps} from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
   //接收父组件传来的数据
-  props:{
-    thematicMaps: Array,
-    disasterReports: Array,
-    earthquakeID: Object
+  props: {
+    eqRequests: {
+      type: Object,
+      eqId: null,
+      eqqueueId: null,
+      earthquakeFullName: null
+    }
   },
   components: {},
   data() {
@@ -110,10 +118,14 @@ export default {
   methods: {
 
     //初始化方法
-    init(){
+    init() {
       //测试用数据，后续修改
-      this.eqid = this.$props.earthquakeID.eqId;
-      this.eqqueueId = this.$props.earthquakeID.eqqueueId;
+      // this.earthquakeFullName = "陕西省西安市长安区喂子坪村鸡窝子组6.1级地震";
+      // this.eqid = "T20240601171641511800";
+      // this.eqqueueId = "T2024060117164151180001";
+      this.eqid = props.eqId;
+      this.eqqueueId = props.eqqueueId;
+      this.earthquakeFullName = props.earthquakeFullName;
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
@@ -146,7 +158,7 @@ export default {
           };
           this.isNoData = res.themeData.length === 0;
         });
-        console.log('outputData',this.outputData);
+        console.log('outputData', this.outputData);
       }
       // 专题图/灾情报告：请求数据
       else if (this.isPanelShow.thematicMap || this.isPanelShow.report) {
@@ -172,14 +184,14 @@ export default {
           type: 'instrument',
           themeName: '2022年06月01日四川雅安市芦山县6.1级地震-台网数据',
           themeData: [
-            { imgUrl: "http://10.16.7.69/image/instrument/仪器地震烈度分布图.jpeg", theme: "仪器地震烈度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/台站峰值加速度分布图.jpeg", theme: "台站峰值加速度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/台站峰值速度分布图.jpeg", theme: "台站峰值速度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/台站仪器地震烈度分布图.jpeg", theme: "台站仪器地震烈度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/3.0秒加速度反应谱(gal).jpeg", theme: "3.0秒加速度反应谱(gal)" },
-            { imgUrl: "http://10.16.7.69/image/instrument/1.0秒加速度反应谱(gal).jpeg", theme: "1.0秒加速度反应谱(gal)" },
-            { imgUrl: "http://10.16.7.69/image/instrument/0.3秒加速度反应谱(gal).jpeg", theme: "0.3秒加速度反应谱(gal)" },
-            { imgUrl: "http://10.16.7.69/image/instrument/乡镇仪器地震烈度分布.jpeg", theme: "乡镇仪器地震烈度分布" }
+            {imgUrl: "http://10.16.7.69/image/instrument/仪器地震烈度分布图.jpeg", theme: "仪器地震烈度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/台站峰值加速度分布图.jpeg", theme: "台站峰值加速度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/台站峰值速度分布图.jpeg", theme: "台站峰值速度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/台站仪器地震烈度分布图.jpeg", theme: "台站仪器地震烈度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/3.0秒加速度反应谱(gal).jpeg", theme: "3.0秒加速度反应谱(gal)"},
+            {imgUrl: "http://10.16.7.69/image/instrument/1.0秒加速度反应谱(gal).jpeg", theme: "1.0秒加速度反应谱(gal)"},
+            {imgUrl: "http://10.16.7.69/image/instrument/0.3秒加速度反应谱(gal).jpeg", theme: "0.3秒加速度反应谱(gal)"},
+            {imgUrl: "http://10.16.7.69/image/instrument/乡镇仪器地震烈度分布.jpeg", theme: "乡镇仪器地震烈度分布"}
           ]
         };
       }
@@ -191,9 +203,18 @@ export default {
           type: 'InstrumentIntensity',
           themeName: '2022年06月01日四川雅安市芦山县6.1级地震-仪器烈度数据',
           themeData: [
-            { xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_乡镇仪器烈度报告_IEM.xls", theme: "乡镇仪器烈度报告" },
-            { xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_县市仪器烈度报告_IEM.xls", theme: "县市仪器烈度报告" },
-            { xlsUrl: "http://10.16.7.69/image/instrument/FJ20220601170008_1_烈度速报产品.docx", theme: "仪器烈度速报产品" }
+            {
+              xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_乡镇仪器烈度报告_IEM.xls",
+              theme: "乡镇仪器烈度报告"
+            },
+            {
+              xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_县市仪器烈度报告_IEM.xls",
+              theme: "县市仪器烈度报告"
+            },
+            {
+              xlsUrl: "http://10.16.7.69/image/instrument/FJ20220601170008_1_烈度速报产品.docx",
+              theme: "仪器烈度速报产品"
+            }
           ]
         };
       }
@@ -266,11 +287,11 @@ export default {
 
     // 图片下载（支持预览弹窗/列表项下载）
     handleDownloadMap(imgUrl) {
-      this.$notify({ title: '专题图下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '专题图下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       const imageUrl = imgUrl || this.imgUrl;
 
       if (!imageUrl) {
-        this.$notify({ title: '错误', message: '图片 URL 不存在，无法下载', type: 'error', duration: 5000 });
+        this.$notify({title: '错误', message: '图片 URL 不存在，无法下载', type: 'error', duration: 5000});
         return;
       }
 
@@ -290,7 +311,7 @@ export default {
             URL.revokeObjectURL(a.href);
           })
           .catch(err => {
-            this.$notify({ title: '错误', message: '图片下载失败，请检查 URL 或网络连接', type: 'error', duration: 5000 });
+            this.$notify({title: '错误', message: '图片下载失败，请检查 URL 或网络连接', type: 'error', duration: 5000});
             console.error('下载失败:', err);
           });
     },
@@ -309,7 +330,7 @@ export default {
 
     // 灾情报告下载
     handleDownloadReport(docxUrl) {
-      this.$notify({ title: '灾情报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '灾情报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       const a = document.createElement('a');
       a.href = docxUrl;
       a.download = docxUrl.split('/').pop();
@@ -320,10 +341,10 @@ export default {
 
     // 辅助决策报告下载（带Token认证）
     handleJueCeReport(docxUrl) {
-      this.$notify({ title: '辅助决策报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '辅助决策报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       fetch(docxUrl, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token') || ''}`}
       })
           .then(res => {
             if (!res.ok) throw new Error(`下载失败: ${res.status}`);
@@ -339,13 +360,13 @@ export default {
             URL.revokeObjectURL(a.href);
           })
           .catch(err => {
-            this.$notify({ title: '下载失败', message: err.message, type: 'error', duration: 5000 });
+            this.$notify({title: '下载失败', message: err.message, type: 'error', duration: 5000});
           });
     },
 
     // 仪器烈度报告下载
     handleInstrumentIntensity(xlsUrl) {
-      this.$notify({ title: '仪器烈度报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '仪器烈度报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       const a = document.createElement('a');
       a.href = xlsUrl;
       a.download = xlsUrl.split('/').pop();
@@ -451,13 +472,16 @@ export default {
   text-align: center;
   align-items: center;
 }
+
 .report-item:hover {
   background-color: #1f5783 !important;
   color: #409eff !important;
 }
+
 .report-item:nth-child(odd) {
   background-color: #313a44;
 }
+
 .report-item:nth-child(even) {
   background-color: #304156;
 }
@@ -481,6 +505,7 @@ h2, p {
   color: #fff;
   margin: 10px;
 }
+
 h2 {
   text-align: center;
 }
@@ -489,9 +514,11 @@ h2 {
 ::-webkit-scrollbar-thumb {
   background-color: #2980b9;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background-color: #3498db;
 }
+
 ::-webkit-scrollbar-track {
   background-color: #2d3d51;
 }
@@ -501,6 +528,7 @@ h2 {
   z-index: 100 !important;
   background-color: #2b323a;
 }
+
 :deep(.cesium-baseLayerPicker-dropDown) {
   right: -5px !important;
 }
