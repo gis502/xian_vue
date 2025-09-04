@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form-item label="时间轴" >
+    <el-form-item label="态势推演" >
       <el-input
           v-model="queryParams"
           placeholder="请输入时间轴信息"

@@ -1,8 +1,8 @@
 <template>
   <div class="timeLinePlay">
-    <!--    <div class="topLastRecordTimeLabel">-->
-    <!--      {{ this.lastRecordTimeLocal }}-->
-    <!--    </div>-->
+        <div class="topLastRecordTimeLabel">
+          {{ this.lastRecordTimeLocal }}
+        </div>
 
 
     <div class="start-time-info">
@@ -96,7 +96,7 @@ export default {
       endflag: false, // 控制飞行结束的标志
       // flyflag: true,//视角是否跳转？只有依次向前播放时才跳
       currentTimeLocal: this.timestampToTimeChina(new Date()),
-      // lastRecordTimeLocal: this.timestampToTimeChina(new Date()),
+      lastRecordTimeLocal: this.timestampToTimeChina(new Date()),
       // lastRecordContent: '',
 
       startTime: new Date(),
@@ -105,7 +105,7 @@ export default {
     }
   },
   // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
-  props: ['viewer', 'disasterEvent', 'currentTime','RealDisasterPlots'],
+  props: ['viewer', 'disasterEvent', 'currentTime','RealDisasterPlots','firstStartTimeLine'],
   watch: {
     currentTime(newVal, oldVal) {
       if (newVal && oldVal && newVal !== oldVal) {
@@ -139,7 +139,7 @@ export default {
     viewer(newVal) {
       // this.getPlotwithStartandEndTime(this.eqid)
       viewer.timeline.container.onmouseup = (e) => {
-        // this.findLastRecordTimeAndContent()
+        this.findLastRecordTimeAndContent()
         // if(this.isMarkingLayer===false){
         //   console.log("11111 isMarkingLayer_viewer ")
         //   window.viewer.clockViewModel.shouldAnimate = false;
@@ -147,7 +147,7 @@ export default {
         //   this.selectButton("playEnd")
         // }
         // else {
-        console.log("2222 isMarkingLayer_viewer")
+        // console.log("2222 isMarkingLayer_viewer")
         this.playEnd()
         // }
       }
@@ -170,7 +170,7 @@ export default {
         this.plots.push(item)
       })
       console.log(this.plots,"this.plots")
-    }
+    },
     // isMarkingLayer(newVal) {
     //   console.log(newVal, "isMarkingLayerLocal watch")
     //   // this.isMarkingLayer=newVal
@@ -181,6 +181,11 @@ export default {
     //     this.selectButton("playEnd")
     //   }
     // }
+    firstStartTimeLine(){
+      if(this,this.firstStartTimeLine){
+        this.playStart()
+      }
+    }
   },
   mounted() {
   },
@@ -192,7 +197,7 @@ export default {
       // this.findLastRecordTimeAndContent()
       window.viewer.clockViewModel.shouldAnimate = true;
       viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-      // this.findLastRecordTimeAndContent()
+      this.findLastRecordTimeAndContent()
       // if(this.isMarkingLayer===false){
       //   window.viewer.clockViewModel.shouldAnimate = false;
       //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
@@ -211,7 +216,7 @@ export default {
       window.viewer.clock.multiplier = this.currentSpeed
       this.flyflag = true
       this.endflag = true;
-      // this.lastRecordTimeLocal = this.timestampToTimeChina(this.startTime)
+      this.lastRecordTimeLocal = this.timestampToTimeChina(this.startTime)
       // this.lastRecordContent = ''
     },
     playBack() {
@@ -364,31 +369,31 @@ export default {
         }
       }
     },
-    // findLastRecordTimeAndContent() {
-    //   console.log(new Date(this.currentTime), "new Date(currentTime) findLastRecordTimeAndContent")
-    //   let filteredPlots = this.plots.filter(plot => {
-    //     return new Date(plot.startTime).getTime() <= new Date(this.currentTime).getTime();
-    //   });
-    //   let latestPlot = null;
-    //   let latestTime = new Date(this.startTime);
-    //   filteredPlots.forEach(plot => {
-    //     const plotStartTime = new Date(plot.startTime).getTime();
-    //     if (plotStartTime > latestTime) {
-    //       latestTime = plotStartTime;
-    //       latestPlot = plot;
-    //     }
-    //   });
-    //
-    //   if (latestPlot) {
-    //     this.lastRecordTimeLocal = this.timestampToTimeChina(latestPlot.startTime)
-    //     let plotId = latestPlot.plotId
-    //     let plotType = latestPlot.plotType
-    //     getPlotInfos({plotId, plotType}).then(res => {
-    //       let labeltext = timeLine.labeltext(plotType, res)
-    //       this.lastRecordContent = labeltext
-    //     })
-    //   }
-    // },
+    findLastRecordTimeAndContent() {
+      console.log(new Date(this.currentTime), "new Date(currentTime) findLastRecordTimeAndContent")
+      let filteredPlots = this.plots.filter(plot => {
+        return new Date(plot.startTime).getTime() <= new Date(this.currentTime).getTime();
+      });
+      let latestPlot = null;
+      let latestTime = new Date(this.startTime);
+      filteredPlots.forEach(plot => {
+        const plotStartTime = new Date(plot.startTime).getTime();
+        if (plotStartTime > latestTime) {
+          latestTime = plotStartTime;
+          latestPlot = plot;
+        }
+      });
+
+      if (latestPlot) {
+        this.lastRecordTimeLocal = this.timestampToTimeChina(latestPlot.startTime)
+        // let plotId = latestPlot.plotId
+        // let plotType = latestPlot.plotType
+        // getPlotInfos({plotId, plotType}).then(res => {
+        //   let labeltext = timeLine.labeltext(plotType, res)
+        //   this.lastRecordContent = labeltext
+        // })
+      }
+    },
     timestampToTime(time) {
       return timeTransfer.timestampToTime(time)
     },

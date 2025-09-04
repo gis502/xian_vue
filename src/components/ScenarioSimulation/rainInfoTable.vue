@@ -9,18 +9,18 @@
       <tr>
         <th style="width: 20%;">区域</th>
         <th style="width: 20%;">累计降雨量</th>
-        <th style="width: 20%;">累计时长</th>
+<!--        <th style="width: 20%;">累计时长</th>-->
         <th style="width: 20%;">预计降雨量</th>
-        <th style="width: 20%;">预计时长</th>
+<!--        <th style="width: 20%;">预计时长</th>-->
       </tr>
       </thead>
       <tbody>
       <tr v-for="(item, index) in showData" :key="index">
         <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.area }}</td>
         <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.totalRainfall }}mm</td>
-        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.duration }}小时</td>
+<!--        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.duration }}小时</td>-->
         <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.predictTotalRainfall}}mm</td>
-        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.predictDuration}}小时</td>
+<!--        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.predictDuration}}小时</td>-->
       </tr>
       </tbody>
     </table>
@@ -68,17 +68,17 @@ export default {
 // 将字符串分割成数组
       const positions = this.disasterEvent.position.split(',');
       const rainfalls = this.disasterEvent.rainfall.split(',');
-      const durations = this.disasterEvent.duration.split(',');
+      // const durations = this.disasterEvent.duration.split(',');
 
 
 // 遍历数组，提取数据并创建新对象
       positions.forEach((position, index) => {
         const rainfall = parseFloat(rainfalls[index]);
-        const duration = parseInt(durations[index]);
+        // const duration = parseInt(durations[index]);
         const newDisasterData = {
           area: position.trim(), // 移除可能的空格
           predictTotalRainfall: rainfall,
-          predictDuration: duration // 假设duration是小时数
+          // predictDuration: duration // 假设duration是小时数
         };
         this.predictRain.push(newDisasterData);
       });
@@ -110,7 +110,7 @@ export default {
             totalRainfall:"/",
             duration:"/",
             predictTotalRainfall:item.predictTotalRainfall,
-            predictDuration:item.predictDuration,
+            // predictDuration:item.predictDuration,
           })
         })
         // console.log(this.showData,"this.showData")
@@ -225,7 +225,7 @@ export default {
             totalRainfall: Number(lastTimeItem.totalRainfall).toFixed(2),
             duration: lastTimeItem.duration,
             predictTotalRainfall: Number(predictItem.predictTotalRainfall).toFixed(2),
-            predictDuration: predictItem.predictDuration
+            // predictDuration: predictItem.predictDuration
           });
         } else {
           // 如果没有找到对应的 predictItem，则只添加 lastTimeData 中的数据
@@ -234,7 +234,7 @@ export default {
             totalRainfall:  Number(lastTimeItem.totalRainfall).toFixed(2),
             duration: lastTimeItem.duration,
             predictTotalRainfall: "-",
-            predictDuration: "-"
+            // predictDuration: "-"
           });
         }
       });
@@ -254,7 +254,7 @@ export default {
   padding: 15px;
   border-radius: 8px;
   z-index: 10;
-  width: 456px; /* 限制表格宽度 */
+  width: 300px; /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 12px; /* 调整字体大小 */
   /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
