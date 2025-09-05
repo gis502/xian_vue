@@ -299,6 +299,7 @@ let popupVisible = ref(false);
 let popupPosition =  ref({x: 0, y: 0});
 let clickHandler = ref(null);
 let earthquakeID = reactive({})
+
 // 脉冲
 let pulse = null;
 

@@ -33,57 +33,18 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <!--下拉组件-->
-      <el-dropdown
-          ref="dropdownRef"
-          v-model:visible="showDropdown"
-          placement="bottom-start"
-          trigger="click"
-      >
-        <el-input
+
+      <!--搜索组件-->
+      <div class="search-box">
+        <input
+            type="text"
             v-model="searchQuery"
-            placeholder="搜索历史灾害信息..."
-            class="search-input"
-            :suffix-icon="showDropdown ? ArrowUp : ArrowDown"
-            @input="handleSearch"
-            clearable
+            placeholder="搜索表格数据..."
+            @keyup.enter="performSearch"
         />
-        <template #dropdown>
-          <!-- 下拉面板 -->
-          <el-dropdown-menu class="custom-dropdown-menu">
-            <!-- 搜索结果区域 -->
-            <div v-if="filteredItems.length" class="search-results">
-              <el-dropdown-item
-                  v-for="item in filteredItems"
-                  :key="item.id"
-                  @click="selectItem(item)"
-                  class="dropdown-item"
-              >
-                {{ item.name }}
-              </el-dropdown-item>
-            </div>
+        <button @click="performSearch">搜索</button>
+      </div>
 
-            <!-- 无结果提示 -->
-            <div v-else-if="searchQuery" class="no-results">
-              没有找到匹配的结果
-            </div>
-
-            <!-- 默认选项（无搜索时显示） -->
-            <div v-else class="default-options">
-              <el-dropdown-item
-                  v-for="item in defaultItems"
-                  :key="item.id"
-                  @click="selectItem(item)"
-                  class="dropdown-item"
-              >
-                {{ item.name }}
-              </el-dropdown-item>
-            </div>
-
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <!--下拉组件结束-->
     </div>
     <div class="disaster-list">
       <table v-if="tableData.length" class="disaster-table">
@@ -117,7 +78,7 @@
         style="margin-top: 10px; text-align: center;"
         background
         layout="prev, pager, next, total"
-        :total="disTotal"
+        :total="filteredTableData.length"
         :page-size="pageSizeNum"
         :current-page="currentPage"
         @current-change="handlePageChangeDisaster"
@@ -128,7 +89,7 @@
 <script setup name="historicalDisasterList">
 
 import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
-import { defineProps, defineEmits, onMounted, reactive, ref} from "vue";
+import {defineProps, defineEmits, onMounted, reactive, ref, computed} from "vue";
 import {getAllDisasterRain, getAllEarthquakeList} from "@/api/system/disasterEvents.js";
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
@@ -136,16 +97,13 @@ import {getAllAffectPoints} from "@/api/earthquake/datas.js";
 import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
 import landslideIcon from "@/assets/images/landslide.png";
-import riskArea from "@/assets/images/riskArea.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
-import eqMark from "@/assets/images/eqMark.png";
+
 
 const tableData = ref([])
 const disTotal = ref(0)
 const originalTableData = ref([]);
-const searchQuery = ref('');
 const showDropdown = ref(false);
-const dropdownRef = ref(null);
 const selectedTimeRange = ref('全部时间');
 const showTimeDropdown = ref(false);
 const currentPage = ref(1);
@@ -154,6 +112,7 @@ const circle_param = reactive({});
 const ellipseParams = ref([]);
 const rotation = ref(0);
 const AllAffectPoints = ref([]);
+const searchQuery = ref("");
 
 //接收父组件传来的数据
 const { chartDatas, disasterList } = defineProps([
@@ -176,14 +135,6 @@ const timeRangeOptions = ref([
   { label: '全部时间', value: 'all' }
 ]);
 
-const defaultItems = ref([
-  { id: 1, name: '地震灾害' },
-  { id: 2, name: '洪水灾害' },
-  { id: 3, name: '台风灾害' },
-  { id: 4, name: '滑坡灾害' },
-  { id: 5, name: '泥石流灾害' }
-]);
-
 // 选择时间范围的回调
 const selectTimeRange = (item) => {
   selectedTimeRange.value = item.label;
@@ -193,28 +144,23 @@ const selectTimeRange = (item) => {
   filterDataByTimeRange(item.value);
 };
 
-const filteredItems = computed(() => {
-  if (!searchQuery.value) return [];
-
-  return defaultItems.value.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+const filteredTableData = computed(() => {
+  if (!searchQuery.value){
+    return tableData.value
+  }
+  const query = searchQuery.value.toLowerCase();
+  return tableData.value.filter((item) => {
+    return Object.values(item).some((value) =>
+        String(value).toLowerCase().includes(query)
+    );
+  });
 });
 
-// 处理搜索输入
-const handleSearch = (value) => {
-  // 当有搜索内容时自动显示下拉面板
-  if (value) {
-    showDropdown.value = true;
-  }
-};
-
-// 选择下拉项
-const selectItem = (item) => {
-  searchQuery.value = item.name;
-  showDropdown.value = false;
-  // 这里可以添加选择后的其他逻辑，如触发搜索等
-};
+// 搜索功能
+function performSearch(){
+  currentPage.value = 1;
+  console.log("搜索关键词：", searchQuery.value, "筛选结果数：", filteredTableData.value.length);
+}
 
 // 点击外部关闭下拉面板
 document.addEventListener('click', (e) => {
@@ -231,7 +177,8 @@ const currentPointPageData = computed(() => {
   // 计算结束索引
   const end = start + pageSizeNum.value;
 
-  return tableData.value.slice(start, end);
+  // return tableData.value.slice(start, end);
+  return filteredTableData.value.slice(start, end);
 });
 
 const fetchData = async () => {
@@ -251,15 +198,15 @@ const fetchData = async () => {
     }));
 
     // 处理暴雨数据，添加灾害类型为"暴雨"
-    // const rainData = rainRes.data.map(item => ({
-    //   ...item,
-    //   disasterType: "暴雨",
-    //   uniqueId: `rain_${item.disasterId || Date.now() + Math.random()}`
-    // }));
+    const rainData = rainRes.data.map(item => ({
+      ...item,
+      disasterType: "暴雨",
+      uniqueId: `rain_${item.disasterId || Date.now() + Math.random()}`
+    }));
 
     // 合并两种灾害数据到tableData
-    // const mergedData = [...earthquakeData, ...rainData];
-    const mergedData = [...earthquakeData];
+    const mergedData = [...earthquakeData, ...rainData];
+    // const mergedData = [...earthquakeData];
     //按发生时间排序
     mergedData.sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime));
 
@@ -529,5 +476,62 @@ async function tiggerHistoryDaster(item){
   width: 100%;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 搜索框样式 */
+.search-box input {
+  height: 34px;
+  /* 统一高度 */
+  padding: 5px 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: black;
+  border: 1px solid #dcdfe6;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+  /* 确保padding和border包含在height内 */
+}
+
+.search-box input:focus {
+  outline: none; /* 清除默认聚焦轮廓 */
+  border-color: #3c86ff; /* 聚焦时边框变为主题色 */
+  box-shadow: 0 0 0 2px rgba(60, 134, 255, 0.2); /* 轻微发光效果 */
+}
+
+.search-box {
+  display: flex;
+  /* 使搜索框和按钮在同一行 */
+  align-items: center;
+  gap: 5px;
+  /* 搜索框和按钮之间的间距 */
+  flex-grow: 1;
+  /* 允许搜索框占据更多空间 */
+}
+
+.search-box input {
+  flex-grow: 1;
+  /* 搜索框占据剩余空间 */
+  width: auto;
+  /* 移除固定宽度 */
+}
+
+.search-box button {
+  background-color: #3c86ff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
+}
+
+.search-box button:hover {
+  background-color: #0056b3;
 }
 </style>

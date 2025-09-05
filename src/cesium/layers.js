@@ -221,7 +221,7 @@ let layers = {
                     intensity: ellipseParams[i].intensity,
                     semiMajorAxis: ellipseParams[i].semiMajorAxis,
                     semiMinorAxis: ellipseParams[i].semiMinorAxis,
-                    CircleArea: CircleArea,
+                    circleArea: CircleArea,
                     rotation: rotation
                 }
                 EllipticArry.push(Elliptic_param)
@@ -281,7 +281,7 @@ let layers = {
         }
         let sum = Math.floor(Math.min(Number(IaWhenAIsZero(magnitude)), Number(IbWhenBIsZero(magnitude))));
         let intensityLevels = [];
-        for (let i = sum; i >= sum-2; i--) {
+        for (let i = sum; i >= 6; i--) {
             intensityLevels.push({ia: i, ib: i});
         }
         let plphas = [0.1, 0.1, 0.1, 0.1, 0.1]
@@ -291,9 +291,9 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 200;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 200;
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
 
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;

@@ -108,10 +108,9 @@ export default {
     this.init()
   },
   methods: {
-
     //初始化方法
     init(){
-      //测试用数据，后续修改
+      this.earthquakeFullName = "地震"
       this.eqid = this.$props.earthquakeID.eqId;
       this.eqqueueId = this.$props.earthquakeID.eqqueueId;
     },
@@ -473,7 +472,7 @@ export default {
   text-align: center;
   background-color: #2d3d51;
   border-radius: 10px;
-  z-index: 200;
+  z-index: 2000;
 }
 
 /* 基础文本样式（统一白色） */
