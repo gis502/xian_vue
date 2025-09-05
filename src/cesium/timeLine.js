@@ -164,7 +164,6 @@ let timeLine = {
         }
         else if (datasourcename === "label") {
             let labeldataSource = null
-
             if (window.labeldataSource) {
                 return window.labeldataSource;
             }
@@ -387,13 +386,14 @@ let timeLine = {
 
     addMakerPoint(item, type) {
         // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
-        console.log(item, "addMakerPoint timeline")
+        // console.log(item, "addMakerPoint timeline")
         //点的属性 震中点统用一一个方法
         // let labeltext = null
         item.longitude=Number(geomToCoordinates(item.geom)[0][0])
         item.latitude=Number(geomToCoordinates(item.geom)[0][1])
         let img =  '/images/PlotsPic/' + item.plotType + '.png'
         let pointDataSource = this.addDataSourceLayer("pointData")
+        let labeldataSource = this.addDataSourceLayer("label")
         if (pointDataSource) {
             if (window.pointDataSource.entities.getById(item.plotId)) {
                 window.pointDataSource.entities.removeById(item.plotId);  // 删除已存在的多边形实体
@@ -998,12 +998,15 @@ let timeLine = {
     // //标签显示隐藏
     // //隐藏所有标签
     markerLabelsHidden(plots) {
-        plots.forEach(item => {
-            let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-            if (entity) {
-                entity.show = false
-            }
-        })
+        if (window.labeldataSource) {
+            console.log(window.labeldataSource,"window.labeldataSource")
+            plots.forEach(item => {
+                let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
+                if (entity) {
+                    entity.show = false
+                }
+            })
+        }
     },
     // //只显示人员伤亡和救援队伍
     makerLabelsShowPersonAndResouce(plots) {
