@@ -261,7 +261,7 @@ function stopFlashEntities(disasterType) {
 }
 
 function flash(){
-  if(!(showRainLand.value && showRainFlood.value && showRainWater.value && showRainDebrisFlow.value)){
+  if(!(showRainLand.value || showRainFlood.value || showRainWater.value || showRainDebrisFlow.value)){
     stopFlashing();
   }else{
     stopFlashing();
@@ -283,8 +283,6 @@ function toggleRainLand(){
       getRainProbability(DTO).then((response) =>{
         setTimeout(() => {
           console.log("等待2秒后执行");
-          // 先停止之前的闪烁
-          stopFlashing();
           const processedEntities = checkEntity(response.data);
           LandEntities.value = processedEntities;
           LandEntities.value.forEach((item) => {
@@ -304,7 +302,8 @@ function toggleRainLand(){
     }
   }else{
     dataTypes.type1.data = [];
-    stopFlashEntities("滑坡")
+    stopFlashEntities("滑坡");
+    flash();
   }
 }
 
@@ -317,9 +316,6 @@ function toggleRainDebrisFlow() {
       };
       getRainProbability(DTO).then((response) => {
         setTimeout(() => {
-          // 先停止之前的闪烁
-          stopFlashing();
-
           FlowEntities.value = checkEntity(response.data);
           FlowEntities.value.forEach((item) => {
             dataTypes.type2.data.push({
@@ -338,7 +334,8 @@ function toggleRainDebrisFlow() {
     }
   }else{
     dataTypes.type2.data = [];
-    stopFlashEntities("泥石流")
+    stopFlashEntities("泥石流");
+    flash();
   }
 
 }
@@ -352,9 +349,6 @@ function toggleRainWater(){
       };
       getRainProbability(DTO).then((response) => {
         setTimeout(() => {
-          // 先停止之前的闪烁
-          stopFlashing();
-
           WaterEntities.value = checkEntity(response.data);
           WaterEntities.value.forEach((item) => {
             dataTypes.type3.data.push({
@@ -373,7 +367,8 @@ function toggleRainWater(){
     }
   }else{
     dataTypes.type3.data = [];
-    stopFlashEntities("内涝")
+    stopFlashEntities("内涝");
+    flash();
   }
 
 }
@@ -387,9 +382,6 @@ function toggleRainFlood(){
       };
       getRainProbability(DTO).then((response) => {
         setTimeout(() => {
-          // 先停止之前的闪烁
-          stopFlashing();
-
           FloodEntities.value = checkEntity(response.data);
           FloodEntities.value.forEach((item) => {
             dataTypes.type4.data.push({
@@ -408,7 +400,8 @@ function toggleRainFlood(){
     }
   }else{
     dataTypes.type4.data = [];
-    stopFlashEntities("山洪")
+    stopFlashEntities("山洪");
+    flash();
   }
 }
 
