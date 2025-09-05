@@ -515,7 +515,7 @@ let basicLayers = {
                 // 创建实体
                 const entity = window.viewer.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-                    id: point.id,
+                    id: point.properties.id,
                     // 点
                     billboard: {
                         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png

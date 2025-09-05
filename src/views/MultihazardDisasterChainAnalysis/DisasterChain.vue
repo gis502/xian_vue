@@ -99,13 +99,13 @@
             <th>风险等级</th>
             <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
           </tr>
-          <tr v-if="selectedEntityData.properties.probability">
+          <tr v-if="selectedEntityData.probability">
             <th>发生概率</th>
-            <td>{{ selectedEntityData.properties.probability || '0' }}</td>
+            <td>{{ selectedEntityData.probability || '0' }}</td>
           </tr>
-          <tr v-if="selectedEntityData.properties.level">
+          <tr v-if="selectedEntityData.level">
             <th>险情等级</th>
-            <td>{{ selectedEntityData.properties.level || '未知' }}</td>
+            <td>{{ selectedEntityData.level || '未知' }}</td>
           </tr>
           </tbody>
         </table>
@@ -254,122 +254,144 @@ function getLastRainInfo(){
 }
 
 function toggleRainLand(){
+  if(showRainLand.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "滑坡",
       };
-      getRainProbability(DTO).then((response) => {
-        // 先停止之前的闪烁
-        stopFlashing();
-
-        LandEntities.value = checkEntity(response.data);
-        LandEntities.value.forEach((item) => {
-          dataTypes.type1.data.push({
-            field1: item.name,
-            field2: item.position,
-            field3: item.probability,
-            field4: item.riskGrade,
-            field5: item.lon,
-            field6: item.lat,
+      // 等待数据获取完成
+      getRainProbability(DTO).then((response) =>{
+        setTimeout(() => {
+          console.log("等待2秒后执行");
+          // 先停止之前的闪烁
+          stopFlashing();
+          const processedEntities = checkEntity(response.data);
+          LandEntities.value = processedEntities;
+          LandEntities.value.forEach((item) => {
+            dataTypes.type1.data.push({
+              field1: item.name,
+              field2: item.position,
+              field3: item.probability,
+              field4: item.riskGrade,
+              field5: item.lon,
+              field6: item.lat,
+            })
           })
-        })
+        }, 2000); // 2000毫秒 = 2秒
       })
     }catch (e){
       console.log("error", e)
     }
+  }else{
+    stopFlashing();
+    dataTypes.type1.data = [];
+  }
+
 }
 
 function toggleRainDebrisFlow() {
+  if(showRainDebrisFlow.value){
     try{
       const DTO = {
-       disasterId: disasterId.value,
-       disasterType: "泥石流",
-     };
-     getRainProbability(DTO).then((response) => {
-       // 先停止之前的闪烁
-       stopFlashing();
+        disasterId: disasterId.value,
+        disasterType: "泥石流",
+      };
+      getRainProbability(DTO).then((response) => {
+        setTimeout(() => {
+          // 先停止之前的闪烁
+          stopFlashing();
 
-       FlowEntities.value = checkEntity(response.data);
-       FlowEntities.value.forEach((item) => {
-         dataTypes.type2.data.push({
-           field1: item.name,
-           field2: item.position,
-           field3: item.probability,
-           field4: item.riskGrade,
-           field5: item.lon,
-           field6: item.lat,
-         })
-       })
-     })
+          FlowEntities.value = checkEntity(response.data);
+          FlowEntities.value.forEach((item) => {
+            dataTypes.type2.data.push({
+              field1: item.name,
+              field2: item.position,
+              field3: item.probability,
+              field4: item.riskGrade,
+              field5: item.lon,
+              field6: item.lat,
+            })
+          })
+        }, 2000);
+      })
     }catch (e){
-     console.log("error", e)
+      console.log("error", e)
     }
+  }else{
+    stopFlashing();
+    dataTypes.type2.data = [];
+  }
+
 }
 
 function toggleRainWater(){
+  if(showRainWater.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "内涝",
       };
       getRainProbability(DTO).then((response) => {
-        // 先停止之前的闪烁
-        stopFlashing();
+        setTimeout(() => {
+          // 先停止之前的闪烁
+          stopFlashing();
 
-        WaterEntities.value = checkEntity(response.data);
-        WaterEntities.value.forEach((item) => {
-          dataTypes.type3.data.push({
-            field1: item.name,
-            field2: item.position,
-            field3: item.probability,
-            field4: item.riskGrade,
-            field5: item.lon,
-            field6: item.lat,
+          WaterEntities.value = checkEntity(response.data);
+          WaterEntities.value.forEach((item) => {
+            dataTypes.type3.data.push({
+              field1: item.name,
+              field2: item.position,
+              field3: item.probability,
+              field4: item.riskGrade,
+              field5: item.lon,
+              field6: item.lat,
+            })
           })
-        })
+        }, 2000);
       })
     }catch (e){
       console.log("error", e)
     }
+  }else{
+    stopFlashing();
+    dataTypes.type3.data = [];
+  }
+
 }
 
 function toggleRainFlood(){
+  if(showRainFlood.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "山洪",
       };
       getRainProbability(DTO).then((response) => {
-        // 先停止之前的闪烁
-        stopFlashing();
+        setTimeout(() => {
+          // 先停止之前的闪烁
+          stopFlashing();
 
-        FloodEntities.value = checkEntity(response.data);
-        FloodEntities.value.forEach((item) => {
-          dataTypes.type4.data.push({
-            field1: item.name,
-            field2: item.position,
-            field3: item.probability,
-            field4: item.riskGrade,
-            field5: item.lon,
-            field6: item.lat,
+          FloodEntities.value = checkEntity(response.data);
+          FloodEntities.value.forEach((item) => {
+            dataTypes.type4.data.push({
+              field1: item.name,
+              field2: item.position,
+              field3: item.probability,
+              field4: item.riskGrade,
+              field5: item.lon,
+              field6: item.lat,
+            })
           })
-        })
+        }, 2000);
       })
     }catch (e){
       console.log("error", e)
     }
-}
-
-function flashPoints(entities) {
-  // 提取经纬度信息用于闪烁
-  const pointsToFlash = entities.map(entity => ({
-    lon: entity.lon,
-    lat: entity.lat,
-    id: entity.id
-  }));
-
-  flashDisasterPoints(pointsToFlash);
+  }else{
+    stopFlashing();
+    dataTypes.type4.data = [];
+  }
 }
 
 function toggleEarthLand(){
@@ -381,7 +403,6 @@ function toggleEarthDebrisFlow(){
 }
 
 function checkEntity(entityData) {
-  const highRiskEntities = [];
   const commonEntities = [];
 
   entityData.forEach((element) => {
@@ -409,32 +430,37 @@ function checkEntity(entityData) {
 
       const entityInfo = {
         id: matchedEntity.id,
-        name: matchedEntity.disasterData.disasterName,
+        name: matchedEntity.disasterData.properties.disasterName,
         probability: probability,
-        disasterType: matchedEntity.disasterData.disasterType,
+        disasterType: matchedEntity.disasterData.properties.disasterType,
         riskGrade: element.level,
-        position: position,
-        lon: matchedEntity.disasterData.lon,
-        lat: matchedEntity.disasterData.lat,
+        position: matchedEntity.disasterData.properties.position,
+        lon: matchedEntity.disasterData.properties.lon,
+        lat: matchedEntity.disasterData.properties.lat,
       };
+
       commonEntities.push(entityInfo);
       if (isHighProbability || isHighLevel) {
-        highRiskEntities.push(entityInfo);
+        highRiskEntities.value.push(entityInfo);
       }
     }
   });
 
-  console.log("高风险实体列表:", highRiskEntities);
+  console.log("高风险实体列表:", highRiskEntities.value);
   console.log("所有实体：", commonEntities);
 
-  // 闪烁高风险实体
-  flashPoints(highRiskEntities);
+  setTimeout(() => {
+    flashDisasterPoints(highRiskEntities.value);
+  }, 100);
 
   return commonEntities;
 }
 
 // 闪烁灾害点 - 光晕扩散效果
-const flashDisasterPoints = (points) => {
+function flashDisasterPoints(points) {
+  console.log("开始闪烁处理，点数:", points?.length);
+  console.log("points数据:", points);
+
   // 停止之前的闪烁动画
   if (flashInterval.value) {
     clearInterval(flashInterval.value);
@@ -443,54 +469,68 @@ const flashDisasterPoints = (points) => {
 
   if (haloCollection.value) {
     haloCollection.value.removeAll();
-    viewer.value.scene.primitives.remove(haloCollection.value);
+    viewer.scene.primitives.remove(haloCollection.value);
     haloCollection.value = null;
   }
 
-  // 如果没有点或没有viewer，直接返回
-  if (!points || points.length === 0 || !viewer.value) {
+  // 安全检查
+  if (!points || points.length === 0 || !viewer) {
+    console.warn("无法闪烁：无点数据或viewer未初始化");
     return;
   }
 
   // 创建光晕点集合
   haloCollection.value = new Cesium.PointPrimitiveCollection();
-  viewer.value.scene.primitives.add(haloCollection.value);
+  viewer.scene.primitives.add(haloCollection.value);
 
   const entitiesToFlash = [];
 
   // 从所有灾害实体中查找匹配的点
   basicLayers.disasterEntities.forEach(entity => {
-    const position = entity.position.getValue(Cesium.JulianDate.now());
-    const cartographic = Cesium.Cartographic.fromCartesian(position);
-    const entityLon = Cesium.Math.toDegrees(cartographic.longitude);
-    const entityLat = Cesium.Math.toDegrees(cartographic.latitude);
+    try {
+      const position = entity.position.getValue(Cesium.JulianDate.now());
+      const cartographic = Cesium.Cartographic.fromCartesian(position);
+      const entityLon = Cesium.Math.toDegrees(cartographic.longitude);
+      const entityLat = Cesium.Math.toDegrees(cartographic.latitude);
 
-    // 检查该实体是否在需要闪烁的点列表中
-    for (const point of points) {
-      // 直接比较经纬度，points现在应该是包含lon/lat的对象数组
-      if (Math.abs(point.lon - entityLon) < 0.00001 &&
-          Math.abs(point.lat - entityLat) < 0.00001) {
-        entitiesToFlash.push(entity);
+      // 检查该实体是否在需要闪烁的点列表中
+      for (const point of points) {
+        // 添加调试信息
+        console.log("比较坐标:", {
+          pointLon: point.lon,
+          pointLat: point.lat,
+          entityLon: entityLon,
+          entityLat: entityLat,
+          diffLon: Math.abs(point.lon - entityLon),
+          diffLat: Math.abs(point.lat - entityLat)
+        });
 
-        // 创建光晕点
-        haloCollection.value.add({
-          position: position,
-          pixelSize: 15,
-          color: Cesium.Color.RED.withAlpha(0.8),
-          outlineColor: Cesium.Color.RED,
-          outlineWidth: 1,
-          show: true,
-          // 自定义材质用于光晕效果
-          material: new Cesium.Material({
-            fabric: {
-              type: 'Halo',
-              uniforms: {
-                color: Cesium.Color.RED,
-                glowPower: 0.5,
-                innerRadius: 0.5,
-                outerRadius: 1.0
-              },
-              source: `
+        // 放宽比较精度，浮点数比较需要容忍度
+        const tolerance = 0.0001; // 约10米精度
+        if (Math.abs(point.lon - entityLon) < tolerance &&
+            Math.abs(point.lat - entityLat) < tolerance) {
+
+          entitiesToFlash.push(entity);
+          console.log("找到匹配实体:", entity.id);
+
+          // 创建光晕点（简化版本，避免材质问题）
+          const halo = haloCollection.value.add({
+            position: position,
+            pixelSize: 15,
+            color: Cesium.Color.RED,
+            outlineColor: Cesium.Color.RED,
+            outlineWidth: 1,
+            show: true,
+            material: new Cesium.Material({
+              fabric: {
+                type: 'Halo',
+                uniforms: {
+                  color: Cesium.Color.RED,
+                  glowPower: 0.5,
+                  innerRadius: 0.5,
+                  outerRadius: 1.0
+                },
+                source: `
                 uniform vec4 color;
                 uniform float glowPower;
                 uniform float innerRadius;
@@ -507,17 +547,27 @@ const flashDisasterPoints = (points) => {
                   return material;
                 }
               `
-            }
-          })
-        });
-        break;
+              }
+            })
+          });
+
+          // 存储引用以便后续动画
+          halo._entity = entity;
+          break;
+        }
       }
+    } catch (error) {
+      console.error("处理实体时出错:", error, entity);
     }
   });
 
   // 如果没有找到匹配的实体，直接返回
   if (entitiesToFlash.length === 0) {
     console.log("未找到匹配的实体进行闪烁");
+    // 清理资源
+    haloCollection.value.removeAll();
+    viewer.scene.primitives.remove(haloCollection.value);
+    haloCollection.value = null;
     return;
   }
 
@@ -529,12 +579,14 @@ const flashDisasterPoints = (points) => {
 
   // 启动动画循环
   flashInterval.value = setInterval(() => {
+    if (!haloCollection.value) return;
+
     animationTime = (animationTime + 50) % animationDuration;
     const normalizedTime = animationTime / animationDuration;
 
     // 更新所有光晕点的大小和透明度
-    if (haloCollection.value) {
-      for (let i = 0; i < haloCollection.value.length; i++) {
+    for (let i = 0; i < haloCollection.value.length; i++) {
+      try {
         const halo = haloCollection.value.get(i);
 
         // 计算光晕大小（从原始大小到3倍）
@@ -551,21 +603,31 @@ const flashDisasterPoints = (points) => {
             originalColor.blue,
             alphaFactor * 0.8
         );
+      } catch (error) {
+        console.error("更新光晕时出错:", error);
       }
     }
-  }, 50); // 每50ms更新一次
-};
+  }, 50);
+}
 
 // 停止闪烁的函数
 const stopFlashing = () => {
+  console.log("停止闪烁");
+
   if (flashInterval.value) {
     clearInterval(flashInterval.value);
     flashInterval.value = null;
   }
 
   if (haloCollection.value) {
-    haloCollection.value.removeAll();
-    viewer.value.scene.primitives.remove(haloCollection.value);
+    try {
+      haloCollection.value.removeAll();
+      if (viewer && viewer.scene) {
+        viewer.scene.primitives.remove(haloCollection.value);
+      }
+    } catch (error) {
+      console.error("清理光晕时出错:", error);
+    }
     haloCollection.value = null;
   }
 };
