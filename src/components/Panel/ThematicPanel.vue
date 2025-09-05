@@ -68,7 +68,6 @@
 </template>
 
 <script>
-import {getEqOutputMaps} from "@/api/system/damageassessment.js";
 import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
@@ -145,7 +144,7 @@ export default {
           };
           this.isNoData = res.themeData.length === 0;
         });
-        console.log('outputData',this.outputData);
+        console.log('outputData', this.outputData);
       }
       // 专题图/灾情报告：请求数据
       else if (this.isPanelShow.thematicMap || this.isPanelShow.report) {
@@ -171,14 +170,14 @@ export default {
           type: 'instrument',
           themeName: '2022年06月01日四川雅安市芦山县6.1级地震-台网数据',
           themeData: [
-            { imgUrl: "http://10.16.7.69/image/instrument/仪器地震烈度分布图.jpeg", theme: "仪器地震烈度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/台站峰值加速度分布图.jpeg", theme: "台站峰值加速度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/台站峰值速度分布图.jpeg", theme: "台站峰值速度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/台站仪器地震烈度分布图.jpeg", theme: "台站仪器地震烈度分布图" },
-            { imgUrl: "http://10.16.7.69/image/instrument/3.0秒加速度反应谱(gal).jpeg", theme: "3.0秒加速度反应谱(gal)" },
-            { imgUrl: "http://10.16.7.69/image/instrument/1.0秒加速度反应谱(gal).jpeg", theme: "1.0秒加速度反应谱(gal)" },
-            { imgUrl: "http://10.16.7.69/image/instrument/0.3秒加速度反应谱(gal).jpeg", theme: "0.3秒加速度反应谱(gal)" },
-            { imgUrl: "http://10.16.7.69/image/instrument/乡镇仪器地震烈度分布.jpeg", theme: "乡镇仪器地震烈度分布" }
+            {imgUrl: "http://10.16.7.69/image/instrument/仪器地震烈度分布图.jpeg", theme: "仪器地震烈度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/台站峰值加速度分布图.jpeg", theme: "台站峰值加速度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/台站峰值速度分布图.jpeg", theme: "台站峰值速度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/台站仪器地震烈度分布图.jpeg", theme: "台站仪器地震烈度分布图"},
+            {imgUrl: "http://10.16.7.69/image/instrument/3.0秒加速度反应谱(gal).jpeg", theme: "3.0秒加速度反应谱(gal)"},
+            {imgUrl: "http://10.16.7.69/image/instrument/1.0秒加速度反应谱(gal).jpeg", theme: "1.0秒加速度反应谱(gal)"},
+            {imgUrl: "http://10.16.7.69/image/instrument/0.3秒加速度反应谱(gal).jpeg", theme: "0.3秒加速度反应谱(gal)"},
+            {imgUrl: "http://10.16.7.69/image/instrument/乡镇仪器地震烈度分布.jpeg", theme: "乡镇仪器地震烈度分布"}
           ]
         };
       }
@@ -190,9 +189,18 @@ export default {
           type: 'InstrumentIntensity',
           themeName: '2022年06月01日四川雅安市芦山县6.1级地震-仪器烈度数据',
           themeData: [
-            { xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_乡镇仪器烈度报告_IEM.xls", theme: "乡镇仪器烈度报告" },
-            { xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_县市仪器烈度报告_IEM.xls", theme: "县市仪器烈度报告" },
-            { xlsUrl: "http://10.16.7.69/image/instrument/FJ20220601170008_1_烈度速报产品.docx", theme: "仪器烈度速报产品" }
+            {
+              xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_乡镇仪器烈度报告_IEM.xls",
+              theme: "乡镇仪器烈度报告"
+            },
+            {
+              xlsUrl: "http://10.16.7.69/image/instrument/20220601170008_县市仪器烈度报告_IEM.xls",
+              theme: "县市仪器烈度报告"
+            },
+            {
+              xlsUrl: "http://10.16.7.69/image/instrument/FJ20220601170008_1_烈度速报产品.docx",
+              theme: "仪器烈度速报产品"
+            }
           ]
         };
       }
@@ -338,13 +346,13 @@ export default {
             URL.revokeObjectURL(a.href);
           })
           .catch(err => {
-            this.$notify({ title: '下载失败', message: err.message, type: 'error', duration: 5000 });
+            this.$notify({title: '下载失败', message: err.message, type: 'error', duration: 5000});
           });
     },
 
     // 仪器烈度报告下载
     handleInstrumentIntensity(xlsUrl) {
-      this.$notify({ title: '仪器烈度报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '仪器烈度报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       const a = document.createElement('a');
       a.href = xlsUrl;
       a.download = xlsUrl.split('/').pop();
@@ -450,13 +458,16 @@ export default {
   text-align: center;
   align-items: center;
 }
+
 .report-item:hover {
   background-color: #1f5783 !important;
   color: #409eff !important;
 }
+
 .report-item:nth-child(odd) {
   background-color: #313a44;
 }
+
 .report-item:nth-child(even) {
   background-color: #304156;
 }
@@ -480,6 +491,7 @@ h2, p {
   color: #fff;
   margin: 10px;
 }
+
 h2 {
   text-align: center;
 }
@@ -488,9 +500,11 @@ h2 {
 ::-webkit-scrollbar-thumb {
   background-color: #2980b9;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background-color: #3498db;
 }
+
 ::-webkit-scrollbar-track {
   background-color: #2d3d51;
 }
@@ -500,6 +514,7 @@ h2 {
   z-index: 100 !important;
   background-color: #2b323a;
 }
+
 :deep(.cesium-baseLayerPicker-dropDown) {
   right: -5px !important;
 }

@@ -32,48 +32,42 @@ export class PulseTool {
     const disasterTypeMap = {
       "滑坡": "landslide",
       "泥石流": "debris_flow",
-      "暴雨洪水": "torrential_flood",
+      "山洪": "torrential_flood",
       "内涝": "water_logging",
       "堰塞湖": "barrier_lake"
     };
+    // console.log(points)
     points.forEach((pt) => {
       // 跳过无效数据（检查必要字段是否存在）
       if (!pt?.disasterType || !Array.isArray(pt.disaster) ||
           !Array.isArray(pt.level) || !Array.isArray(pt.probability)) {
         return;
       }
-
       // 获取当前disasterType对应的disaster数组元素
       const disasterKey = disasterTypeMap[pt.disasterType];
       if (!disasterKey) {
         console.warn(`未找到与disasterType "${pt.disasterType}" 匹配的映射`);
         return;
       }
-
       // 找到对应的索引（disaster、level、probability数组顺序一一对应）
-      const index = pt.disaster.indexOf(disasterKey);
-      if (index === -1 || index >= pt.level.length || index >= pt.probability.length) {
-        console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
-        return;
-      }
-
+      // const index = pt.disaster.indexOf(disasterKey);
+      // if (index === -1 || index >= pt.level.length || index >= pt.probability.length) {
+      //   console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
+      //   return;
+      // }
       // 获取对应的等级和概率
-      const level = pt.level[index];
-      const probability = pt.probability[index];
+      const level = pt.level[0];
+      const probability = pt.probability[0];
       // 只处理等级为"高"或"中"的情况
       if (level !== '高' && level !== '中') return;
-
       // 生成唯一key（结合entityId和灾害类型确保唯一性）
       const key = `${pt.disasterType}_${pt.entityId}_${disasterKey}`;
-
       // 如果已有脉冲 -> 先删除
       if (this._entityPulseMap[key]) {
         this.deletePulseEntity(key);
       }
-
       // 生成唯一 pulseId，可包含概率信息
       const pulseId = `PULSE_${key}_${Date.now()}_prob${probability}`;
-
       // 创建脉冲圆圈，根据等级设置颜色
       this.createOptimizedPulseCircle(
           pulseId,

@@ -351,6 +351,7 @@ const emit = defineEmits([
   "startLoading",
   "stopLoading",
   "updateEqInfo",
+  "thematicEqInfo",
 ]);
 
 // 添加模拟
@@ -494,7 +495,7 @@ async function confirmEarthquake(formEl) {
             favEllipsePoints.push(inEllipsePoints[i])
           }
         }
-      }
+      };
       if (favEllipsePoints.length!==0){
         const [points, probabilityPoints] =
             await obtainTheProbabilityOfSimulatedPointRisk(favEllipsePoints);
