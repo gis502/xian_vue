@@ -253,6 +253,25 @@ function getLastRainInfo(){
     }
 }
 
+function stopFlashEntities(disasterType) {
+  highRiskEntities.value = highRiskEntities.value.filter(entity =>
+      entity.disasterType !== disasterType
+  );
+  console.log(`已移除 ${disasterType} 类型实体，剩余:`, highRiskEntities.value.length);
+}
+
+function flash(){
+  if(!(showRainLand.value && showRainFlood.value && showRainWater.value && showRainDebrisFlow.value)){
+    stopFlashing();
+  }else{
+    stopFlashing();
+    setTimeout(() => {
+      flashDisasterPoints(highRiskEntities.value);
+    }, 100);
+  }
+}
+
+
 function toggleRainLand(){
   if(showRainLand.value){
     try{
@@ -284,10 +303,9 @@ function toggleRainLand(){
       console.log("error", e)
     }
   }else{
-    stopFlashing();
     dataTypes.type1.data = [];
+    stopFlashEntities("滑坡")
   }
-
 }
 
 function toggleRainDebrisFlow() {
@@ -319,8 +337,8 @@ function toggleRainDebrisFlow() {
       console.log("error", e)
     }
   }else{
-    stopFlashing();
     dataTypes.type2.data = [];
+    stopFlashEntities("泥石流")
   }
 
 }
@@ -354,8 +372,8 @@ function toggleRainWater(){
       console.log("error", e)
     }
   }else{
-    stopFlashing();
     dataTypes.type3.data = [];
+    stopFlashEntities("内涝")
   }
 
 }
@@ -389,8 +407,8 @@ function toggleRainFlood(){
       console.log("error", e)
     }
   }else{
-    stopFlashing();
     dataTypes.type4.data = [];
+    stopFlashEntities("山洪")
   }
 }
 
@@ -449,9 +467,7 @@ function checkEntity(entityData) {
   console.log("高风险实体列表:", highRiskEntities.value);
   console.log("所有实体：", commonEntities);
 
-  setTimeout(() => {
-    flashDisasterPoints(highRiskEntities.value);
-  }, 100);
+  flash();
 
   return commonEntities;
 }
