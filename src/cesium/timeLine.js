@@ -997,6 +997,17 @@ let timeLine = {
     // },
     // //标签显示隐藏
     // //隐藏所有标签
+    HiddenLabels() {
+        let toRemove =  window.labeldataSource.entities.values.filter(
+            e => e.name === '标绘点标签'
+        );
+        if (toRemove) {
+            // 2. 逐个删除
+            toRemove.forEach(entity => {
+                entity.show = false
+            });
+        }
+    },
     markerLabelsHidden(plots) {
         if (window.labeldataSource) {
             console.log(window.labeldataSource,"window.labeldataSource")

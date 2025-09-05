@@ -309,7 +309,7 @@ export default {
         }));
 
       }
-      console.log(this.disasterEvent, "this.disasterEvent")
+      console.log(this.disasterEvent, "this.disasterEvent init")
       if (!this.disasterEvent.occurrenceTime) {
         console.error("Invalid occurrenceTime:", this.disasterEvent.occurrenceTime);
         return;
@@ -684,6 +684,7 @@ export default {
     },
     handleRealDisasterPointUpdate(data) {
       this.realDisasterPoint = data
+      console.log(data,this.realDisasterPoint,"this.realDisasterPoint handleRealDisasterPointUpdate")
     },
     handleRealDisasterPointUpdateWithInfo(data) {
       this.firstStartTimeLine=true
