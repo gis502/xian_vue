@@ -295,7 +295,7 @@ function toggleRainLand(){
               field6: item.lat,
             })
           })
-        }, 2000); // 2000毫秒 = 2秒
+        }, 1500); // 2000毫秒 = 2秒
       })
     }catch (e){
       console.log("error", e)
@@ -327,7 +327,7 @@ function toggleRainDebrisFlow() {
               field6: item.lat,
             })
           })
-        }, 2000);
+        }, 1500);
       })
     }catch (e){
       console.log("error", e)
@@ -360,7 +360,7 @@ function toggleRainWater(){
               field6: item.lat,
             })
           })
-        }, 2000);
+        }, 1500);
       })
     }catch (e){
       console.log("error", e)
@@ -393,7 +393,7 @@ function toggleRainFlood(){
               field6: item.lat,
             })
           })
-        }, 2000);
+        }, 1500);
       })
     }catch (e){
       console.log("error", e)
@@ -436,8 +436,8 @@ function checkEntity(entityData) {
 
       // 检查高风险条件
       const probability = parseFloat(element.probability) || 0;
-      const isHighProbability = probability > 50;
-      const isHighLevel = element.level && element.level.includes("中");
+      const isHighLevel = element.level && element.level.includes("高");
+      const isMidLevel = element.level && element.level.includes("中");
 
       const entityInfo = {
         id: matchedEntity.id,
@@ -451,13 +451,13 @@ function checkEntity(entityData) {
       };
 
       commonEntities.push(entityInfo);
-      if (isHighProbability || isHighLevel) {
+      if (isHighLevel || isMidLevel) {
         highRiskEntities.value.push(entityInfo);
       }
     }
   });
 
-  console.log("高风险实体列表:", highRiskEntities.value);
+  console.log("高/中风险实体列表:", highRiskEntities.value);
   console.log("所有实体：", commonEntities);
 
   flash();
@@ -493,69 +493,43 @@ function flashDisasterPoints(points) {
   viewer.scene.primitives.add(haloCollection.value);
 
   const entitiesToFlash = [];
-
+  let baseColor;
   // 从所有灾害实体中查找匹配的点
   basicLayers.disasterEntities.forEach(entity => {
     try {
       const position = entity.position.getValue(Cesium.JulianDate.now());
-      const cartographic = Cesium.Cartographic.fromCartesian(position);
-      const entityLon = Cesium.Math.toDegrees(cartographic.longitude);
-      const entityLat = Cesium.Math.toDegrees(cartographic.latitude);
 
       // 检查该实体是否在需要闪烁的点列表中
       for (const point of points) {
-        // 添加调试信息
-        console.log("比较坐标:", {
-          pointLon: point.lon,
-          pointLat: point.lat,
-          entityLon: entityLon,
-          entityLat: entityLat,
-          diffLon: Math.abs(point.lon - entityLon),
-          diffLat: Math.abs(point.lat - entityLat)
-        });
-
-        // 放宽比较精度，浮点数比较需要容忍度
-        const tolerance = 0.0001; // 约10米精度
-        if (Math.abs(point.lon - entityLon) < tolerance &&
-            Math.abs(point.lat - entityLat) < tolerance) {
-
+        if (point.id === entity.id) {
+          if (point.riskGrade.includes("高")){
+            // 高风险 - 红色
+            baseColor = Cesium.Color.RED;
+          } else {
+            // 默认颜色
+            baseColor = Cesium.Color.YELLOW;
+          }
           entitiesToFlash.push(entity);
           console.log("找到匹配实体:", entity.id);
 
+          // console.log(baseColor,"ys")
           // 创建光晕点（简化版本，避免材质问题）
           const halo = haloCollection.value.add({
             position: position,
             pixelSize: 15,
-            color: Cesium.Color.RED,
-            outlineColor: Cesium.Color.RED,
+            color: baseColor,
+            outlineColor: baseColor,
             outlineWidth: 1,
             show: true,
             material: new Cesium.Material({
               fabric: {
                 type: 'Halo',
                 uniforms: {
-                  color: Cesium.Color.RED,
+                  color: baseColor,
                   glowPower: 0.5,
                   innerRadius: 0.5,
                   outerRadius: 1.0
-                },
-                source: `
-                uniform vec4 color;
-                uniform float glowPower;
-                uniform float innerRadius;
-                uniform float outerRadius;
-
-                czm_material czm_getMaterial(czm_materialInput materialInput) {
-                  czm_material material = czm_getDefaultMaterial(materialInput);
-                  vec2 st = materialInput.st;
-                  float dist = distance(st, vec2(0.5, 0.5));
-                  float alpha = smoothstep(outerRadius, innerRadius, dist);
-                  alpha = pow(alpha, glowPower);
-                  material.diffuse = color.rgb;
-                  material.alpha = alpha * color.a;
-                  return material;
                 }
-              `
               }
             })
           });
@@ -579,39 +553,26 @@ function flashDisasterPoints(points) {
     haloCollection.value = null;
     return;
   }
-
   console.log(`开始闪烁 ${entitiesToFlash.length} 个实体`);
-
   // 动画控制变量
   let animationTime = 0;
   const animationDuration = 2000; // 动画周期，毫秒
-
   // 启动动画循环
   flashInterval.value = setInterval(() => {
     if (!haloCollection.value) return;
-
     animationTime = (animationTime + 50) % animationDuration;
     const normalizedTime = animationTime / animationDuration;
-
     // 更新所有光晕点的大小和透明度
     for (let i = 0; i < haloCollection.value.length; i++) {
       try {
         const halo = haloCollection.value.get(i);
-
         // 计算光晕大小（从原始大小到3倍）
         const baseSize = 15;
         const sizeFactor = 1.0 + Math.sin(normalizedTime * Math.PI * 2) * 2;
         halo.pixelSize = baseSize * sizeFactor;
-
         // 计算光晕透明度（大小最大时透明度最低）
         const alphaFactor = 1.0 - (sizeFactor - 1.0) / 2.0;
-        const originalColor = Cesium.Color.RED;
-        halo.color = new Cesium.Color(
-            originalColor.red,
-            originalColor.green,
-            originalColor.blue,
-            alphaFactor * 0.8
-        );
+        halo.color = halo.color.withAlpha(alphaFactor);
       } catch (error) {
         console.error("更新光晕时出错:", error);
       }
