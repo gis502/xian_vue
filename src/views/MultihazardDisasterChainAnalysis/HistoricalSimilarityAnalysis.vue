@@ -1,18 +1,24 @@
 <template>
 
-  <div id="cesium-container">
+  <div
+      id="cesium-container"
+      v-loading="loading"
+      element-loading-background="rgba(122, 122, 122, 0.8)">
     <!--历史灾害信息列表-->
     <HistoricalDisasterList
-        :chartDatas="chartDatas"
+        :chartData="chartData"
         :disasterList="disasterList"
-        :rainLevelPoint="rainLevelPoint"
+        @update:levelPoints="handleLevelPoints"
         @displayAnalysis="displayAnalysis"
         @hideAnalysis="hideAnalysis"
+        @createPulseCircle="createPulseCircle"
+        @loadingTrue="loadingTrue"
+        @loadingFalse="loadingFalse"
     ></HistoricalDisasterList>
     <!-- 图例 -->
     <Legend></Legend>
     <!-- chart -->
-    <Chart v-if="showAnalysis" :chartDatas="chartDatas"></Chart>
+    <Chart v-if="showAnalysis" :chartDatas="chartData"></Chart>
     <!-- 历史相似灾害匹配 -->
     <HistoricalDisasterMatch
         v-if="showAnalysis"
@@ -37,11 +43,15 @@ import HistoricalDisasterMatch from "@/components/HistoricalDisaster/HistoricalD
 const showAnalysis = ref(false);
 const disasterList = ref([]);
 const rainLevelPoint = ref([]);
+const loading = ref(false)
 const maxRadius = 30;
 const duration = 5;
 const _circle = createCircleImage(maxRadius);
+const handleLevelPoints = (data) => {
+  rainLevelPoint.value = data;
+  console.log('父组件接收的数据：', rainLevelPoint.value);
+}
 
-console.log("disasterList",disasterList)
 onMounted(async () => {
   window.viewer = initCesium("cesium-container");
   // 调整到指定位置
@@ -56,16 +66,15 @@ onMounted(async () => {
   });
   //加载西安行政区划
   basicLayers.loadAdminData();
-  createOptimizedPulseCircle(rainLevelPoint);
 });
 
 // chart数据
-const chartDatas = reactive({
-  title: "历史地震影响分析",
+const chartData = reactive({
+  title: "",
   xAxis: {
-    data: ["风险源", "医院", "滑坡", "泥石流"],
+    data: [],
   },
-  seriesDatas: [0, 0, 0, 0],
+  seriesData: [],
 });
 
 // 显示chart
@@ -78,7 +87,17 @@ function hideAnalysis() {
   showAnalysis.value = false;
 }
 
-function createOptimizedPulseCircle(rainLevelPoint) {
+// 加载特效
+function loadingTrue() {
+  loading.value = true;
+}
+
+function loadingFalse() {
+  loading.value = false;
+}
+
+//创建脉冲实体
+function createPulseCircle() {
   const startTime = Cesium.JulianDate.now();
   rainLevelPoint.value.forEach(poin => {
     window.viewer.entities.add({
@@ -98,11 +117,13 @@ function createOptimizedPulseCircle(rainLevelPoint) {
           return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
         }, false),
         color: new Cesium.CallbackProperty((time) => {
-          const elapsed =
-              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
-          // const progress = elapsed / duration;
-          // const alpha = 0.7 * (1 - progress);
-          // return color.withAlpha(alpha);
+          const elapsed = Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const progress = elapsed / duration;
+          // 透明度逻辑：与大小反向变化（大小最大时透明，最小时不透明）
+          // Math.abs(Math.sin(progress * Math.PI)) → 0~1（大小系数）
+          // 1 - 系数 → 透明度1~0（大小最大时透明度0.2，最小时0.8，避免完全透明消失）
+          const alpha = 0.8 - 0.6 * Math.abs(Math.sin(progress * Math.PI));
+          return new Cesium.Color(1, 0, 0, alpha); // 红色（RGB：1,0,0）+ 动态透明度
         }, false),
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
@@ -112,6 +133,7 @@ function createOptimizedPulseCircle(rainLevelPoint) {
   })
 }
 
+//创建脉冲图片
 function createCircleImage(maxRadius) {
   // 创建一个虚拟的canvas
   const canvas = document.createElement('canvas');

@@ -1,4 +1,5 @@
 <template>
+
   <div class="history-list">
     <div class="history-nar">
       <div class="history-title">历史灾害信息列表</div>
@@ -88,7 +89,7 @@
 
 <script setup name="historicalDisasterList">
 import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
-import {defineProps, defineEmits, onMounted, reactive, ref, computed} from "vue";
+import {defineProps, defineEmits, onMounted, reactive, ref, computed, watch} from "vue";
 import {getAllDisasterRain, getAllEarthquakeList, getRainAffectPoints} from "@/api/system/disasterEvents.js";
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
@@ -118,8 +119,8 @@ const rainAffectPoints = ref([]);
 const levelPoints = ref([]);
 
 //接收父组件传来的数据
-const { chartDatas, disasterList, rainLevelPoint } = defineProps([
-  "chartDatas",
+const { chartData, disasterList, rainLevelPoint } = defineProps([
+  "chartData",
   "disasterList",
   "rainLevelPoint"
 ]);
@@ -127,8 +128,19 @@ const { chartDatas, disasterList, rainLevelPoint } = defineProps([
 const emit = defineEmits([
   "displayAnalysis",
   "hideAnalysis",
+  "createPulseCircle",
+  'update:levelPoints',
+  "loadingTrue",
+  "loadingFalse"
 ]);
 
+watch(
+    levelPoints,
+    (newVal) => {
+      emit('update:levelPoints', newVal); // 触发事件传递最新值
+    },
+    { deep: true }
+);
 
 const timeRangeOptions = ref([
   { label: '最近一个星期', value: 'week' },
@@ -321,16 +333,18 @@ async function tiggerHistoryDaster(item){
     circle_param.semiMajorAxis = circle.semiMajorAxis;
     circle_param.semiMinorAxis = circle.semiMinorAxis;
     circle_param.rotation = rotation.value;
+    emit("loadingTrue");
+    chartData.title = "地震影响范围统计";
     AllAffectPoints.value = await getAllAffectPoints(circle_param);
     console.log("AllAffectPoints.value",AllAffectPoints.value.data.affectPoints)
     for (let i=0;i<AllAffectPoints.value.data.affectPoints.length;i++){
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="风险源"){
         basicLayers.loadEntities('风险源', AllAffectPoints.value.data.affectPoints[i], dangerSourceIcon)
-        chartDatas.seriesDatas[0] = AllAffectPoints.value.data.affectPoints[i].features.length;
+        chartData.seriesDatas[0] = AllAffectPoints.value.data.affectPoints[i].features.length;
       }
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="医院"){
         basicLayers.loadEntities('医院', AllAffectPoints.value.data.affectPoints[i], hospitalIcon)
-        chartDatas.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
+        chartData.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
       }
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="隐患点"){
         let List = AllAffectPoints.value.data.affectPoints[i].features;
@@ -346,11 +360,16 @@ async function tiggerHistoryDaster(item){
             debrisFlowNum++;
           }
         }
-        chartDatas.seriesDatas[2] = landslideNum;
-        chartDatas.seriesDatas[3] = debrisFlowNum;
+        chartData.xAxis.data[0] = "风险源";
+        chartData.xAxis.data[1] = "医院";
+        chartData.xAxis.data[2] = "滑坡";
+        chartData.xAxis.data[3] = "泥石流";
+        chartData.seriesDatas[2] = landslideNum;
+        chartData.seriesDatas[3] = debrisFlowNum;
       }
     }
     emit("displayAnalysis");
+    emit("loadingFalse");
   }
   if (item.disasterType === "暴雨"){
 
@@ -369,22 +388,19 @@ async function tiggerHistoryDaster(item){
       disasterId: item.disasterId,
       disasterType: "",
     };
-
-    console.log(7845315456897,DTO)
-
+    emit("loadingTrue");
     await getRainAffectPoints(DTO).then(response => {
       rainAffectPoints.value = response.data;
       console.log("获取数据成功",response)
         })
         .catch(error => {
-          console.log("获取报告失败", error)
+          console.log("获取数据失败", error)
         })
     console.log("获取到的暴雨隐患点", rainAffectPoints.value)
     rainAffectPoints.value.pointInfos.forEach(item => {
       if (item.level ==="[高]"||item.level ==="[中]"){
         levelPoints.value.push(item)
       }
-
       if (item.disasterType==="内捞"){
         basicLayers.DrawIcon(item.disasterType,item,waterIcon);
       }else if (item.disasterType==="山洪"){
@@ -395,12 +411,12 @@ async function tiggerHistoryDaster(item){
         basicLayers.DrawIcon(item.disasterType, item,debrisFlowIcon);
       }
     })
-    console.log("452121332132464",levelPoints);
-    Object.assign(rainLevelPoint, levelPoints)
+
+    emit('update:levelPoints', levelPoints.value);
+    emit("createPulseCircle");
+    emit("loadingFalse");
   }
 }
-
-
 </script>
 
 <style scoped lang="scss">

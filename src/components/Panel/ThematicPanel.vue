@@ -112,6 +112,7 @@ export default {
       this.earthquakeFullName = "地震"
       this.eqid = this.$props.earthquakeID.eqId;
       this.eqqueueId = this.$props.earthquakeID.eqqueueId;
+      console.log(45123111,this.eqid,this.eqqueueId)
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
