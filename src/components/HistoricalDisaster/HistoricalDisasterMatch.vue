@@ -6,6 +6,7 @@
   </div>
 
   <el-drawer
+      class="top-title"
       v-model="drawer"
       title="相似历史灾害信息"
       :with-header="true"
@@ -16,7 +17,7 @@
           class="margin-top"
           :column="1"
           border
-          v-for="(disaster, index) in disasterList"
+          v-for="(disaster, index) in disasterMatch"
           :key="index"
       >
         <template #extra>
@@ -70,10 +71,21 @@
 </template>
 
 <script setup lang="ts" name="historicalDisasterMatch">
-import {ref, computed, defineProps, onMounted} from 'vue'
-const drawer = ref(false)
-const { disasterList } = defineProps(["disasterList"]);
-
+import {ref, defineProps, computed} from 'vue'
+const drawer = ref(false);
+const disasterMatch = ref([]);
+const { disasterList, selectDisaster } = defineProps([
+    "disasterList",
+    "selectDisaster"
+]);
+console.log("544646446",disasterList)
+console.log("selectDisaster",selectDisaster)
+for (let i=0;i<disasterList.length; i++){
+  if (disasterList[i].disasterType===selectDisaster.disasterType){
+    disasterMatch.value.push(disasterList[i])
+  }
+}
+console.log("disasterMatch",disasterMatch.value.length)
 </script>
 
 <style scoped lang="scss">
@@ -100,5 +112,17 @@ const { disasterList } = defineProps(["disasterList"]);
 
 .margin-top {
   margin-top: 0;
+}
+
+
+:deep(.el-drawer__header .el-drawer__title) {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+
+:deep(.el-drawer__header) {
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 </style>

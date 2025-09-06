@@ -117,6 +117,7 @@ const AllAffectPoints = ref([]);
 const searchQuery = ref("");
 const rainAffectPoints = ref([]);
 const levelPoints = ref([]);
+const selectDisaster = ref([]);
 
 //接收父组件传来的数据
 const { chartDatas, disasterList, rainLevelPoint } = defineProps([
@@ -130,9 +131,18 @@ const emit = defineEmits([
   "hideAnalysis",
   "createPulseCircle",
   'update:levelPoints',
+  'update:selectDisaster',
   "loadingTrue",
   "loadingFalse"
 ]);
+
+watch(
+    selectDisaster,
+    (newVal) => {
+      emit('update:selectDisaster', newVal); // 触发事件传递最新值
+    },
+    { deep: true }
+);
 
 watch(
     levelPoints,
@@ -316,7 +326,11 @@ const disasterConfig = {
   "泥石流": { icon: debrisFlowIcon, counter: 0 }
 };
 
+// 历史灾害信息列表点击逻辑
 async function tiggerHistoryDaster(item){
+
+  emit('update:selectDisaster', item);
+
   if (item.disasterType === "地震"){
 
     //删除地图上烈度圈
@@ -327,6 +341,9 @@ async function tiggerHistoryDaster(item){
 
     //加载西安断层数据
     basicLayers.addFaultZone();
+
+    //清空数组
+    levelPoints.value = [];
 
     emit("hideAnalysis");
 
@@ -345,37 +362,86 @@ async function tiggerHistoryDaster(item){
     chartDatas.title = "历史地震影响范围统计";
     AllAffectPoints.value = await getAllAffectPoints(circle_param);
     console.log("AllAffectPoints.value",AllAffectPoints.value.data.affectPoints)
-    for (let i=0;i<AllAffectPoints.value.data.affectPoints.length;i++){
-      if (AllAffectPoints.value.data.affectPoints[i].pointType==="风险源"){
-        basicLayers.loadEntities('风险源', AllAffectPoints.value.data.affectPoints[i], dangerSourceIcon)
-        chartDatas.seriesDatas[0] = AllAffectPoints.value.data.affectPoints[i].features.length;
-      }
-      if (AllAffectPoints.value.data.affectPoints[i].pointType==="医院"){
-        basicLayers.loadEntities('医院', AllAffectPoints.value.data.affectPoints[i], hospitalIcon)
-        chartDatas.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
-      }
-      if (AllAffectPoints.value.data.affectPoints[i].pointType==="隐患点"){
-        let List = AllAffectPoints.value.data.affectPoints[i].features;
-        let landslideNum = 0;
-        let debrisFlowNum = 0;
-        for (let i=0; i<List.length; i++){
-          if (List[i].properties.disaster_type === "滑坡"){
-            basicLayers.loadPoint('滑坡', List[i].geometry.coordinates, landslideIcon);
-            landslideNum++;
-          }
-          if (List[i].properties.disaster_type === "泥石流"){
-            basicLayers.loadPoint('泥石流', List[i].geometry.coordinates, debrisFlowIcon)
-            debrisFlowNum++;
+    // 定义配置映射，集中管理类型、图标和图表索引
+    const pointTypeConfig = {
+      "风险源": {
+        icon: dangerSourceIcon,
+        seriesIndex: 0
+      },
+      "医院": {
+        icon: hospitalIcon,
+        seriesIndex: 1
+      },
+      "隐患点": {
+        subTypes: {
+          "滑坡": {
+            icon: landslideIcon,
+            seriesIndex: 2
+          },
+          "泥石流": {
+            icon: debrisFlowIcon,
+            seriesIndex: 3
           }
         }
-        chartDatas.xAxis.data[0] = "风险源";
-        chartDatas.xAxis.data[1] = "医院";
-        chartDatas.xAxis.data[2] = "滑坡";
-        chartDatas.xAxis.data[3] = "泥石流";
-        chartDatas.seriesDatas[2] = landslideNum;
-        chartDatas.seriesDatas[3] = debrisFlowNum;
+      }
+    };
+
+// 初始化图表数据
+    chartDatas.xAxis.data = ["风险源", "医院", "滑坡", "泥石流"];
+    chartDatas.seriesDatas = [0, 0, 0, 0];
+
+// 缓存数据引用，避免重复访问
+    const affectPoints = AllAffectPoints.value.data.affectPoints;
+
+    for (let i = 0; i < affectPoints.length; i++) {
+      const point = affectPoints[i];
+      const type = point.pointType;
+      const config = pointTypeConfig[type];
+
+      if (!config) {
+        console.log(`未处理的点类型: ${type}`);
+        continue;
+      }
+
+      // 处理风险源和医院
+      if (type === "风险源" || type === "医院") {
+        basicLayers.loadEntities(type, point, config.icon);
+        chartDatas.seriesDatas[config.seriesIndex] = point.features?.length || 0;
+      }
+
+      // 处理隐患点
+      if (type === "隐患点") {
+        const features = point.features || [];
+        // 可以在这里初始化子类型计数器，避免重复声明
+        const subTypeCounters = { "滑坡": 0, "泥石流": 0 };
+
+        for (let j = 0; j < features.length; j++) {
+          const feature = features[j];
+          const disasterType = feature.properties.disaster_type;
+          const subConfig = config.subTypes[disasterType];
+
+          if (subConfig) {
+            // 绘制点
+            basicLayers.loadPoint(disasterType, feature.geometry.coordinates, subConfig.icon);
+
+            // 收集坐标点
+            levelPoints.value.push({
+              lon: feature.geometry.coordinates[0],
+              lat: feature.geometry.coordinates[1]
+            });
+
+            // 更新计数器
+            subTypeCounters[disasterType]++;
+          }
+        }
+
+        // 更新图表数据
+        chartDatas.seriesDatas[2] = subTypeCounters["滑坡"];
+        chartDatas.seriesDatas[3] = subTypeCounters["泥石流"];
       }
     }
+    emit('update:levelPoints', levelPoints.value);
+    emit("createPulseCircle");
     emit("displayAnalysis");
     emit("loadingFalse");
   }
@@ -389,6 +455,9 @@ async function tiggerHistoryDaster(item){
 
     //删除实体点
     basicLayers.removeHiddenEntity();
+
+    //清空数组
+    levelPoints.value = [];
 
     emit("hideAnalysis");
 
@@ -441,6 +510,7 @@ async function tiggerHistoryDaster(item){
     emit("loadingFalse");
   }
 }
+
 </script>
 
 <style scoped lang="scss">
