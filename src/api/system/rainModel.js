@@ -41,3 +41,12 @@ export function getRadarData() {
         method: 'get'
     })
 }
+
+// 插入影响数据
+export function impactInsert(data) {
+    return request({
+        url: '/model/impactinsert',
+        method: 'post',
+        data: data,
+    });
+}

@@ -59,7 +59,7 @@ getBreadcrumb();
   margin-left: 8px;
 
   .no-redirect {
-    color: #97a8be;
+    color: #ffffff;
     cursor: text;
   }
 }

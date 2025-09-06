@@ -46,7 +46,8 @@ export default {
     dimensions: {
       type: Array,
       default() {
-        return ['grade', '高', '中', '低'];
+        // return ['grade', '高', '中', '低'];
+        return ['grade', '高', '中'];
       }
     },
     source: {
@@ -56,19 +57,27 @@ export default {
           {
             district: '灞桥区',
             disasters: [
-              {type: '滑坡', '高': 43, '中': 85, '低': 93},
-              {type: '泥石流', '高': 83, '中': 73, '低': 55},
-              {type: '山洪', '高': 86, '中': 65, '低': 82},
-              {type: '内涝', '高': 72, '中': 53, '低': 39}
+              {type: '滑坡', '高': 43, '中': 85,},
+              {type: '泥石流', '高': 83, '中': 73,},
+              {type: '山洪', '高': 86, '中': 65,},
+              {type: '内涝', '高': 72, '中': 53,}
+              // {type: '滑坡', '高': 43, '中': 85, '低': 93},
+              // {type: '泥石流', '高': 83, '中': 73, '低': 55},
+              // {type: '山洪', '高': 86, '中': 65, '低': 82},
+              // {type: '内涝', '高': 72, '中': 53, '低': 39}
             ]
           },
           {
             district: '碑林区',
             disasters: [
-              {type: '滑坡', '高': 12, '中': 35, '低': 43},
-              {type: '泥石流', '高': 5, '中': 13, '低': 25},
-              {type: '山洪', '高': 8, '中': 25, '低': 32},
-              {type: '内涝', '高': 32, '中': 63, '低': 89}
+              {type: '滑坡', '高': 12, '中': 35,},
+              {type: '泥石流', '高': 5, '中': 13,},
+              {type: '山洪', '高': 8, '中': 25,},
+              {type: '内涝', '高': 32, '中': 63,}
+              // {type: '滑坡', '高': 12, '中': 35, '低': 43},
+              // {type: '泥石流', '高': 5, '中': 13, '低': 25},
+              // {type: '山洪', '高': 8, '中': 25, '低': 32},
+              // {type: '内涝', '高': 32, '中': 63, '低': 89}
             ]
           }
         ];
@@ -92,7 +101,7 @@ export default {
       riskColors: {
         '高': '#ff4d4f', // 红色
         '中': '#faad14', // 土黄色
-        '低': '#52c41a'  // 绿色
+        // '低': '#52c41a'  // 绿色
       }
     };
   },
@@ -103,6 +112,7 @@ export default {
     currentDistrictData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
       const endIndex = startIndex + this.pageSize;
+      console.log(this.source)
       return this.source.slice(startIndex, endIndex)[0];
     }
   },

@@ -9,6 +9,7 @@
         :chartDatas="chartDatas"
         :disasterList="disasterList"
         @update:levelPoints="handleLevelPoints"
+        @update:selectDisaster="handSelectDisaster"
         @displayAnalysis="displayAnalysis"
         @hideAnalysis="hideAnalysis"
         @createPulseCircle="createPulseCircle"
@@ -23,6 +24,7 @@
     <HistoricalDisasterMatch
         v-if="showAnalysis"
         :disasterList="disasterList"
+        :selectDisaster="selectDisaster"
     ></HistoricalDisasterMatch>
 
   </div>
@@ -44,14 +46,18 @@ const showAnalysis = ref(false);
 const disasterList = ref([]);
 const rainLevelPoint = ref([]);
 const loading = ref(false)
+const selectDisaster = ref([])
 const maxRadius = 30;
 const duration = 5;
 const _circle = createCircleImage(maxRadius);
 const handleLevelPoints = (data) => {
   rainLevelPoint.value = data;
-  console.log('父组件接收的数据：', rainLevelPoint.value);
+  console.log('父组件接收的数据12121212121：', rainLevelPoint.value);
 }
-
+const handSelectDisaster = (data) => {
+ selectDisaster.value = data;
+  console.log('父组件接收的数据43434343434：', selectDisaster.value);
+}
 onMounted(async () => {
   window.viewer = initCesium("cesium-container");
   // 调整到指定位置
@@ -171,4 +177,5 @@ function createCircleImage(maxRadius) {
   margin: 0;
   position: relative;
 }
+
 </style>
