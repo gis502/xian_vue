@@ -39,7 +39,7 @@
 </template>
 
 <script lang="js" setup name="CarrierInformationExtraction">
-import { onMounted, ref, onUnmounted } from "vue";
+import { onMounted, ref, onUnmounted, watch } from "vue";
 import { useDisasterData } from "../../api/hooks/useDisasterData";
 import { useChart } from "../../api/hooks/useChart";
 
@@ -75,13 +75,16 @@ const handleResize = () => {
 };
 
 onMounted(() => {
-    query();
     window.addEventListener('resize', handleResize);
 });
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
 });
+
+watch(form, (newValue, oldValue) => {
+    query();
+}, { deep: true })
 </script>
 
 <style scoped>
