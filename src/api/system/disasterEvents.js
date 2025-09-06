@@ -39,10 +39,19 @@ export function getRainPeriodInfoByDisasterId(data){
     })
 }
 
-export function getPlotInfos(query) {
+export function getEarthquakeListByKey(queryValue){
     return request({
-        url: '/system/ploy/getplotinfo',
+        url: '/XianEarthquakeList/getEarthquakeListByKey',
         method: 'get',
-        params: query
+        params: queryValue
     })
+}
+
+export function getDisasterRainByKey(queryValue){
+    return request({
+        url: '/XianDisasterRain/getDisasterRainByKey',
+        method: 'get',
+        params: queryValue
+    })
+
 }

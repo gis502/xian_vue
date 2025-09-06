@@ -46,6 +46,7 @@
         :disasterEvent="disasterEvent"
         :currentTime="currentTimeString"
         :RealDisasterPlots="realDisasterPoint"
+        :firstStartTimeLine="firstStartTimeLine"
     />
     <timeLineLayer
         :viewer="viewer"
@@ -231,6 +232,7 @@ export default {
         {rainfall: 100, duration: 2, name: "长安区"}
       ],
       rainEffect: null,
+      firstStartTimeLine:false,
     };
   },
   computed: {
@@ -297,13 +299,13 @@ export default {
 
         // 组装 rainInfo
         let rainfallArr = this.disasterEvent.rainfall.split(",");
-        let durationArr = this.disasterEvent.duration.split(",");
+        // let durationArr = this.disasterEvent.duration.split(",");
         let positionArr = this.disasterEvent.position.split(",");
 
         this.rainInfo = positionArr.map((name, index) => ({
           name,
           rainfall: Number(rainfallArr[index]),
-          duration: Number(durationArr[index])
+          // duration: Number(durationArr[index])
         }));
 
       }
@@ -684,6 +686,7 @@ export default {
       this.realDisasterPoint = data
     },
     handleRealDisasterPointUpdateWithInfo(data) {
+      this.firstStartTimeLine=true
       console.log(data, "handleRealDisasterPointUpdate")
 
 
