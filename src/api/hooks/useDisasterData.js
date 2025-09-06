@@ -9,6 +9,7 @@ export const useDisasterData = () => {
   const fetchDisasterNames = () => {
     CarrierInformation.getDisasterNames().then((res) => {
       disasterNames.value = res;
+      form.value.disasterId = res.length > 0 ? res[0].disasterId : null;
     });
   };
   
