@@ -29,6 +29,10 @@ import storePointsIcon from "@/assets/images/storePoints.jpg"
 import shelterIcon from "@/assets/images/emergencyShelter.png"
 import schoolIcon from "@/assets/images/school.png"
 import eqMark from "@/assets/images/eqMark.png"
+import bridgeIcon from "@/assets/images/bridge.png"
+import reservoirIcon from "@/assets/images/reservoir.png"
+import subwayIcon from "@/assets/images/subway.png"
+
 import {dataOnHiddenDangerPointsOfDebrisFlow, landslideHazardPointData, riskVillageData,} from "@/api/earthquake/datas";
 import {
     getDangerous,
@@ -43,7 +47,7 @@ import {
     getSlide, //滑坡
     getRisk,
     getFlood,
-    getWaterDetail
+    getWaterDetail, getBridge, getReservoir, getSubway
 } from "@/api/system/aroundanalysis.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {getAllEarthquakeList} from "@/api/system/disasterEvents.js";
@@ -69,6 +73,9 @@ let basicLayers = {
     landslidePoints: [],//滑坡点
     nishiliuPoints: [],//泥石流点
     dangerPoints: [],//危险区点
+    subwayEntities: [],
+    reservoirEntities: [],
+    bridgeEntities: [],
     flashFloodPoints: [],//山洪点
     waterPoints: [],
     hospitalPoints: [],//医院点
@@ -77,6 +84,9 @@ let basicLayers = {
     storePoints: [],//储备站点
     dangerSourcePoints: [],//危险源点
     schoolPoints: [],
+    bridgePoints: [],
+    subwayPoints: [],
+    reservoirPoints: [],
     landSlideData: null, //滑坡数据
     debrisFlowData: null, //泥石流数据
     waterData: null, //内涝数据
@@ -87,6 +97,9 @@ let basicLayers = {
     fireFighterData: null,
     dangerSourceData: null,
     schoolData: null,
+    bridgeData: null,
+    subwayData: null,
+    reservoirData: null,
     historicalEarthquakeData: null,//历史数据
     peopleLayer: null, //人口网格
     cropsLayer: null,   //农田网格
@@ -457,6 +470,27 @@ let basicLayers = {
             this.schoolPoints = this.loadEntities('学校', res.data, schoolIcon);
         })
     },
+    async loadBridge(){
+        getBridge().then((res) => {
+            console.log(113, res.data);
+            this.bridgeData = res.data;
+            this.bridgePoints = this.loadEntities('桥梁', res.data, bridgeIcon);
+        })
+    },
+    async loadReservoir(){
+        getReservoir().then((res) => {
+            console.log(113, res.data);
+            this.reservoirData = res.data;
+            this.reservoirPoints = this.loadEntities('水库', res.data, reservoirIcon);
+        })
+    },
+    async loadSubway(){
+        getSubway().then((res) => {
+            console.log(113, res.data);
+            this.subwayData = res.data;
+            this.subwayPoints = this.loadEntities('地铁站', res.data, subwayIcon);
+        })
+    },
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
         let disasterPoints = [];
         hiddenDangerPoints.forEach((hiddenDangerPoint) => {
@@ -555,14 +589,25 @@ let basicLayers = {
                 else if(type == '学校'){
                     this.schoolEntities.push(entity);
                 }
-                else if(type == '风险区'){}
+                else if(type == '风险区'){
+
+                }
+                else if(type == '桥梁'){
+                    this.bridgeEntities.push(entity);
+                }
+                else if(type == '水库'){
+                    this.reservoirEntities.push(entity);
+                }
+                else if(type == '地铁站'){
+                    this.subwayEntities.push(entity);
+                }
                 else{
                     this.disasterEntities.push(entity);
                 }
             })
             return points;
         }catch(error){
-            console.error("处理点数据失败.")
+            console.error("处理点数据失败.", error);
         }
     },
 
@@ -634,15 +679,6 @@ let basicLayers = {
     },
     addHighwayLayer(){
         this.highwayLayer = this.addLayers(this.highwayLayerName);
-    },
-    addBridgeLayer(){
-        this.bridgeLayer = this.addLayers(this.bridgeLayerName);
-    },
-    addReservoirLayer(){
-        this.reservoirLayer = this.addLayers(this.reservoirLayerName);
-    },
-    addSubway(){
-        this.subwayLayer = this.addLayers(this.subwayLayerName);
     },
     addNationalRoad(){
         this.nationalRoadLayer = this.addLayers(this.nationalRoadLayerName);

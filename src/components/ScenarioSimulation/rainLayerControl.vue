@@ -287,11 +287,13 @@ function toggleRoad(){
 
 //控制桥梁显示
 function toggleBridge(){
-  if(basicLayers.bridgeLayer == null && showBridge.value) {
-    basicLayers.addBridgeLayer();
-    setupLayerClickHandler();
+  if(basicLayers.bridgeEntities.length === 0 && showBridge.value) {
+    basicLayers.loadBridge();
+    props.setupEntityClickHandler();
   }else{
-    basicLayers.bridgeLayer.show = showBridge.value;
+    basicLayers.bridgeEntities.forEach(entity => {
+      entity.show = showBridge.value;
+    });
   }
 }
 
@@ -317,21 +319,25 @@ function toggleNationalRoad(){
 
 //控制水库显示
 function toggleReservoir(){
-  if(basicLayers.reservoirLayer == null && showReservoir.value) {
-    basicLayers.addReservoirLayer();
-    setupLayerClickHandler();
+  if(basicLayers.reservoirEntities.length === 0 && showReservoir.value) {
+    basicLayers.loadReservoir();
+    props.setupEntityClickHandler();
   }else{
-    basicLayers.reservoirLayer.show = showReservoir.value;
+    basicLayers.reservoirEntities.forEach(entity => {
+      entity.show = showReservoir.value;
+    });
   }
 }
 
 //控制地铁站显示
 function toggleSubway(){
-  if(basicLayers.subwayLayer == null && showSubway.value) {
-    basicLayers.addSubway();
-    setupLayerClickHandler();
+  if(basicLayers.subwayEntities.length === 0 && showSubway.value) {
+    basicLayers.loadSubway();
+    props.setupEntityClickHandler();
   }else{
-    basicLayers.subwayLayer.show = showSubway.value;
+    basicLayers.subwayEntities.forEach(entity => {
+      entity.show = showSubway.value;
+    });
   }
 }
 

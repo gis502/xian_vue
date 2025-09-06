@@ -105,3 +105,24 @@ export function getSchool() {
         method: 'get'
     })
 }
+
+export function getReservoir(){
+    return request({
+        url: '/around/getReservoir',
+        method: 'get'
+    })
+}
+
+export function getBridge() {
+    return request({
+        url: '/around/getBridge',
+        method: 'get'
+    })
+}
+
+export function getSubway() {
+    return request({
+        url: '/around/getSubway',
+        method: 'get'
+    })
+}

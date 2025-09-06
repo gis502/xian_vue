@@ -37,6 +37,9 @@
     transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
         @click.stop="stopPropagation">
       <div class="popup-header">
+        <h3 v-if="selectedEntityData.properties.disasterName">{{
+            selectedEntityData.properties.disasterName || '隐患点'
+          }} </h3>
         <h3 v-if="selectedEntityData.properties.teamName">{{
             selectedEntityData.properties.teamName || '消防站'
           }} </h3>
@@ -52,6 +55,15 @@
         <h3 v-if="selectedEntityData.properties.shelterName">{{
             selectedEntityData.properties.shelterName || '避难所'
           }} </h3>
+        <h3 v-if="selectedEntityData.properties.stationName">{{
+            selectedEntityData.properties.stationName || '地铁站'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.bridgeName">{{
+            selectedEntityData.properties.bridgeName || '桥梁'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.reservoirName">{{
+            selectedEntityData.properties.reservoirName || '水库'
+          }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
@@ -60,6 +72,18 @@
           <tr v-if="selectedEntityData.properties.disasterType">
             <th>灾害类型</th>
             <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.disasterName">
+            <th>名称</th>
+            <td>{{ selectedEntityData.properties.disasterName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.bridgeName">
+            <th>桥梁名称</th>
+            <td>{{ selectedEntityData.properties.bridgeName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.reservoirName">
+            <th>水库名称</th>
+            <td>{{ selectedEntityData.properties.reservoirName || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.unitCode">
             <th>统一编号</th>
@@ -93,6 +117,22 @@
             <th>避难所名称</th>
             <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.stationName">
+            <th>地铁站名称</th>
+            <td>{{ selectedEntityData.properties.stationName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.referToWater">
+            <th>参照积水点</th>
+            <td>{{ selectedEntityData.properties.referToWater || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.depthOfWater">
+            <th>积水深度</th>
+            <td>{{ selectedEntityData.properties.depthOfWater || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.accumulatedWaterAfterAccounting">
+            <th>核算后积水深度</th>
+            <td>{{ selectedEntityData.properties.accumulatedWaterAfterAccounting || '未知' }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.level">
             <th>级别</th>
             <td>{{ selectedEntityData.properties.level }}</td>
@@ -100,6 +140,14 @@
           <tr v-if="selectedEntityData.properties.enterpriseType">
             <th>危险源类型</th>
             <td>{{ selectedEntityData.properties.enterpriseType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.bridgeType">
+            <th>桥梁类型</th>
+            <td>{{ selectedEntityData.properties.bridgeType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.techType">
+            <th>技术类型</th>
+            <td>{{ selectedEntityData.properties.techType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.teamType">
             <th>消防站类型</th>
@@ -120,6 +168,14 @@
           <tr v-if="selectedEntityData.properties.position">
             <th>地理位置</th>
             <td>{{ selectedEntityData.properties.position || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.location">
+            <th>地理位置</th>
+            <td>{{ selectedEntityData.properties.location || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.safetyLv">
+            <th>安全等级</th>
+            <td>{{ selectedEntityData.properties.safetyLv || '未知' }}</td>
           </tr>
           <tr>
             <th>经度</th>
@@ -2121,13 +2177,20 @@ export default {
   color: #333;
 }
 
-.popup-header button {
-  background: none;
+button {
+  background-color: #3c86ff;
+  color: white;
   border: none;
-  font-size: 14px; /* 减小关闭按钮大小 */
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  color: #6c757d;
-  transition: color 0.2s;
+  transition: background-color 0.3s ease;
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
 }
 
 .popup-header button:hover {
