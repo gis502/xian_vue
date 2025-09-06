@@ -558,7 +558,7 @@ let layers = {
     //预警点闪烁
     flashHiddenDisasterPoints(entities, pulse) {
         pulse = pulse || new PulseTool(window.viewer);
-        // console.log("传输过来的闪烁预警点实体是：", entities);
+        console.log("传输过来的闪烁预警点实体是：", entities);
         if (!entities || entities.length === 0) return;
         pulse.createPause(entities);
     },

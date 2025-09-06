@@ -5,6 +5,7 @@
     <HistoricalDisasterList
         :chartDatas="chartDatas"
         :disasterList="disasterList"
+        :rainLevelPoint="rainLevelPoint"
         @displayAnalysis="displayAnalysis"
         @hideAnalysis="hideAnalysis"
     ></HistoricalDisasterList>
@@ -32,8 +33,13 @@ import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
 import HistoricalDisasterMatch from "@/components/HistoricalDisaster/HistoricalDisasterMatch.vue";
 
+
 const showAnalysis = ref(false);
 const disasterList = ref([]);
+const rainLevelPoint = ref([]);
+const maxRadius = 30;
+const duration = 5;
+const _circle = createCircleImage(maxRadius);
 
 console.log("disasterList",disasterList)
 onMounted(async () => {
@@ -50,6 +56,7 @@ onMounted(async () => {
   });
   //加载西安行政区划
   basicLayers.loadAdminData();
+  createOptimizedPulseCircle(rainLevelPoint);
 });
 
 // chart数据
@@ -69,6 +76,66 @@ function displayAnalysis() {
 // 隐藏chart
 function hideAnalysis() {
   showAnalysis.value = false;
+}
+
+function createOptimizedPulseCircle(rainLevelPoint) {
+  const startTime = Cesium.JulianDate.now();
+  rainLevelPoint.value.forEach(poin => {
+    window.viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(poin.lon, poin.lat),
+      billboard: {
+        image: _circle,
+        width: new Cesium.CallbackProperty((time) => {
+          const elapsed =
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const progress = elapsed / duration;
+          return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
+        }, false),
+        height: new Cesium.CallbackProperty((time) => {
+          const elapsed =
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const progress = elapsed / duration;
+          return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
+        }, false),
+        color: new Cesium.CallbackProperty((time) => {
+          const elapsed =
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          // const progress = elapsed / duration;
+          // const alpha = 0.7 * (1 - progress);
+          // return color.withAlpha(alpha);
+        }, false),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+      },
+    });
+  })
+}
+
+function createCircleImage(maxRadius) {
+  // 创建一个虚拟的canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = maxRadius * 2;
+  canvas.height = maxRadius * 2;
+  const context = canvas.getContext('2d');
+
+  // 清空canvas，确保背景透明
+  context.clearRect(0, 0, maxRadius, maxRadius);
+
+  // 开始绘制圆
+  context.beginPath();
+  // 绘制圆，arc参数说明：x,y,半径,起始角度,结束角度,顺时针/逆时针
+  // 绘制圆从canvas中心开始绘制，所以x,y坐标都为maxRadius
+  // 半径为maxRadius
+  context.arc(maxRadius, maxRadius, maxRadius, 0, Math.PI * 2, false);
+
+  // 闭合路径
+  context.closePath();
+
+  // 填充颜色，透明
+  context.fillStyle = 'rgba(255,255,255,0.7)';
+  context.fill();
+  return canvas.toDataURL('image/png');
 }
 
 </script>

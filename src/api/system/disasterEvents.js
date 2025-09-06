@@ -55,3 +55,11 @@ export function getDisasterRainByKey(queryValue){
     })
 
 }
+
+export function getRainAffectPoints(disasterParam){
+    return request({
+        url: '/HistoricalSimilarityAnalysis/rainAffect/get',
+        method: 'post',
+        data: disasterParam
+    })
+}

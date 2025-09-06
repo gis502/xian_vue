@@ -87,10 +87,9 @@
 </template>
 
 <script setup name="historicalDisasterList">
-
 import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
 import {defineProps, defineEmits, onMounted, reactive, ref, computed} from "vue";
-import {getAllDisasterRain, getAllEarthquakeList} from "@/api/system/disasterEvents.js";
+import {getAllDisasterRain, getAllEarthquakeList, getRainAffectPoints} from "@/api/system/disasterEvents.js";
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
 import {getAllAffectPoints} from "@/api/earthquake/datas.js";
@@ -98,6 +97,8 @@ import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
 import landslideIcon from "@/assets/images/landslide.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
+import flashIcon from "@/assets/images/flashflood.png"
+import waterIcon from "@/assets/images/water.jpg"
 
 
 const tableData = ref([])
@@ -113,11 +114,14 @@ const ellipseParams = ref([]);
 const rotation = ref(0);
 const AllAffectPoints = ref([]);
 const searchQuery = ref("");
+const rainAffectPoints = ref([]);
+const levelPoints = ref([]);
 
 //接收父组件传来的数据
-const { chartDatas, disasterList } = defineProps([
+const { chartDatas, disasterList, rainLevelPoint } = defineProps([
   "chartDatas",
-  "disasterList"
+  "disasterList",
+  "rainLevelPoint"
 ]);
 //接收父组件传来的方法
 const emit = defineEmits([
@@ -361,9 +365,41 @@ async function tiggerHistoryDaster(item){
 
     emit("hideAnalysis");
 
-    console.log("暴雨逻辑实现")
+    const DTO = {
+      disasterId: item.disasterId,
+      disasterType: "",
+    };
+
+    console.log(7845315456897,DTO)
+
+    await getRainAffectPoints(DTO).then(response => {
+      rainAffectPoints.value = response.data;
+      console.log("获取数据成功",response)
+        })
+        .catch(error => {
+          console.log("获取报告失败", error)
+        })
+    console.log("获取到的暴雨隐患点", rainAffectPoints.value)
+    rainAffectPoints.value.pointInfos.forEach(item => {
+      if (item.level ==="[高]"||item.level ==="[中]"){
+        levelPoints.value.push(item)
+      }
+
+      if (item.disasterType==="内捞"){
+        basicLayers.DrawIcon(item.disasterType,item,waterIcon);
+      }else if (item.disasterType==="山洪"){
+        basicLayers.DrawIcon(item.disasterType,item,flashIcon);
+      }else if (item.disasterType==="滑坡"){
+        basicLayers.DrawIcon(item.disasterType, item,landslideIcon);
+      }else {
+        basicLayers.DrawIcon(item.disasterType, item,debrisFlowIcon);
+      }
+    })
+    console.log("452121332132464",levelPoints);
+    Object.assign(rainLevelPoint, levelPoints)
   }
 }
+
 
 </script>
 
