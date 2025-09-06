@@ -7,7 +7,7 @@
         :class="{ 'red-highlight': entry.rainfall > 30 }">
         <!--        <label class="form-label district-label">区县:</label>-->
         <span class="district-name">{{ entry.name }}</span>
-        <label :for="'rainfall-' + index" class="form-label rain-label">降雨量:</label>
+        <label :for="'rainfall-' + index" class="form-label rain-label">累积12小时降雨量:</label>
         <input style="margin-right: 10px;" v-model.number="entry.rainfall" type="number" min="0" max="500" step="1"
           :id="'rainfall-' + index" />
         <span style="margin-right: 20px;">毫米</span>
@@ -92,6 +92,57 @@ const rainfallArry = ref([])
 // const durationArry = ref([])
 const rainType = ref('T')
 const matchedHiddenHighlightEntities = ref([])
+let area = reactive({
+  '灞桥区': {
+    longitude: 109.12523366264605,
+    latitude: 34.302601231374936
+  },
+  '碑林区': {
+    longitude: 108.95711992089143,
+    latitude: 34.25257505041645
+  },
+  '长安区': {
+    longitude: 108.9364817091645,
+    latitude: 34.069790246211475
+  },
+  '高陵区': {
+    longitude: 109.06326392615283,
+    latitude: 34.50082619715896
+  },
+  '鄠邑区': {
+    longitude: 108.5221255023836,
+    latitude: 34.0132825050398
+  },
+  '蓝田县': {
+    longitude: 109.45508618489026,
+    latitude: 34.08207085488606
+  },
+  '莲湖区': {
+    longitude: 108.9039622067026,
+    latitude: 34.27250198183504
+  },
+  '临潼区': {
+    longitude: 109.28695751276935,
+    latitude: 34.479725714836256
+  },
+  '未央区': {
+    longitude: 108.91858149817126,
+    latitude: 34.34314806899305
+  },
+  '阎良区': {
+    longitude: 109.29616718893581,
+    latitude: 34.66841441751671
+  },
+  '雁塔区': {
+    longitude: 108.93317173586165,
+    latitude: 34.21577280957614
+  },
+  '周至县': {
+    longitude: 108.1020792556726,
+    latitude: 33.974619753671824
+  }
+})
+
 
 // Computed
 const styleObject = computed(() => {
@@ -126,6 +177,32 @@ function updateEntryDistrict(position){
 }
 
 const confirmRainPoint = async () => {
+  emit('update:handle-step-status',2)
+  // console.log(entries.value,111);
+  // 找到降雨量最大的区域
+  let maxRainfallEntry = entries.value.reduce((max, current) => {
+    return (current.rainfall > max.rainfall) ? current : max;
+  }, entries.value[0]);
+
+  // console.log('降雨量最大的区域:', maxRainfallEntry.name, '降雨量:', maxRainfallEntry.rainfall);
+
+  // 获取对应区域的经纬度坐标
+  let targetArea = area[maxRainfallEntry.name];
+
+  let destination = Cesium.Cartesian3.fromDegrees(
+      targetArea.longitude,
+      targetArea.latitude,
+      50000 // 高度设置为50000米，可根据需要调整
+    );
+
+  window.viewer.camera.setView({
+    destination: destination,
+    orientation: {
+      heading: Cesium.Math.toRadians(0),
+      pitch: Cesium.Math.toRadians(-90),
+      roll: 0.0
+    }
+  });
   // console.log("确认添加数据：", entries.value)
   emit('update:update-rain-info', entries.value)
   if (!props.selectedPositionLonAndLat) return
@@ -159,7 +236,6 @@ const confirmRainPoint = async () => {
   let res = await saveRain(requestData)
   console.log(res, "saveRain")
   emit("passRainId",res.data.rainDisasterId)
-
   if (adminArea.value) {
     let entity = {
       position: adminArea.value.name,
@@ -177,6 +253,7 @@ const confirmRainPoint = async () => {
     await processAllDistricts()
     emit('update:loading-model', false)
     emit('update:show-info-panel', false)
+
   } else {
     console.log("未找到标记点所在的行政区划")
   }
@@ -196,6 +273,7 @@ const processAllDistricts = async () => {
     allMatchedHuapoData.push(...matchedHuapoData)
     Array.from(pointSet).forEach(key => allPointSet.add(key))
   }
+  console.log(allPointSet,123)
   console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet)
   let matchedHuapoEntities = await caculateRainSlideTrigger(allMatchedHuapoData, allPointSet)
   emit('update:matched-huapo-entities', matchedHuapoEntities)
@@ -206,6 +284,8 @@ const processAllDistricts = async () => {
 
 const cancelRainPoint = () => {
   emit('update:show-info-panel', false)
+  emit('update:handle-step-status', 0)
+  emit('update:handle-rain-cancel')
   // 重置所有输入值
   entries.value.forEach(entry => {
     entry.rainfall = 0
@@ -384,10 +464,6 @@ onMounted(() => {
   margin: 0 10px;
   min-width: 50px;
   display: inline-block;
-}
-
-.rain-label {
-  width: 80px;
 }
 
 /*.duration-label {
