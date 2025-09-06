@@ -6,17 +6,19 @@
       <el-button type="info" round @click="downloadReport">灾情报告</el-button>
     </div>
 
-
     <!-- 功能面板：专题图/报告/仪器数据等 -->
-     <div class="eqPanel" v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
+    <div class="eqPanel"
+         v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
       <h2>{{ outputData.themeName }}</h2>
       <!-- 无数据提示 -->
-      <div style="width: 100%;height: calc(100% - 120px);text-align: center;color: #fff;font-size: 16px" v-if="isNoData">
+      <div style="width: 100%;height: calc(100% - 0px);text-align: center;color: #fff;font-size: 16px"
+           v-if="isNoData">
         该地震暂无评估图件产出
       </div>
 
       <!-- 专题图/仪器图展示（带下载/预览） -->
       <div class="mapItem" v-if="outputData.type === `thematicMap` || outputData.type === `instrument`">
+
         <div v-for="(item, index) in outputData.themeData" :key="index" class="map-item"
              @mouseenter="handleOpen(index)" @mouseleave="handleClose()">
           <!-- 鼠标悬浮显示的操作按钮 -->
@@ -29,10 +31,10 @@
         </div>
       </div>
 
-
       <!-- 灾情报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `report`">
-        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleDownloadReport(item.docxUrl)">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item"
+             @click="handleDownloadReport(item.docxUrl)">
           <img src="../../assets/images/wordIcon.png" style="margin-right: 50px">
           {{ item.theme }}
         </div>
@@ -40,7 +42,8 @@
 
       <!-- 辅助决策报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `AssistantDecision`">
-        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleJueCeReport(item.docxUrl)">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item"
+             @click="handleJueCeReport(item.docxUrl)">
           <img src="../../assets/images/wordIcon.png" style="margin-right: 20px">
           {{ item.theme }}
         </div>
@@ -48,7 +51,8 @@
 
       <!-- 仪器烈度报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `InstrumentIntensity`">
-        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item" @click="handleInstrumentIntensity(item.xlsUrl)">
+        <div v-for="(item, index) in outputData.themeData" :key="index" class="report-item"
+             @click="handleInstrumentIntensity(item.xlsUrl)">
           <img src="../../assets/images/wordIcon.png" style="margin-right: 50px">
           {{ item.theme }}
         </div>
@@ -58,7 +62,7 @@
     <!-- 图片预览弹窗 -->
     <div class="thematicMapPreview" v-if="isPreviewShow">
       <h2>{{ imgName }}</h2>
-      <img :src="imgUrl" style="width: 95%; height: 80%;">
+      <img :src="imgUrl" style="width: 80%; height: 80%;">
       <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
         <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
         <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
@@ -72,10 +76,13 @@ import {handleOutputData} from "@/api/system/eqThemes.js";
 
 export default {
   //接收父组件传来的数据
-  props:{
-    thematicMaps: Array,
-    disasterReports: Array,
-    earthquakeID: Object
+  props: {
+    eqRequests: {
+      type: Object,
+      eqId: null,
+      eqqueueId: null,
+      earthquakeFullName: null
+    }
   },
   components: {},
   data() {
@@ -108,11 +115,10 @@ export default {
   },
   methods: {
     //初始化方法
-    init(){
-      this.earthquakeFullName = "地震"
-      this.eqid = this.$props.earthquakeID.eqId;
-      this.eqqueueId = this.$props.earthquakeID.eqqueueId;
-      console.log(45123111,this.eqid,this.eqqueueId)
+    init() {
+      this.eqid = this.eqRequests.eqId;
+      this.eqqueueId = this.eqRequests.eqqueueId;
+      this.earthquakeFullName = this.eqRequests.earthquakeFullName;
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
@@ -274,11 +280,11 @@ export default {
 
     // 图片下载（支持预览弹窗/列表项下载）
     handleDownloadMap(imgUrl) {
-      this.$notify({ title: '专题图下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '专题图下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       const imageUrl = imgUrl || this.imgUrl;
 
       if (!imageUrl) {
-        this.$notify({ title: '错误', message: '图片 URL 不存在，无法下载', type: 'error', duration: 5000 });
+        this.$notify({title: '错误', message: '图片 URL 不存在，无法下载', type: 'error', duration: 5000});
         return;
       }
 
@@ -298,7 +304,7 @@ export default {
             URL.revokeObjectURL(a.href);
           })
           .catch(err => {
-            this.$notify({ title: '错误', message: '图片下载失败，请检查 URL 或网络连接', type: 'error', duration: 5000 });
+            this.$notify({title: '错误', message: '图片下载失败，请检查 URL 或网络连接', type: 'error', duration: 5000});
             console.error('下载失败:', err);
           });
     },
@@ -317,7 +323,7 @@ export default {
 
     // 灾情报告下载
     handleDownloadReport(docxUrl) {
-      this.$notify({ title: '灾情报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '灾情报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       const a = document.createElement('a');
       a.href = docxUrl;
       a.download = docxUrl.split('/').pop();
@@ -328,10 +334,10 @@ export default {
 
     // 辅助决策报告下载（带Token认证）
     handleJueCeReport(docxUrl) {
-      this.$notify({ title: '辅助决策报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999 });
+      this.$notify({title: '辅助决策报告下载', message: '数据正在解析中...', duration: 7000, zIndex: 9999});
       fetch(docxUrl, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token') || ''}`}
       })
           .then(res => {
             if (!res.ok) throw new Error(`下载失败: ${res.status}`);
@@ -478,13 +484,13 @@ export default {
   position: absolute;
   width: 75%;
   transform: translateX(-50%);
-  left: calc(0.5 * (100% - 333px));
+  left: calc(0.5 * (100% - 0px));
   top: 50px;
-  height: calc(100% - 20px);
+  height: calc(100% - 100px);
   text-align: center;
   background-color: #2d3d51;
   border-radius: 10px;
-  z-index: 2000;
+  z-index: 3000;
 }
 
 /* 基础文本样式（统一白色） */

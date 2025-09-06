@@ -9,6 +9,15 @@ export function rainSlideTrigger(data) {
     });
 }
 
+export function SeismicSlideTrigger(data) {
+    return request({
+        url: '/model/eq/trigger',
+        method: 'post',
+        data: data,
+        timeout:50000
+    });
+}
+
 export function rainSlideFactorUpdata(data) {
     return request({
         url: '/model/rainSlideFactorUpdata',
