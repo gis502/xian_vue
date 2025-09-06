@@ -589,14 +589,14 @@ let basicLayers = {
     },
     //绘制图片的公共方法
     DrawIcon(type, item ,Icon){
-        const entity = window.viewer.entities.add({
+         window.viewer.entities.add({
             name: type,
             position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
             billboard: {
                 // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
                 image: Icon,
-                width: 40, // 图片宽度,单位px
-                height: 40, // 图片高度，单位px
+                width: 60, // 图片宽度,单位px
+                height: 60, // 图片高度，单位px
                 eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
                 color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
                 scale: 0.8, // 缩放比例
@@ -617,7 +617,6 @@ let basicLayers = {
                 lat: item.lat,
             },
         });
-        return entity;
     },
     addPeopleLayer(){
         // TODO 过滤掉人口为 0 的数据，做按人口分类显示（5档）

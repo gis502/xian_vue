@@ -6,7 +6,7 @@
       element-loading-background="rgba(122, 122, 122, 0.8)">
     <!--历史灾害信息列表-->
     <HistoricalDisasterList
-        :chartData="chartData"
+        :chartDatas="chartDatas"
         :disasterList="disasterList"
         @update:levelPoints="handleLevelPoints"
         @displayAnalysis="displayAnalysis"
@@ -18,7 +18,7 @@
     <!-- 图例 -->
     <Legend></Legend>
     <!-- chart -->
-    <Chart v-if="showAnalysis" :chartDatas="chartData"></Chart>
+    <Chart v-if="showAnalysis" :chartDatas="chartDatas"></Chart>
     <!-- 历史相似灾害匹配 -->
     <HistoricalDisasterMatch
         v-if="showAnalysis"
@@ -69,12 +69,12 @@ onMounted(async () => {
 });
 
 // chart数据
-const chartData = reactive({
-  title: "",
+const chartDatas = reactive({
+  title: "历史地震影响分析",
   xAxis: {
-    data: [],
+    data: ["风险源", "医院", "滑坡", "泥石流"],
   },
-  seriesData: [],
+  seriesDatas: [0, 0, 0, 0],
 });
 
 // 显示chart

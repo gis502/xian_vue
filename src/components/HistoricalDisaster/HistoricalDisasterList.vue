@@ -119,8 +119,8 @@ const rainAffectPoints = ref([]);
 const levelPoints = ref([]);
 
 //接收父组件传来的数据
-const { chartData, disasterList, rainLevelPoint } = defineProps([
-  "chartData",
+const { chartDatas, disasterList, rainLevelPoint } = defineProps([
+  "chartDatas",
   "disasterList",
   "rainLevelPoint"
 ]);
@@ -308,6 +308,14 @@ onMounted(() => {
   fetchData();
 });
 
+// 创建灾害类型与图标、计数器的映射关系
+const disasterConfig = {
+  "内涝": { icon: waterIcon, counter: 0 },
+  "山洪": { icon: flashIcon, counter: 0 },
+  "滑坡": { icon: landslideIcon, counter: 0 },
+  "泥石流": { icon: debrisFlowIcon, counter: 0 }
+};
+
 async function tiggerHistoryDaster(item){
   if (item.disasterType === "地震"){
 
@@ -334,17 +342,17 @@ async function tiggerHistoryDaster(item){
     circle_param.semiMinorAxis = circle.semiMinorAxis;
     circle_param.rotation = rotation.value;
     emit("loadingTrue");
-    chartData.title = "地震影响范围统计";
+    chartDatas.title = "历史地震影响范围统计";
     AllAffectPoints.value = await getAllAffectPoints(circle_param);
     console.log("AllAffectPoints.value",AllAffectPoints.value.data.affectPoints)
     for (let i=0;i<AllAffectPoints.value.data.affectPoints.length;i++){
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="风险源"){
         basicLayers.loadEntities('风险源', AllAffectPoints.value.data.affectPoints[i], dangerSourceIcon)
-        chartData.seriesDatas[0] = AllAffectPoints.value.data.affectPoints[i].features.length;
+        chartDatas.seriesDatas[0] = AllAffectPoints.value.data.affectPoints[i].features.length;
       }
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="医院"){
         basicLayers.loadEntities('医院', AllAffectPoints.value.data.affectPoints[i], hospitalIcon)
-        chartData.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
+        chartDatas.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
       }
       if (AllAffectPoints.value.data.affectPoints[i].pointType==="隐患点"){
         let List = AllAffectPoints.value.data.affectPoints[i].features;
@@ -360,12 +368,12 @@ async function tiggerHistoryDaster(item){
             debrisFlowNum++;
           }
         }
-        chartData.xAxis.data[0] = "风险源";
-        chartData.xAxis.data[1] = "医院";
-        chartData.xAxis.data[2] = "滑坡";
-        chartData.xAxis.data[3] = "泥石流";
-        chartData.seriesDatas[2] = landslideNum;
-        chartData.seriesDatas[3] = debrisFlowNum;
+        chartDatas.xAxis.data[0] = "风险源";
+        chartDatas.xAxis.data[1] = "医院";
+        chartDatas.xAxis.data[2] = "滑坡";
+        chartDatas.xAxis.data[3] = "泥石流";
+        chartDatas.seriesDatas[2] = landslideNum;
+        chartDatas.seriesDatas[3] = debrisFlowNum;
       }
     }
     emit("displayAnalysis");
@@ -397,21 +405,37 @@ async function tiggerHistoryDaster(item){
           console.log("获取数据失败", error)
         })
     console.log("获取到的暴雨隐患点", rainAffectPoints.value)
+    chartDatas.title = "历史暴雨影响范围统计";
     rainAffectPoints.value.pointInfos.forEach(item => {
-      if (item.level ==="[高]"||item.level ==="[中]"){
-        levelPoints.value.push(item)
+      // 处理高/中等级的点
+      if (["[高]", "[中]"].includes(item.level)) {
+        levelPoints.value.push(item);
       }
-      if (item.disasterType==="内捞"){
-        basicLayers.DrawIcon(item.disasterType,item,waterIcon);
-      }else if (item.disasterType==="山洪"){
-        basicLayers.DrawIcon(item.disasterType,item,flashIcon);
-      }else if (item.disasterType==="滑坡"){
-        basicLayers.DrawIcon(item.disasterType, item,landslideIcon);
-      }else {
-        basicLayers.DrawIcon(item.disasterType, item,debrisFlowIcon);
-      }
-    })
 
+      // 处理灾害类型相关逻辑
+      const config = disasterConfig[item.disasterType];
+      if (config) {
+        basicLayers.DrawIcon(item.disasterType, item, config.icon);
+        console.log(item.disasterType);
+        // 更新对应的计数器
+        config.counter++; // 或根据实际变量作用域调整
+      } else {
+        // 可以添加未知灾害类型的处理逻辑
+        console.log(`未知灾害类型: ${item.disasterType}`);
+      }
+    });
+
+
+    chartDatas.xAxis.data[0] = "内涝";
+    chartDatas.xAxis.data[1] = "山洪";
+    chartDatas.xAxis.data[2] = "滑坡";
+    chartDatas.xAxis.data[3] = "泥石流";
+    chartDatas.seriesDatas[0] = disasterConfig["内涝"].counter;
+    chartDatas.seriesDatas[1] = disasterConfig["山洪"].counter;
+    chartDatas.seriesDatas[2] = disasterConfig["滑坡"].counter;
+    chartDatas.seriesDatas[3] = disasterConfig["泥石流"].counter;
+
+    emit("displayAnalysis");
     emit('update:levelPoints', levelPoints.value);
     emit("createPulseCircle");
     emit("loadingFalse");
