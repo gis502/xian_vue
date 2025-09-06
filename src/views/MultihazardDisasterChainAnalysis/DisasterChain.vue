@@ -19,8 +19,8 @@
         <label><input type="checkbox" v-model="showRainDebrisFlow" @change="toggleRainDebrisFlow"> 暴雨泥石流 </label>
         <label><input type="checkbox" v-model="showRainWater" @change="toggleRainWater"> 暴雨内涝 </label>
         <label><input type="checkbox" v-model="showRainFlood" @change="toggleRainFlood"> 暴雨山洪 </label>
-        <label><input type="checkbox" v-model="showEarthLand" @change="toggleEarthLand"> 地震滑坡 </label>
-        <label><input type="checkbox" v-model="showEarthDebrisFlow" @change="toggleEarthDebrisFlow"> 地震泥石流 </label>
+<!--        <label><input type="checkbox" v-model="showEarthLand" @change="toggleEarthLand"> 地震滑坡 </label>-->
+<!--        <label><input type="checkbox" v-model="showEarthDebrisFlow" @change="toggleEarthDebrisFlow"> 地震泥石流 </label>-->
       </div>
     </div>
 

@@ -620,6 +620,8 @@ let basicLayers = {
         return entity;
     },
     addPeopleLayer(){
+        // TODO 过滤掉人口为 0 的数据，做按人口分类显示（5档）
+        console.log("人口数据：" + this.peopleLayerName)
         this.peopleLayer = this.addLayers(this.peopleLayerName);
     },
     addCropsLayer(){
