@@ -243,6 +243,8 @@ let form = reactive({
   city: city,
 });
 
+
+
 // 致灾因子参数
 let hazardsForm = reactive({
   elevation: 0,
@@ -450,7 +452,7 @@ async function confirmEarthquake(formEl) {
           earthquakeFullName: form.position + form.magnitude + "级地震",
           eqId: '',
           eqqueueId: ''
-        }
+        };
 
         await getEarthQuakeReport(report_param)
             .then(response => {
@@ -523,10 +525,23 @@ async function confirmEarthquake(formEl) {
               intensity: base.circleParam[i].intensity,
             })
             console.log(96321025,report_param)
+            let thematicEqInfo = {
+              // 震源地质+ 震级+ 地震
+              earthquakeFullName: form.position + form.magnitude + "级地震",
+              eqId: '',
+              eqqueueId: ''
+            };
             await getEarthQuakeReport(report_param)
                 .then(response => {
-                  console.log("获取报告成功", response);
+                  console.log("触发成功...");
+                  console.log("开始制作专题图...");
+                  console.log("开始制作报告...");
                   Object.assign(earthquakeID,response.data)
+
+                  thematicEqInfo.eqId = response.data.eqId
+                  thematicEqInfo.eqqueueId = response.data.eqqueueId
+                  // 传递给父组件
+                  emit("thematicEqInfo", thematicEqInfo)
                 })
                 .catch(error => {
                   console.log("获取报告失败", error)
