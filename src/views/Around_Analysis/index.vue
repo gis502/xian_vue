@@ -2,11 +2,14 @@
   <div class="cesium-container" ref="cesiumContainer">
     <!-- 功能按钮 -->
     <div class="controls">
-        <div class="rain-btn" @click="toggleRainMode">
-          {{ rainMode ? '取消区域分析' : '标记区域分析' }}
-        </div>
+      <div class="rain-btn" @click="toggleRainMode">
+        {{ rainMode ? '取消区域分析' : '标记区域分析' }}
+      </div>
       <div class="refresh" @click="refreshView">
         重置标记区域
+      </div>
+      <div class="admin-btn" @click="toggleAdminLayer">
+        {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
       </div>
     </div>
     <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
@@ -486,6 +489,15 @@ export default {
     }
   },
   methods: {
+    toggleAdminLayer(){
+      if(this.showAdminLayer){
+        this.showAdminLayer = !this.showAdminLayer;
+        basicLayers.hideAdminData();
+      }else{
+        this.showAdminLayer = !this.showAdminLayer;
+        basicLayers.showAdminData();
+      }
+    },
     getNum(){
       //获取滑坡点
       getSlide().then((res) =>{
@@ -1875,7 +1887,7 @@ export default {
 }
 
 
-.rain-btn, .refresh{
+.rain-btn, .refresh, .admin-btn{
   background-color: #3c86ff;
   color: white;
   padding: 6px 12px;
@@ -1891,7 +1903,7 @@ export default {
 }
 
 
-.rain-btn, .refresh:hover {
+.rain-btn, .refresh, .admin-btn:hover {
   background-color: #3c86ff;
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
