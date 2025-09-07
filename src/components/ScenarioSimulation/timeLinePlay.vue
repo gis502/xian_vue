@@ -1,14 +1,11 @@
 <template>
   <div class="timeLinePlay">
-        <div class="topLastRecordTimeLabel">
-          {{ this.currentTime }}
-        </div>
-
-
+    <div class="topLastRecordTimeLabel">
+      {{ this.currentTime }}
+    </div>
     <div class="start-time-info">
       <span class="timelabel">开始时间：{{ this.timestampToTimeChina(this.startTime) }}</span>
     </div>
-
     <div class="jump_realTime" v-if="ifNewEq">
       <div class="tooltip" :class="{ 'highlight': selectedId === 'jumpRealTime' }"
            @click="selectButton('jumpRealTime'); jumpRealTime()">
@@ -23,13 +20,13 @@
         <span class="tooltiptext">回到开始</span>
       </div>
     </div>
-    <div class="play_back">
-      <div class="tooltip" :class="{ 'highlight': selectedId === 'playBack' }"
-           @click="selectButton('playBack'); playBack()">
-        <img class="play-icon" src="../../assets/icons/TimeLine/向后播放.png"/>
-        <span class="tooltiptext">向后播放</span>
-      </div>
-    </div>
+    <!--    <div class="play_back">-->
+    <!--      <div class="tooltip" :class="{ 'highlight': selectedId === 'playBack' }"-->
+    <!--           @click="selectButton('playBack'); playBack()">-->
+    <!--        <img class="play-icon" src="../../assets/icons/TimeLine/向后播放.png"/>-->
+    <!--        <span class="tooltiptext">向后播放</span>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <div class="play_end">
       <div class="tooltip" :class="{ 'highlight': selectedId === 'playEnd' }"
            @click="selectButton('playEnd'); playEnd()">
@@ -44,8 +41,6 @@
         <span class="tooltiptext">播放</span>
       </div>
     </div>
-
-
     <div class="speed-label">
       <span class="timelabel">当前播放速度：</span>
       <div class="speed-selector" @click="this.showSpeedOptions = !this.showSpeedOptions">
@@ -61,7 +56,6 @@
         <span class="timelabel">{{ speedOption }}</span>
       </div>
     </div>
-
     <div class="current-time-info">
       <span class="timelabel">当前时间：{{ this.currentTime }}</span>
     </div>
@@ -83,154 +77,61 @@ export default {
   name: "timeLinePlay",
   data: function () {
     return {
-      // oldCurrentTime: null,
       selectedId: "playStart", // 当前选中的按钮，前进后退，暂停播放
       currentSpeed: 600,
       showSpeedOptions: false,
       speedOption: '600X',
       speedOptions: ['1X', '60X', '600X', '3600X', '7200X'],
-      // plots: [],
       ifNewEq: false, //用于 回到真实时间
-      // timeRecoard: [],
-      // plotArrinOneTime: [], // 假设这是你的点数组
       endflag: false, // 控制飞行结束的标志
-      // flyflag: true,//视角是否跳转？只有依次向前播放时才跳
-      // currentTimeLocal: this.timestampToTimeChina(new Date()),
-      // lastRecordTimeLocal: this.timestampToTimeChina(new Date()),
       currentTime: this.timestampToTimeChina(new Date()),
-      // lastRecordContent: '',
-
       startTime: new Date(),
       endTime: new Date(),
-      plots:null,
-
-      // jumpTimeList:[],
-      jumpTimeListIndex:0,
-
+      plots: null,
+      jumpTimeListIndex: 0,
     }
   },
   // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
-  props: ['viewer', 'disasterEvent', 'currentTime','RealDisasterPlots','firstStartTimeLine'],
+  props: ['viewer', 'disasterEvent', 'RealDisasterPlots'],
   watch: {
-    // currentTime(newVal, oldVal) {
-    //   if (newVal && oldVal && newVal !== oldVal) {
-    //     //有时候输入的值不是nan,调用函数读取的参数也不是nan，但是取转换成呢哇Date格式，时间是invalid data
-    //     let currentTimeLocaltmp = this.timestampToTimeChina(this.currentTime)
-    //     if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-    //       this.currentTimeLocal = currentTimeLocaltmp
-    //     }
-    //     if(this.plots){
-    //       this.ifstopandflash(newVal, oldVal);
-    //     }
-    //
-    //   }
-    // },
     disasterEvent(newVal) {
       this.startTime = new Date(this.disasterEvent.occurrenceTime);
-      console.log(this.startTime,this.disasterEvent.occurrenceTime,"this.disasterEvent.occurrenceTime")
+      console.log(this.startTime, this.disasterEvent.occurrenceTime, "this.disasterEvent.occurrenceTime")
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
-      this.currentTime=this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
-      // console.log(this.disasterEvent, "this.startTime,this.endTime,")
-      // console.log(this.startTime, "this.startTime,this.endTime,")
-      // console.log(this.endTime, "this.startTime,this.endTime,")
+      this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
       let realTime = new Date()
       if (realTime >= this.startTime && realTime <= this.endTime) {
         this.ifNewEq = true
       }
-      // let currentTimeLocaltmp = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
-      // if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-      //   this.currentTimeLocal = currentTimeLocaltmp
-      // }
-      // let lastRecordTimeLocaltmp = this.timestampToTimeChina(this.startTime)
-      // if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-      //   this.lastRecordTimeLocal = lastRecordTimeLocaltmp
-      // }
     },
-
     viewer(newVal) {
-      // this.getPlotwithStartandEndTime(this.eqid)
       viewer.timeline.container.onmouseup = (e) => {
-        this.findLastRecordTimeAndContent()
-        // if(this.isMarkingLayer===false){
-        //   console.log("11111 isMarkingLayer_viewer ")
-        //   window.viewer.clockViewModel.shouldAnimate = false;
-        //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-        //   this.selectButton("playEnd")
-        // }
-        // else {
-        // console.log("2222 isMarkingLayer_viewer")
+        // this.findLastRecordTimeAndContent()
         this.playEnd()
-        // }
       }
     },
-    stopTimePlay(newVal) {
-      console.log("stopTimePlay", newVal)
-      if (newVal) {
-        this.playEnd(); // 停止时间轴播放
-      }
-    },
-    RealDisasterPlots(newVal){
-      this.plots=[]
-      // this.jumpTimeList=[]
-      // 用 Set 来去重
-      const timeSet = new Set();
-
+    // stopTimePlay(newVal) {
+    //   console.log("stopTimePlay", newVal)
+    //   if (newVal) {
+    //     this.playEnd(); // 停止时间轴播放
+    //   }
+    // },
+    RealDisasterPlots(newVal) {
+      this.plots = []
       this.RealDisasterPlots.forEach(item => {
         if (!item.endTime) {
           item.endTime = new Date(new Date(item.startTime).getTime() + 10 * 24 * 3600 * 1000); // 修正：毫秒单位
         }
-
         item.longitude = Number(geomToCoordinates(item.geom)[0][0]);
         item.latitude = Number(geomToCoordinates(item.geom)[0][1]);
-
         this.plots.push(item);
-
-        // if (!timeSet.has(item.startTime)) {
-        //   timeSet.add(item.startTime);
-        //   this.jumpTimeList.push(item.startTime);
-        // }
       });
       this.plots.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-      console.log(this.plots,"this.plots")
-      this.jumpTimeListIndex=0
+      console.log(this.plots, "this.plots")
+      this.jumpTimeListIndex = 0
       timeLine.HiddenLabels()
-      // 排序
-      // this.jumpTimeList.sort((a, b) => new Date(a) - new Date(b));
-      // this.RealDisasterPlots.forEach(item => {
-      //   if (!item.endTime ) {
-      //     // 为没有结束时间的点设置默认结束时间
-      //     item.endTime =new Date(new Date(item.startTime).getTime()+10*24*3600  ) //20天 错误时间设置结束时间地震发生20天以后
-      //   }
-      //   item.longitude= Number(geomToCoordinates(item.geom)[0][0]),
-      //   item.latitude=Number(geomToCoordinates(item.geom)[0][1]),
-      //   this.plots.push(item)
-      //   this.jumpTimeList.push(item.startTime)
-      // })
-      // this.jumpTimeList.sort((a, b) => {
-      //   const dateA = new String(a);
-      //   const dateB = new String(b);
-      //   // console.log(dateA,dateB)
-      //   return dateA.localeCompare(dateB);
-      // });
-      // console.log(this.jumpTimeList,"this.jumpTimeList")
-      // console.log(this.plots,"this.plots")
       this.playStart()
     },
-    // isMarkingLayer(newVal) {
-    //   console.log(newVal, "isMarkingLayerLocal watch")
-    //   // this.isMarkingLayer=newVal
-    //   if (!newVal) {
-    //     console.log(this.isMarkingLayer, "isMarkingLayerLocal watch")
-    //     window.viewer.clockViewModel.shouldAnimate = false;
-    //     this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-    //     this.selectButton("playEnd")
-    //   }
-    // }
-    // firstStartTimeLine(){
-    //   if(this.firstStartTimeLine){
-    //     this.playStart()
-    //   }
-    // }
   },
   mounted() {
   },
@@ -238,129 +139,61 @@ export default {
     selectButton(id) {
       this.selectedId = id; // 更新选中的按钮ID
     },
-    // jumpRealTime() {
-    //   // this.findLastRecordTimeAndContent()
-    //   window.viewer.clockViewModel.shouldAnimate = true;
-    //   viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-    //   this.findLastRecordTimeAndContent()
-    //   // if(this.isMarkingLayer===false){
-    //   //   window.viewer.clockViewModel.shouldAnimate = false;
-    //   //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-    //   //   this.selectButton("playEnd")
-    //   // }
-    //   // else{
-    //   this.flyflag = false
-    //   this.endflag = false;
-    //   // this.$emit('startTimePlay');
-    //   window.viewer.clock.multiplier = 1.0
-    //   // }
-    //   this.jumpTimeListIndex=this.jumpTimeList.length
-    // },
-    // backToStart() {
-    //   window.viewer.clockViewModel.shouldAnimate = false;
-    //   viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disasterEvent.occurrenceTime));
-    //   const currentTimeLocaltmp = this.timestampToTimeChina(this.jumpTimeList[this.jumpTimeListIndex]);
-    //   if (currentTimeLocaltmp !== "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-    //     this.currentTimeLocal = currentTimeLocaltmp;
-    //     console.log("this.currentTimeLocal",this.currentTimeLocal)
-    //   }
-    //
-    //   window.viewer.clock.multiplier = this.currentSpeed
-    //   this.flyflag = true
-    //   this.endflag = true;
-    //   this.lastRecordTimeLocal = this.timestampToTimeChina(this.startTime)
-    //   this.jumpTimeListIndex=0
-    //   // this.lastRecordContent = ''
-    // },
-    // playBack() {
-    //   if (window.viewer.clock.multiplier > 0) {
-    //     window.viewer.clock.multiplier = this.currentSpeed * (-1.0)
-    //   }
-    //   window.viewer.clockViewModel.shouldAnimate = true;
-    //   this.endflag = false;
-    //   this.$emit('startTimePlay');
-    //   this.flyflag = false
-    //   let currentTimeLocaltmp = this.timestampToTimeChina(new Date(viewer.clock.currentTime))
-    //   if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-    //     this.currentTimeLocal = currentTimeLocaltmp
-    //   }
-    // },
-    playEnd() {
-      window.viewer.clockViewModel.shouldAnimate = false;
-      this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-      this.selectButton("playEnd")
-      // console.log(this.isMarkingLayer, "this.isMarkingLayer playEnd")
-      timeLine.makerLabelsShowPersonAndResouce(this.plots)
-
-      // this.jumpTimeListIndex
-    },
-    playStart() {
-      // if (new Date(this.jumpTimeList[this.jumpTimeListIndex]) >= new Date()) {
-        // console.log("11111111111")
-      //   viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-      //   window.viewer.clockViewModel.shouldAnimate = true;
-      //   window.viewer.clock.multiplier = 1.0
-      // } else {
-        // console.log("22222222222222")
-        window.viewer.clock.multiplier = this.currentSpeed
-        window.viewer.clockViewModel.shouldAnimate = false;
-        this.flyToPointsSequentially()
-
-      //   for (; this.jumpTimeListIndex < this.plots.length; this.jumpTimeListIndex++) {
-      //
-      //   // const jumpTime = new Date(this.jumpTimeList[this.jumpTimeListIndex]);
-      //   //
-      //   // viewer.clock.currentTime = Cesium.JulianDate.fromDate(jumpTime);
-      //   // // this.currentTime = jumpTime;
-      //   //
-      //   // // console.log(this.currentTime, "this.currentTime");
-      //   //
-      //   // const currentTimeLocaltmp = this.timestampToTimeChina(jumpTime);
-      //   // if (currentTimeLocaltmp !== "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-      //   //   this.currentTimeLocal = currentTimeLocaltmp;
-      //   // }
-      //   //
-      //   // if (this.jumpTimeListIndex > 0) {
-      //   //   const prevJumpTime = new Date(this.jumpTimeList[this.jumpTimeListIndex - 1]);
-      //   //   await this.ifstopandflash(jumpTime, prevJumpTime); // ✅ 等待完成
-      //   // } else if (this.jumpTimeListIndex === 0) {
-      //   //   await this.ifstopandflash(jumpTime, new Date(this.disasterEvent.occurrenceTime));
-      //   // }
-      // }
-        // console.log(this.jumpTimeList,"this.jumpTimeList")
-        // for (; this.jumpTimeListIndex < this.jumpTimeList.length; this.jumpTimeListIndex++) {
-        //
-        //   viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.jumpTimeList[this.jumpTimeListIndex]));
-        //   this.currentTime=new Date(this.jumpTimeList[this.jumpTimeListIndex])
-        //   console.log(this.currentTime,"this.currentTime")
-        //   let currentTimeLocaltmp = this.timestampToTimeChina(new Date(this.jumpTimeList[this.jumpTimeListIndex]))
-        //       if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-        //         this.currentTimeLocal = currentTimeLocaltmp
-        //       }
-        //   if (this.jumpTimeListIndex > 0) {
-        //     // console.log(this.jumpTimeList[this.jumpTimeListIndex],this.jumpTimeList[this.jumpTimeListIndex - 1],"this.jumpTimeList[this.jumpTimeListIndex - 1]")
-        //     // console.log(new Date(this.jumpTimeList[this.jumpTimeListIndex],new Date(this.jumpTimeList[this.jumpTimeListIndex - 1])),"this.jumpTimeList[this.jumpTimeListIndex - 1]")
-        //     this.ifstopandflash(new Date(this.jumpTimeList[this.jumpTimeListIndex]), new Date(this.jumpTimeList[this.jumpTimeListIndex - 1]))
-        //   }
-        //   else if (this.jumpTimeListIndex == 0) {
-        //     // console.log(this.jumpTimeList[this.jumpTimeListIndex],this.jumpTimeList[this.jumpTimeListIndex - 1],"this.jumpTimeList[this.jumpTimeListIndex - 1]")
-        //     // this.ifstopandflash(new Date(this.jumpTimeList[0]), new Date(this.disasterEvent.occurrenceTime))
-        //   }
-        // }
-        // this.processJumpList();
-      // }
-
+    jumpRealTime() {
+      window.viewer.clockViewModel.shouldAnimate = true;
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
+      let currentTimeLocaltmp = this.timestampToTimeChina(new Date())
+      if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
+        this.currentTime = currentTimeLocaltmp
+      }
+      // this.findLastRecordTimeAndContent()
       // if(this.isMarkingLayer===false){
       //   window.viewer.clockViewModel.shouldAnimate = false;
       //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
       //   this.selectButton("playEnd")
       // }
       // else{
-      // window.viewer.clockViewModel.shouldAnimate = true;
+      this.flyflag = false
       this.endflag = false;
       // this.$emit('startTimePlay');
+      window.viewer.clock.multiplier = 1.0
+      this.jumpTimeListIndex = this.jumpTimeList.length
+    },
+    backToStart() {
+      window.viewer.clockViewModel.shouldAnimate = false;
+      window.viewer.clock.multiplier = this.currentSpeed
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disasterEvent.occurrenceTime));
+      this.jumpTimeListIndex = 0
+      this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
       this.flyflag = true
-      // }
+      this.endflag = true;
+    },
+    // playBack() {
+    //   if (window.viewer.clock.multiplier > 0) {
+    //     window.viewer.clock.multiplier = this.currentSpeed * (-1.0)
+    //   }
+    //   window.viewer.clockViewModel.shouldAnimate = true;
+    //   this.endflag = false;
+    //   // this.$emit('startTimePlay');
+    //   this.flyflag = false
+    //   let currentTimeLocaltmp = this.timestampToTimeChina(new Date(viewer.clock.currentTime))
+    //   if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
+    //     this.currentTime = currentTimeLocaltmp
+    //   }
+    // },
+    playEnd() {
+      window.viewer.clockViewModel.shouldAnimate = false;
+      this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
+      this.selectButton("playEnd")
+      timeLine.makerLabelsShowPersonAndResouce(this.plots)
+    },
+    playStart() {
+      this.endflag = false;
+      this.flyflag = true
+      timeLine.HiddenLabels()
+      window.viewer.clock.multiplier = this.currentSpeed
+      window.viewer.clockViewModel.shouldAnimate = false;
+      this.flyToPointsSequentially()
     },
     selectSpeed(speed) {
       // 直接赋值速度选项
@@ -370,72 +203,26 @@ export default {
       window.viewer.clock.multiplier = this.currentSpeed
       this.showSpeedOptions = false
     },
-// ✅ 新增异步方法
-//     async processJumpList() {
-//       // for (; this.jumpTimeListIndex < this.jumpTimeList.length; this.jumpTimeListIndex++) {
-//       //   const jumpTime = new Date(this.jumpTimeList[this.jumpTimeListIndex]);
-//       //
-//       //   viewer.clock.currentTime = Cesium.JulianDate.fromDate(jumpTime);
-//       //   // this.currentTime = jumpTime;
-//       //
-//       //   // console.log(this.currentTime, "this.currentTime");
-//       //
-//       //   const currentTimeLocaltmp = this.timestampToTimeChina(jumpTime);
-//       //   if (currentTimeLocaltmp !== "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-//       //     this.currentTimeLocal = currentTimeLocaltmp;
-//       //   }
-//       //
-//       //   if (this.jumpTimeListIndex > 0) {
-//       //     const prevJumpTime = new Date(this.jumpTimeList[this.jumpTimeListIndex - 1]);
-//       //     await this.ifstopandflash(jumpTime, prevJumpTime); // ✅ 等待完成
-//       //   } else if (this.jumpTimeListIndex === 0) {
-//       //     await this.ifstopandflash(jumpTime, new Date(this.disasterEvent.occurrenceTime));
-//       //   }
-//       // }
-//     },
-//     //视角跳转
-//     ifArriveTime(currentTime, oldCurrentTime, itemTime) {
-//       const startTime = Cesium.JulianDate.fromDate(new Date(itemTime));
-//       const timeDiff = Cesium.JulianDate.secondsDifference(currentTime, startTime);
-//       // 如果当前时间接近某个点的开始时间（允许一定的误差范围）
-//       if (Math.abs(timeDiff) < 1) { // 误差范围设置为1秒
-//         return true
-//       } else {
-//         if (new Date(currentTime).getTime() >= new Date(itemTime).getTime() && new Date(oldCurrentTime).getTime() < new Date(itemTime).getTime()) {
-//           return true
-//         } else {
-//           return false
-//         }
-//       }
-//     },
     async flyToPointsSequentially() {
-      // for (let index = 0; index < this.plotArrinOneTime.length; index++) {
       for (; this.jumpTimeListIndex < this.plots.length; this.jumpTimeListIndex++) {
         viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.plots[this.jumpTimeListIndex].startTime));
         // const item = this.plotArrinOneTime[this.jumpTimeListIndex];
         const item = this.plots[this.jumpTimeListIndex];
-        this.currentTime=this.timestampToTimeChina(new Date(this.plots[this.jumpTimeListIndex].startTime))
-        // let lastRecordTimeLocaltmp = this.timestampToTimeChina(item.startTime)
-        // if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-        //   this.lastRecordTimeLocal = lastRecordTimeLocaltmp
-        // }
-
+        this.currentTime = this.timestampToTimeChina(new Date(this.plots[this.jumpTimeListIndex].startTime))
         //标签
         let entitylabel = null
         let plotId = item.plotId
         let plotType = item.plotType
-        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员"||item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-          if(entitylabel){
+          if (entitylabel) {
             entitylabel.show = true
-            // this.lastRecordContent = entitylabel.labeltext
           }
         } else {
           getPlotInfos({plotId, plotType}).then(res => {
             let labeltext = timeLine.labeltext(plotType, res)
             timeLine.addPointLabel(item, labeltext)
             entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-            // this.lastRecordContent = labeltext
           })
         }
 
@@ -446,11 +233,9 @@ export default {
           break; // 终止循环
         }
         try {
-          // console.log(item,"flyToPointsSequentially")
-          // console.log(geomToCoordinates(item.geom),"geomToCoordinates(item.geom)")
-          let flylog=Number(geomToCoordinates(item.geom)[0][0])
-          let flylat=Number(geomToCoordinates(item.geom)[0][1])
-          console.log(flylog,flylat,"flylog,flylat")
+          let flylog = Number(geomToCoordinates(item.geom)[0][0])
+          let flylat = Number(geomToCoordinates(item.geom)[0][1])
+          console.log(flylog, flylat, "flylog,flylat")
           // 飞到指定点
           await timeLine.fly(flylog, flylat, 2000);
           if (this.endflag) {
@@ -458,11 +243,10 @@ export default {
             timeLine.makerLabelsShowPersonAndResouce(this.plots)
             break; // 终止循环
           }
-
           // 点闪烁
           await timeLine.blinkMarker(item);
           console.log("blinkMarker else")
-          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           } else {
             window.labeldataSource.entities.removeById(item.plotId + "_label");
           }
@@ -471,68 +255,7 @@ export default {
           break; // 发生错误时终止循环
         }
       }
-
-      // 如果所有点都飞完了，重新启动时间轴
-      // if (!this.endflag) {
-      //   window.viewer.clockViewModel.shouldAnimate = true;
-      // }
     },
-    // async ifstopandflash(currentTime, oldCurrentTime) {
-    //   // if(this.isMarkingLayer==false){
-    //   //   return;
-    //   // }
-    //   if (this.flyflag == false) {
-    //     return;
-    //   }
-    //   this.plotArrinOneTime = this.plots.filter(plot => {
-    //     // console.log(currentTime, oldCurrentTime, plot.startTime,"currentTime, oldCurrentTime, plot.startTime")
-    //     return this.ifArriveTime(currentTime, oldCurrentTime, plot.startTime);
-    //   });
-    //
-    //   if (this.endflag) {
-    //     window.viewer.clockViewModel.shouldAnimate = false;
-    //     timeLine.makerLabelsShowPersonAndResouce(this.plots)
-    //     console.log("终止333");
-    //     return
-    //   } else {
-    //     if (this.plotArrinOneTime.length > 0) {
-    //
-    //       // console.log(currentTime,oldCurrentTime,viewer.clock.currentTime,this.plotArrinOneTime,"this.plotArrinOneTime")
-    //       // window.viewer.clockViewModel.shouldAnimate = false;
-    //       //先把这一时间点的标签隐藏，再一个一个弹出，
-    //       timeLine.markerLabelsHidden(this.plotArrinOneTime)
-    //       await this.flyToPointsSequentially()
-    //     }
-    //   }
-    // },
-//     findLastRecordTimeAndContent() {
-//       this.lastRecordTimeLocal = this.timestampToTimeChina(new Date(this.jumpTimeList[this.jumpTimeListIndex]))
-//       // console.log(new Date(this.currentTime), "new Date(currentTime) findLastRecordTimeAndContent")
-//       // let filteredPlots = this.plots.filter(plot => {
-//       //   return new Date(plot.startTime).getTime() <= new Date(this.currentTime).getTime();
-//       // });
-//       // let latestPlot = null;
-//       // let latestTime = new Date(this.startTime);
-//       // filteredPlots.forEach(plot => {
-//       //   const plotStartTime = new Date(plot.startTime).getTime();
-//       //   if (plotStartTime > latestTime) {
-//       //     latestTime = plotStartTime;
-//       //     latestPlot = plot;
-//       //   }
-//       // });
-//       //
-//       // if (latestPlot) {
-//       //   this.lastRecordTimeLocal = this.timestampToTimeChina(latestPlot.startTime)
-//       //   // let plotId = latestPlot.plotId
-//       //   // let plotType = latestPlot.plotType
-//       //   // getPlotInfos({plotId, plotType}).then(res => {
-//       //   //   let labeltext = timeLine.labeltext(plotType, res)
-//       //   //   this.lastRecordContent = labeltext
-//       //   // })
-//       // }
-//     },
-
-
     timestampToTime(time) {
       return timeTransfer.timestampToTime(time)
     },
@@ -602,13 +325,13 @@ export default {
 .play_end {
   position: absolute;
   bottom: 3%;
-  left: 52%;
+  left: 50%;
 }
 
 .play_start {
   position: absolute;
   bottom: 3%;
-  left: 54%;
+  left: 52%;
 }
 
 .tooltip {
