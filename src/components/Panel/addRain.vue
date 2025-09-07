@@ -390,6 +390,7 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
   try {
     let matchedHuapoEntities = []
     const res = await rainSlideTrigger(requestData)
+    emit("update:handle-setId",res)
     console.log(res.data, "rainSlideTrigger返回结果")
     let formatAnalyzedData = res.data || []
 

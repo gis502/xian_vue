@@ -26,6 +26,7 @@
        @update:handle-step-status="(value)=>{stepStatus = value}"
        @update:handle-step-status-chain="(value)=>{stepStatus = value.status;stepChain = value.chain}"
        @update:handle-rain-cancel = "showStep=false"
+       @update:handle-setId = "(v)=>{rainId=v.rainId;rainQueueId=v.rainQueueId}"
     />
 
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
@@ -325,6 +326,8 @@ let stepStatus = ref(0)
 let stepChain = ref("暴雨灾害链")
 let showStep = ref(false)
 let fenXiFanWei = ref([])
+let rainId = ref("")
+let rainQueueId = ref("")
 
 let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
@@ -1057,8 +1060,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
       if (['高', '中', '低'].includes(level)) {
         disasterItem[level]++;
         /* 灾害链类型 */
-        // if(level==='高'||level==='中'){
-        if(level==='高'){
+        if(level==='高'||level==='中'){
           fenXiFanWei.value.push(item)
           if(!list.includes(disasterType)){
             list.push(disasterType)
@@ -1888,7 +1890,7 @@ async function downloadRainReport(){
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
     console.log(rainDisasterId)
-    const wordRes = await generateRainReport(rainDisasterId)
+    const wordRes = await generateRainReport(rainId.value,rainQueueId.value)
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
 

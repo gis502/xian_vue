@@ -13,10 +13,10 @@ export function saveCanvas(formData) {
     })
 }
 
-export function generateRainReport(disasterId){
+export function generateRainReport(rainId,rainQueueId){
     return request({
         url: '/downloadReport/generateRainReport',
         method: 'post',
-        params:{disasterId}
+        params:{rainId,rainQueueId}
     })
 }
