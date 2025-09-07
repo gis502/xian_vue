@@ -1896,7 +1896,7 @@ async function downloadRainReport(){
     }
 
     console.log(rainRequests,"触发后的暴雨ID是，，，，，，，，，，")
-    const wordRes = await generateRainReport(rainRequests)
+    const wordRes = await generateRainReport({rainRequests,rainDisasterId})
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
 
