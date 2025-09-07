@@ -1057,7 +1057,8 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
       if (['高', '中', '低'].includes(level)) {
         disasterItem[level]++;
         /* 灾害链类型 */
-        if(level==='高'||level==='中'){
+        // if(level==='高'||level==='中'){
+        if(level==='高'){
           fenXiFanWei.value.push(item)
           if(!list.includes(disasterType)){
             list.push(disasterType)
