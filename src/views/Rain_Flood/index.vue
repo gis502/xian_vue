@@ -26,7 +26,7 @@
        @update:handle-step-status="(value)=>{stepStatus = value}"
        @update:handle-step-status-chain="(value)=>{stepStatus = value.status;stepChain = value.chain}"
        @update:handle-rain-cancel = "showStep=false"
-       @update:handle-setId = "(v)=>{rainId=v.rainId;rainQueueId=v.rainQueueId}"
+       @update:handle-setId = "(v)=>{rainId=v.data.rainId;rainQueueId=v.data.rainQueueId}"
     />
 
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
@@ -299,7 +299,7 @@ let dimensions =  ['grade', '高', '中']
 let riverDataSource = null
 let lakeDataSource = null
 // let riverData = null
-let rainDisasterId = null
+
 
 let baseInfoTitle = ref("")
 let showBaseInfo = ref(false)
@@ -328,6 +328,7 @@ let showStep = ref(false)
 let fenXiFanWei = ref([])
 let rainId = ref("")
 let rainQueueId = ref("")
+let rainDisasterId = ref(null)
 
 let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
@@ -1467,7 +1468,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
         }
         request.type = item.disasterType
         request.entityId = parseInt(item.entityId.split("点")[1])
-        request.disasterId = rainDisasterId
+        request.disasterId = rainDisasterId.value
         request.county = item.geologicalDisasterHideDTO.county
 
         // 将Cartesian3坐标转换为经纬度
@@ -1737,7 +1738,7 @@ async function refreshComponent(){
 /* 重置所有状态变量 */
 function resetAllStates(){
   // 重置基本状态
-  rainDisasterId = null
+  rainDisasterId.value = null
   baseInfoTitle.value = ""
   showBaseInfo.value = false
   rainMode.value = false
@@ -1841,8 +1842,8 @@ function resetAllStates(){
 
 /* 报告产出 */
 async function downloadRainReport(){
-  console.log(rainDisasterId)
-  if(!rainDisasterId){
+  console.log(rainDisasterId.value)
+  if(!rainDisasterId.value){
     ElMessage({
       message: '暂无报告，请先触发暴雨！',
       type: 'warning',
@@ -1889,14 +1890,15 @@ async function downloadRainReport(){
 
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
-    console.log(rainDisasterId)
-    let rainRequests = {
+    console.log(rainDisasterId.value)
+    let RainParams = {
       rainId: rainId.value,
-      rainQueueId: rainQueueId.value
+      rainQueueId: rainQueueId.value,
+      rainDisasterId:rainDisasterId.value
     }
 
-    console.log(rainRequests,"触发后的暴雨ID是，，，，，，，，，，")
-    const wordRes = await generateRainReport({rainRequests,rainDisasterId})
+    console.log(RainParams,"触发后的暴雨ID是，，，，，，，，，，")
+    const wordRes = await generateRainReport(RainParams)
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
 
