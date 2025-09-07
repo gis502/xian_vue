@@ -1,14 +1,11 @@
 <template>
   <div class="timeLinePlay">
-        <div class="topLastRecordTimeLabel">
-          {{ this.lastRecordTimeLocal }}
-        </div>
-
-
+    <div class="topLastRecordTimeLabel">
+      {{ this.currentTime }}
+    </div>
     <div class="start-time-info">
       <span class="timelabel">开始时间：{{ this.timestampToTimeChina(this.startTime) }}</span>
     </div>
-
     <div class="jump_realTime" v-if="ifNewEq">
       <div class="tooltip" :class="{ 'highlight': selectedId === 'jumpRealTime' }"
            @click="selectButton('jumpRealTime'); jumpRealTime()">
@@ -23,13 +20,13 @@
         <span class="tooltiptext">回到开始</span>
       </div>
     </div>
-    <div class="play_back">
-      <div class="tooltip" :class="{ 'highlight': selectedId === 'playBack' }"
-           @click="selectButton('playBack'); playBack()">
-        <img class="play-icon" src="../../assets/icons/TimeLine/向后播放.png"/>
-        <span class="tooltiptext">向后播放</span>
-      </div>
-    </div>
+    <!--    <div class="play_back">-->
+    <!--      <div class="tooltip" :class="{ 'highlight': selectedId === 'playBack' }"-->
+    <!--           @click="selectButton('playBack'); playBack()">-->
+    <!--        <img class="play-icon" src="../../assets/icons/TimeLine/向后播放.png"/>-->
+    <!--        <span class="tooltiptext">向后播放</span>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <div class="play_end">
       <div class="tooltip" :class="{ 'highlight': selectedId === 'playEnd' }"
            @click="selectButton('playEnd'); playEnd()">
@@ -44,8 +41,6 @@
         <span class="tooltiptext">播放</span>
       </div>
     </div>
-
-
     <div class="speed-label">
       <span class="timelabel">当前播放速度：</span>
       <div class="speed-selector" @click="this.showSpeedOptions = !this.showSpeedOptions">
@@ -61,9 +56,8 @@
         <span class="timelabel">{{ speedOption }}</span>
       </div>
     </div>
-
     <div class="current-time-info">
-      <span class="timelabel">当前时间：{{ this.currentTimeLocal }}</span>
+      <span class="timelabel">当前时间：{{ this.currentTime }}</span>
     </div>
     <div class="end-time-info">
       <span class="timelabel">结束时间：{{ this.timestampToTimeChina(this.endTime) }}</span>
@@ -83,109 +77,61 @@ export default {
   name: "timeLinePlay",
   data: function () {
     return {
-      // oldCurrentTime: null,
       selectedId: "playStart", // 当前选中的按钮，前进后退，暂停播放
       currentSpeed: 600,
       showSpeedOptions: false,
       speedOption: '600X',
       speedOptions: ['1X', '60X', '600X', '3600X', '7200X'],
-      // plots: [],
       ifNewEq: false, //用于 回到真实时间
-      // timeRecoard: [],
-      // plotArrinOneTime: [], // 假设这是你的点数组
       endflag: false, // 控制飞行结束的标志
-      // flyflag: true,//视角是否跳转？只有依次向前播放时才跳
-      currentTimeLocal: this.timestampToTimeChina(new Date()),
-      lastRecordTimeLocal: this.timestampToTimeChina(new Date()),
-      // lastRecordContent: '',
-
+      currentTime: this.timestampToTimeChina(new Date()),
       startTime: new Date(),
       endTime: new Date(),
-      plots:null,
+      plots: null,
+      jumpTimeListIndex: 0,
     }
   },
   // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
-  props: ['viewer', 'disasterEvent', 'currentTime','RealDisasterPlots','firstStartTimeLine'],
+  props: ['viewer', 'disasterEvent', 'RealDisasterPlots'],
   watch: {
-    currentTime(newVal, oldVal) {
-      if (newVal && oldVal && newVal !== oldVal) {
-        //有时候输入的值不是nan,调用函数读取的参数也不是nan，但是取转换成呢哇Date格式，时间是invalid data
-        let currentTimeLocaltmp = this.timestampToTimeChina(this.currentTime)
-        if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-          this.currentTimeLocal = currentTimeLocaltmp
-        }
-        if(this.plots){
-          this.ifstopandflash(newVal, oldVal);
-        }
-
-      }
-    },
     disasterEvent(newVal) {
       this.startTime = new Date(this.disasterEvent.occurrenceTime);
+      console.log(this.startTime, this.disasterEvent.occurrenceTime, "this.disasterEvent.occurrenceTime")
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
-      // console.log(this.disasterEvent, "this.startTime,this.endTime,")
-      // console.log(this.startTime, "this.startTime,this.endTime,")
-      // console.log(this.endTime, "this.startTime,this.endTime,")
+      this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
       let realTime = new Date()
       if (realTime >= this.startTime && realTime <= this.endTime) {
         this.ifNewEq = true
       }
-      let lastRecordTimeLocaltmp = this.timestampToTimeChina(this.startTime)
-      if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-        this.lastRecordTimeLocal = lastRecordTimeLocaltmp
-      }
     },
-
     viewer(newVal) {
-      // this.getPlotwithStartandEndTime(this.eqid)
       viewer.timeline.container.onmouseup = (e) => {
-        this.findLastRecordTimeAndContent()
-        // if(this.isMarkingLayer===false){
-        //   console.log("11111 isMarkingLayer_viewer ")
-        //   window.viewer.clockViewModel.shouldAnimate = false;
-        //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-        //   this.selectButton("playEnd")
-        // }
-        // else {
-        // console.log("2222 isMarkingLayer_viewer")
+        // this.findLastRecordTimeAndContent()
         this.playEnd()
-        // }
       }
     },
-    stopTimePlay(newVal) {
-      console.log("stopTimePlay", newVal)
-      if (newVal) {
-        this.playEnd(); // 停止时间轴播放
-      }
-    },
-    RealDisasterPlots(newVal){
-      this.plots=[]
-      this.RealDisasterPlots.forEach(item => {
-        if (!item.endTime ) {
-          // 为没有结束时间的点设置默认结束时间
-          item.endTime =new Date(new Date(item.startTime).getTime()+10*24*3600  ) //20天 错误时间设置结束时间地震发生20天以后
-        }
-        item.longitude= Number(geomToCoordinates(item.geom)[0][0]),
-        item.latitude=Number(geomToCoordinates(item.geom)[0][1]),
-        this.plots.push(item)
-      })
-      console.log(this.plots,"this.plots")
-    },
-    // isMarkingLayer(newVal) {
-    //   console.log(newVal, "isMarkingLayerLocal watch")
-    //   // this.isMarkingLayer=newVal
-    //   if (!newVal) {
-    //     console.log(this.isMarkingLayer, "isMarkingLayerLocal watch")
-    //     window.viewer.clockViewModel.shouldAnimate = false;
-    //     this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-    //     this.selectButton("playEnd")
+    // stopTimePlay(newVal) {
+    //   console.log("stopTimePlay", newVal)
+    //   if (newVal) {
+    //     this.playEnd(); // 停止时间轴播放
     //   }
-    // }
-    firstStartTimeLine(){
-      if(this,this.firstStartTimeLine){
-        this.playStart()
-      }
-    }
+    // },
+    RealDisasterPlots(newVal) {
+      this.plots = []
+      this.RealDisasterPlots.forEach(item => {
+        if (!item.endTime) {
+          item.endTime = new Date(new Date(item.startTime).getTime() + 10 * 24 * 3600 * 1000); // 修正：毫秒单位
+        }
+        item.longitude = Number(geomToCoordinates(item.geom)[0][0]);
+        item.latitude = Number(geomToCoordinates(item.geom)[0][1]);
+        this.plots.push(item);
+      });
+      this.plots.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+      console.log(this.plots, "this.plots")
+      this.jumpTimeListIndex = 0
+      timeLine.HiddenLabels()
+      this.playStart()
+    },
   },
   mounted() {
   },
@@ -194,10 +140,13 @@ export default {
       this.selectedId = id; // 更新选中的按钮ID
     },
     jumpRealTime() {
-      // this.findLastRecordTimeAndContent()
       window.viewer.clockViewModel.shouldAnimate = true;
       viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-      this.findLastRecordTimeAndContent()
+      let currentTimeLocaltmp = this.timestampToTimeChina(new Date())
+      if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
+        this.currentTime = currentTimeLocaltmp
+      }
+      // this.findLastRecordTimeAndContent()
       // if(this.isMarkingLayer===false){
       //   window.viewer.clockViewModel.shouldAnimate = false;
       //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
@@ -206,53 +155,45 @@ export default {
       // else{
       this.flyflag = false
       this.endflag = false;
-      this.$emit('startTimePlay');
+      // this.$emit('startTimePlay');
       window.viewer.clock.multiplier = 1.0
-      // }
+      this.jumpTimeListIndex = this.jumpTimeList.length
     },
     backToStart() {
       window.viewer.clockViewModel.shouldAnimate = false;
-      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disasterEvent.occurrenceTime));
       window.viewer.clock.multiplier = this.currentSpeed
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.disasterEvent.occurrenceTime));
+      this.jumpTimeListIndex = 0
+      this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
       this.flyflag = true
       this.endflag = true;
-      this.lastRecordTimeLocal = this.timestampToTimeChina(this.startTime)
-      // this.lastRecordContent = ''
     },
-    playBack() {
-      if (window.viewer.clock.multiplier > 0) {
-        window.viewer.clock.multiplier = this.currentSpeed * (-1.0)
-      }
-      window.viewer.clockViewModel.shouldAnimate = true;
-      this.endflag = false;
-      this.$emit('startTimePlay');
-      this.flyflag = false
-    },
+    // playBack() {
+    //   if (window.viewer.clock.multiplier > 0) {
+    //     window.viewer.clock.multiplier = this.currentSpeed * (-1.0)
+    //   }
+    //   window.viewer.clockViewModel.shouldAnimate = true;
+    //   this.endflag = false;
+    //   // this.$emit('startTimePlay');
+    //   this.flyflag = false
+    //   let currentTimeLocaltmp = this.timestampToTimeChina(new Date(viewer.clock.currentTime))
+    //   if (currentTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
+    //     this.currentTime = currentTimeLocaltmp
+    //   }
+    // },
     playEnd() {
       window.viewer.clockViewModel.shouldAnimate = false;
       this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
       this.selectButton("playEnd")
-      // console.log(this.isMarkingLayer, "this.isMarkingLayer playEnd")
       timeLine.makerLabelsShowPersonAndResouce(this.plots)
     },
     playStart() {
-      if (new Date(this.currentTime) >= new Date()) {
-        viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-        window.viewer.clock.multiplier = 1.0
-      } else {
-        window.viewer.clock.multiplier = this.currentSpeed
-      }
-      // if(this.isMarkingLayer===false){
-      //   window.viewer.clockViewModel.shouldAnimate = false;
-      //   this.endflag = true; //设置的flag，避免与自动播放的动效暂停播放冲突
-      //   this.selectButton("playEnd")
-      // }
-      // else{
-      window.viewer.clockViewModel.shouldAnimate = true;
       this.endflag = false;
-      this.$emit('startTimePlay');
       this.flyflag = true
-      // }
+      timeLine.HiddenLabels()
+      window.viewer.clock.multiplier = this.currentSpeed
+      window.viewer.clockViewModel.shouldAnimate = false;
+      this.flyToPointsSequentially()
     },
     selectSpeed(speed) {
       // 直接赋值速度选项
@@ -262,74 +203,50 @@ export default {
       window.viewer.clock.multiplier = this.currentSpeed
       this.showSpeedOptions = false
     },
-
-    //视角跳转
-    ifArriveTime(currentTime, oldCurrentTime, itemTime) {
-      const startTime = Cesium.JulianDate.fromDate(new Date(itemTime));
-      const timeDiff = Cesium.JulianDate.secondsDifference(currentTime, startTime);
-      // 如果当前时间接近某个点的开始时间（允许一定的误差范围）
-      if (Math.abs(timeDiff) < 1) { // 误差范围设置为1秒
-        return true
-      } else {
-        if (new Date(currentTime).getTime() >= new Date(itemTime).getTime() && new Date(oldCurrentTime).getTime() <= new Date(itemTime).getTime()) {
-          return true
-        } else {
-          return false
-        }
-      }
-    },
-
     async flyToPointsSequentially() {
-      for (let index = 0; index < this.plotArrinOneTime.length; index++) {
-        const item = this.plotArrinOneTime[index];
-        let lastRecordTimeLocaltmp = this.timestampToTimeChina(item.startTime)
-        if (lastRecordTimeLocaltmp != "NaN年0NaN月0NaN日 0NaN:0NaN:0NaN") {
-          this.lastRecordTimeLocal = lastRecordTimeLocaltmp
-        }
-
+      for (; this.jumpTimeListIndex < this.plots.length; this.jumpTimeListIndex++) {
+        viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.plots[this.jumpTimeListIndex].startTime));
+        // const item = this.plotArrinOneTime[this.jumpTimeListIndex];
+        const item = this.plots[this.jumpTimeListIndex];
+        this.currentTime = this.timestampToTimeChina(new Date(this.plots[this.jumpTimeListIndex].startTime))
         //标签
         let entitylabel = null
         let plotId = item.plotId
         let plotType = item.plotType
-        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员"||item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-          if(entitylabel){
+          if (entitylabel) {
             entitylabel.show = true
-            this.lastRecordContent = entitylabel.labeltext
           }
         } else {
           getPlotInfos({plotId, plotType}).then(res => {
             let labeltext = timeLine.labeltext(plotType, res)
             timeLine.addPointLabel(item, labeltext)
             entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-            this.lastRecordContent = labeltext
           })
         }
 
         if (this.endflag) {
-          console.log(index, this.plotArrinOneTime.length, "终止飞行1111");
+          console.log(this.jumpTimeListIndex, this.plots.length, "终止飞行1111");
           //相同时间有多个点，为了闪烁的效果能看清是哪个点，在判断这一组的时候，把标签隐藏了。这里停止之后，需要把隐藏的人员伤亡、救援出队标签给放出来。
           timeLine.makerLabelsShowPersonAndResouce(this.plots)
           break; // 终止循环
         }
         try {
-          // console.log(item,"flyToPointsSequentially")
-          // console.log(geomToCoordinates(item.geom),"geomToCoordinates(item.geom)")
-          let flylog=Number(geomToCoordinates(item.geom)[0][0])
-          let flylat=Number(geomToCoordinates(item.geom)[0][1])
-          console.log(item.geom,flylog,flylat,"flylog,flylat")
+          let flylog = Number(geomToCoordinates(item.geom)[0][0])
+          let flylat = Number(geomToCoordinates(item.geom)[0][1])
+          console.log(flylog, flylat, "flylog,flylat")
           // 飞到指定点
           await timeLine.fly(flylog, flylat, 2000);
           if (this.endflag) {
-            console.log(index, this.plotArrinOneTime.length, "终止飞行222");
+            console.log(this.jumpTimeListIndex, this.plots.length, "终止飞行222");
             timeLine.makerLabelsShowPersonAndResouce(this.plots)
             break; // 终止循环
           }
-
           // 点闪烁
           await timeLine.blinkMarker(item);
           console.log("blinkMarker else")
-          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+          if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           } else {
             window.labeldataSource.entities.removeById(item.plotId + "_label");
           }
@@ -337,61 +254,6 @@ export default {
           console.error("飞行过程中发生错误:", error);
           break; // 发生错误时终止循环
         }
-      }
-
-      // 如果所有点都飞完了，重新启动时间轴
-      if (!this.endflag) {
-        window.viewer.clockViewModel.shouldAnimate = true;
-      }
-    },
-    ifstopandflash(currentTime, oldCurrentTime) {
-      // if(this.isMarkingLayer==false){
-      //   return;
-      // }
-      if (this.flyflag == false) {
-        return;
-      }
-      this.plotArrinOneTime = this.plots.filter(plot => {
-        return this.ifArriveTime(currentTime, oldCurrentTime, plot.startTime);
-      });
-      if (this.endflag) {
-        window.viewer.clockViewModel.shouldAnimate = false;
-        timeLine.makerLabelsShowPersonAndResouce(this.plots)
-
-        console.log("终止333");
-        return
-      } else {
-        if (this.plotArrinOneTime.length > 0) {
-          window.viewer.clockViewModel.shouldAnimate = false;
-          //先把这一时间点的标签隐藏，再一个一个弹出，
-          timeLine.markerLabelsHidden(this.plotArrinOneTime)
-          this.flyToPointsSequentially()
-        }
-      }
-    },
-    findLastRecordTimeAndContent() {
-      console.log(new Date(this.currentTime), "new Date(currentTime) findLastRecordTimeAndContent")
-      let filteredPlots = this.plots.filter(plot => {
-        return new Date(plot.startTime).getTime() <= new Date(this.currentTime).getTime();
-      });
-      let latestPlot = null;
-      let latestTime = new Date(this.startTime);
-      filteredPlots.forEach(plot => {
-        const plotStartTime = new Date(plot.startTime).getTime();
-        if (plotStartTime > latestTime) {
-          latestTime = plotStartTime;
-          latestPlot = plot;
-        }
-      });
-
-      if (latestPlot) {
-        this.lastRecordTimeLocal = this.timestampToTimeChina(latestPlot.startTime)
-        // let plotId = latestPlot.plotId
-        // let plotType = latestPlot.plotType
-        // getPlotInfos({plotId, plotType}).then(res => {
-        //   let labeltext = timeLine.labeltext(plotType, res)
-        //   this.lastRecordContent = labeltext
-        // })
       }
     },
     timestampToTime(time) {
@@ -463,13 +325,13 @@ export default {
 .play_end {
   position: absolute;
   bottom: 3%;
-  left: 52%;
+  left: 50%;
 }
 
 .play_start {
   position: absolute;
   bottom: 3%;
-  left: 54%;
+  left: 52%;
 }
 
 .tooltip {
@@ -519,7 +381,7 @@ export default {
 .topLastRecordTimeLabel {
   position: fixed;
   top: 80px; /* 距离顶部 10px，可调 */
-  left: 51%;
+  left: 53%;
   transform: translateX(-50%); /* 水平居中 */
   background-color: rgba(32, 99, 150, 0.8);
   color: #ffffff;

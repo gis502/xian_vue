@@ -154,7 +154,7 @@ export default {
         disasterId: this.disasterEvent.disasterId,
         disasterTrigger: this.disasterEvent.trigger
       })
-
+      console.log("this.realDisasterPoint disasterEvent",this.realDisasterPoint )
       const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
       const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
       // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
@@ -286,6 +286,7 @@ export default {
           add: async () => {
             let disaterEndTime = new Date(new Date(this.disasterEvent.occurrenceTime).getTime() + 10 * 24 * 3600 * 1000);
             if(this.realDisasterPoint){
+              console.log(this.realDisasterPoint,"before 灾害点")
               this.realDisasterPoint.forEach(item => {
                 // console.log(item.startTime,item.endTime,new Date(item.startTime),new Date(item.endTime),"timeTime")
                 if (!item.endTime || new Date(item.endTime) < new Date(this.disasterEvent.occurrenceTime) || new Date(item.endTime) <= new Date(item.startTime)) {
@@ -297,6 +298,7 @@ export default {
                   item.startTime = this.disasterEvent.occurrenceTime;
                 }
               })
+              console.log(this.realDisasterPoint,"after 灾害点")
               this.$emit("update:realDisasterPoint", this.realDisasterPoint);
               layers.addRealDisaterPlot(this.realDisasterPoint)
             }

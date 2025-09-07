@@ -228,6 +228,12 @@
         :debrisFlowInformation="debrisFlowInformation"
         :showRiskPointsInformation="showRiskPointsInformation"
         :riskPointsInformation="riskPointsInformation"
+        :showWaterDisasterInformation="showWaterDisasterInformation"
+        :waterDisasterInformation="waterDisasterInformation"
+        :showFloodDisasterInformation="showFloodDisasterInformation"
+        :floodDisasterInformation="floodDisasterInformation"
+        :showHistorialDisaster="showHistorialDisaster"
+        :historialDisasterInformation="historialDisasterInformation"
         :trigger="'地震'"
         :rainfall="'0'"
     />
@@ -375,10 +381,16 @@ let showDisasterInformation = ref(false);
 let disasterInformation = ref({});
 // 显示泥石流
 let showdebrisFlowInformation = ref(false);
+let showWaterDisasterInformation = ref(false);
+let showFloodDisasterInformation = ref(false);
+let showHistorialDisaster = ref(false);
 let debrisFlowInformation = ref({});
 // 风险点
 let showRiskPointsInformation = ref(false);
 let riskPointsInformation = ref({});
+let waterDisasterInformation = ref({});
+let floodDisasterInformation = ref({});
+let historialDisasterInformation = ref({});
 let matchedHiddenHighlightEntities = ref([])
 // 模拟地震
 let showEarthquakeSimulation = ref(false);
@@ -400,13 +412,10 @@ onMounted(() => {
   window.viewer = viewer;
 
   pulse = new PulseTool(window.viewer);
-
   // 断裂带
   basicLayers.addFaultZone();
-
   // 行政区
   basicLayers.loadAdminData();
-
   // 点击隐患点触发
   entitiesClickPonpHandler();
   // 调整到指定位置
@@ -444,39 +453,6 @@ function displayChart() {
 // 隐藏chart
 function hideChart() {
   showChart.value = false;
-}
-
-function setupEntityClickHandler() {
-  // 清除之前的点击事件处理程序
-  if (clickHandler.value) {
-    clickHandler.value.destroy();
-    clickHandler.value = null;
-  }
-
-  // 为左键点击添加事件处理程序
-  clickHandler.value = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
-  clickHandler.value.setInputAction((movement) => {
-    const pickedObject = viewer.scene.pick(movement.position);
-
-    // 判断是否有disasterName属性 - 需要添加空值检查
-    if (!pickedObject || !pickedObject.id || pickedObject.id.disasterData === undefined) {
-      return;
-    }
-
-    // 隐藏之前的弹出面板
-    closePopup();
-
-    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
-      const entity = pickedObject.id;
-      // 获取实体的灾害数据
-      selectedEntityData.value = entity.disasterData || {};
-      // 计算弹出框位置并显示面板
-      calculateAndShowPopup(entity, movement.position);
-    } else {
-      // 如果点击在空白处，隐藏信息框
-      viewer.selectedEntity = undefined;
-    }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 function closePopup() {
@@ -642,6 +618,7 @@ function entitiesClickPonpHandler() {
             showdebrisFlowInformation.value = true;
             showRiskPointsInformation.value = false;
 
+            historialDisasterInformation.value = null;
             disasterInformation.value = null
             debrisFlowInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
             riskPointsInformation.value = null
@@ -655,9 +632,69 @@ function entitiesClickPonpHandler() {
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = true;
 
+            historialDisasterInformation.value = null;
             disasterInformation.value = null
             debrisFlowInformation.value = null
             riskPointsInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+          } else if (entity.name === "内涝隐患点") {
+            eqCenterPanelVisible.value = false;
+            rainCenterPanelVisible.value = false;
+            showBaseInfo.value = true;
+            baseInfoTitle.value = entity.name;
+            showDisasterInformation.value = false;
+            showdebrisFlowInformation.value = false;
+            showRiskPointsInformation.value = false;
+            showWaterDisasterInformation.value = true;
+            showFloodDisasterInformation.value = false;
+            showHistorialDisaster.value = false;
+
+            historialDisasterInformation.value = null;
+            disasterInformation.value = null
+            debrisFlowInformation.value = null
+            riskPointsInformation.value = null
+            waterDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+            floodDisasterInformation.value = null
+
+          } else if (entity.name === "山洪隐患点") {
+            eqCenterPanelVisible.value = false;
+            rainCenterPanelVisible.value = false;
+            showBaseInfo.value = true;
+            baseInfoTitle.value = entity.name;
+            showDisasterInformation.value = false;
+            showdebrisFlowInformation.value = false;
+            showRiskPointsInformation.value = false;
+            showWaterDisasterInformation.value = false;
+            showFloodDisasterInformation.value = true;
+            showHistorialDisaster.value = false;
+
+            historialDisasterInformation.value = null;
+            disasterInformation.value = null
+            debrisFlowInformation.value = null
+            riskPointsInformation.value = null
+            waterDisasterInformation.value = null
+            floodDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+
+          }else if (entity.name === "历史地震灾害"){
+            eqCenterPanelVisible.value = false;
+            rainCenterPanelVisible.value = false;
+            showBaseInfo.value = true;
+            baseInfoTitle.value = entity.name;
+            showDisasterInformation.value = false;
+            showdebrisFlowInformation.value = false;
+            showRiskPointsInformation.value = false;
+            showWaterDisasterInformation.value = false;
+            showFloodDisasterInformation.value = false;
+            showHistorialDisaster.value = true;
+
+            floodDisasterInformation.value = null;
+            disasterInformation.value = null
+            debrisFlowInformation.value = null
+            riskPointsInformation.value = null
+            waterDisasterInformation.value = null
+            historialDisasterInformation.value = entity.disasterData
+            // historialDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+            console.log(7545454,historialDisasterInformation.value)
+
           } else {
             // ============ 整合 setupEntityClickHandler 的逻辑到这里 ============
             rainCenterPanelVisible.value = false;

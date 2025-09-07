@@ -454,10 +454,10 @@ let basicLayers = {
                         },
                         // originalColor: Cesium.Color.RED,
                         // originalPixelSize: 15,
-                        // name:type,
-                        // // 标记灾害类型
-                        // disasterType: 'disaster',
-                        // disasterData: point
+                        name:"历史地震灾害",
+                        // 标记灾害类型
+                        disasterType: 'historicalEathquake',
+                        disasterData: item
                     });
                 }
             })
@@ -614,7 +614,7 @@ let basicLayers = {
     //加载单独点
     loadPoint(type, data, icon){
         const entity = window.viewer.entities.add({
-            position: Cesium.Cartesian3.fromDegrees(data[0], data[1]),
+            position: Cesium.Cartesian3.fromDegrees(data.geometry.coordinates[0], data.geometry.coordinates[1]),
             // 点
             billboard: {
                 // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
@@ -628,8 +628,14 @@ let basicLayers = {
                 scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
                 depthTest: false, // 禁止深度测试
                 disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
-                show: true
+                show: true,
+                zIndex: 10
             },
+            originalColor: Cesium.Color.RED,
+            originalPixelSize: 15,
+            name:type,
+            // 标记灾害类型
+            disasterData: data
         });
     },
     //绘制图片的公共方法

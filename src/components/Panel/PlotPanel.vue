@@ -384,6 +384,7 @@ export default {
 
         // 3. 处理标绘点的开始和结束时间
         item.starttime = that.timestampToTime(res.plotInfo.startTime);
+        // console.log(item.starttime,"item.starttime")
         item.endtime = res.plotInfo.endTime ? that.timestampToTime(res.plotInfo.endTime) : "";
         item.plotId = plotId;
         item.plotType = plotType;

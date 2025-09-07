@@ -20,6 +20,50 @@
       <label><input type="checkbox" v-model="showSubway" @change="toggleSubway"> 显示地铁站 </label>
     </div>
   </div>
+
+  <div class="graph_legend" v-if="showPeople">
+    <div class="legend-title1">地震震级图例</div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #b1fe02;"></span>
+      <span class="legend-label">Min-0 < 100</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #6bf700;"></span>
+      <span class="legend-label">100 ≤ X < 500</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #fcf600;"></span>
+      <span class="legend-label">500 ≤ X < 1000</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #fecb02;"></span>
+      <span class="legend-label">1000 ≤ X < 2000</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #fc9e00;"></span>
+      <span class="legend-label">2000 ≤ X < 4000</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #fe7004;"></span>
+      <span class="legend-label">4000 ≤ X < 8000</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #fb3f02;"></span>
+      <span class="legend-label">8000 ≤ X < 10000</span>
+    </div>
+
+    <div class="legend-item1">
+      <span class="legend-color" style="background-color: #ff0000;"></span>
+      <span class="legend-label">10000 ≤ X < Max</span>
+    </div>
+  </div>
 </template>
 
 <script setup name = 'layerControl'>
@@ -105,13 +149,6 @@ function setupLayerClickHandler() {
         const text = await response.text();
         console.log("道路信息:", JSON.parse(text));
       }
-      //桥梁
-      if(showBridge.value){
-        const infoUrl = buildGetFeatureInfoUrl(longitude, latitude, basicLayers.bridgeLayerName);
-        const response = await fetch(infoUrl);
-        const text = await response.text();
-        console.log("桥梁信息:", JSON.parse(text));
-      }
       //高速
       if(showHighway.value){
         const infoUrl = buildGetFeatureInfoUrl(longitude, latitude, basicLayers.highwayLayerName);
@@ -125,20 +162,6 @@ function setupLayerClickHandler() {
         const response = await fetch(infoUrl);
         const text = await response.text();
         console.log("国道信息:", JSON.parse(text));
-      }
-      //水库
-      if(showReservoir.value){
-        const infoUrl = buildGetFeatureInfoUrl(longitude, latitude, basicLayers.reservoirLayerName);
-        const response = await fetch(infoUrl);
-        const text = await response.text();
-        console.log("水库信息:", JSON.parse(text));
-      }
-      //地铁站
-      if(showSubway.value){
-        const infoUrl = buildGetFeatureInfoUrl(longitude, latitude, basicLayers.subwayLayerName);
-        const response = await fetch(infoUrl);
-        const text = await response.text();
-        console.log("地铁站信息:", JSON.parse(text));
       }
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -379,5 +402,46 @@ function toggleSubway(){
   font-size: 12px; /* 缩小字体 */
   cursor: pointer;
 }
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.legend-title1 {
+  width: 100%;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.graph_legend {
+  position: absolute;
+  bottom: 10px;
+  left: 15px;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  color: black;
+  padding: 10px;
+  border-radius: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  width: 310px;
+  height: 180px;
+}
+
+.legend-item1 {
+  display: flex;
+  align-items: center;
+  margin: 3px 0; /* 减少行间距 */
+  font-size: 14px; /* 缩小字体 */
+  width: 50%;
+}
+
+
 
 </style>
