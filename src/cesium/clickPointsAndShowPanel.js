@@ -15,8 +15,6 @@ let clickPointsAndShowPanel = {
             if (matchedHiddenHighlightEntities) {
                 let matchedEntity = null;
                 matchedEntity = matchedHiddenHighlightEntities.find((item, index) => {
-                    // console.log(item.geologicalDisasterHideDTO.id,entity.properties._data._value.geologicalDisasterHideDTO.id,"item.geologicalDisasterHideDTO.id")
-                    // return item.hide_id === entity.properties._data._value.geologicalDisasterHideDTO.id;
                     return item.geologicalDisasterHideDTO.id === entity.properties._data._value.geologicalDisasterHideDTO.id;
                 });
                 console.log(matchedEntity, "matchedEntity")
