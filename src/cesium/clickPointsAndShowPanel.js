@@ -4,7 +4,7 @@ let clickPointsAndShowPanel = {
         console.log(matchedHiddenHighlightEntities, "matchedHiddenHighlightEntities extractDataForPanel")
         console.log(entity, 'entity')
         let properties = {};
-        if (entity._name === "滑坡隐患点" || entity._name === "泥石流隐患点" || entity._name === "风险区域" || entity._name === "内涝隐患点" || entity._name === "山洪隐患点") {
+        if (entity._name === "滑坡" ||entity._name === "滑坡隐患点" || entity._name === "泥石流隐患点" || entity._name === "风险区域" || entity._name === "内涝隐患点" || entity._name === "山洪隐患点") {
             // console.log("1111111")
             let predictData = {
                 level: [],
