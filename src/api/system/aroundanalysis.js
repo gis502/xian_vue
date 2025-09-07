@@ -22,9 +22,23 @@ export function getFlashFlood() {
     })
 }
 
+export function getFlood() {
+    return request({
+        url: '/around/getFlood',
+        method: 'get'
+    })
+}
+
 export function getWater() {
     return request({
         url: '/hide/getWater',
+        method: 'get'
+    })
+}
+
+export function getWaterDetail() {
+    return request({
+        url: '/around/getWater',
         method: 'get'
     })
 }
@@ -88,6 +102,27 @@ export function getRain() {
 export function getSchool() {
     return request({
         url: '/around/getSchool',
+        method: 'get'
+    })
+}
+
+export function getReservoir(){
+    return request({
+        url: '/around/getReservoir',
+        method: 'get'
+    })
+}
+
+export function getBridge() {
+    return request({
+        url: '/around/getBridge',
+        method: 'get'
+    })
+}
+
+export function getSubway() {
+    return request({
+        url: '/around/getSubway',
         method: 'get'
     })
 }

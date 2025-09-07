@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 import * as url from "node:url";
-import {rainSlideTrigger} from "@/api/system/rainModel.js";
+import { SeismicSlideTrigger} from "@/api/system/rainModel.js";
 
 /**
  * 获取模拟点风险概率
@@ -35,7 +35,7 @@ export async function obtainTheProbabilityOfSimulatedPointRisk(points) {
         // 写入点位索引
         pointIndex.push(i);
     }
-    const res = await rainSlideTrigger({ data });
+    const res = await SeismicSlideTrigger({ data });
 
     console.log(res, "res...")
 

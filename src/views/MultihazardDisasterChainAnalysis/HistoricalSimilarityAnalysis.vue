@@ -1,12 +1,20 @@
 <template>
 
-  <div id="cesium-container">
+  <div
+      id="cesium-container"
+      v-loading="loading"
+      element-loading-background="rgba(122, 122, 122, 0.8)">
     <!--历史灾害信息列表-->
     <HistoricalDisasterList
         :chartDatas="chartDatas"
         :disasterList="disasterList"
+        @update:levelPoints="handleLevelPoints"
+        @update:selectDisaster="handSelectDisaster"
         @displayAnalysis="displayAnalysis"
         @hideAnalysis="hideAnalysis"
+        @createPulseCircle="createPulseCircle"
+        @loadingTrue="loadingTrue"
+        @loadingFalse="loadingFalse"
     ></HistoricalDisasterList>
     <!-- 图例 -->
     <Legend></Legend>
@@ -16,6 +24,7 @@
     <HistoricalDisasterMatch
         v-if="showAnalysis"
         :disasterList="disasterList"
+        :selectDisaster="selectDisaster"
     ></HistoricalDisasterMatch>
 
   </div>
@@ -32,10 +41,23 @@ import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
 import HistoricalDisasterMatch from "@/components/HistoricalDisaster/HistoricalDisasterMatch.vue";
 
+
 const showAnalysis = ref(false);
 const disasterList = ref([]);
-
-console.log("disasterList",disasterList)
+const rainLevelPoint = ref([]);
+const loading = ref(false)
+const selectDisaster = ref([])
+const maxRadius = 30;
+const duration = 5;
+const _circle = createCircleImage(maxRadius);
+const handleLevelPoints = (data) => {
+  rainLevelPoint.value = data;
+  console.log('父组件接收的数据12121212121：', rainLevelPoint.value);
+}
+const handSelectDisaster = (data) => {
+ selectDisaster.value = data;
+  console.log('父组件接收的数据43434343434：', selectDisaster.value);
+}
 onMounted(async () => {
   window.viewer = initCesium("cesium-container");
   // 调整到指定位置
@@ -71,6 +93,79 @@ function hideAnalysis() {
   showAnalysis.value = false;
 }
 
+// 加载特效
+function loadingTrue() {
+  loading.value = true;
+}
+
+function loadingFalse() {
+  loading.value = false;
+}
+
+//创建脉冲实体
+function createPulseCircle() {
+  const startTime = Cesium.JulianDate.now();
+  rainLevelPoint.value.forEach(poin => {
+    window.viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(poin.lon, poin.lat),
+      billboard: {
+        image: _circle,
+        width: new Cesium.CallbackProperty((time) => {
+          const elapsed =
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const progress = elapsed / duration;
+          return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
+        }, false),
+        height: new Cesium.CallbackProperty((time) => {
+          const elapsed =
+              Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const progress = elapsed / duration;
+          return maxRadius * 2 * Math.abs(Math.sin(progress * Math.PI));
+        }, false),
+        color: new Cesium.CallbackProperty((time) => {
+          const elapsed = Cesium.JulianDate.secondsDifference(time, startTime) % duration;
+          const progress = elapsed / duration;
+          // 透明度逻辑：与大小反向变化（大小最大时透明，最小时不透明）
+          // Math.abs(Math.sin(progress * Math.PI)) → 0~1（大小系数）
+          // 1 - 系数 → 透明度1~0（大小最大时透明度0.2，最小时0.8，避免完全透明消失）
+          const alpha = 0.8 - 0.6 * Math.abs(Math.sin(progress * Math.PI));
+          return new Cesium.Color(1, 0, 0, alpha); // 红色（RGB：1,0,0）+ 动态透明度
+        }, false),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+      },
+    });
+  })
+}
+
+//创建脉冲图片
+function createCircleImage(maxRadius) {
+  // 创建一个虚拟的canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = maxRadius * 2;
+  canvas.height = maxRadius * 2;
+  const context = canvas.getContext('2d');
+
+  // 清空canvas，确保背景透明
+  context.clearRect(0, 0, maxRadius, maxRadius);
+
+  // 开始绘制圆
+  context.beginPath();
+  // 绘制圆，arc参数说明：x,y,半径,起始角度,结束角度,顺时针/逆时针
+  // 绘制圆从canvas中心开始绘制，所以x,y坐标都为maxRadius
+  // 半径为maxRadius
+  context.arc(maxRadius, maxRadius, maxRadius, 0, Math.PI * 2, false);
+
+  // 闭合路径
+  context.closePath();
+
+  // 填充颜色，透明
+  context.fillStyle = 'rgba(255,255,255,0.7)';
+  context.fill();
+  return canvas.toDataURL('image/png');
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -82,4 +177,5 @@ function hideAnalysis() {
   margin: 0;
   position: relative;
 }
+
 </style>

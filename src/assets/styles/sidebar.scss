@@ -15,7 +15,8 @@
     -webkit-transition: width .28s;
     transition: width 0.28s;
     width: $base-sidebar-width !important;
-    background: $base-menu-background;
+    //background: $base-menu-background;
+    background-image: url('/public/images/background_image.png');
     background-size: cover;
     height: 100%;
     position: fixed;

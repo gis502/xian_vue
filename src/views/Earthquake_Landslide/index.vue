@@ -231,6 +231,7 @@
         :trigger="'地震'"
         :rainfall="'0'"
     />
+
     <!-- 地震模拟 -->
     <div class="btns-box">
       <el-button type="warning" @click="startEarthquakeSimulation">地震模拟</el-button>
@@ -246,21 +247,21 @@
     </ThematicPanel>
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
-      v-if="showEarthquakeSimulation"
-      :position="earthquakeSimulationPosition"
-      :dataTypes="dataTypes"
-      :chartDatas="chartDatas"
-      :earthquakeID="earthquakeID"
-      :pulse="pulse"
-      @displayTable="displayTable"
-      @hideTable="hideTable"
-      @displayChart="displayChart"
-      @hideChart="hideChart"
-      @cancelEarthquake="cancelEarthquake"
-      @startLoading="startLoading"
-      @stopLoading="stopLoading"
-      @updateEqInfo="updateEqInfo"
-      @thematicEqInfo="thematicEqInfo"
+        v-if="showEarthquakeSimulation"
+        :position="earthquakeSimulationPosition"
+        :dataTypes="dataTypes"
+        :chartDatas="chartDatas"
+        :earthquakeID="earthquakeID"
+        :pulse="pulse"
+        @displayTable="displayTable"
+        @hideTable="hideTable"
+        @displayChart="displayChart"
+        @hideChart="hideChart"
+        @cancelEarthquake="cancelEarthquake"
+        @startLoading="startLoading"
+        @stopLoading="stopLoading"
+        @updateEqInfo="updateEqInfo"
+        @thematicEqInfo="thematicEqInfo"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -285,7 +286,7 @@ import Chart from "../../components/Earthquake/Chart.vue";
 
 import eqCenterPanel from "@/components/Panel/eqCenterPanel.vue";
 import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
-import { nextTick } from 'vue';
+import {nextTick} from 'vue';
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
 import ThematicPanel from "@/components/Panel/ThematicPanel.vue";
 
@@ -298,9 +299,10 @@ let loading = ref(false);
 
 let selectedEntityData = ref(null);
 let popupVisible = ref(false);
-let popupPosition =  ref({x: 0, y: 0});
+let popupPosition = ref({x: 0, y: 0});
 let clickHandler = ref(null);
 let earthquakeID = reactive({})
+
 // 脉冲
 let pulse = null;
 

@@ -9,6 +9,15 @@ export function rainSlideTrigger(data) {
     });
 }
 
+export function SeismicSlideTrigger(data) {
+    return request({
+        url: '/model/eq/trigger',
+        method: 'post',
+        data: data,
+        timeout:50000
+    });
+}
+
 export function rainSlideFactorUpdata(data) {
     return request({
         url: '/model/rainSlideFactorUpdata',
@@ -31,4 +40,13 @@ export function getRadarData() {
         url: '/radar/latest',
         method: 'get'
     })
+}
+
+// 插入影响数据
+export function impactInsert(data) {
+    return request({
+        url: '/model/impactinsert',
+        method: 'post',
+        data: data,
+    });
 }

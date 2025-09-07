@@ -29,16 +29,25 @@ import storePointsIcon from "@/assets/images/storePoints.jpg"
 import shelterIcon from "@/assets/images/emergencyShelter.png"
 import schoolIcon from "@/assets/images/school.png"
 import eqMark from "@/assets/images/eqMark.png"
+import bridgeIcon from "@/assets/images/bridge.png"
+import reservoirIcon from "@/assets/images/reservoir.png"
+import subwayIcon from "@/assets/images/subway.png"
+
 import {dataOnHiddenDangerPointsOfDebrisFlow, landslideHazardPointData, riskVillageData,} from "@/api/earthquake/datas";
 import {
     getDangerous,
     getFire,
-    getFlashFlood,
     getHospital,
     getShelter,
     getStore,
-    getWater,
-    getSchool
+    getSchool,
+    getWater, //内涝
+    getFlashFlood, //山洪
+    getFlow, //泥石流
+    getSlide, //滑坡
+    getRisk,
+    getFlood,
+    getWaterDetail, getBridge, getReservoir, getSubway
 } from "@/api/system/aroundanalysis.js";
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {getAllEarthquakeList} from "@/api/system/disasterEvents.js";
@@ -64,6 +73,9 @@ let basicLayers = {
     landslidePoints: [],//滑坡点
     nishiliuPoints: [],//泥石流点
     dangerPoints: [],//危险区点
+    subwayEntities: [],
+    reservoirEntities: [],
+    bridgeEntities: [],
     flashFloodPoints: [],//山洪点
     waterPoints: [],
     hospitalPoints: [],//医院点
@@ -72,12 +84,22 @@ let basicLayers = {
     storePoints: [],//储备站点
     dangerSourcePoints: [],//危险源点
     schoolPoints: [],
+    bridgePoints: [],
+    subwayPoints: [],
+    reservoirPoints: [],
+    landSlideData: null, //滑坡数据
+    debrisFlowData: null, //泥石流数据
+    waterData: null, //内涝数据
+    floodData: null, //山洪数据
     hospitalData: null,
     shelterData: null,
     storeData: null,
     fireFighterData: null,
     dangerSourceData: null,
     schoolData: null,
+    bridgeData: null,
+    subwayData: null,
+    reservoirData: null,
     historicalEarthquakeData: null,//历史数据
     peopleLayer: null, //人口网格
     cropsLayer: null,   //农田网格
@@ -377,6 +399,35 @@ let basicLayers = {
             this.dangerSourcePoints = this.loadEntities('风险源', res.data, dangerSourceIcon);
         })
     },
+    async loadLand(){
+        getSlide().then((res) => {
+            this.landSlideData = res.data;
+            this.landslidePoints = this.loadEntities('滑坡', res.data, landslideIcon);
+        })
+    },
+    async loadFlow(){
+        getFlow().then((res) => {
+            this.debrisFlowData = res.data;
+            this.nishiliuPoints = this.loadEntities('泥石流', res.data, debrisFlowIcon);
+        })
+    },
+    async loadWater1(){
+        getWaterDetail().then((res) => {
+            this.waterData = res.data;
+            this.waterPoints = this.loadEntities('内涝', res.data, waterIcon);
+        })
+    },
+    async loadFlood(){
+        getFlood().then((res) => {
+            this.floodData = res.data;
+            this.flashFloodPoints = this.loadEntities('山洪', res.data, flashIcon);
+        })
+    },
+    async loadRisk(){
+        getRisk().then((res) => {
+            this.loadEntities('风险区', res.data, riskArea);
+        })
+    },
     async loadHistoricalEarthquake(){
         getAllEarthquakeList().then((res) => {
             this.historicalEarthquakeData = res.data;
@@ -417,6 +468,27 @@ let basicLayers = {
         getSchool().then((res) => {
             this.schoolData = res.data;
             this.schoolPoints = this.loadEntities('学校', res.data, schoolIcon);
+        })
+    },
+    async loadBridge(){
+        getBridge().then((res) => {
+            console.log(113, res.data);
+            this.bridgeData = res.data;
+            this.bridgePoints = this.loadEntities('桥梁', res.data, bridgeIcon);
+        })
+    },
+    async loadReservoir(){
+        getReservoir().then((res) => {
+            console.log(113, res.data);
+            this.reservoirData = res.data;
+            this.reservoirPoints = this.loadEntities('水库', res.data, reservoirIcon);
+        })
+    },
+    async loadSubway(){
+        getSubway().then((res) => {
+            console.log(113, res.data);
+            this.subwayData = res.data;
+            this.subwayPoints = this.loadEntities('地铁站', res.data, subwayIcon);
         })
     },
     async addHiddenDangerPoints(type, hiddenDangerPoints, imageEntity) {
@@ -477,6 +549,7 @@ let basicLayers = {
                 // 创建实体
                 const entity = window.viewer.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
+                    id: point.properties.id,
                     // 点
                     billboard: {
                         // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
@@ -516,10 +589,25 @@ let basicLayers = {
                 else if(type == '学校'){
                     this.schoolEntities.push(entity);
                 }
+                else if(type == '风险区'){
+
+                }
+                else if(type == '桥梁'){
+                    this.bridgeEntities.push(entity);
+                }
+                else if(type == '水库'){
+                    this.reservoirEntities.push(entity);
+                }
+                else if(type == '地铁站'){
+                    this.subwayEntities.push(entity);
+                }
+                else{
+                    this.disasterEntities.push(entity);
+                }
             })
             return points;
         }catch(error){
-            console.error("处理点数据失败.")
+            console.error("处理点数据失败.", error);
         }
     },
 
@@ -544,8 +632,40 @@ let basicLayers = {
             },
         });
     },
-
+    //绘制图片的公共方法
+    DrawIcon(type, item ,Icon){
+         window.viewer.entities.add({
+            name: type,
+            position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
+            billboard: {
+                // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
+                image: Icon,
+                width: 60, // 图片宽度,单位px
+                height: 60, // 图片高度，单位px
+                eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
+                color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
+                scale: 0.8, // 缩放比例
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
+                depthTest: false, // 禁止深度测试
+                disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                show: true,
+            },
+            disasterData: item,
+            properties: {
+                data: item,
+                longitude: item.lon,
+                latitude: item.lat,
+            },
+            geometry: {
+                lon: item.lon,
+                lat: item.lat,
+            },
+        });
+    },
     addPeopleLayer(){
+        // TODO 过滤掉人口为 0 的数据，做按人口分类显示（5档）
+        console.log("人口数据：" + this.peopleLayerName)
         this.peopleLayer = this.addLayers(this.peopleLayerName);
     },
     addCropsLayer(){
@@ -559,15 +679,6 @@ let basicLayers = {
     },
     addHighwayLayer(){
         this.highwayLayer = this.addLayers(this.highwayLayerName);
-    },
-    addBridgeLayer(){
-        this.bridgeLayer = this.addLayers(this.bridgeLayerName);
-    },
-    addReservoirLayer(){
-        this.reservoirLayer = this.addLayers(this.reservoirLayerName);
-    },
-    addSubway(){
-        this.subwayLayer = this.addLayers(this.subwayLayerName);
     },
     addNationalRoad(){
         this.nationalRoadLayer = this.addLayers(this.nationalRoadLayerName);

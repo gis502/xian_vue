@@ -1,4 +1,5 @@
 <template>
+
   <div class="history-list">
     <div class="history-nar">
       <div class="history-title">历史灾害信息列表</div>
@@ -33,57 +34,18 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <!--下拉组件-->
-      <el-dropdown
-          ref="dropdownRef"
-          v-model:visible="showDropdown"
-          placement="bottom-start"
-          trigger="click"
-      >
-        <el-input
+
+      <!--搜索组件-->
+      <div class="search-box">
+        <input
+            type="text"
             v-model="searchQuery"
-            placeholder="搜索历史灾害信息..."
-            class="search-input"
-            :suffix-icon="showDropdown ? ArrowUp : ArrowDown"
-            @input="handleSearch"
-            clearable
+            placeholder="搜索表格数据..."
+            @keyup.enter="performSearch"
         />
-        <template #dropdown>
-          <!-- 下拉面板 -->
-          <el-dropdown-menu class="custom-dropdown-menu">
-            <!-- 搜索结果区域 -->
-            <div v-if="filteredItems.length" class="search-results">
-              <el-dropdown-item
-                  v-for="item in filteredItems"
-                  :key="item.id"
-                  @click="selectItem(item)"
-                  class="dropdown-item"
-              >
-                {{ item.name }}
-              </el-dropdown-item>
-            </div>
+        <button @click="performSearch">搜索</button>
+      </div>
 
-            <!-- 无结果提示 -->
-            <div v-else-if="searchQuery" class="no-results">
-              没有找到匹配的结果
-            </div>
-
-            <!-- 默认选项（无搜索时显示） -->
-            <div v-else class="default-options">
-              <el-dropdown-item
-                  v-for="item in defaultItems"
-                  :key="item.id"
-                  @click="selectItem(item)"
-                  class="dropdown-item"
-              >
-                {{ item.name }}
-              </el-dropdown-item>
-            </div>
-
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <!--下拉组件结束-->
     </div>
     <div class="disaster-list">
       <table v-if="tableData.length" class="disaster-table">
@@ -117,7 +79,7 @@
         style="margin-top: 10px; text-align: center;"
         background
         layout="prev, pager, next, total"
-        :total="disTotal"
+        :total="filteredTableData.length"
         :page-size="pageSizeNum"
         :current-page="currentPage"
         @current-change="handlePageChangeDisaster"
@@ -126,26 +88,24 @@
 </template>
 
 <script setup name="historicalDisasterList">
-
 import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
-import { defineProps, defineEmits, onMounted, reactive, ref} from "vue";
-import {getAllDisasterRain, getAllEarthquakeList} from "@/api/system/disasterEvents.js";
+import {defineProps, defineEmits, onMounted, reactive, ref, computed, watch} from "vue";
+import {getAllDisasterRain, getAllEarthquakeList, getRainAffectPoints} from "@/api/system/disasterEvents.js";
 import layers from "@/cesium/layers.js";
 import basicLayers from "@/cesium/basicLayers.js";
 import {getAllAffectPoints} from "@/api/earthquake/datas.js";
 import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
 import landslideIcon from "@/assets/images/landslide.png";
-import riskArea from "@/assets/images/riskArea.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
-import eqMark from "@/assets/images/eqMark.png";
+import flashIcon from "@/assets/images/flashflood.png"
+import waterIcon from "@/assets/images/water.jpg"
+
 
 const tableData = ref([])
 const disTotal = ref(0)
 const originalTableData = ref([]);
-const searchQuery = ref('');
 const showDropdown = ref(false);
-const dropdownRef = ref(null);
 const selectedTimeRange = ref('全部时间');
 const showTimeDropdown = ref(false);
 const currentPage = ref(1);
@@ -154,18 +114,43 @@ const circle_param = reactive({});
 const ellipseParams = ref([]);
 const rotation = ref(0);
 const AllAffectPoints = ref([]);
+const searchQuery = ref("");
+const rainAffectPoints = ref([]);
+const levelPoints = ref([]);
+const selectDisaster = ref([]);
 
 //接收父组件传来的数据
-const { chartDatas, disasterList } = defineProps([
+const { chartDatas, disasterList, rainLevelPoint } = defineProps([
   "chartDatas",
-  "disasterList"
+  "disasterList",
+  "rainLevelPoint"
 ]);
 //接收父组件传来的方法
 const emit = defineEmits([
   "displayAnalysis",
   "hideAnalysis",
+  "createPulseCircle",
+  'update:levelPoints',
+  'update:selectDisaster',
+  "loadingTrue",
+  "loadingFalse"
 ]);
 
+watch(
+    selectDisaster,
+    (newVal) => {
+      emit('update:selectDisaster', newVal); // 触发事件传递最新值
+    },
+    { deep: true }
+);
+
+watch(
+    levelPoints,
+    (newVal) => {
+      emit('update:levelPoints', newVal); // 触发事件传递最新值
+    },
+    { deep: true }
+);
 
 const timeRangeOptions = ref([
   { label: '最近一个星期', value: 'week' },
@@ -174,14 +159,6 @@ const timeRangeOptions = ref([
   { label: '最近半年', value: 'halfYear' },
   { label: '最近一年', value: 'year' },
   { label: '全部时间', value: 'all' }
-]);
-
-const defaultItems = ref([
-  { id: 1, name: '地震灾害' },
-  { id: 2, name: '洪水灾害' },
-  { id: 3, name: '台风灾害' },
-  { id: 4, name: '滑坡灾害' },
-  { id: 5, name: '泥石流灾害' }
 ]);
 
 // 选择时间范围的回调
@@ -193,28 +170,23 @@ const selectTimeRange = (item) => {
   filterDataByTimeRange(item.value);
 };
 
-const filteredItems = computed(() => {
-  if (!searchQuery.value) return [];
-
-  return defaultItems.value.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+const filteredTableData = computed(() => {
+  if (!searchQuery.value){
+    return tableData.value
+  }
+  const query = searchQuery.value.toLowerCase();
+  return tableData.value.filter((item) => {
+    return Object.values(item).some((value) =>
+        String(value).toLowerCase().includes(query)
+    );
+  });
 });
 
-// 处理搜索输入
-const handleSearch = (value) => {
-  // 当有搜索内容时自动显示下拉面板
-  if (value) {
-    showDropdown.value = true;
-  }
-};
-
-// 选择下拉项
-const selectItem = (item) => {
-  searchQuery.value = item.name;
-  showDropdown.value = false;
-  // 这里可以添加选择后的其他逻辑，如触发搜索等
-};
+// 搜索功能
+function performSearch(){
+  currentPage.value = 1;
+  console.log("搜索关键词：", searchQuery.value, "筛选结果数：", filteredTableData.value.length);
+}
 
 // 点击外部关闭下拉面板
 document.addEventListener('click', (e) => {
@@ -231,7 +203,8 @@ const currentPointPageData = computed(() => {
   // 计算结束索引
   const end = start + pageSizeNum.value;
 
-  return tableData.value.slice(start, end);
+  // return tableData.value.slice(start, end);
+  return filteredTableData.value.slice(start, end);
 });
 
 const fetchData = async () => {
@@ -251,15 +224,15 @@ const fetchData = async () => {
     }));
 
     // 处理暴雨数据，添加灾害类型为"暴雨"
-    // const rainData = rainRes.data.map(item => ({
-    //   ...item,
-    //   disasterType: "暴雨",
-    //   uniqueId: `rain_${item.disasterId || Date.now() + Math.random()}`
-    // }));
+    const rainData = rainRes.data.map(item => ({
+      ...item,
+      disasterType: "暴雨",
+      uniqueId: `rain_${item.disasterId || Date.now() + Math.random()}`
+    }));
 
     // 合并两种灾害数据到tableData
-    // const mergedData = [...earthquakeData, ...rainData];
-    const mergedData = [...earthquakeData];
+    const mergedData = [...earthquakeData, ...rainData];
+    // const mergedData = [...earthquakeData];
     //按发生时间排序
     mergedData.sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime));
 
@@ -345,7 +318,19 @@ onMounted(() => {
   fetchData();
 });
 
+// 创建灾害类型与图标、计数器的映射关系
+const disasterConfig = {
+  "内涝": { icon: waterIcon, counter: 0 },
+  "山洪": { icon: flashIcon, counter: 0 },
+  "滑坡": { icon: landslideIcon, counter: 0 },
+  "泥石流": { icon: debrisFlowIcon, counter: 0 }
+};
+
+// 历史灾害信息列表点击逻辑
 async function tiggerHistoryDaster(item){
+
+  emit('update:selectDisaster', item);
+
   if (item.disasterType === "地震"){
 
     //删除地图上烈度圈
@@ -356,6 +341,9 @@ async function tiggerHistoryDaster(item){
 
     //加载西安断层数据
     basicLayers.addFaultZone();
+
+    //清空数组
+    levelPoints.value = [];
 
     emit("hideAnalysis");
 
@@ -370,36 +358,92 @@ async function tiggerHistoryDaster(item){
     circle_param.semiMajorAxis = circle.semiMajorAxis;
     circle_param.semiMinorAxis = circle.semiMinorAxis;
     circle_param.rotation = rotation.value;
+    emit("loadingTrue");
+    chartDatas.title = "历史地震影响范围统计";
     AllAffectPoints.value = await getAllAffectPoints(circle_param);
     console.log("AllAffectPoints.value",AllAffectPoints.value.data.affectPoints)
-    for (let i=0;i<AllAffectPoints.value.data.affectPoints.length;i++){
-      if (AllAffectPoints.value.data.affectPoints[i].pointType==="风险源"){
-        basicLayers.loadEntities('风险源', AllAffectPoints.value.data.affectPoints[i], dangerSourceIcon)
-        chartDatas.seriesDatas[0] = AllAffectPoints.value.data.affectPoints[i].features.length;
-      }
-      if (AllAffectPoints.value.data.affectPoints[i].pointType==="医院"){
-        basicLayers.loadEntities('医院', AllAffectPoints.value.data.affectPoints[i], hospitalIcon)
-        chartDatas.seriesDatas[1] = AllAffectPoints.value.data.affectPoints[i].features.length;
-      }
-      if (AllAffectPoints.value.data.affectPoints[i].pointType==="隐患点"){
-        let List = AllAffectPoints.value.data.affectPoints[i].features;
-        let landslideNum = 0;
-        let debrisFlowNum = 0;
-        for (let i=0; i<List.length; i++){
-          if (List[i].properties.disaster_type === "滑坡"){
-            basicLayers.loadPoint('滑坡', List[i].geometry.coordinates, landslideIcon);
-            landslideNum++;
-          }
-          if (List[i].properties.disaster_type === "泥石流"){
-            basicLayers.loadPoint('泥石流', List[i].geometry.coordinates, debrisFlowIcon)
-            debrisFlowNum++;
+    // 定义配置映射，集中管理类型、图标和图表索引
+    const pointTypeConfig = {
+      "风险源": {
+        icon: dangerSourceIcon,
+        seriesIndex: 0
+      },
+      "医院": {
+        icon: hospitalIcon,
+        seriesIndex: 1
+      },
+      "隐患点": {
+        subTypes: {
+          "滑坡": {
+            icon: landslideIcon,
+            seriesIndex: 2
+          },
+          "泥石流": {
+            icon: debrisFlowIcon,
+            seriesIndex: 3
           }
         }
-        chartDatas.seriesDatas[2] = landslideNum;
-        chartDatas.seriesDatas[3] = debrisFlowNum;
+      }
+    };
+
+// 初始化图表数据
+    chartDatas.xAxis.data = ["风险源", "医院", "滑坡", "泥石流"];
+    chartDatas.seriesDatas = [0, 0, 0, 0];
+
+// 缓存数据引用，避免重复访问
+    const affectPoints = AllAffectPoints.value.data.affectPoints;
+
+    for (let i = 0; i < affectPoints.length; i++) {
+      const point = affectPoints[i];
+      const type = point.pointType;
+      const config = pointTypeConfig[type];
+
+      if (!config) {
+        console.log(`未处理的点类型: ${type}`);
+        continue;
+      }
+
+      // 处理风险源和医院
+      if (type === "风险源" || type === "医院") {
+        basicLayers.loadEntities(type, point, config.icon);
+        chartDatas.seriesDatas[config.seriesIndex] = point.features?.length || 0;
+      }
+
+      // 处理隐患点
+      if (type === "隐患点") {
+        const features = point.features || [];
+        // 可以在这里初始化子类型计数器，避免重复声明
+        const subTypeCounters = { "滑坡": 0, "泥石流": 0 };
+
+        for (let j = 0; j < features.length; j++) {
+          const feature = features[j];
+          const disasterType = feature.properties.disaster_type;
+          const subConfig = config.subTypes[disasterType];
+
+          if (subConfig) {
+            // 绘制点
+            basicLayers.loadPoint(disasterType, feature.geometry.coordinates, subConfig.icon);
+
+            // 收集坐标点
+            levelPoints.value.push({
+              lon: feature.geometry.coordinates[0],
+              lat: feature.geometry.coordinates[1]
+            });
+
+            // 更新计数器
+            subTypeCounters[disasterType]++;
+          }
+        }
+
+        // 更新图表数据
+        chartDatas.seriesDatas[2] = subTypeCounters["滑坡"];
+        chartDatas.seriesDatas[3] = subTypeCounters["泥石流"];
       }
     }
+    emit('update:levelPoints', levelPoints.value);
+    emit("createPulseCircle");
     emit("displayAnalysis");
+    emit("loadingFalse");
   }
   if (item.disasterType === "暴雨"){
 
@@ -412,9 +456,58 @@ async function tiggerHistoryDaster(item){
     //删除实体点
     basicLayers.removeHiddenEntity();
 
+    //清空数组
+    levelPoints.value = [];
+
     emit("hideAnalysis");
 
-    console.log("暴雨逻辑实现")
+    const DTO = {
+      disasterId: item.disasterId,
+      disasterType: "",
+    };
+    emit("loadingTrue");
+    await getRainAffectPoints(DTO).then(response => {
+      rainAffectPoints.value = response.data;
+      console.log("获取数据成功",response)
+        })
+        .catch(error => {
+          console.log("获取数据失败", error)
+        })
+    console.log("获取到的暴雨隐患点", rainAffectPoints.value)
+    chartDatas.title = "历史暴雨影响范围统计";
+    rainAffectPoints.value.pointInfos.forEach(item => {
+      // 处理高/中等级的点
+      if (["[高]", "[中]"].includes(item.level)) {
+        levelPoints.value.push(item);
+      }
+
+      // 处理灾害类型相关逻辑
+      const config = disasterConfig[item.disasterType];
+      if (config) {
+        basicLayers.DrawIcon(item.disasterType, item, config.icon);
+        console.log(item.disasterType);
+        // 更新对应的计数器
+        config.counter++; // 或根据实际变量作用域调整
+      } else {
+        // 可以添加未知灾害类型的处理逻辑
+        console.log(`未知灾害类型: ${item.disasterType}`);
+      }
+    });
+
+
+    chartDatas.xAxis.data[0] = "内涝";
+    chartDatas.xAxis.data[1] = "山洪";
+    chartDatas.xAxis.data[2] = "滑坡";
+    chartDatas.xAxis.data[3] = "泥石流";
+    chartDatas.seriesDatas[0] = disasterConfig["内涝"].counter;
+    chartDatas.seriesDatas[1] = disasterConfig["山洪"].counter;
+    chartDatas.seriesDatas[2] = disasterConfig["滑坡"].counter;
+    chartDatas.seriesDatas[3] = disasterConfig["泥石流"].counter;
+
+    emit("displayAnalysis");
+    emit('update:levelPoints', levelPoints.value);
+    emit("createPulseCircle");
+    emit("loadingFalse");
   }
 }
 
@@ -529,5 +622,62 @@ async function tiggerHistoryDaster(item){
   width: 100%;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 搜索框样式 */
+.search-box input {
+  height: 34px;
+  /* 统一高度 */
+  padding: 5px 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: black;
+  border: 1px solid #dcdfe6;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+  /* 确保padding和border包含在height内 */
+}
+
+.search-box input:focus {
+  outline: none; /* 清除默认聚焦轮廓 */
+  border-color: #3c86ff; /* 聚焦时边框变为主题色 */
+  box-shadow: 0 0 0 2px rgba(60, 134, 255, 0.2); /* 轻微发光效果 */
+}
+
+.search-box {
+  display: flex;
+  /* 使搜索框和按钮在同一行 */
+  align-items: center;
+  gap: 5px;
+  /* 搜索框和按钮之间的间距 */
+  flex-grow: 1;
+  /* 允许搜索框占据更多空间 */
+}
+
+.search-box input {
+  flex-grow: 1;
+  /* 搜索框占据剩余空间 */
+  width: auto;
+  /* 移除固定宽度 */
+}
+
+.search-box button {
+  background-color: #3c86ff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
+}
+
+.search-box button:hover {
+  background-color: #0056b3;
 }
 </style>

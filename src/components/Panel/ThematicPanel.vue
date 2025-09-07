@@ -4,22 +4,21 @@
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
       <el-button type="info" round @click="downloadReport">灾情报告</el-button>
-      <el-button type="info" round @click="handlePanel(`instrument`);">台网数据</el-button>
     </div>
-
 
     <!-- 功能面板：专题图/报告/仪器数据等 -->
     <div class="eqPanel"
          v-if="isPanelShow.thematicMap || isPanelShow.report || isPanelShow.instrument || isPanelShow.AssistantDecision || isPanelShow.InstrumentIntensity">
       <h2>{{ outputData.themeName }}</h2>
       <!-- 无数据提示 -->
-      <div style="width: 100%;height: calc(100% - 120px);text-align: center;color: #fff;font-size: 16px"
+      <div style="width: 100%;height: calc(100% - 0px);text-align: center;color: #fff;font-size: 16px"
            v-if="isNoData">
         该地震暂无评估图件产出
       </div>
 
       <!-- 专题图/仪器图展示（带下载/预览） -->
       <div class="mapItem" v-if="outputData.type === `thematicMap` || outputData.type === `instrument`">
+
         <div v-for="(item, index) in outputData.themeData" :key="index" class="map-item"
              @mouseenter="handleOpen(index)" @mouseleave="handleClose()">
           <!-- 鼠标悬浮显示的操作按钮 -->
@@ -31,7 +30,6 @@
           <p style="margin: 10px; ">{{ item.theme }}</p>
         </div>
       </div>
-
 
       <!-- 灾情报告展示（点击下载） -->
       <div class="reportItem" v-if="outputData.type === `report`">
@@ -64,7 +62,7 @@
     <!-- 图片预览弹窗 -->
     <div class="thematicMapPreview" v-if="isPreviewShow">
       <h2>{{ imgName }}</h2>
-      <img :src="imgUrl" style="width: 95%; height: 80%;">
+      <img :src="imgUrl" style="width: 80%; height: 80%;">
       <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
         <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
         <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
@@ -116,16 +114,11 @@ export default {
     this.init()
   },
   methods: {
-
     //初始化方法
     init() {
-      //测试用数据，后续修改
-      // this.earthquakeFullName = "陕西省西安市长安区喂子坪村鸡窝子组6.1级地震";
-      // this.eqid = "T20240601171641511800";
-      // this.eqqueueId = "T2024060117164151180001";
-      this.eqid = props.eqId;
-      this.eqqueueId = props.eqqueueId;
-      this.earthquakeFullName = props.earthquakeFullName;
+      this.eqid = this.eqRequests.eqId;
+      this.eqqueueId = this.eqRequests.eqqueueId;
+      this.earthquakeFullName = this.eqRequests.earthquakeFullName;
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
@@ -491,13 +484,13 @@ export default {
   position: absolute;
   width: 75%;
   transform: translateX(-50%);
-  left: calc(0.5 * (100% - 333px));
+  left: calc(0.5 * (100% - 0px));
   top: 50px;
-  height: calc(100% - 20px);
+  height: calc(100% - 100px);
   text-align: center;
   background-color: #2d3d51;
   border-radius: 10px;
-  z-index: 200;
+  z-index: 3000;
 }
 
 /* 基础文本样式（统一白色） */

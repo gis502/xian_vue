@@ -17,6 +17,7 @@
     <AddRain v-if="showInfoPanel"
              :selectedPositionLonAndLat="selectedPosition"
              :PanelPosition="PanelPosition"
+             @passRainId="(value)=>{rainDisasterId = value}"
              @update:show-info-panel="(value)=>{showInfoPanel = value}"
              @update:loading-model="(value)=>{loadingModel = value}"
              @update:handleWeather="handleWeather"
@@ -216,7 +217,7 @@
     <div class="rain-btn-group">
       <div class="btn-group">
         <div class="rain-btn" @click="toggleRainMode">
-          暴雨模拟
+          暴雨触发
         </div>
         <div class="weather-btn" @click="radars">
           卫星云图
@@ -233,9 +234,9 @@
         <div class="table-btn" @click="refreshComponent">
           场景重置
         </div>
-<!--        <div>-->
-<!--          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>-->
-<!--        </div>-->
+        <!--        <div>-->
+        <!--          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>-->
+        <!--        </div>-->
         <!--        <div class="weather-btn" @click="toggleWeatherEffect" :class="{ 'disabled': rainMode }">-->
         <!--          {{ weatherActive ? '停止降雨' : '模拟降雨' }}-->
         <!--        </div>-->
@@ -249,6 +250,7 @@
 import * as Cesium from 'cesium';
 import {onMounted,nextTick} from "vue";
 import html2canvas from "html2canvas";
+import { ElMessage } from 'element-plus'
 /* 封装组件 */
 import Legend from "@/components/Earthquake/Legend.vue";
 import Table from "@/components/Earthquake/Table.vue";
@@ -279,6 +281,7 @@ let dimensions =  ['grade', '高', '中', '低']
 let riverDataSource = null
 let lakeDataSource = null
 // let riverData = null
+let rainDisasterId = null
 
 let baseInfoTitle = ref("")
 let showBaseInfo = ref(false)
@@ -1264,6 +1267,7 @@ async function refreshComponent(){
 /* 重置所有状态变量 */
 function resetAllStates(){
   // 重置基本状态
+  rainDisasterId = null
   baseInfoTitle.value = ""
   showBaseInfo.value = false
   rainMode.value = false
@@ -1361,6 +1365,14 @@ function resetAllStates(){
 
 /* 报告产出 */
 async function downloadRainReport(){
+  console.log(rainDisasterId)
+  if(!rainDisasterId){
+    ElMessage({
+      message: '暂无报告，请先触发暴雨！',
+      type: 'warning',
+    })
+    return;
+  }
   loadingModel.value = true
   // 1. 截三维画布
   const canvas3D = viewer.scene.canvas
@@ -1394,14 +1406,16 @@ async function downloadRainReport(){
     formData.append('file', blob, 'cesium_with_legend.png')
 
     // ✅ 正确解析 fetch 返回的 JSON
-    const response = await saveCanvas(formData)
-    const res = await response.json() // 关键：这里也要 await
-    const imgUrl = res.data
-    console.log(imgUrl, "imgUrl")
+    // const response = await saveCanvas(formData)
+    // const res = await response.json() // 关键：这里也要 await
+    // const imgUrl = res.data
+    // console.log(imgUrl, "imgUrl")
 
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
-    const wordRes = await generateRainReport()
+    console.log(rainDisasterId)
+
+    const wordRes = await generateRainReport(rainDisasterId)
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
 
@@ -1441,25 +1455,25 @@ async function downloadRainReport(){
   right:10px;
 }
 .btn-group {
-display: flex;
-gap: 25px;
-margin-left: 20px;
+  display: flex;
+  gap: 25px;
+  margin-left: 20px;
 }
 .rain-btn,
 .weather-btn,
 .admin-btn,
 .table-btn {
-background-color: rgb(60 134 255);
-color: white;
-padding: 12px 12px;
-border-radius: 12px;
-cursor: pointer;
-font-size: 16px;
-transition: all 0.3s;
-white-space: nowrap;
-min-width: 100px;
-display: flex;
-align-items: center;
-justify-content: center;
+  background-color: rgb(60 134 255);
+  color: white;
+  padding: 12px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

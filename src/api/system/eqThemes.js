@@ -32,6 +32,7 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
                 console.log("专题图")
                 for (let i = 0; i < data.length; i++) {
                     const thematicMapObject = {
+                        // imgUrl: data[i].sourceFile,
                         imgUrl: data[i].sourceFile,
                         theme: data[i].fileName,
                     };
@@ -45,7 +46,10 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
 
                 resolve(returnData); // 返回更新后的数据
             }).catch(err => {
-                reject(err); // 如果请求失败，返回错误
+                //
+                //reject(err); // 如果请求失败，返回错误
+                reject("正在生成专题图中,请稍后...");
+
             });
         }else if (type === "report"){
             // getDownloadReport(DTO).then((res) => {
