@@ -4,16 +4,16 @@
     <div class="panel-content">
       <!-- 一次性展示所有区县 -->
       <div v-for="(entry, index) in entries" :key="entry.code" class="form-item"
-        :class="{ 'red-highlight': entry.rainfall > 30 }">
+           :class="{ 'red-highlight': entry.rainfall > 30 }">
         <!--        <label class="form-label district-label">区县:</label>-->
         <span class="district-name">{{ entry.name }}</span>
         <label :for="'rainfall-' + index" class="form-label rain-label">累积12小时降雨量:</label>
         <input style="margin-right: 10px;" v-model.number="entry.rainfall" type="number" min="0" max="500" step="1"
-          :id="'rainfall-' + index" />
+               :id="'rainfall-' + index"/>
         <span style="margin-right: 20px;">毫米</span>
-<!--        <label style="margin-right: 10px" :for="'duration-' + index" class="form-label duration-label">持续时间:</label>-->
-<!--        <input v-model.number="entry.duration" type="number" min="0" max="72" step="1" :id="'duration-' + index" />-->
-<!--        <span style="margin-left: 5px ;margin-right: 5px;">小时</span>-->
+        <!--        <label style="margin-right: 10px" :for="'duration-' + index" class="form-label duration-label">持续时间:</label>-->
+        <!--        <input v-model.number="entry.duration" type="number" min="0" max="72" step="1" :id="'duration-' + index" />-->
+        <!--        <span style="margin-left: 5px ;margin-right: 5px;">小时</span>-->
       </div>
       <!--正式测试暴雨触发-->
       <div class="radio-group" style="display: flex; width: 90%; justify-content: space-around; margin: 15px 0;">
@@ -28,8 +28,8 @@
       </div>
       <div class="button-group">
         <button @click="confirmRainPoint"
-          :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall)"
-          style="width: 80px">确认添加
+                :disabled="entries.length === 0 || entries.every((entry) => !entry.rainfall)"
+                style="width: 80px">确认添加
         </button>
         <button @click="cancelRainPoint" style="width: 80px">取消</button>
       </div>
@@ -38,14 +38,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import {ref, reactive, computed, watch, onMounted} from 'vue'
 import layers from "@/cesium/layers.js"
 import timeTransfer from "@/cesium/timeTransfer.js"
-import { rainSlideTrigger, saveRain } from "@/api/system/rainModel.js"
+import {rainSlideTrigger, saveRain} from "@/api/system/rainModel.js"
 import basicLayers from "@/cesium/basicLayers.js"
 import * as Cesium from 'cesium'
-import { useSimulationPointStore } from "@/store/earthquake/simulation_points.js"
+import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js"
 import {getRain} from '@/api/system/aroundanalysis.js'
+import {rainTrigger} from "@/api/earthquake/feign.js";
 
 // Props
 const props = defineProps({
@@ -69,26 +70,28 @@ const emit = defineEmits([
 ])
 
 // Reactive data
-const positionEntity = ref({ x: 580, y: 20 })
+const positionEntity = ref({x: 580, y: 20})
 const districts = ref([
-  { name: "新城区", code: "610102" },
-  { name: "碑林区", code: "610103" },
-  { name: "莲湖区", code: "610104" },
-  { name: "雁塔区", code: "610113" },
-  { name: "灞桥区", code: "610111" },
-  { name: "未央区", code: "610112" },
-  { name: "阎良区", code: "610114" },
-  { name: "临潼区", code: "610115" },
-  { name: "长安区", code: "610116" },
-  { name: "高陵区", code: "610117" },
-  { name: "鄠邑区", code: "610118" },
-  { name: "蓝田县", code: "610122" },
-  { name: "周至县", code: "610124" }
+  {name: "新城区", code: "610102", longitude: 108.95711992089143, latitude: 34.302601231374936},
+  {name: "碑林区", code: "610103", longitude: 108.95711992089143, latitude: 34.25257505041645},
+  {name: "莲湖区", code: "610104", longitude: 108.9039622067026, latitude: 34.27250198183504},
+  {name: "雁塔区", code: "610113", longitude: 108.93317173586165, latitude: 34.21577280957614},
+  {name: "灞桥区", code: "610111", longitude: 109.12523366264605, latitude: 34.302601231374936},
+  {name: "未央区", code: "610112", longitude: 108.91858149817126, latitude: 34.34314806899305},
+  {name: "阎良区", code: "610114", longitude: 109.29616718893581, latitude: 34.66841441751671},
+  {name: "临潼区", code: "610115", longitude: 109.28695751276935, latitude: 34.479725714836256},
+  {name: "长安区", code: "610116", longitude: 108.9364817091645, latitude: 34.069790246211475},
+  {name: "高陵区", code: "610117", longitude: 109.06326392615283, latitude: 34.50082619715896},
+  {name: "鄠邑区", code: "610118", longitude: 108.5221255023836, latitude: 34.0132825050398},
+  {name: "蓝田县", code: "610122", longitude: 109.45508618489026, latitude: 34.08207085488606},
+  {name: "周至县", code: "610124", longitude: 108.1020792556726, latitude: 33.974619753671824}
 ])
 const entries = ref([])
 const adminArea = ref('')
 const positionArry = ref([])
 const rainfallArry = ref([])
+const longitudeArray = ref([])
+const latitudeArray = ref([])
 // const durationArry = ref([])
 const rainType = ref('T')
 const matchedHiddenHighlightEntities = ref([])
@@ -155,17 +158,17 @@ const styleObject = computed(() => {
 
 // Watchers
 watch(
-  () => props.selectedPositionLonAndLat,
-  (newVal) => {
-    if (newVal) {
-      updateEntryDistrict(newVal)
-    }
-  },
-  { immediate: true }
+    () => props.selectedPositionLonAndLat,
+    (newVal) => {
+      if (newVal) {
+        updateEntryDistrict(newVal)
+      }
+    },
+    {immediate: true}
 )
 
 // Methods
-function updateEntryDistrict(position){
+function updateEntryDistrict(position) {
   adminArea.value = layers.getAdministrationByPoint(position.longitude, position.latitude)
   const district = districts.value.find((d) => d.name === adminArea.value?.name)
   if (district) {
@@ -177,7 +180,7 @@ function updateEntryDistrict(position){
 }
 
 const confirmRainPoint = async () => {
-  emit('update:handle-step-status',2)
+  emit('update:handle-step-status', 2)
   // console.log(entries.value,111);
   // 找到降雨量最大的区域
   let maxRainfallEntry = entries.value.reduce((max, current) => {
@@ -193,7 +196,7 @@ const confirmRainPoint = async () => {
       targetArea.longitude,
       targetArea.latitude,
       50000 // 高度设置为50000米，可根据需要调整
-    );
+  );
 
   window.viewer.camera.setView({
     destination: destination,
@@ -206,7 +209,7 @@ const confirmRainPoint = async () => {
   // console.log("确认添加数据：", entries.value)
   emit('update:update-rain-info', entries.value)
   if (!props.selectedPositionLonAndLat) return
-  let { longitude, latitude } = props.selectedPositionLonAndLat
+  let {longitude, latitude} = props.selectedPositionLonAndLat
 
   emit('update:handleWeather')
 
@@ -214,10 +217,17 @@ const confirmRainPoint = async () => {
   positionArry.value = []
   rainfallArry.value = []
   // durationArry.value = []
+  longitudeArray.value = []
+  latitudeArray.value = []
   entries.value.forEach(item => {
     if (item.rainfall > 0) { // 降雨量为0不存入数组
+
+      console.log(item, "这里会是是是是是是是是是")
+
       positionArry.value.push(item.name)
       rainfallArry.value.push(item.rainfall)
+      longitudeArray.value.push(item.longitude)
+      latitudeArray.value.push(item.latitude)
       // durationArry.value.push(item.duration)
     }
   })
@@ -233,9 +243,25 @@ const confirmRainPoint = async () => {
     "rainType": rainType.value
   }
   // console.log(requestData, "requestData saveRain")
+
   let res = await saveRain(requestData)
   console.log(res, "saveRain")
-  emit("passRainId",res.data.rainDisasterId)
+  // 处理触发数据，选择降雨量最大的一条数据进行专题图产出
+  let thematicRequests = {
+    "rainfall": rainfallArry.value.join(","),
+    "duration": "12",
+    "longitude": longitudeArray.value.join(","),
+    "latitude": latitudeArray.value.join(","),
+    "position": positionArry.value.join(","),
+    "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
+    "rainType": rainType.value
+  }
+  // 取出多个区县数据的一条进行专题图产出
+  let thematicdatas = processData(thematicRequests);
+  // 触发专题图模型
+  await rainTrigger(thematicdatas)
+
+  emit("passRainId", res.data.rainDisasterId)
   if (adminArea.value) {
     let entity = {
       position: adminArea.value.name,
@@ -265,15 +291,15 @@ const processAllDistricts = async () => {
   for (let i = 0; i < positionArry.value.length; i++) {
     const adminCoordinates = layers.getAdminCoordinatesByName(positionArry.value[i])
     let allPointsInside = layers.findAllHiddenDisasterPointsInAffectedArea(adminCoordinates)
-    let { matchedHuapoData, pointSet } = getHiddenDisasterPointswithCausingFactors(
-      allPointsInside,
-      i,
-      rainfallArry.value
+    let {matchedHuapoData, pointSet} = getHiddenDisasterPointswithCausingFactors(
+        allPointsInside,
+        i,
+        rainfallArry.value
     )
     allMatchedHuapoData.push(...matchedHuapoData)
     Array.from(pointSet).forEach(key => allPointSet.add(key))
   }
-  console.log(allPointSet,123)
+  console.log(allPointSet, 123)
   console.log("所有区县汇总数据：", allMatchedHuapoData, allPointSet)
   let matchedHuapoEntities = await caculateRainSlideTrigger(allMatchedHuapoData, allPointSet)
   emit('update:matched-huapo-entities', matchedHuapoEntities)
@@ -323,7 +349,7 @@ const getHiddenDisasterPointswithCausingFactors = (landslidePointsInside, index,
       }
     })
   }
-  return { matchedHuapoData, pointSet }
+  return {matchedHuapoData, pointSet}
 }
 
 const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
@@ -378,6 +404,37 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
   }
 }
 
+// 处理逻辑
+function processData(data) {
+  // 1. 拆分所有数组字段
+  const rainfallArr = data.rainfall.split(",").map(Number);
+  const latitudeArr = data.latitude.split(",");
+  const longitudeArr = data.longitude.split(",");
+  const positionArr = data.position.split(",");
+
+  // 2. 容错：检查数组长度是否一致
+  const lengths = [rainfallArr, latitudeArr, longitudeArr, positionArr].map(arr => arr.length);
+  if (!lengths.every(len => len === lengths[0])) {
+    throw new Error("经纬度、位置和降雨量数组长度不匹配");
+  }
+
+  // 3. 找到降雨量最大值及对应索引
+  const maxRainfall = Math.max(...rainfallArr);
+  const maxIndex = rainfallArr.indexOf(maxRainfall);
+
+  // 4. 提取对应值并转换经纬度为双精度（number类型）
+  return {
+    disasterName: data.disasterName,
+    rainfall: maxRainfall,
+    // 核心：使用Number()转换为双精度浮点数
+    latitude: Number(latitudeArr[maxIndex]),
+    longitude: Number(longitudeArr[maxIndex]),
+    position: positionArr[maxIndex],
+    occurrenceTime: data.occurrenceTime,
+    rainType: data.rainType
+  };
+}
+
 // Lifecycle
 onMounted(() => {
   entries.value = districts.value.map(district => {
@@ -385,20 +442,22 @@ onMounted(() => {
       name: district.name,
       code: district.code,
       rainfall: 0,
-      duration: 0
+      duration: 0,
+      longitude: district.longitude,
+      latitude: district.latitude
     }
   })
-  getRain().then(res=>{
+  getRain().then(res => {
     console.log(res.data.features)
     // 初始化所有区县
     let data = res.data.features
-    entries.value.forEach(item=>{
+    entries.value.forEach(item => {
       // console.log(item)
-      let pos = data.find(i=>{
+      let pos = data.find(i => {
         // console.log(i.properties.adminCode,item.code)
-        return i.properties.adminCode===item.code
+        return i.properties.adminCode === item.code
       })
-      if(pos && pos.properties.rainPre12Hours!==0){
+      if (pos && pos.properties.rainPre12Hours !== 0) {
         item.rainfall = pos.properties.rainPre12Hours.toFixed(2)
       }
       // console.log(pos)
