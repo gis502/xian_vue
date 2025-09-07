@@ -1414,6 +1414,7 @@ async function downloadRainReport(){
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
     console.log(rainDisasterId)
+
     const wordRes = await generateRainReport(rainDisasterId)
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data

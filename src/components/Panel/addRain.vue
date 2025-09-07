@@ -259,7 +259,9 @@ const confirmRainPoint = async () => {
   // 取出多个区县数据的一条进行专题图产出
   let thematicdatas = processData(thematicRequests);
   // 触发专题图模型
-  await rainTrigger(thematicdatas)
+  let rainDatas = await rainTrigger(thematicdatas)
+  console.log("查询专题图的ID是:", rainDatas)
+  emit("update:handle-setId",rainDatas)
 
   emit("passRainId", res.data.rainDisasterId)
   if (adminArea.value) {
@@ -390,7 +392,7 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
   try {
     let matchedHuapoEntities = []
     const res = await rainSlideTrigger(requestData)
-    emit("update:handle-setId",res)
+    // emit("update:handle-setId",res)
     console.log(res.data, "rainSlideTrigger返回结果")
     let formatAnalyzedData = res.data || []
 
