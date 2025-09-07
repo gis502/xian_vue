@@ -113,6 +113,7 @@ function changeDataType() {
   // const typeData = props.dataTypes[lastTimeData.value];
 
   tableHeaders.value = typeData.headers;
+  console.log(lastTimeData,"lastTimeData changeDataType")
   // tableData.value = typeData.data;
   // 1. 先取交集
   let intersection =typeData.data.filter(td =>
@@ -128,7 +129,7 @@ function changeDataType() {
     const timeB = timeTransfer.timeChinaToNewDate(b.field1);
     return timeB - timeA;   // 晚 - 早  =>  晚的在前
   });
-
+  console.log(intersection,"intersection")
   tableData.value = intersection;
   searchQuery.value = "";
   currentPage.value = 1;
@@ -157,17 +158,17 @@ const performSearch = () => {
 
 function timeSelect(){
   const currentTime = new Date(props.currentTime);
+  // console.log(currentTime,"currentTime timeSelect")
 
   const newData = allData.value.filter(item => {
-
     const occurTime = timeTransfer.timeChinaToNewDate(item.field1);
     if (!occurTime || !currentTime) {
       // console.error(`Invalid date format for field2: ${item.field1}`);
       return false;
     }
-    return occurTime < currentTime;
+    return occurTime <= currentTime;
   });
-  // console.log(newData,currentTime,"newData")
+  console.log(newData,currentTime,"newData")
   // 只有在数据实际发生变化时才更新 filteredTableData
   // 找出新添加或更新的数据
   // const changedData = newData.filter(item =>
@@ -196,14 +197,14 @@ function timeSelect(){
     lastTimeData.value = newData;
   }
 // 在控制台中打印 changedData
-//   console.log('Changed Data:', changedData);
+  console.log('Changed Data:', changedData);
 
     if (changedData.length > 0) {
       // 更新 lastTimeData.value，只添加新数据或更新变化的数据
       lastTimeData.value = newData
       // 获取变化数据的类型
       const changedDataType = changedData[0].type;
-      // console.log(changedDataType,"changedDataType")
+      console.log(changedDataType,"changedDataType")
       // // 如果变化的数据类型与当前显示的类型不同，则切换类型
       // if (changedDataType !== selectedDataType.value) {
         selectedDataType.value = changedDataType;

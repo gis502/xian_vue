@@ -5,6 +5,7 @@ import {xp} from "@/cesium/ArrowalGorithm.js";
 import {getPlotInfos} from "@/api/system/plot.js";
 import img from "@/assets/icons/TimeLine/黄点点.png";
 import {geomToCoordinates} from "./geomTransfer.js";
+
 let timeLine = {
     //
     // addCenterPoint(item) {
@@ -59,8 +60,7 @@ let timeLine = {
             let pointDataSource = null
             if (window.pointDataSource) {
                 return window.pointDataSource;
-            }
-            else {
+            } else {
                 if (window.viewer && window.viewer.dataSources) {
                     pointDataSource = new Cesium.CustomDataSource("pointData");
                     let dataSourcePromise = window.viewer.dataSources.add(pointDataSource)
@@ -161,13 +161,11 @@ let timeLine = {
                 }
             }
             return pointDataSource
-        }
-        else if (datasourcename === "label") {
+        } else if (datasourcename === "label") {
             let labeldataSource = null
             if (window.labeldataSource) {
                 return window.labeldataSource;
-            }
-            else {
+            } else {
                 if (window.viewer && window.viewer.dataSources) {
                     labeldataSource = new Cesium.CustomDataSource("label");
                     let dataSourcePromise = window.viewer.dataSources.add(labeldataSource)
@@ -389,9 +387,9 @@ let timeLine = {
         // console.log(item, "addMakerPoint timeline")
         //点的属性 震中点统用一一个方法
         // let labeltext = null
-        item.longitude=Number(geomToCoordinates(item.geom)[0][0])
-        item.latitude=Number(geomToCoordinates(item.geom)[0][1])
-        let img =  '/images/PlotsPic/' + item.plotType + '.png'
+        item.longitude = Number(geomToCoordinates(item.geom)[0][0])
+        item.latitude = Number(geomToCoordinates(item.geom)[0][1])
+        let img = '/images/PlotsPic/' + item.plotType + '.png'
         let pointDataSource = this.addDataSourceLayer("pointData")
         let labeldataSource = this.addDataSourceLayer("label")
         if (pointDataSource) {
@@ -430,9 +428,9 @@ let timeLine = {
             let plotType = item.plotType
 
 
-            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
                 getPlotInfos({plotId, plotType}).then(res => {
-                    console.log(item,res,"item")
+                    console.log(item, res, "item")
                     let labeltext = this.labeltext(plotType, res)
                     // console.log(labeltext,"labeltext")
                     this.addPointLabel(item, labeltext)
@@ -441,29 +439,29 @@ let timeLine = {
         }
     },
     // 选择当前线的material
-    getMaterial(type,img) {
-        if(type==="量算"){
+    getMaterial(type, img) {
+        if (type === "量算") {
             let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
                 color: Cesium.Color.CYAN,
                 dashPattern: parseInt("110000001111", 1),
             })
             return NORMALLINE
         }
-        if(type==="地裂缝"||type==="可用供水管网"||type==="不可用供水管网"){
+        if (type === "地裂缝" || type === "可用供水管网" || type === "不可用供水管网") {
             let PICTURELINE = new Cesium.ImageMaterialProperty({
                 image: img,
                 repeat: new Cesium.Cartesian2(3, 1),
             })
             return PICTURELINE
         }
-        if(type==="可通行公路"||type==="限制通行公路"||type==="不可通行公路"){
+        if (type === "可通行公路" || type === "限制通行公路" || type === "不可通行公路") {
             let color = null
-            if(type==="可通行公路"){
-                color = Cesium.Color.fromBytes(158,202,181)
-            }else if(type==="限制通行公路"){
-                color = Cesium.Color.fromBytes(206,184,157)
-            }else{
-                color = Cesium.Color.fromBytes(199,151,149)
+            if (type === "可通行公路") {
+                color = Cesium.Color.fromBytes(158, 202, 181)
+            } else if (type === "限制通行公路") {
+                color = Cesium.Color.fromBytes(206, 184, 157)
+            } else {
+                color = Cesium.Color.fromBytes(199, 151, 149)
             }
             let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
                 color: color,
@@ -471,28 +469,28 @@ let timeLine = {
             })
             return NORMALLINE
         }
-        if(type==="可通行铁路"||type==="不可通行铁路"){
+        if (type === "可通行铁路" || type === "不可通行铁路") {
             let gapColor
-            if(type==="可通行铁路"){
+            if (type === "可通行铁路") {
                 gapColor = Cesium.Color.BLACK
-            }else {
+            } else {
                 gapColor = Cesium.Color.RED
             }
-            let DASHLINE= new Cesium.PolylineDashMaterialProperty({
+            let DASHLINE = new Cesium.PolylineDashMaterialProperty({
                 color: Cesium.Color.WHITE,
                 gapColor: gapColor,
                 dashLength: 100
             })
             return DASHLINE
         }
-        if(type==="可用输电线路"||type==="不可用输电线路"){
+        if (type === "可用输电线路" || type === "不可用输电线路") {
             let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
                 color: Cesium.Color.CYAN,
                 dashPattern: parseInt("110000001111", 1),
             })
             return NORMALLINE
         }
-        if(type==="可用输气管线"||type==="不可用输气管线"){
+        if (type === "可用输气管线" || type === "不可用输气管线") {
             let NORMALLINE = new Cesium.PolylineDashMaterialProperty({
                 color: Cesium.Color.CYAN,
                 dashPattern: parseInt("110000001111", 1),
@@ -504,10 +502,10 @@ let timeLine = {
         console.log(item, "addPolyline timeline")
         if (window.viewer && window.viewer.entities) {
 
-            let material = this.getMaterial(item.plotType,'/images/PlotsPic/' + item.plotType + '.png')
+            let material = this.getMaterial(item.plotType, '/images/PlotsPic/' + item.plotType + '.png')
 
             let positionsArr = []
-            let coordinates=geomToCoordinates(item.geom)
+            let coordinates = geomToCoordinates(item.geom)
             coordinates.forEach(e => {
                 positionsArr.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
             })
@@ -537,13 +535,13 @@ let timeLine = {
         }
     },
     addPolygon(item, type) {
-        let img =  '/images/PlotsPic/' + item.plotType + '.png'
+        let img = '/images/PlotsPic/' + item.plotType + '.png'
         // console.log(item, "item")
         if (window.viewer && window.viewer.entities) {
             if (item.plotType === "泥石流" || item.plotType === "滑坡" || item.plotType === "地面沉降" || item.plotType === "崩塌" || item.plotType === "地面塌陷") {
                 let polygonPoints = []
-                let coordinates=geomToCoordinates(item.geom)
-                console.log(coordinates,"coordinates")
+                let coordinates = geomToCoordinates(item.geom)
+                console.log(coordinates, "coordinates")
                 coordinates.forEach(e => {
                     polygonPoints.push(Cesium.Ellipsoid.WGS84.cartographicToCartesian(Cesium.Cartographic.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0))));
                 })
@@ -652,11 +650,10 @@ let timeLine = {
                     }
                 });
 
-            }
-            else {
+            } else {
                 // 1-1 经纬度
                 let polygonPoints = []
-                let coordinates=geomToCoordinates(item.geom)
+                let coordinates = geomToCoordinates(item.geom)
                 coordinates.forEach(e => {
                     polygonPoints.push(Cesium.Ellipsoid.WGS84.cartographicToCartesian(Cesium.Cartographic.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0))));
                 })
@@ -687,7 +684,7 @@ let timeLine = {
         }
     },
     addArrow(item, type) {
-        console.log(item,type,"addArrow timeline")
+        console.log(item, type, "addArrow timeline")
         if (item.drawtype === 'straight') {
             this.addStraightArrow(item, type)
         } else if (item.drawtype === 'attack') {
@@ -700,7 +697,7 @@ let timeLine = {
     addStraightArrow(item, type) {
         if (window.viewer && window.viewer.entities) {
             let arrowPoints = []
-            let coordinates=geomToCoordinates(item.geom)
+            let coordinates = geomToCoordinates(item.geom)
             coordinates.forEach(e => {
                 arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
             })
@@ -728,7 +725,7 @@ let timeLine = {
                         start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
                         stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
                     })]),
-                    drawtype:item.drawtype,
+                    drawtype: item.drawtype,
                     id: item.plotId,
                     polygon: new Cesium.PolygonGraphics({
                         hierarchy: new Cesium.CallbackProperty(update, false),
@@ -748,7 +745,7 @@ let timeLine = {
     addAttackArrow(item, type) {
         if (window.viewer && window.viewer.entities) {
             let arrowPoints = []
-            let coordinates=geomToCoordinates(item.geom)
+            let coordinates = geomToCoordinates(item.geom)
             coordinates.forEach(e => {
                 arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
             })
@@ -793,7 +790,7 @@ let timeLine = {
     addPincerArrow(item, type) {
         if (window.viewer && window.viewer.entities) {
             let arrowPoints = []
-            let coordinates=geomToCoordinates(item.geom)
+            let coordinates = geomToCoordinates(item.geom)
             coordinates.forEach(e => {
                 arrowPoints.push(Cesium.Cartesian3.fromDegrees(parseFloat(e[0]), parseFloat(e[1]), parseFloat(0)))
             })
@@ -837,10 +834,10 @@ let timeLine = {
     },
     // //标签（点线面）
     labeltext(plotType, res) {
-        console.log("标签",plotType,res)
-        let labeltext =res.plotInfo.belongCounty+ res.plotInfo.belongTown+"新增"+plotType
+        console.log("标签", plotType, res)
+        let labeltext = res.plotInfo.belongCounty + res.plotInfo.belongTown + "新增" + plotType
         //人员伤亡类文字：xxx人员xx人
-        if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员"||plotType === "被困人员") {
+        if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员" || plotType === "被困人员") {
             if (res.plotTypeInfo && res.plotTypeInfo.newCount) {
                 labeltext = labeltext + res.plotTypeInfo.newCount + "人"
             }
@@ -868,10 +865,10 @@ let timeLine = {
     },
     addPointLabel(data, labeltext) {
 
-        console.log(data,"data addPointLabel")
-        let img =  '/images/PlotsPic/' + data.plotType + '.png'
-        let log=Number(geomToCoordinates(data.geom)[0][0])
-        let lat=Number(geomToCoordinates(data.geom)[0][1])
+        console.log(data, "data addPointLabel")
+        let img = '/images/PlotsPic/' + data.plotType + '.png'
+        let log = Number(geomToCoordinates(data.geom)[0][0])
+        let lat = Number(geomToCoordinates(data.geom)[0][1])
 
         let labeldataSource = this.addDataSourceLayer("label")
         if (labeldataSource) {
@@ -889,7 +886,7 @@ let timeLine = {
                 plottype: data.plotType,
                 name: "标绘点标签",
                 // layers: "聚合标绘点",
-                position: Cesium.Cartesian3.fromDegrees(log, lat,  0),
+                position: Cesium.Cartesian3.fromDegrees(log, lat, 0),
                 labeltext: labeltext,
                 billboard: {
                     // image: import.meta.env.VITE_APP_BASE_API + '/uploads/PlotsPic/' + data.icon + '.png?t=' + new Date().getTime(),
@@ -998,19 +995,21 @@ let timeLine = {
     // //标签显示隐藏
     // //隐藏所有标签
     HiddenLabels() {
-        let toRemove =  window.labeldataSource.entities.values.filter(
-            e => e.name === '标绘点标签'
-        );
-        if (toRemove) {
-            // 2. 逐个删除
-            toRemove.forEach(entity => {
-                entity.show = false
-            });
+        if (window.labeldataSource) {
+            let toRemove = window.labeldataSource.entities.values.filter(
+                e => e.name === '标绘点标签'
+            );
+            if (toRemove) {
+                // 2. 逐个删除
+                toRemove.forEach(entity => {
+                    entity.show = false
+                });
+            }
         }
     },
     markerLabelsHidden(plots) {
         if (window.labeldataSource) {
-            console.log(window.labeldataSource,"window.labeldataSource")
+            console.log(window.labeldataSource, "window.labeldataSource")
             plots.forEach(item => {
                 let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
                 if (entity) {
@@ -1021,10 +1020,10 @@ let timeLine = {
     },
     // //只显示人员伤亡和救援队伍
     makerLabelsShowPersonAndResouce(plots) {
-        console.log(plots,"makerLabelsShowPersonAndResouce")
-        if(plots){
+        console.log(plots, "makerLabelsShowPersonAndResouce")
+        if (plots) {
             plots.forEach(item => {
-                if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" ||item.plotType === "被困人员"|| item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+                if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
                     let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
                     // console.log(entity, "entity show")
                     if (entity) {
@@ -1052,7 +1051,7 @@ let timeLine = {
     blinkMarker(plot) {
         return new Promise((resolve) => {
             let entity = null
-            console.log(plot,"blink")
+            console.log(plot, "blink")
             // 1) 打印 pointDataSource 里的实体
             // if (window.pointDataSource) {
             //     console.table(
@@ -1075,7 +1074,7 @@ let timeLine = {
                 resolve();
                 return;
             }
-            console.log(entity,"blinkMarker entity")
+            console.log(entity, "blinkMarker entity")
             const interval = 200; // 每次闪烁的时间间隔
             let count = 0;
             const blinkInterval = setInterval(() => {
