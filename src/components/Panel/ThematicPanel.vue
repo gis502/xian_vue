@@ -73,6 +73,7 @@
 
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
+import { ElMessage } from 'element-plus'
 
 export default {
   //接收父组件传来的数据
@@ -226,14 +227,12 @@ export default {
                 'Authorization': `Bearer ${token}`,
                 'Accept': '*/*'
               }
-            });
-
-        if (response.status === 401) {
-          throw new Error('认证失败，请重新登录');
-        }
-
+            }).catch(err => {
+          throw new Error("正在生成报告中,请稍后...");
+        });
+        // 检查HTTP响应状态是否成功
         if (!response.ok) {
-          throw new Error(`下载失败: ${response.status}`);
+          throw new Error(`请求失败: ${response.statusText}`);
         }
 
         // 获取文件名
@@ -241,6 +240,11 @@ export default {
 
         // 创建下载
         const blob = await response.blob();
+        if (blob.size === 0) {
+          console.log('文件大小为0，停止下载');
+          ElMessage.error('地震报告生成中...')
+          return;
+        }
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -257,7 +261,6 @@ export default {
 
       } catch (error) {
         console.error('下载错误:', error);
-        alert(error.message || '文件下载失败');
       }
     },
 
@@ -376,7 +379,7 @@ export default {
 .eqTheme {
   position: absolute;
   top: 80px;
-  left: 47%;
+  left: 49%;
   z-index: 100;
 }
 

@@ -60,6 +60,18 @@
         <div class="legend-color" id="storePoint"></div>
         储备站
       </div>
+      <div class="legend-item">
+        <div class="legend-color" id="bridgePoint"></div>
+        桥梁
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="reservoirPoint"></div>
+        水库
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="subwayPoint"></div>
+        地铁站
+      </div>
     </div>
 </template>
 
@@ -88,7 +100,7 @@
   display: flex;
   flex-wrap: wrap;
   width: 310px;
-  height: 240px;
+  height: 300px;
 }
 
 .legend-item {
@@ -163,6 +175,18 @@
 }
 #storePoint {
   background-image: url("../../assets/images/storePoints.jpg");
+  background-size: cover;
+}
+#bridgePoint {
+  background-image: url("../../assets/images/bridge.png");
+  background-size: cover;
+}
+#reservoirPoint {
+  background-image: url("../../assets/images/reservoir.png");
+  background-size: cover;
+}
+#subwayPoint {
+  background-image: url("../../assets/images/subway.png");
   background-size: cover;
 }
 </style>
