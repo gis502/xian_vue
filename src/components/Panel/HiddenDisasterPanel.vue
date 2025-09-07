@@ -27,6 +27,8 @@
       <WaterDisaster v-if="!displayDisasterCausingFactors && showWaterDisasterInformation" :info="waterDisasterInformation"></WaterDisaster>
       <!--山洪-->
       <FloodDisaster v-if="!displayDisasterCausingFactors && showFloodDisasterInformation" :info="floodDisasterInformation"></FloodDisaster>
+      <!--历史地震灾害-->
+      <HistoricalEarthquake v-if="!displayDisasterCausingFactors && showHistorialDisaster" :info="historialDisasterInformation"></HistoricalEarthquake>
       <!-- 致灾因子信息 -->
       <Hazards
           v-if="displayDisasterCausingFactors"
@@ -46,6 +48,7 @@ import RiskPoints from "@/components/Earthquake/RiskPoints.vue";
 import Hazards from "@/components/Earthquake/Hazards.vue";
 import WaterDisaster from "@/components/Earthquake/WaterDisaster.vue"
 import FloodDisaster from "@/components/Earthquake/FloodDisaster.vue"
+import HistoricalEarthquake from "@/components/Earthquake/HistoricalEarthquake.vue";
 import {staticHazardsDatas} from "@/api/earthquake/datas";
 import {getAffectPoint, getHazardOptions, getPolieJiao} from "@/api/earthquake/hazards.js";
 import * as Cesium from 'cesium';
@@ -66,6 +69,8 @@ const props = defineProps({
   waterDisasterInformation: Object,
   showFloodDisasterInformation: Boolean,
   floodDisasterInformation: Object,
+  showHistorialDisaster: Boolean,
+  historialDisasterInformation: Object,
   trigger: String,
   rainfall: String,
   dataTypeHiddenDisaster: Object,
@@ -96,7 +101,9 @@ watch(() => props.waterDisasterInformation, (newVal, oldVal) => {
 watch(() => props.floodDisasterInformation, (newVal, oldVal) => {
   console.log('floodDisasterInformation updated:', newVal);
 });
-
+watch(() => props.historialDisasterInformation, (newVal, oldVal) => {
+  console.log('historialDisasterInformation updated:', newVal);
+});
 watch(() => props.position, (newVal, oldVal) => {
   // console.log('position updated:', newVal);
 });
@@ -162,6 +169,12 @@ const hazards = computed(() => {
       ...props.floodDisasterInformation,
       title: '山洪隐患点'
     };
+  } else if (props.showHistorialDisaster) {
+    handleRainfallAndDuration(props.historialDisasterInformation, props.trigger)
+    return {
+      ...props.historialDisasterInformation,
+      title: '历史地震灾害'
+    }
   }
 });
 
