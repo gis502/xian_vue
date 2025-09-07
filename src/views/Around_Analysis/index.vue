@@ -475,8 +475,8 @@ export default {
     this.getNum();//从后端读取数据，异步
     this.loadRiverData(); // 加载河流数据
     this.loadLakeData(); // 加载湖面数据
-    basicLayers.loadFlashFlood();
-    basicLayers.loadWater();
+    basicLayers.loadFlood();
+    basicLayers.loadWater1();
     basicLayers.loadAdminData();
     this.loadData();
   },
@@ -1884,6 +1884,7 @@ export default {
   top: 10px;
   right: 190px;
   z-index: 100;
+  gap: 5px;
 }
 
 
@@ -2073,24 +2074,6 @@ export default {
   overflow-y: auto;
 }
 
-.legend-title {
-  font-size: 17px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.legend-content {
-  font-size: 12px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-}
 
 .legend-color {
   width: 16px;
@@ -2100,53 +2083,37 @@ export default {
   border-radius: 2px;
 }
 
-.legend-text {
-  white-space: nowrap;
+.legend-title1 {
+  width: 100%;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
 }
 
-.legend-panel {
+.graph_legend {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
+  bottom: 70px;
+  right: 15px;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #ffffff;
+  color: black;
   padding: 10px;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  max-height: 70%;
-  overflow-y: auto;
-  max-width: 300px; /* 新增：限制图例最大宽度 */
+  border-radius: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  width: 310px;
+  height: 300px;
 }
 
-.legend-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.legend-content {
-  font-size: 12px;
-}
-
-.legend-item {
+.legend-item1 {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  margin: 3px 0; /* 减少行间距 */
+  font-size: 14px; /* 缩小字体 */
+  width: 50%;
 }
 
-.legend-color {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  border-radius: 2px;
-}
-
-.legend-text {
-  white-space: nowrap;
-}
 
 .disaster-popup {
   position: absolute;
