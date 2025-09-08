@@ -73,6 +73,7 @@
 
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
+import {getReport } from "@/api/system/damageassessment.js";
 import { ElMessage } from 'element-plus'
 
 export default {
@@ -216,42 +217,44 @@ export default {
 
     async downloadReport() {
       try {
-        // 获取认证token（根据您的存储方式调整）
-        const token = localStorage.getItem('access_token') ||
-            this.getCookie('Admin-Token');
+        // // 获取认证token（根据您的存储方式调整）
+        // const token = localStorage.getItem('access_token') ||
+        //     this.getCookie('Admin-Token');
+        //
+        // const response = await fetch(
+        //     `http://localhost:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
+        //       method: 'GET',
+        //       headers: {
+        //         'Authorization': `Bearer ${token}`,
+        //         'Accept': '*/*'
+        //       }
+        //     }).catch(err => {
+        //   throw new Error("正在生成报告中,请稍后...");
+        // });
+        // // 检查HTTP响应状态是否成功
+        // if (!response.ok) {
+        //   throw new Error(`请求失败: ${response.statusText}`);
+        // }
 
-        const response = await fetch(
-            `http://localhost:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': '*/*'
-              }
-            }).catch(err => {
-          throw new Error("正在生成报告中,请稍后...");
-        });
-        // 检查HTTP响应状态是否成功
-        if (!response.ok) {
-          throw new Error(`请求失败: ${response.statusText}`);
+
+        const DTO = {
+          eqId: this.eqid,
+          eqqueueId: this.eqqueueId
         }
+        let url;
+        getReport(DTO).then((res)=>{
+          url = res.data;
 
-        // 获取文件名
-        let fileName = `report_${this.eqid}.docx`;
+          // 获取文件名
+          let fileName = `report_${this.eqid}.docx`;
 
-        // 创建下载
-        const blob = await response.blob();
-        if (blob.size === 0) {
-          console.log('文件大小为0，停止下载');
-          ElMessage.error('地震报告生成中...')
-          return;
-        }
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+        })
 
         // 清理
         setTimeout(() => {

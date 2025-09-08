@@ -8,3 +8,11 @@ export function getEqOutputMaps(queryParams){
         data: queryParams
     })
 }
+
+export function getReport(DTO){
+    return request({
+        url: '/feign/download',
+        method: 'get',
+        params: DTO
+    })
+}
