@@ -221,7 +221,7 @@ export default {
             this.getCookie('Admin-Token');
 
         const response = await fetch(
-            `http://localhost:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
+            `http://10.22.245.246:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${token}`,
