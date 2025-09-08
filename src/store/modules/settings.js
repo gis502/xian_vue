@@ -1,5 +1,6 @@
 import defaultSettings from '@/settings'
 import { useDynamicTitle } from '@/utils/dynamicTitle'
+import mainLogo from "@/assets/logo/mainlogo.png"
 
 const { sideTheme, showSettings, topNav, tagsView, fixedHeader, sidebarLogo, dynamicTitle } = defaultSettings
 
@@ -10,7 +11,7 @@ const useSettingsStore = defineStore(
   {
     state: () => ({
       title: '',
-      mainLogo: '/src/assets/logo/mainlogo.png',
+      mainLogo: mainLogo,
       theme: storageSetting.theme || '#409EFF',
       sideTheme: storageSetting.sideTheme || sideTheme,
       showSettings: showSettings,

@@ -26,7 +26,7 @@
        @update:handle-step-status="(value)=>{stepStatus = value}"
        @update:handle-step-status-chain="(value)=>{stepStatus = value.status;stepChain = value.chain}"
        @update:handle-rain-cancel = "showStep=false"
-       @update:handle-setId = "(v)=>{rainId=v.rainId;rainQueueId=v.rainQueueId}"
+       @update:handle-setId = "(v)=>{rainId=v.data.rainId;rainQueueId=v.data.rainQueueId}"
     />
 
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
@@ -299,7 +299,7 @@ let dimensions =  ['grade', '高', '中']
 let riverDataSource = null
 let lakeDataSource = null
 // let riverData = null
-let rainDisasterId = null
+
 
 let baseInfoTitle = ref("")
 let showBaseInfo = ref(false)
@@ -328,6 +328,7 @@ let showStep = ref(false)
 let fenXiFanWei = ref([])
 let rainId = ref("")
 let rainQueueId = ref("")
+let rainDisasterId = ref(null)
 
 let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
@@ -866,21 +867,43 @@ function radars() {
 }
 
 /* 获取雷达时间轴时间和图片 */
+// function radarData() {
+//   getRadarData().then(res => {
+//     let data = res.data
+//     console.log(data,"RadarData")
+//     radarImages = []
+//     data.forEach(item => {
+//       console.log(item)
+//       let d = new Date(item.obsdate);
+//       let pad = n => n.toString().padStart(2, '0');
+//       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+//       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+//       console.log("http://10.22.245.247:8900"+item.r0href)
+//       radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
+
+//       timeLabels.push(time)
+//     })
+//     timeLabels.reverse()
+//     // console.log(timeLabels, 'radardata')
+//   })
+//   // this.timeLabels = getRadarData()
+// }
 function radarData() {
   getRadarData().then(res => {
     let data = res.data
+    console.log(data,"RadarData")
+    radarImages = []
     data.forEach(item => {
+      console.log(item)
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
-      // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-      // that.radarImages.push()   图片在这添加
+      // 使用代理路径
+      radarImages.push("/radar-images" + item.r0href)
       timeLabels.push(time)
     })
     timeLabels.reverse()
-    // console.log(timeLabels, 'radardata')
   })
-  // this.timeLabels = getRadarData()
 }
 
 /* 添加雷达云图 */
@@ -1467,7 +1490,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
         }
         request.type = item.disasterType
         request.entityId = parseInt(item.entityId.split("点")[1])
-        request.disasterId = rainDisasterId
+        request.disasterId = rainDisasterId.value
         request.county = item.geologicalDisasterHideDTO.county
 
         // 将Cartesian3坐标转换为经纬度
@@ -1737,7 +1760,7 @@ async function refreshComponent(){
 /* 重置所有状态变量 */
 function resetAllStates(){
   // 重置基本状态
-  rainDisasterId = null
+  rainDisasterId.value = null
   baseInfoTitle.value = ""
   showBaseInfo.value = false
   rainMode.value = false
@@ -1841,8 +1864,8 @@ function resetAllStates(){
 
 /* 报告产出 */
 async function downloadRainReport(){
-  console.log(rainDisasterId)
-  if(!rainDisasterId){
+  console.log(rainDisasterId.value)
+  if(!rainDisasterId.value){
     ElMessage({
       message: '暂无报告，请先触发暴雨！',
       type: 'warning',
@@ -1889,14 +1912,15 @@ async function downloadRainReport(){
 
     // ✅ 生成 Word
     // const wordRes = await generateRainReport(imgUrl)
-    console.log(rainDisasterId)
-    let rainRequests = {
+    console.log(rainDisasterId.value)
+    let RainParams = {
       rainId: rainId.value,
-      rainQueueId: rainQueueId.value
+      rainQueueId: rainQueueId.value,
+      rainDisasterId:rainDisasterId.value
     }
 
-    console.log(rainRequests,"触发后的暴雨ID是，，，，，，，，，，")
-    const wordRes = await generateRainReport({rainRequests,rainDisasterId})
+    console.log(RainParams,"触发后的暴雨ID是，，，，，，，，，，")
+    const wordRes = await generateRainReport(RainParams)
     console.log(wordRes, "wordRes")
     const wordUrl = wordRes.data
 
