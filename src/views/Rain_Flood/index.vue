@@ -867,21 +867,43 @@ function radars() {
 }
 
 /* 获取雷达时间轴时间和图片 */
+// function radarData() {
+//   getRadarData().then(res => {
+//     let data = res.data
+//     console.log(data,"RadarData")
+//     radarImages = []
+//     data.forEach(item => {
+//       console.log(item)
+//       let d = new Date(item.obsdate);
+//       let pad = n => n.toString().padStart(2, '0');
+//       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+//       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+//       console.log("http://10.22.245.247:8900"+item.r0href)
+//       radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
+
+//       timeLabels.push(time)
+//     })
+//     timeLabels.reverse()
+//     // console.log(timeLabels, 'radardata')
+//   })
+//   // this.timeLabels = getRadarData()
+// }
 function radarData() {
   getRadarData().then(res => {
     let data = res.data
+    console.log(data,"RadarData")
+    radarImages = []
     data.forEach(item => {
+      console.log(item)
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
-      // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-      // that.radarImages.push()   图片在这添加
+      // 使用代理路径
+      radarImages.push("/radar-images" + item.r0href)
       timeLabels.push(time)
     })
     timeLabels.reverse()
-    // console.log(timeLabels, 'radardata')
   })
-  // this.timeLabels = getRadarData()
 }
 
 /* 添加雷达云图 */

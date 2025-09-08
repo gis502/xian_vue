@@ -52,7 +52,7 @@ export function initCesium(container,clock) {
     viewer.scene.globe.enableLighting = false//全局光照
     viewer.shadows = false
 
-    let providers = imageryProvider(0)
+    let providers = imageryProvider(1)
     providers.forEach(provider => {
         viewer.imageryLayers.addImageryProvider(provider);
     })
