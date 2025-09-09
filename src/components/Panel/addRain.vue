@@ -245,7 +245,6 @@ const confirmRainPoint = async () => {
   // console.log(requestData, "requestData saveRain")
 
   let res = await saveRain(requestData)
-  console.log(res, "saveRain")
   // 处理触发数据，选择降雨量最大的一条数据进行专题图产出
   let thematicRequests = {
     "rainfall": rainfallArry.value.join(","),
@@ -262,7 +261,7 @@ const confirmRainPoint = async () => {
   let rainDatas = await rainTrigger(thematicdatas)
   console.log("查询专题图的ID是:", rainDatas)
   emit("update:handle-setId",rainDatas)
-
+  console.log(res.data.rainDisasterId, "res.data.rainDisasterId")
   emit("passRainId", res.data.rainDisasterId)
   if (adminArea.value) {
     let entity = {

@@ -98,8 +98,9 @@ import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
 import landslideIcon from "@/assets/images/landslide.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
-import flashIcon from "@/assets/images/flashflood.png"
-import waterIcon from "@/assets/images/water.jpg"
+import flashIcon from "@/assets/images/flashflood.png";
+import waterIcon from "@/assets/images/water.jpg";
+import { ElMessage } from 'element-plus';
 
 
 const tableData = ref([])
@@ -422,8 +423,7 @@ async function tiggerHistoryDaster(item){
 
           if (subConfig) {
             // 绘制点
-            basicLayers.loadPoint(disasterType, feature.geometry.coordinates, subConfig.icon);
-
+            basicLayers.loadPoint(disasterType, feature, subConfig.icon);
             // 收集坐标点
             levelPoints.value.push({
               lon: feature.geometry.coordinates[0],
@@ -468,46 +468,56 @@ async function tiggerHistoryDaster(item){
     emit("loadingTrue");
     await getRainAffectPoints(DTO).then(response => {
       rainAffectPoints.value = response.data;
-      console.log("获取数据成功",response)
+      console.log("获取暴雨数据成功",response)
         })
         .catch(error => {
-          console.log("获取数据失败", error)
+          console.log("获取暴雨数据失败", error)
         })
     console.log("获取到的暴雨隐患点", rainAffectPoints.value)
-    chartDatas.title = "历史暴雨影响范围统计";
-    rainAffectPoints.value.pointInfos.forEach(item => {
-      // 处理高/中等级的点
-      if (["[高]", "[中]"].includes(item.level)) {
-        levelPoints.value.push(item);
-      }
+    if (rainAffectPoints.value && rainAffectPoints.value.pointInfos && rainAffectPoints.value.pointInfos.length > 0) {
+      chartDatas.title = "历史暴雨影响范围统计";
+      rainAffectPoints.value.pointInfos.forEach(item => {
+        // 处理高/中等级的点
+        if (["[高]", "[中]"].includes(item.level)) {
+          levelPoints.value.push(item);
+        }
 
-      // 处理灾害类型相关逻辑
-      const config = disasterConfig[item.disasterType];
-      if (config) {
-        basicLayers.DrawIcon(item.disasterType, item, config.icon);
-        console.log(item.disasterType);
-        // 更新对应的计数器
-        config.counter++; // 或根据实际变量作用域调整
-      } else {
-        // 可以添加未知灾害类型的处理逻辑
-        console.log(`未知灾害类型: ${item.disasterType}`);
-      }
-    });
+        // 处理灾害类型相关逻辑
+        const config = disasterConfig[item.disasterType];
+        if (config) {
+          basicLayers.DrawIcon(item.disasterType, item, config.icon);
+          console.log(item.disasterType);
+          // 更新对应的计数器
+          config.counter++; // 或根据实际变量作用域调整
+        } else {
+          // 可以添加未知灾害类型的处理逻辑
+          console.log(`未知灾害类型: ${item.disasterType}`);
+        }
+      });
 
 
-    chartDatas.xAxis.data[0] = "内涝";
-    chartDatas.xAxis.data[1] = "山洪";
-    chartDatas.xAxis.data[2] = "滑坡";
-    chartDatas.xAxis.data[3] = "泥石流";
-    chartDatas.seriesDatas[0] = disasterConfig["内涝"].counter;
-    chartDatas.seriesDatas[1] = disasterConfig["山洪"].counter;
-    chartDatas.seriesDatas[2] = disasterConfig["滑坡"].counter;
-    chartDatas.seriesDatas[3] = disasterConfig["泥石流"].counter;
+      chartDatas.xAxis.data[0] = "内涝";
+      chartDatas.xAxis.data[1] = "山洪";
+      chartDatas.xAxis.data[2] = "滑坡";
+      chartDatas.xAxis.data[3] = "泥石流";
+      chartDatas.seriesDatas[0] = disasterConfig["内涝"].counter;
+      chartDatas.seriesDatas[1] = disasterConfig["山洪"].counter;
+      chartDatas.seriesDatas[2] = disasterConfig["滑坡"].counter;
+      chartDatas.seriesDatas[3] = disasterConfig["泥石流"].counter;
 
-    emit("displayAnalysis");
-    emit('update:levelPoints', levelPoints.value);
-    emit("createPulseCircle");
-    emit("loadingFalse");
+      emit("displayAnalysis");
+      emit('update:levelPoints', levelPoints.value);
+      emit("createPulseCircle");
+      emit("loadingFalse");
+    }else {
+
+      ElMessage({
+        message: '未查询到灾害影响内的高风险隐患点，请切换历史灾害！',
+        type: 'warning',
+      });
+      emit("loadingFalse");
+
+    }
   }
 }
 

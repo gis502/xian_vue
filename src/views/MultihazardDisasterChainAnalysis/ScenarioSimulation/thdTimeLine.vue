@@ -44,14 +44,12 @@
     <timeLinePlay
         :viewer="viewer"
         :disasterEvent="disasterEvent"
-        :currentTime="currentTimeString"
         :RealDisasterPlots="realDisasterPoint"
-        :firstStartTimeLine="firstStartTimeLine"
+        @plot-step="nowShowPlot = $event"
     />
     <timeLineLayer
         :viewer="viewer"
         :disasterEvent="disasterEvent"
-        :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
         @update:onceLoadLayer="onceLoadLayer = $event"
         @update:realDisasterPoint="handleRealDisasterPointUpdate"
@@ -63,7 +61,9 @@
     <RealDisasterTable
         :dataTypes="dataTypesRealDisater"
         :currentTime="currentTime"
+        :nowShowPlot="nowShowPlot"
     />
+
     <Table :show="true" :dataTypes="dataTypeHiddenDisaster"></Table>
     <RainInfoTable
         v-if="trigger === '暴雨'"
@@ -138,7 +138,7 @@ export default {
       dataTypesRealDisater: {
         filterCriteria: [
           {
-            name: "人员伤亡",
+            name: "地质灾害",
             value: "type1",
           },
           {
@@ -146,11 +146,76 @@ export default {
             value: "type2",
           },
           {
-            name: "灾害点",
+            name: "应急避难",
             value: "type3",
           },
+          {
+            name: "人员伤亡",
+            value: "type4",
+          },
+          {
+            name: "建筑物破坏",
+            value: "type5",
+          },
+          {
+            name: "交通设施",
+            value: "type6",
+          },
+          {
+            name: "水利工程",
+            value: "type7",
+          },
+          {
+            name: "生命线工程",
+            value: "type8",
+          },
+          {
+            name: "安全生产事故",
+            value: "type9",
+          },
+          // {
+          //   name: "人员伤亡",
+          //   value: "type1",
+          // },
+          // {
+          //   name: "灾害点",
+          //   value: "type3",
+          // },
         ],
+
         type1: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "灾害位置", key: "field2", width: "20%"},
+            {name: "灾害类型", key: "field3", width: "20%"},
+            {name: "人员伤亡", key: "field4", width: "15%"},
+            {name: "处置阶段", key: "field5", width: "15%"}],
+          data: [],
+        },
+        type2: {
+          // headers: ["泥石流灾害名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "队伍位置", key: "field2", width: "20%"},
+            {name: "队伍状态", key: "field3", width: "15%"},
+            {name: "队伍名称", key: "field4", width: "20%"},
+            {name: "出队人数", key: "field5", width: "15%"},
+          ],
+          data: [],
+        },
+
+        type3: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "灾害位置", key: "field2", width: "20%"},
+            {name: "灾害类型", key: "field3", width: "20%"},
+            {name: "人员伤亡", key: "field4", width: "15%"},
+            {name: "处置阶段", key: "field5", width: "15%"}],
+          data: [],
+        },
+        type4: {
           // headers: ["滑坡灾害名称", "发生时间", "人员伤亡情况","处置阶段"],
           headers: [
             {name: "发生时间", key: "field1", width: "30%"},
@@ -160,18 +225,47 @@ export default {
           data: [],
 
         },
-        type2: {
-          // headers: ["泥石流灾害名称", "发生时间", "人员伤亡情况", "处置阶段"],
+        type5: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
           headers: [
-            {name: "到达时间", key: "field1", width: "30%"},
-            {name: "队伍位置", key: "field2", width: "20%"},
-            {name: "队伍状态", key: "field3", width: "15%"},
-            {name: "队伍名称", key: "field4", width: "20%"},
-            {name: "出队人数", key: "field5", width: "15%"},
-          ],
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "灾害位置", key: "field2", width: "20%"},
+            {name: "灾害类型", key: "field3", width: "20%"},
+            {name: "人员伤亡", key: "field4", width: "15%"},
+            {name: "处置阶段", key: "field5", width: "15%"}],
           data: [],
         },
-        type3: {
+        type6: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "灾害位置", key: "field2", width: "20%"},
+            {name: "灾害类型", key: "field3", width: "20%"},
+            {name: "人员伤亡", key: "field4", width: "15%"},
+            {name: "处置阶段", key: "field5", width: "15%"}],
+          data: [],
+        },
+        type7: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "灾害位置", key: "field2", width: "20%"},
+            {name: "灾害类型", key: "field3", width: "20%"},
+            {name: "人员伤亡", key: "field4", width: "15%"},
+            {name: "处置阶段", key: "field5", width: "15%"}],
+          data: [],
+        },
+        type8: {
+          // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
+          headers: [
+            {name: "发生时间", key: "field1", width: "30%"},
+            {name: "灾害位置", key: "field2", width: "20%"},
+            {name: "灾害类型", key: "field3", width: "20%"},
+            {name: "人员伤亡", key: "field4", width: "15%"},
+            {name: "处置阶段", key: "field5", width: "15%"}],
+          data: [],
+        },
+        type9: {
           // headers: ["风险区名称", "发生时间", "人员伤亡情况", "处置阶段"],
           headers: [
             {name: "发生时间", key: "field1", width: "30%"},
@@ -232,18 +326,9 @@ export default {
         {rainfall: 100, duration: 2, name: "长安区"}
       ],
       rainEffect: null,
-      firstStartTimeLine:false,
+      firstStartTimeLine: false,
+      nowShowPlot:null,
     };
-  },
-  computed: {
-    // 在父组件中，将 JulianDate 转换为字符串
-    currentTimeString() {
-      if (this.currentTime) {
-        // 使用 Cesium 的函数将 JulianDate 转换为 ISO 字符串
-        return Cesium.JulianDate.toIso8601(this.currentTime);
-      }
-      return '';
-    }
   },
   components: {
     //信息面板
@@ -515,14 +600,14 @@ export default {
     entitiesClickPonpHandler() {
 // 1. 改成带参函数
       const popMap = new Map([
-        ['地震中心',  (e) => this.showEqCenter(e)],
-        ['暴雨中心',  (e) => this.showRainCenter(e)],
-        ['滑坡隐患点',(e) => this.showDisaster('滑坡隐患点', e)],
-        ['泥石流隐患点',(e) => this.showDisaster('泥石流隐患点', e)],
-        ['风险区域',  (e) => this.showDisaster('风险区域', e)],
-        ['内涝隐患点',(e) => this.showDisaster('内涝隐患点', e)],
-        ['山洪隐患点',(e) => this.showDisaster('山洪隐患点', e)],
-        ['标绘点',    (e) => this.showPlot(e)]
+        ['地震中心', (e) => this.showEqCenter(e)],
+        ['暴雨中心', (e) => this.showRainCenter(e)],
+        ['滑坡隐患点', (e) => this.showDisaster('滑坡隐患点', e)],
+        ['泥石流隐患点', (e) => this.showDisaster('泥石流隐患点', e)],
+        ['风险区域', (e) => this.showDisaster('风险区域', e)],
+        ['内涝隐患点', (e) => this.showDisaster('内涝隐患点', e)],
+        ['山洪隐患点', (e) => this.showDisaster('山洪隐患点', e)],
+        ['标绘点', (e) => this.showPlot(e)]
       ]);
 
       window.viewer.screenSpaceEventHandler.setInputAction(click => {
@@ -543,7 +628,7 @@ export default {
         }
 
         const entity = hit.id;
-        const type   = entity.name;
+        const type = entity.name;
 
         // 4. 触发对应弹框
         popMap.get(type)(entity);
@@ -583,22 +668,22 @@ export default {
     },
 
     showDisaster(title, entity) {
-      console.log(title,entity,"entity showDisaster")
+      console.log(title, entity, "entity showDisaster")
       this.hideAllPanels();
-      this.showBaseInfo  = true;
+      this.showBaseInfo = true;
       this.baseInfoTitle = title;
 
       // 重置所有二级开关
-      this.showDisasterInformation      = false;
-      this.showdebrisFlowInformation    = false;
-      this.showRiskPointsInformation    = false;
+      this.showDisasterInformation = false;
+      this.showdebrisFlowInformation = false;
+      this.showRiskPointsInformation = false;
       this.showFloodDisasterInformation = false;
       this.showWaterDisasterInformation = false;
 
       // 重置所有数据
-      this.disasterInformation      = null;
-      this.debrisFlowInformation    = null;
-      this.riskPointsInformation    = null;
+      this.disasterInformation = null;
+      this.debrisFlowInformation = null;
+      this.riskPointsInformation = null;
       this.floodDisasterInformation = null;
       this.waterDisasterInformation = null;
 
@@ -635,7 +720,7 @@ export default {
       }
     },
     showPlot(entity) {
-      console.log(entity,"showPlot")
+      console.log(entity, "showPlot")
       this.hideAllPanels();
       this.PlotPanelVisible = true;
       this.PanelData = clickPointsAndShowPanel.extractDataForPanelWithOutGeo(entity, this.matchedHiddenHighlightEntities);
@@ -684,16 +769,22 @@ export default {
     },
     handleRealDisasterPointUpdate(data) {
       this.realDisasterPoint = data
-      console.log(data,this.realDisasterPoint,"this.realDisasterPoint handleRealDisasterPointUpdate")
+      console.log(data, this.realDisasterPoint, "this.realDisasterPoint handleRealDisasterPointUpdate")
     },
     handleRealDisasterPointUpdateWithInfo(data) {
-      this.firstStartTimeLine=true
-      console.log(data, "handleRealDisasterPointUpdate")
+      this.firstStartTimeLine = true
+
 
 
       this.dataTypesRealDisater.type1.data = [];
       this.dataTypesRealDisater.type2.data = [];
       this.dataTypesRealDisater.type3.data = [];
+      this.dataTypesRealDisater.type4.data = [];
+      this.dataTypesRealDisater.type5.data = [];
+      this.dataTypesRealDisater.type6.data = [];
+      this.dataTypesRealDisater.type7.data = [];
+      this.dataTypesRealDisater.type8.data = [];
+      this.dataTypesRealDisater.type9.data = [];
 
 
       // 风险区数据，滑坡数据，泥石流数据
@@ -701,52 +792,146 @@ export default {
         let plotInfo = item.plotInfo
         let plotTypeInfo = item.plotTypeInfo
 
-        // console.log(plotInfo,plotTypeInfo,"plotInfo,plotTypeInfo")
-        if (plotInfo.plotType == "失踪人员" || plotInfo.plotType == "轻伤人员" || plotInfo.plotType == "重伤人员" || plotInfo.plotType == "危重伤人员" || plotInfo.plotType == "死亡人员" || plotInfo.plotType === "被困人员") {
-          this.dataTypesRealDisater.type1.data.push({
-            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
-            field2: plotInfo.belongCounty + plotInfo.belongTown,
-            field3: plotInfo.plotType,
-            field4: plotTypeInfo.newCount,
-            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
-            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
-            type: "type1",
-          });
-        } else if (plotInfo.plotType == "已出发队伍" || plotInfo.plotType == "正在参与队伍" || plotInfo.plotType == "待命队伍") {
-          this.dataTypesRealDisater.type2.data.push({
-            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
-            field2: plotInfo.belongCounty + plotInfo.belongTown,
-            field3: plotInfo.plotType,
-            field4: plotTypeInfo.teamName,
-            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
-            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
-            type: "type2",
-          });
-        } else {
+
+      if(plotInfo.plotType == "泥石流" ||plotInfo.plotType == "滑坡"||plotInfo.plotType == "地面沉降"||plotInfo.plotType == "崩塌"||plotInfo.plotType == "地面塌陷"){
           let casualties = "-"
           if (plotTypeInfo.casualties) {
             casualties = plotTypeInfo.casualties
           }
-          this.dataTypesRealDisater.type3.data.push({
+          this.dataTypesRealDisater.type1.data.push({
             field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
             field2: plotInfo.belongCounty + plotInfo.belongTown,
             field3: plotInfo.plotType,
             field4: casualties,
             field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
             field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
-            type: "type3",
+            type: "type1",
+          });
+        }
+      else if (plotInfo.plotType == "已出发队伍" || plotInfo.plotType == "正在参与队伍" || plotInfo.plotType == "待命队伍"|| plotInfo.plotType == "未搜索区域"|| plotInfo.plotType == "已搜索区域"|| plotInfo.plotType == "未营救区域"|| plotInfo.plotType == "已营救区域"|| plotInfo.plotType == "集结缓冲区"|| plotInfo.plotType == "正在营救区域"|| plotInfo.plotType == "攻击箭头"|| plotInfo.plotType == "钳击箭头"|| plotInfo.plotType == "直线箭头") {
+        let teamName = "-"
+        if (plotTypeInfo.teamName) {
+          teamName = plotTypeInfo.teamName
+        }
+        this.dataTypesRealDisater.type2.data.push({
+          field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+          field2: plotInfo.belongCounty + plotInfo.belongTown,
+          field3: plotInfo.plotType,
+          field4: teamName,
+          field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+          field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+          type: "type2",
+        });
+      }
+      else if(plotInfo.plotType == "常备避险安置点" ||plotInfo.plotType == "救灾物资储备库" ||plotInfo.plotType == "临时避险安置点" ||plotInfo.plotType == "室外型避难场所" ||plotInfo.plotType == "室内型避难场所" ){
+        let casualties = "-"
+        if (plotTypeInfo.casualties) {
+          casualties = plotTypeInfo.casualties
+        }
+        this.dataTypesRealDisater.type3.data.push({
+          field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+          field2: plotInfo.belongCounty + plotInfo.belongTown,
+          field3: plotInfo.plotType,
+          field4: casualties,
+          field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+          field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+          type: "type3",
+        });
+      }
+      else if (plotInfo.plotType == "失踪人员" || plotInfo.plotType == "轻伤人员" || plotInfo.plotType == "重伤人员" || plotInfo.plotType == "危重伤人员" || plotInfo.plotType == "死亡人员" || plotInfo.plotType === "被困人员") {
+        let newCount="-"
+        if(plotTypeInfo.newCount){
+          newCount =plotTypeInfo.newCount
+        }
+        this.dataTypesRealDisater.type4.data.push({
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty + plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: newCount,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+            type: "type4",
+          });
+        }
+      else if(plotInfo.plotType == "中等破坏建筑物" ||plotInfo.plotType == "严重破坏建筑物" ||plotInfo.plotType == "毁坏或倒塌建筑物" ||plotInfo.plotType == "轻微破坏建筑物" ){
+          let casualties = "-"
+          if (plotTypeInfo.casualties) {
+            casualties = plotTypeInfo.casualties
+          }
+          this.dataTypesRealDisater.type5.data.push({
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty + plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: casualties,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+            type: "type5",
+          });
+        }
+      else if(plotInfo.plotType == "不可通行公路" ||plotInfo.plotType == "公路破坏点" ||plotInfo.plotType == "交通管制点" ||plotInfo.plotType == "限制通行桥梁" ||plotInfo.plotType == "不可通行桥梁" ||plotInfo.plotType == "不可通行隧道" ||plotInfo.plotType == "限制通行公路" ||plotInfo.plotType == "不可通行铁路" ||plotInfo.plotType == "铁路破坏点" ||plotInfo.plotType == "可用机场" ||plotInfo.plotType == "不可用机场"){
+          let casualties = "-"
+          if (plotTypeInfo.casualties) {
+            casualties = plotTypeInfo.casualties
+          }
+          this.dataTypesRealDisater.type6.data.push({
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty + plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: casualties,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+            type: "type6",
+          });
+        }
+      else if(plotInfo.plotType == "堰塞湖" ||plotInfo.plotType == "严重破坏堤防" ||plotInfo.plotType == "基本完好大坝" ||plotInfo.plotType == "中等破坏大坝" ||plotInfo.plotType == "严重破坏大坝" ||plotInfo.plotType == "基本完好堤防" ||plotInfo.plotType == "中等破坏堤防" ){
+          let casualties = "-"
+          if (plotTypeInfo.casualties) {
+            casualties = plotTypeInfo.casualties
+          }
+          this.dataTypesRealDisater.type7.data.push({
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty + plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: casualties,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+            type: "type7",
+          });
+        }
+      else if(plotInfo.plotType == "不可用输、配电线路" ||plotInfo.plotType == "供水管线破坏点" ||plotInfo.plotType == "输、配电线路破坏点" ||plotInfo.plotType == "不可用输气管线" ||plotInfo.plotType == "不可用供水管网" ||plotInfo.plotType == "供气管线破坏点"){
+          let casualties = "-"
+          if (plotTypeInfo.casualties) {
+            casualties = plotTypeInfo.casualties
+          }
+          this.dataTypesRealDisater.type8.data.push({
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty + plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: casualties,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+            type: "type8",
+          });
+        }
+      else if(plotInfo.plotType == "爆炸" ||plotInfo.plotType == "火灾" ||plotInfo.plotType == "有毒物质泄露" ||plotInfo.plotType == "核污染"){
+          let casualties = "-"
+          if (plotTypeInfo.casualties) {
+            casualties = plotTypeInfo.casualties
+          }
+          this.dataTypesRealDisater.type9.data.push({
+            field1: timeTransfer.timestampToTimeChina(plotInfo.startTime),
+            field2: plotInfo.belongCounty + plotInfo.belongTown,
+            field3: plotInfo.plotType,
+            field4: casualties,
+            field5: Number(geomToCoordinates(plotInfo.geom)[0][0]),
+            field6: Number(geomToCoordinates(plotInfo.geom)[0][1]),
+            type: "type9",
           });
         }
       });
+      console.log(this.dataTypesRealDisater, "dataTypesRealDisater")
     },
     handleHiddenDisasterPointUpdate(probabilityPoints) {
-      // const disasterTypeMap = {
-      //   "滑坡": "landslide",
-      //   "泥石流": "debris_flow",
-      //   "山洪": "torrential_flood",
-      //   "内涝": "water_logging",
-      //   "堰塞湖": "barrier_lake"
-      // };
       console.log(probabilityPoints, "handleHiddenDisasterPointUpdate")
       this.matchedHiddenHighlightEntities = probabilityPoints;
       // 清空表格数据
@@ -760,27 +945,8 @@ export default {
         if (!item.disaster_type || !item.level[1] || !item.disaster_probability) {
           return;
         }
-        // 获取当前disasterType对应的disaster数组元素
-        // let disasterKey = disasterTypeMap[item.disasterType];
-        // if (!disasterKey) {
-        //   console.warn(`未找到与disasterType "${item.disasterType}" 匹配的映射`);
-        //   return;
-        // }
-
-        // 找到对应的索引（disaster、level、probability数组顺序一一对应）
-        // let index = item.disaster.indexOf(disasterKey);
-        // if (index === -1 || index >= item.level.length || index >= item.probability.length) {
-        //   console.warn(`在disaster数组中未找到 "${disasterKey}" 或索引超出范围`);
-        //   return;
-        // }
-
         // 获取对应的等级和概率
         const level = item.level[1];
-        // let lon = item.lon
-        // let lat = item.lat
-        // let level = item.level[index];
-        // let probability = disaster_probability;
-
         if (level == "高" || level == "中") {
           switch (item.disaster_type) {
             case "滑坡":

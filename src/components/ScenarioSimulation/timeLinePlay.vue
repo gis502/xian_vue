@@ -91,12 +91,41 @@ export default {
       jumpTimeListIndex: 0,
     }
   },
+  // beforeDestroy() {
+  //   // 1. 清理 timeline 的 mouseup 事件
+  //   if (this.viewer && this.viewer.timeline && this.viewer.timeline.container) {
+  //     this.viewer.timeline.container.onmouseup = null;
+  //   }
+  //
+  //   // 2. 清理 clock 的 onTick 监听（如果你之前 addEventListener 过）
+  //   // 例如：
+  //   // if (this.viewer && this.viewer.clock) {
+  //   //   this.viewer.clock.onTick.removeEventListener(this.someHandler);
+  //   // }
+  //
+  //   // 3. 清理全局 labeldataSource（如果你添加了）
+  //   if (window.viewer&&window.viewer.dataSources&&window.labeldataSource) {
+  //     window.viewer.dataSources.remove(window.labeldataSource, true);
+  //     window.labeldataSource = null;
+  //   }
+  //
+  //   // 4. 清理可能存在的定时器
+  //   if (this.blinkTimer) {
+  //     clearTimeout(this.blinkTimer);
+  //   }
+  //
+  //   // 5. 清理弹窗状态（可选）
+  //   this.selectedId = null;
+  //   this.selectedId = null;
+  //
+  //   console.log("✅ timeLinePlay 资源已清理");
+  // },
   // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
   props: ['viewer', 'disasterEvent', 'RealDisasterPlots'],
   watch: {
     disasterEvent(newVal) {
       this.startTime = new Date(this.disasterEvent.occurrenceTime);
-      console.log(this.startTime, this.disasterEvent.occurrenceTime, "this.disasterEvent.occurrenceTime")
+      // console.log(this.startTime, this.disasterEvent.occurrenceTime, "this.disasterEvent.occurrenceTime")
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
       this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
       let realTime = new Date()
@@ -127,7 +156,7 @@ export default {
         this.plots.push(item);
       });
       this.plots.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-      console.log(this.plots, "this.plots")
+      // console.log(this.plots, "this.plots")
       this.jumpTimeListIndex = 0
       timeLine.HiddenLabels()
       this.playStart()
@@ -208,6 +237,7 @@ export default {
         viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.plots[this.jumpTimeListIndex].startTime));
         // const item = this.plotArrinOneTime[this.jumpTimeListIndex];
         const item = this.plots[this.jumpTimeListIndex];
+        this.$emit('plot-step', this.plots[this.jumpTimeListIndex]);
         this.currentTime = this.timestampToTimeChina(new Date(this.plots[this.jumpTimeListIndex].startTime))
         //标签
         let entitylabel = null
@@ -235,7 +265,7 @@ export default {
         try {
           let flylog = Number(geomToCoordinates(item.geom)[0][0])
           let flylat = Number(geomToCoordinates(item.geom)[0][1])
-          console.log(flylog, flylat, "flylog,flylat")
+          // console.log(flylog, flylat, "flylog,flylat")
           // 飞到指定点
           await timeLine.fly(flylog, flylat, 2000);
           if (this.endflag) {
@@ -245,7 +275,7 @@ export default {
           }
           // 点闪烁
           await timeLine.blinkMarker(item);
-          console.log("blinkMarker else")
+          // console.log("blinkMarker else")
           if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           } else {
             window.labeldataSource.entities.removeById(item.plotId + "_label");
