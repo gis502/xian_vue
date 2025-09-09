@@ -44,15 +44,12 @@
     <timeLinePlay
         :viewer="viewer"
         :disasterEvent="disasterEvent"
-        :currentTime="currentTimeString"
         :RealDisasterPlots="realDisasterPoint"
-        :firstStartTimeLine="firstStartTimeLine"
         @plot-step="nowShowPlot = $event"
     />
     <timeLineLayer
         :viewer="viewer"
         :disasterEvent="disasterEvent"
-        :currentTime="currentTimeString"
         :onceLoadLayer="onceLoadLayer"
         @update:onceLoadLayer="onceLoadLayer = $event"
         @update:realDisasterPoint="handleRealDisasterPointUpdate"
@@ -332,16 +329,6 @@ export default {
       firstStartTimeLine: false,
       nowShowPlot:null,
     };
-  },
-  computed: {
-    // 在父组件中，将 JulianDate 转换为字符串
-    currentTimeString() {
-      if (this.currentTime) {
-        // 使用 Cesium 的函数将 JulianDate 转换为 ISO 字符串
-        return Cesium.JulianDate.toIso8601(this.currentTime);
-      }
-      return '';
-    }
   },
   components: {
     //信息面板

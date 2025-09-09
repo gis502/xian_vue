@@ -430,7 +430,7 @@ let timeLine = {
 
             if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
                 getPlotInfos({plotId, plotType}).then(res => {
-                    console.log(item, res, "item")
+                    // console.log(item, res, "item")
                     let labeltext = this.labeltext(plotType, res)
                     // console.log(labeltext,"labeltext")
                     this.addPointLabel(item, labeltext)
@@ -834,7 +834,7 @@ let timeLine = {
     },
     // //标签（点线面）
     labeltext(plotType, res) {
-        console.log("标签", plotType, res)
+        // console.log("标签", plotType, res)
         let labeltext = res.plotInfo.belongCounty + res.plotInfo.belongTown + "新增" + plotType
         //人员伤亡类文字：xxx人员xx人
         if (plotType === "轻伤人员" || plotType === "重伤人员" || plotType === "危重伤人员" || plotType === "死亡人员" || plotType === "被困人员") {
@@ -864,8 +864,7 @@ let timeLine = {
         return labeltext
     },
     addPointLabel(data, labeltext) {
-
-        console.log(data, "data addPointLabel")
+        // console.log(data, "data addPointLabel")
         let img = '/images/PlotsPic/' + data.plotType + '.png'
         let log = Number(geomToCoordinates(data.geom)[0][0])
         let lat = Number(geomToCoordinates(data.geom)[0][1])
@@ -1051,7 +1050,7 @@ let timeLine = {
     blinkMarker(plot) {
         return new Promise((resolve) => {
             let entity = null
-            console.log(plot, "blink")
+            // console.log(plot, "blink")
             // 1) 打印 pointDataSource 里的实体
             // if (window.pointDataSource) {
             //     console.table(
@@ -1074,7 +1073,7 @@ let timeLine = {
                 resolve();
                 return;
             }
-            console.log(entity, "blinkMarker entity")
+            // console.log(entity, "blinkMarker entity")
             const interval = 200; // 每次闪烁的时间间隔
             let count = 0;
             const blinkInterval = setInterval(() => {

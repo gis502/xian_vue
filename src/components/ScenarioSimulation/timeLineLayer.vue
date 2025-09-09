@@ -101,10 +101,11 @@ export default {
     }
   },
   name: "timeLineLayer",
-  props: ['viewer', 'disasterEvent', 'currentTime', 'onceLoadLayer'],
+  // props: ['viewer', 'disasterEvent', 'currentTime', 'onceLoadLayer'],
+  props: ['viewer', 'disasterEvent',  'onceLoadLayer'],
   watch: {
     async viewer() {
-      this.currentTime = viewer.clock.currentTime
+      // this.currentTime = viewer.clock.currentTime
       await Promise.all([
         basicLayers.loadAdminData(),
         basicLayers.Addmudslide(),

@@ -71,6 +71,7 @@ import * as Cesium from "cesium";
 import timeTransfer from "@/cesium/timeTransfer.js";
 import {isEqual, throttle, debounce} from "lodash";
 import layers from "@/cesium/layers.js";
+import { onUnmounted } from 'vue'
 
 const props = defineProps({
   dataTypes: {
@@ -117,7 +118,7 @@ function changeDataType() {
   // const typeData = props.dataTypes[lastTimeData.value];
 
   tableHeaders.value = typeData.headers;
-  console.log(lastTimeData,"lastTimeData changeDataType")
+  // console.log(lastTimeData,"lastTimeData changeDataType")
   // tableData.value = typeData.data;
   // 1. 先取交集
   let intersection =typeData.data.filter(td =>
@@ -133,7 +134,7 @@ function changeDataType() {
     const timeB = timeTransfer.timeChinaToNewDate(b.field1);
     return timeB - timeA;   // 晚 - 早  =>  晚的在前
   });
-  console.log(intersection,"intersection")
+  // console.log(intersection,"intersection")
   tableData.value = intersection;
   searchQuery.value = "";
   currentPage.value = 1;
@@ -164,7 +165,7 @@ function timeSelect(){
   const currentTime = new Date(props.currentTime);
   // console.log(currentTime,"currentTime timeSelect")
 
-  console.log(allData.value,"allData")
+  // console.log(allData.value,"allData")
   const newData = allData.value.filter(item => {
     const occurTime = timeTransfer.timeChinaToNewDate(item.field1);
     if (!occurTime || !currentTime) {
@@ -173,7 +174,7 @@ function timeSelect(){
     }
     return occurTime <= currentTime;
   });
-  console.log(newData,currentTime,"newData")
+  // console.log(newData,currentTime,"newData")
   // 只有在数据实际发生变化时才更新 filteredTableData
   // 找出新添加或更新的数据
   // const changedData = newData.filter(item =>
@@ -202,7 +203,7 @@ function timeSelect(){
     lastTimeData.value = newData;
   }
 // 在控制台中打印 changedData
-  console.log('Changed Data:', changedData);
+//   console.log('Changed Data:', changedData);
 
   if (changedData.length > 0) {
     // 更新 lastTimeData.value，只添加新数据或更新变化的数据
@@ -222,7 +223,7 @@ function timeSelect(){
 function handleTableClick(item) {
   const longitude = item.field5; // 获取经度
   const latitude = item.field6; // 获取纬度
-  console.log(item,longitude,latitude,"handleTableClick")
+  // console.log(item,longitude,latitude,"handleTableClick")
   // const cesiumViewer = this.cesiumViewer; // 假设你已经有一个 Cesium Viewer 实例
   // if (cesiumViewer) {
   window.viewer.scene.camera.flyTo({
@@ -243,8 +244,8 @@ onMounted(() => {
 // 节流后的 updateTableData 函数
 const throttledUpdateTableData = throttle(timeSelect, 1000);
 
-watch(() => props.nowShowPlot, () => {
-  console.log(props.nowShowPlot,"props.nowShowPlot")
+const stopWatchNowShowPlot = watch(() => props.nowShowPlot, () => {
+  // console.log(props.nowShowPlot,"props.nowShowPlot")
   let plotInfo=props.nowShowPlot
   if(plotInfo.plotType == "泥石流" ||plotInfo.plotType == "滑坡"||plotInfo.plotType == "地面沉降"||plotInfo.plotType == "崩塌"||plotInfo.plotType == "地面塌陷"){
     selectedDataType.value= "type1"
@@ -280,12 +281,12 @@ watch(() => props.nowShowPlot, () => {
 });
 
 // 监听 currentTime 的变化
-watch(() => props.currentTime, () => {
+const stopWatchCurrentTime =watch(() => props.currentTime, () => {
   throttledUpdateTableData();
 });
 // 监听 dataTypes 的变化
-watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
-  console.log(props.dataTypes,"props.dataTypes")
+const stopWatchDataTypes =watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
+  // console.log(props.dataTypes,"props.dataTypes")
   if(newDataTypes){
     allData.value = [
       ...(newDataTypes.type1?.data || []),
@@ -298,11 +299,20 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
       ...(newDataTypes.type8?.data || []),
       ...(newDataTypes.type9?.data || []),
     ];
-    console.log(allData.value,"allData.value")
+    // console.log(allData.value,"allData.value")
     timeSelect();
   }
-
 }, {deep: true});
+
+// 组件卸载时清理所有 watch
+onUnmounted(() => {
+  // console.log('🧨 timeLinePlay 被销毁了');
+  stopWatchNowShowPlot()
+  stopWatchCurrentTime()
+  stopWatchDataTypes()
+  throttledUpdateTableData.cancel?.()
+  // console.log('✅ 所有 watch 已清理')
+})
 </script>
 <style scoped lang="scss">
 .data-table {

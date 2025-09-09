@@ -83,7 +83,7 @@ export default {
     async getDisasterEvents() {
       let earthquakeList = await getAllEarthquakeList();
       let disasterRainList = await getAllDisasterRain();
-      console.log(earthquakeList,disasterRainList, "disasterRainList")
+      // console.log(earthquakeList,disasterRainList, "disasterRainList")
       earthquakeList.data.forEach((item) => {
         // console.log(item, "earthquakeListforEach")
         this.eventList.push({
@@ -147,7 +147,7 @@ export default {
       this.eventList=[]
       let earthquakeList = await getEarthquakeListByKey({queryValue: finalSearchKey});
       let disasterRainList = await getDisasterRainByKey({queryValue: finalSearchKey});
-      console.log(earthquakeList,disasterRainList, "disasterRainList getEarthquakeListByKey")
+      // console.log(earthquakeList,disasterRainList, "disasterRainList getEarthquakeListByKey")
       earthquakeList.forEach((item) => {
         this.eventList.push({
           id:item.disasterId,
@@ -189,7 +189,7 @@ export default {
     getPageArr() {
       let start = (this.currentPage - 1) * this.pageSize;
       let end = this.currentPage * this.pageSize;
-      console.log(this.eventList.slice(start, end),"this.eventList.slice(start, end)")
+      // console.log(this.eventList.slice(start, end),"this.eventList.slice(start, end)")
       return this.eventList.slice(start, end);
     },
     //`每页 ${val} 条`
