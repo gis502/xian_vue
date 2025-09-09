@@ -32,8 +32,8 @@ export default defineConfig(({ mode, command }) => {
       proxy: {
         // https://cn.vitejs.dev/config/#server-proxy
         '/dev-api': {
-          target: 'http://10.22.245.246:8080',
-          // target: 'http://localhost:8080',
+          // target: 'http://10.22.245.246:8080',
+          target: 'http://localhost:8080',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, '')
         },
@@ -43,8 +43,8 @@ export default defineConfig(({ mode, command }) => {
           rewrite: (path) => path.replace(/^\/tdtproxy/, ''),
         },
         '/prod-api': {
-          // target: 'http://localhost:8080',
-          target: 'http://10.22.245.246:8080',
+          target: 'http://localhost:8080',
+          // target: 'http://10.22.245.246:8080',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/prod-api/, '')
         },

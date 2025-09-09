@@ -7,60 +7,13 @@ import img from "@/assets/icons/TimeLine/黄点点.png";
 import {geomToCoordinates} from "./geomTransfer.js";
 
 let timeLine = {
-    //
-    // addCenterPoint(item) {
-    //     // console.log(item,"addCenterPoint item")
-    //     //点的属性 震中点统用一一个方法
-    //     let img = centerstar
-    //     let labeltext = item.disasterName
-    //     let entity=null
-    //     if (window.viewer && window.viewer.entities) {
-    //         entity=window.viewer.entities.add({
-    //             position: Cesium.Cartesian3.fromDegrees(
-    //                 parseFloat(item.longitude),
-    //                 parseFloat(item.latitude),
-    //                 parseFloat( 0)
-    //             ),
-    //             billboard: {
-    //                 image: img,
-    //                 width: 40,
-    //                 height: 40,
-    //                 eyeOffset: new Cesium.Cartesian3(0, 0, 0),
-    //                 scale: 0.8,
-    //                 heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    //                 depthTest: false,
-    //                 disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    //                 color: Cesium.Color.WHITE.withAlpha(1),//颜色
-    //                 clampToGround: true,
-    //             },
-    //             // label: {
-    //             //     text: labeltext,
-    //             //     show: true,
-    //             //     font: '14px sans-serif',
-    //             //     fillColor: Cesium.Color.RED,        //字体颜色
-    //             //     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-    //             //     outlineWidth: 2,
-    //             //     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    //             //     disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    //             //     verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-    //             //     pixelOffset: new Cesium.Cartesian2(0, -16),
-    //             // },
-    //             id: item.id,
-    //             plottype: item.trigger+"中心",
-    //             name: item.trigger+"中心",
-    //             properties: {...item}
-    //         })
-    //     }
-    //     return entity;
-    // },
-
-
     addDataSourceLayer(datasourcename) {
         if (datasourcename === "pointData") {
             let pointDataSource = null
             if (window.pointDataSource) {
                 return window.pointDataSource;
             } else {
+                console.log(window.pointDataSource,"window.pointDataSource")
                 if (window.viewer && window.viewer.dataSources) {
                     pointDataSource = new Cesium.CustomDataSource("pointData");
                     let dataSourcePromise = window.viewer.dataSources.add(pointDataSource)
@@ -394,48 +347,52 @@ let timeLine = {
         let labeldataSource = this.addDataSourceLayer("label")
         if (pointDataSource) {
             if (window.pointDataSource.entities.getById(item.plotId)) {
-                window.pointDataSource.entities.removeById(item.plotId);  // 删除已存在的多边形实体
+                return
+                // window.pointDataSource.entities.removeById(item.plotId);  // 删除已存在的多边形实体
             }
-            pointDataSource.entities.add({
-                availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-                    start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
-                    stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
-                })]),
-                position: Cesium.Cartesian3.fromDegrees(
-                    parseFloat(item.longitude),
-                    parseFloat(item.latitude),
-                    parseFloat(item.elevation || 0)
-                ),
-                billboard: {
-                    image: img,
-                    width: 40,
-                    height: 40,
-                    eyeOffset: new Cesium.Cartesian3(0, 0, 0),
-                    scale: 0.8,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                    depthTest: false,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                    color: Cesium.Color.WHITE.withAlpha(1),//颜色
-                    clampToGround: true,
-                },
-                id: item.plotId,
-                plottype: item.plotType,
-                name: type,
-                properties: {...item}
-            })
-            // console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
-            let plotId = item.plotId
-            let plotType = item.plotType
+            else{
+                pointDataSource.entities.add({
+                    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                        start: Cesium.JulianDate.fromDate(new Date(item.startTime)),
+                        stop: Cesium.JulianDate.fromDate(new Date(item.endTime))
+                    })]),
+                    position: Cesium.Cartesian3.fromDegrees(
+                        parseFloat(item.longitude),
+                        parseFloat(item.latitude),
+                        parseFloat(item.elevation || 0)
+                    ),
+                    billboard: {
+                        image: img,
+                        width: 40,
+                        height: 40,
+                        eyeOffset: new Cesium.Cartesian3(0, 0, 0),
+                        scale: 0.8,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        depthTest: false,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                        color: Cesium.Color.WHITE.withAlpha(1),//颜色
+                        clampToGround: true,
+                    },
+                    id: item.plotId,
+                    plottype: item.plotType,
+                    name: type,
+                    properties: {...item}
+                })
+                // console.log(item.plotId, item.plotType, "item.plotId, item.plotType")
+                let plotId = item.plotId
+                let plotType = item.plotType
 
 
-            if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+                // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
                 getPlotInfos({plotId, plotType}).then(res => {
                     // console.log(item, res, "item")
                     let labeltext = this.labeltext(plotType, res)
                     // console.log(labeltext,"labeltext")
                     this.addPointLabel(item, labeltext)
                 })
+                // }
             }
+
         }
     },
     // 选择当前线的material
@@ -864,7 +821,7 @@ let timeLine = {
         return labeltext
     },
     addPointLabel(data, labeltext) {
-        // console.log(data, "data addPointLabel")
+        console.log(data, "data addPointLabel")
         let img = '/images/PlotsPic/' + data.plotType + '.png'
         let log = Number(geomToCoordinates(data.geom)[0][0])
         let lat = Number(geomToCoordinates(data.geom)[0][1])
@@ -1006,17 +963,7 @@ let timeLine = {
             }
         }
     },
-    markerLabelsHidden(plots) {
-        if (window.labeldataSource) {
-            console.log(window.labeldataSource, "window.labeldataSource")
-            plots.forEach(item => {
-                let entity = window.labeldataSource.entities.getById(item.plotId + '_label')
-                if (entity) {
-                    entity.show = false
-                }
-            })
-        }
-    },
+
     // //只显示人员伤亡和救援队伍
     makerLabelsShowPersonAndResouce(plots) {
         console.log(plots, "makerLabelsShowPersonAndResouce")

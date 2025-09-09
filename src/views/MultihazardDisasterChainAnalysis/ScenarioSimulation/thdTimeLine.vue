@@ -346,10 +346,21 @@ export default {
     RainInfoTable,
     Table
   },
-  beforeDestroy() {
+  beforeUnmount() {
+    console.log("销毁")
     // 1. 清空所有图形（点、线、面、标签）
     if (this.viewer && this.viewer.entities) {
       this.viewer.entities.removeAll();
+    }
+    if (window.pointDataSource) {
+      console.log("销毁 window.pointDataSource")
+      this.viewer.dataSources.remove(window.pointDataSource, true);
+      window.pointDataSource = null;
+    }
+
+    if (window.labeldataSource) {
+      this.viewer.dataSources.remove(window.labeldataSource, true);
+      window.labeldataSource = null;
     }
 
     // 2. 清空所有 GeoJSON / CZML / KML 等数据源
