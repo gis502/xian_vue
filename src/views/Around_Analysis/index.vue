@@ -13,6 +13,20 @@
       </div>
     </div>
     <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
+    <div class="demo-autocomplete">
+      <div class="demo-block">
+        <el-autocomplete
+            v-model="searchText"
+            :fetch-suggestions="querySearch"
+            :trigger-on-focus="false"
+            clearable
+            class="w-50"
+            placeholder="搜索地点..."
+            @select="handleSelect"
+            value-key="name"
+        />
+      </div>
+    </div>
     <!-- 加载状态提示 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
       <div class="panel-title">选择区域</div>
@@ -333,6 +347,9 @@ export default {
   },
   data() {
     return {
+      searchText: '',
+      restaurants: [],
+      searchableEntities: [], // 存储所有可搜索的实体信息
       disasterEntities: [],
       showChart: false,
       showTable: false,
@@ -514,6 +531,50 @@ export default {
         this.loadDisasterData();
       });
     },
+    // 提取实体名称的方法
+    getEntityName(entity) {
+      const properties = entity.disasterData?.properties || {};
+
+
+      // 根据不同的实体类型提取对应的名称字段
+      if (properties.disasterName) return properties.disasterName;
+      if (properties.teamName) return properties.teamName;
+      if (properties.hospitalName) return properties.hospitalName;
+      if (properties.dangerName) return properties.dangerName;
+      if (properties.storeName) return properties.storeName;
+      if (properties.shelterName) return properties.shelterName;
+      if (properties.stationName) return properties.stationName;
+      if (properties.bridgeName) return properties.bridgeName;
+      if (properties.reservoirName) return properties.reservoirName;
+      if (properties.position) return properties.position;
+      if (properties.name) return properties.name;
+
+      // 如果没有名称字段，使用坐标作为备用名称
+      const position = entity.position.getValue(Cesium.JulianDate.now());
+      const cartographic = Cesium.Cartographic.fromCartesian(position);
+      const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+      const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+      return `位置(${longitude.toFixed(4)}, ${latitude.toFixed(4)})`;
+    },
+    // 获取实体类型
+    getEntityType(entity) {
+      if (entity.disasterType) return entity.disasterType;
+      if (entity.name) return entity.name;
+
+      const properties = entity.disasterData?.properties || {};
+      if (properties.disasterName) return '灾害点';
+      if (properties.teamName) return '消防站';
+      if (properties.hospitalName) return '医院';
+      if (properties.dangerName) return '风险源';
+      if (properties.storeName) return '储备点';
+      if (properties.shelterName) return '避难所';
+      if (properties.stationName) return '地铁站';
+      if (properties.bridgeName) return '桥梁';
+      if (properties.reservoirName) return '水库';
+
+      return '地点';
+    },
     load() {
       // Cesium.Ion.defaultAccessToken = '';
       const container = this.$refs.cesiumContainer;
@@ -531,6 +592,100 @@ export default {
       // 初始化下雨效果
       this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
+    },
+    // 收集所有可搜索的实体
+    collectSearchableEntities() {
+      this.searchableEntities = [];
+
+      // 收集当前页面加载的灾害点
+      this.disasterEntities.forEach(entity => {
+        if (entity.show) {
+          const position = entity.position.getValue(Cesium.JulianDate.now());
+          const cartographic = Cesium.Cartographic.fromCartesian(position);
+          const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+          const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+          this.searchableEntities.push({
+            name: this.getEntityName(entity),
+            entity: entity,
+            longitude: longitude,
+            latitude: latitude,
+            type: this.getEntityType(entity)
+          });
+        }
+      });
+
+      // 收集basicLayers中已显示的实体
+      const layerEntities = [
+        {array: basicLayers.disasterEntities, type: '医院'},
+        {array: basicLayers.hospitalEntities, type: '医院'},
+        {array: basicLayers.dangerEntities, type: '风险源'},
+        {array: basicLayers.shelterEntities, type: '避难所'},
+        {array: basicLayers.fireFighterEntities, type: '消防站'},
+        {array: basicLayers.storePointsEntities, type: '储备点'},
+        {array: basicLayers.schoolEntities, type: '学校'},
+        {array: basicLayers.bridgeEntities, type: '桥梁'},
+        {array: basicLayers.reservoirEntities, type: '水库'},
+        {array: basicLayers.subwayEntities, type: '地铁站'}
+      ];
+
+      layerEntities.forEach(layer => {
+        if (layer.array && layer.array.length > 0) {
+          layer.array.forEach(entity => {
+            if (entity.show) {
+              const position = entity.position.getValue(Cesium.JulianDate.now());
+              const cartographic = Cesium.Cartographic.fromCartesian(position);
+              const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+              const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+              this.searchableEntities.push({
+                name: this.getEntityName(entity),
+                entity: entity,
+                longitude: longitude,
+                latitude: latitude,
+                type: this.getEntityType(entity)
+              });
+            }
+          });
+        }
+      });
+
+      // 按名称排序，提供更好的搜索体验
+      this.searchableEntities.sort((a, b) => a.name.localeCompare(b.name));
+    },
+
+    // 搜索建议
+    querySearch(queryString, cb) {
+      this.collectSearchableEntities(); // 更新可搜索实体列表
+
+      if (!queryString) {
+        // 如果没有输入，显示前10个实体
+        cb(this.searchableEntities.slice(0, 10));
+        return;
+      }
+
+      const lowerQuery = queryString.toLowerCase();
+      const results = this.searchableEntities.filter(entity =>
+          entity.name.toLowerCase().includes(lowerQuery) ||
+          entity.type.toLowerCase().includes(lowerQuery)
+      );
+
+      cb(results);
+    },
+    // 处理选择事件
+    handleSelect(item) {
+      if (item && item.entity) {
+        // 获取实体位置
+        const position = item.entity.position.getValue(Cesium.JulianDate.now());
+        console.log(111, item);
+
+        // 飞转到该位置
+        this.viewer.camera.flyTo({
+          destination: position,
+          duration: 1.5,
+          offset: new Cesium.HeadingPitchRange(0, -Math.PI/4, 1000), // 保持一定的视角
+        });
+      }
     },
     async refreshView() {
       this.isLoading = true;
@@ -2367,6 +2522,48 @@ button {
 
 .legend {
   bottom: 10px;
+}
+
+.demo-autocomplete {
+  position: absolute;
+  top: 10px;
+  /* 距离顶部20px */
+  right: 350px;
+  /* 距离左侧20px */
+  background-color: rgba(255, 255, 255, 0.75);
+  /* 与图例背景色一致 */
+  color: black;
+  padding: 15px;
+  border-radius: 8px;
+  z-index: 1000;
+  width: 250px;
+  font-size: 14px;
+  display: flex;
+  gap: 3px;
+}
+
+.demo-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.demo-title {
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
+  min-height: 2.5em;
+  display: flex;
+  align-items: center;
+}
+
+@media screen and (max-width: 768px) {
+  .demo-autocomplete {
+    gap: 1rem;
+  }
+
+  .demo-block {
+    width: 100%;
+  }
 }
 
 </style>
