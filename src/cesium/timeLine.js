@@ -1034,24 +1034,55 @@ let timeLine = {
             }, interval);
         });
     },
+    // fly(lng, lat, height, time) {
+    //     return new Promise((resolve, reject) => {
+    //         window.viewer.scene.camera.flyTo({
+    //             destination: Cesium.Cartesian3.fromDegrees(
+    //                 parseFloat(lng),
+    //                 parseFloat(lat),
+    //                 height),
+    //             orientation: {
+    //                 // 指向
+    //                 heading: 6.283185307179581,
+    //                 // 视角
+    //                 pitch: -1.5688168484696687,
+    //                 roll: 0.0
+    //             },
+    //             duration: time, // 飞行动画持续时间（秒）
+    //             complete: resolve
+    //         });
+    //     });
+    // },
+    // cesiumFly.js
     fly(lng, lat, height, time) {
-        return new Promise((resolve, reject) => {
+        let cancelled = false;
+
+        const promise = new Promise((resolve) => {
             window.viewer.scene.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(
                     parseFloat(lng),
                     parseFloat(lat),
-                    height),
+                    height
+                ),
                 orientation: {
-                    // 指向
                     heading: 6.283185307179581,
-                    // 视角
                     pitch: -1.5688168484696687,
-                    roll: 0.0
+                    roll: 0
                 },
-                duration: time, // 飞行动画持续时间（秒）
-                complete: resolve
+                duration: time,
+                complete: () => {
+                    if (!cancelled) resolve(); // 只有“未取消”才 resolve
+                }
             });
         });
-    },
+
+        return {
+            promise,
+            cancel: () => {
+                cancelled = true;
+                window.viewer.scene.camera.cancelFlight();
+            }
+        };
+    }
 }
 export default timeLine;

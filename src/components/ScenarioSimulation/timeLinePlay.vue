@@ -90,6 +90,7 @@ export default {
       endTime: new Date(),
       plots: null,
       jumpTimeListIndex: 0,
+      flightTicket: null,   // ← 用来标记本次飞行是否仍属于本组件
     }
   },
 
@@ -285,8 +286,18 @@ export default {
           let flylog = Number(geomToCoordinates(item.geom)[0][0])
           let flylat = Number(geomToCoordinates(item.geom)[0][1])
           // console.log(flylog, flylat, "flylog,flylat")
+
+          if (this.flightCtrl) {
+            this.flightCtrl.cancel();
+            this.flightCtrl = null;
+          }
+
+          this.flightCtrl = timeLine.fly(flylog, flylat, 2000);
+          await this.flightCtrl.promise;   // 飞行完成或取消都会继续
+          this.flightCtrl = null;
+
           // 飞到指定点
-          await timeLine.fly(flylog, flylat, 2000);
+          // await timeLine.fly(flylog, flylat, 2000);
           if (this.endflag) {
             console.log(this.jumpTimeListIndex, this.plots.length, "终止飞行222");
             timeLine.makerLabelsShowPersonAndResouce(this.plots)
