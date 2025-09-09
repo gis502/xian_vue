@@ -238,29 +238,23 @@ export default {
 
 
         const DTO = {
-          eqId: this.eqid,
-          eqqueueId: this.eqqueueId
-        }
-        let url;
+          "eqId": this.eqid,
+          "eqqueueId": this.eqqueueId
+        };
+
         getReport(DTO).then((res)=>{
-          url = res.data;
 
           // 获取文件名
           let fileName = `report_${this.eqid}.docx`;
 
           const link = document.createElement('a');
-          link.href = url;
+          link.href = res;
+          console.log(111111, res);
           link.download = fileName;
           link.style.display = 'none';
           document.body.appendChild(link);
           link.click();
         })
-
-        // 清理
-        setTimeout(() => {
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(link);
-        }, 100);
 
       } catch (error) {
         console.error('下载错误:', error);
