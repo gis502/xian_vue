@@ -80,7 +80,11 @@ const props = defineProps({
   currentTime: {
     type: [String, Object],
     required: true
-  }
+  },
+  nowShowPlot:{
+    type: Object,
+    required: true
+  },
 });
 
 const tableData = ref([]);
@@ -95,7 +99,7 @@ const pageSize = 3;
 const lastTimeData=ref([])
 // 过滤后的数据
 const filteredTableData = ref([]);
-
+// let selectedDataType= ref("type1");
 // 总页数
 const totalPages = computed(() =>
     Math.ceil(tableData.value.length / pageSize)
@@ -160,6 +164,7 @@ function timeSelect(){
   const currentTime = new Date(props.currentTime);
   // console.log(currentTime,"currentTime timeSelect")
 
+  console.log(allData.value,"allData")
   const newData = allData.value.filter(item => {
     const occurTime = timeTransfer.timeChinaToNewDate(item.field1);
     if (!occurTime || !currentTime) {
@@ -199,20 +204,20 @@ function timeSelect(){
 // 在控制台中打印 changedData
   console.log('Changed Data:', changedData);
 
-    if (changedData.length > 0) {
-      // 更新 lastTimeData.value，只添加新数据或更新变化的数据
-      lastTimeData.value = newData
-      // 获取变化数据的类型
-      const changedDataType = changedData[0].type;
-      console.log(changedDataType,"changedDataType")
-      // // 如果变化的数据类型与当前显示的类型不同，则切换类型
-      // if (changedDataType !== selectedDataType.value) {
-        selectedDataType.value = changedDataType;
-        // console.log(selectedDataType.value,"selectedDataType.value")
-        changeDataType();
-      // }
-    }
+  if (changedData.length > 0) {
+    // 更新 lastTimeData.value，只添加新数据或更新变化的数据
+    lastTimeData.value = newData
+    // 获取变化数据的类型
+    // const changedDataType = changedData[0].type;
+    // console.log(changedDataType,"changedDataType")
+    // // 如果变化的数据类型与当前显示的类型不同，则切换类型
+    // if (changedDataType !== selectedDataType.value) {
+    // selectedDataType.value = changedDataType;
+    // console.log(selectedDataType.value,"selectedDataType.value")
+    changeDataType();
+    // }
   }
+}
 
 function handleTableClick(item) {
   const longitude = item.field5; // 获取经度
@@ -238,6 +243,42 @@ onMounted(() => {
 // 节流后的 updateTableData 函数
 const throttledUpdateTableData = throttle(timeSelect, 1000);
 
+watch(() => props.nowShowPlot, () => {
+  console.log(props.nowShowPlot,"props.nowShowPlot")
+  let plotInfo=props.nowShowPlot
+  if(plotInfo.plotType == "泥石流" ||plotInfo.plotType == "滑坡"||plotInfo.plotType == "地面沉降"||plotInfo.plotType == "崩塌"||plotInfo.plotType == "地面塌陷"){
+    selectedDataType.value= "type1"
+  }
+  else if (plotInfo.plotType == "已出发队伍" || plotInfo.plotType == "正在参与队伍" || plotInfo.plotType == "待命队伍"|| plotInfo.plotType == "未搜索区域"|| plotInfo.plotType == "已搜索区域"|| plotInfo.plotType == "未营救区域"|| plotInfo.plotType == "已营救区域"|| plotInfo.plotType == "集结缓冲区"|| plotInfo.plotType == "正在营救区域"|| plotInfo.plotType == "攻击箭头"|| plotInfo.plotType == "钳击箭头"|| plotInfo.plotType == "直线箭头") {
+    selectedDataType.value= "type2"
+  }
+  else if(plotInfo.plotType == "常备避险安置点" ||plotInfo.plotType == "救灾物资储备库" ||plotInfo.plotType == "临时避险安置点" ||plotInfo.plotType == "室外型避难场所" ||plotInfo.plotType == "室内型避难场所" ){
+    selectedDataType.value= "type3"
+  }
+  else if (plotInfo.plotType == "失踪人员" || plotInfo.plotType == "轻伤人员" || plotInfo.plotType == "重伤人员" || plotInfo.plotType == "危重伤人员" || plotInfo.plotType == "死亡人员" || plotInfo.plotType === "被困人员") {
+    selectedDataType.value= "type4"
+  }
+  else if(plotInfo.plotType == "中等破坏建筑物" ||plotInfo.plotType == "严重破坏建筑物" ||plotInfo.plotType == "毁坏或倒塌建筑物" ||plotInfo.plotType == "轻微破坏建筑物" ){
+    selectedDataType.value= "type5"
+  }
+  else if(plotInfo.plotType == "不可通行公路" ||plotInfo.plotType == "公路破坏点" ||plotInfo.plotType == "交通管制点" ||plotInfo.plotType == "限制通行桥梁" ||plotInfo.plotType == "不可通行桥梁" ||plotInfo.plotType == "不可通行隧道" ||plotInfo.plotType == "限制通行公路" ||plotInfo.plotType == "不可通行铁路" ||plotInfo.plotType == "铁路破坏点" ||plotInfo.plotType == "可用机场" ||plotInfo.plotType == "不可用机场"){
+    selectedDataType.value= "type6"
+  }
+  else if(plotInfo.plotType == "堰塞湖" ||plotInfo.plotType == "严重破坏堤防" ||plotInfo.plotType == "基本完好大坝" ||plotInfo.plotType == "中等破坏大坝" ||plotInfo.plotType == "严重破坏大坝" ||plotInfo.plotType == "基本完好堤防" ||plotInfo.plotType == "中等破坏堤防" ){
+    selectedDataType.value= "type7"
+  }
+  else if(plotInfo.plotType == "不可用输、配电线路" ||plotInfo.plotType == "供水管线破坏点" ||plotInfo.plotType == "输、配电线路破坏点" ||plotInfo.plotType == "不可用输气管线" ||plotInfo.plotType == "不可用供水管网" ||plotInfo.plotType == "供气管线破坏点"){
+    selectedDataType.value= "type8"
+  }
+  else if(plotInfo.plotType == "爆炸" ||plotInfo.plotType == "火灾" ||plotInfo.plotType == "有毒物质泄露" ||plotInfo.plotType == "核污染"){
+    selectedDataType.value= "type9"
+  }
+  // console.log(changedDataType.value,"changedDataType.value  props.nowShowPlot")
+  // // changedDataType.value
+  // timeSelect();
+  changeDataType();
+});
+
 // 监听 currentTime 的变化
 watch(() => props.currentTime, () => {
   throttledUpdateTableData();
@@ -250,6 +291,12 @@ watch(() => props.dataTypes, (newDataTypes, oldDataTypes) => {
       ...(newDataTypes.type1?.data || []),
       ...(newDataTypes.type2?.data || []),
       ...(newDataTypes.type3?.data || []),
+      ...(newDataTypes.type4?.data || []),
+      ...(newDataTypes.type5?.data || []),
+      ...(newDataTypes.type6?.data || []),
+      ...(newDataTypes.type7?.data || []),
+      ...(newDataTypes.type8?.data || []),
+      ...(newDataTypes.type9?.data || []),
     ];
     console.log(allData.value,"allData.value")
     timeSelect();

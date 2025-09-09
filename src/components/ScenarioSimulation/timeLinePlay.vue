@@ -208,6 +208,7 @@ export default {
         viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.plots[this.jumpTimeListIndex].startTime));
         // const item = this.plotArrinOneTime[this.jumpTimeListIndex];
         const item = this.plots[this.jumpTimeListIndex];
+        this.$emit('plot-step', this.plots[this.jumpTimeListIndex]);
         this.currentTime = this.timestampToTimeChina(new Date(this.plots[this.jumpTimeListIndex].startTime))
         //标签
         let entitylabel = null
