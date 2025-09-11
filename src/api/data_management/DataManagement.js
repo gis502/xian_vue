@@ -17,33 +17,11 @@ export async function queryTableNames(remark) {
  * @returns 
  */
 export async function queryTableInfo(data) {
-    // return request({
-    //     url: "data_management/queryTableInfo",
-    //     method: "post",
-    //     data: data
-    // });
-    return await {
-        tableInfo: [
-            {
-                id: 1,
-                name: '张三',
-                age: 18
-            },
-            {
-                id: 2,
-                name: '李四',
-                age: 20
-            }
-        ],
-        primaryKey: [],
-        keyInfo: {
-            id: '序号',
-            name: '姓名',
-            age: ''
-        },
-        allPage: 100,
-        pageNum: data.pageNum,
-    };
+    return request({
+        url: "data_management/queryTableInfo",
+        method: "post",
+        data: data
+    });
 }
 
 /**
@@ -52,14 +30,9 @@ export async function queryTableInfo(data) {
  * @returns 
  */
 export async function deleteTableData(data) {
-    console.log(data);
-    // return request({
-    //     url: "data_management/deleteTableInfo",
-    //     method: "post",
-    //     data: data
-    // });
-    return await {
-        code: 200,
-        message: '删除成功'
-    };
+    return request({
+        url: "data_management/deleteTableInfo",
+        method: "delete",
+        data: data
+    });
 }

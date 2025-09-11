@@ -4,7 +4,7 @@
             <el-row>
                 <el-col :span="8">
                     <el-form-item label="表名">
-                        <el-autocomplete v-model="form.remark" :fetch-suggestions="callbackTableName" clearable />
+                        <el-autocomplete v-model="form.remark" :fetch-suggestions="callbackTableName" clearable @select="callbackTableName" />
                     </el-form-item>
                 </el-col>
                 <el-col :span="4" class="m-1">
@@ -62,19 +62,27 @@ const callbackTableName = (queryString, cb) => {
             });
             cb(result);
         })
-    }, 1500);
+    }, 1000);
 };
 
 // 页面加载时获取表格数据
 onMounted(() => {
+
+  document.addEventListener('keydown', function(event) {
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+    }
+  });
     // 获取表格数据
-    queryTableNames('').then((res) => {
+    queryTableNames('山洪危险点').then((res) => {
         tableDatas.value = res.data;
     })
 })
 
 // 点击行事件
 function handleRowClick(row) {
+    queryTableFields.value.tableName = row.tableName;
     showDetail.value = true;
 }
 

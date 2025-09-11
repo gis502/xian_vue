@@ -61,7 +61,7 @@ const tableDatas = ref([]);
 const tableLabels = ref([]);
 
 // 页数、总页数
-const pageNum = ref(props.queryTableFields.pageNum);
+const pageNum = ref(1);
 const totalPage = ref(0);
 
 // 主键
@@ -85,9 +85,9 @@ function getTableData() {
 
     // 获取表格数据
     queryTableInfo(props.queryTableFields).then((res) => {
+        res = res.data;
         tableDatas.value = res.tableInfo;
         tableLabels.value = objToArr(res.keyInfo);
-        pageNum.value = res.pageNum;
         totalPage.value = res.allPage;
         primaryKey.value = res.primaryKey;
     })
@@ -152,18 +152,19 @@ function confirmDelete() {
 function objToArr(obj) {
     // 遍历键值对数组，转换为目标结构
     return Object.entries(obj).map(([key, value]) => {
-        return { key: key, value: value };
+        return { key: value.key, value: value.value };
     });
 }
 </script>
 <style scoped>
 .card {
     width: 100%;
-    height: 100vh;
+    height: 95vh;
     position: absolute;
     top: 0;
     left: 0;
     z-index: 999;
+    overflow-y: auto;
 }
 
 .close {

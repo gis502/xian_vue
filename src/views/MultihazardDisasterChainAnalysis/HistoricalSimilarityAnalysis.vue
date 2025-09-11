@@ -425,10 +425,10 @@ async function calculateAndShowPopup(entity, movementPosition){
     const windowPosition = scene.cartesianToCanvasCoordinates(position);
     if (windowPosition) {
       // 平滑定位到点击的实体
-      await window.viewer.flyTo(entity, {
-        duration: 2,
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 5000)
-      });
+      // await window.viewer.flyTo(entity, {
+      //   duration: 2,
+      //   offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 5000)
+      // });
       // 计算最终位置（添加偏移量）
       popupPosition = {
         x: windowPosition.x + 20,
