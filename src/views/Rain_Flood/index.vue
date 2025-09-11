@@ -26,7 +26,8 @@
        @update:handle-step-status="(value)=>{stepStatus = value}"
        @update:handle-step-status-chain="(value)=>{stepStatus = value.status;stepChain = value.chain}"
        @update:handle-rain-cancel = "showStep=false"
-       @update:handle-setId = "(v)=>{rainId=v.data.rainId;rainQueueId=v.data.rainQueueId}"
+       @update:handle-setId = "(v)=>{rainId=v.rainId;rainQueueId=v.rainQueueId}"
+       @update:generate = "generate"
     />
 
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
@@ -329,6 +330,7 @@ let fenXiFanWei = ref([])
 let rainId = ref("")
 let rainQueueId = ref("")
 let rainDisasterId = ref(null)
+let wordRes = ref("")
 
 let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
@@ -888,22 +890,27 @@ function radars() {
 //   })
 //   // this.timeLabels = getRadarData()
 // }
+
 function radarData() {
   getRadarData().then(res => {
     let data = res.data
     console.log(data,"RadarData")
-    radarImages = []
+    // radarImages = []
     data.forEach(item => {
       console.log(item)
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
+      // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-      // 使用代理路径
-      radarImages.push("/radar-images" + item.r0href)
+      // console.log("/radarimages"+item.r0href)
+      // radarImages.push("/radarimages/"+item.r0href)   // 图片在这添加
+      // radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
       timeLabels.push(time)
     })
     timeLabels.reverse()
+    // console.log(timeLabels, 'radardata')
   })
+  // this.timeLabels = getRadarData()
 }
 
 /* 添加雷达云图 */
@@ -1510,7 +1517,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
         }
 
         impactAreaRequest.push(request)
-        console.log(impactAreaRequest,"impactAreaRequest")
+        // console.log(impactAreaRequest,"impactAreaRequest")
         if(impactAreaRequest.length===fenXiFanWei.value.length){
           resolve()
         }
@@ -1862,9 +1869,36 @@ function resetAllStates(){
   lakeDataSource = null
 }
 
+function generate(){
+  let RainParams = {
+    rainId: rainId.value,
+    rainQueueId: rainQueueId.value,
+    rainDisasterId:rainDisasterId.value
+  }
+  console.log(RainParams,"触发后的暴雨ID是，，，，，，，，，，")
+  generateRainReport(RainParams).then((res)=>{
+    console.log(res,"generateRainReport res")
+    wordRes.value = res.data
+    ElMessage({
+      message: '报告产出成功！',
+      type: 'success',
+    })
+  }).catch((err)=>{
+    console.log(err)
+    setTimeout(()=>{
+      generate()
+    },8000)
+  })
+}
+// watch(wordRes,(newV,oldV)=>{
+//     ElMessage({
+//       message: '报告生成完毕',
+//       type: 'success',
+//     })
+// })
+
 /* 报告产出 */
-async function downloadRainReport(){
-  console.log(rainDisasterId.value)
+function downloadRainReport(){
   if(!rainDisasterId.value){
     ElMessage({
       message: '暂无报告，请先触发暴雨！',
@@ -1872,67 +1906,29 @@ async function downloadRainReport(){
     })
     return;
   }
-  loadingModel.value = true
-  // 1. 截三维画布
-  const canvas3D = viewer.scene.canvas
-
-  // 2. 截图例 DOM
-  const legendEl = legendRef.value.$el
-  const legendCanvas = await html2canvas(legendEl, {
-    backgroundColor: null, // 透明
-    useCORS: true,
-    scale: 1
-  })
-
-  // 3. 合并两个 canvas
-  const finalCanvas = document.createElement('canvas')
-  finalCanvas.width = canvas3D.width
-  finalCanvas.height = canvas3D.height
-  const ctx = finalCanvas.getContext('2d')
-
-  // 三维场景
-  ctx.drawImage(canvas3D, 0, 0)
-  // 图例放右下角（可改）
-  ctx.drawImage(
-      legendCanvas,
-      finalCanvas.width - legendCanvas.width - 20,
-      finalCanvas.height - legendCanvas.height - 20
-  )
-
-  // 4. 转成 blob 并上传
-  finalCanvas.toBlob(async blob => {
-    const formData = new FormData()
-    formData.append('file', blob, 'cesium_with_legend.png')
-
-    // ✅ 正确解析 fetch 返回的 JSON
-    // const response = await saveCanvas(formData)
-    // const res = await response.json() // 关键：这里也要 await
-    // const imgUrl = res.data
-    // console.log(imgUrl, "imgUrl")
-
-    // ✅ 生成 Word
-    // const wordRes = await generateRainReport(imgUrl)
-    console.log(rainDisasterId.value)
-    let RainParams = {
-      rainId: rainId.value,
-      rainQueueId: rainQueueId.value,
-      rainDisasterId:rainDisasterId.value
-    }
-
-    console.log(RainParams,"触发后的暴雨ID是，，，，，，，，，，")
-    const wordRes = await generateRainReport(RainParams)
-    console.log(wordRes, "wordRes")
-    const wordUrl = wordRes.data
-
-    // ✅ 触发下载
-    const link = document.createElement('a');
+  if(!wordRes.value){
+    ElMessage({
+      message: '报告正在产出中，请稍后再点击...',
+      type: 'warning',
+    })
+    return;
+  }
+  console.log(wordRes, "wordRes")
+  let wordUrl = wordRes.value
+  let link = document.createElement('a');
+  // try {
     link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
     // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
     link.download = wordUrl;                         // 强制触发下载
     link.click();
-
     loadingModel.value = false
-  }, 'image/png', 1.0)
+  // }catch (err){
+    // setTimeout(()=>{
+    //   document.remove(link)
+    //   downloadRainReport()
+    // },5000)
+  // }
+
 }
 
 </script>

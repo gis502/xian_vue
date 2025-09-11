@@ -222,7 +222,7 @@ const confirmRainPoint = async () => {
   entries.value.forEach(item => {
     if (item.rainfall > 0) { // 降雨量为0不存入数组
 
-      console.log(item, "这里会是是是是是是是是是")
+      // console.log(item, "这里会是是是是是是是是是")
 
       positionArry.value.push(item.name)
       rainfallArry.value.push(item.rainfall)
@@ -244,7 +244,7 @@ const confirmRainPoint = async () => {
   }
   // console.log(requestData, "requestData saveRain")
 
-  let res = await saveRain(requestData)
+  let resSaveRain = await saveRain(requestData)
   // 处理触发数据，选择降雨量最大的一条数据进行专题图产出
   let thematicRequests = {
     "rainfall": rainfallArry.value.join(","),
@@ -258,32 +258,37 @@ const confirmRainPoint = async () => {
   // 取出多个区县数据的一条进行专题图产出
   let thematicdatas = processData(thematicRequests);
   // 触发专题图模型
-  let rainDatas = await rainTrigger(thematicdatas)
-  console.log("查询专题图的ID是:", rainDatas)
-  emit("update:handle-setId",rainDatas)
-  console.log(res.data.rainDisasterId, "res.data.rainDisasterId")
-  emit("passRainId", res.data.rainDisasterId)
-  if (adminArea.value) {
-    let entity = {
-      position: adminArea.value.name,
-      longitude: longitude,
-      latitude: latitude,
-      id: "test_rain",
-      trigger: "暴雨",
-      rainfall: rainfallArry.value[0] || 0,
-      // duration: durationArry.value[0] || 0,
-      occurrenceTime: new Date(),
-      disasterName: timeTransfer.timestampToTimeChina(new Date()) + "西安市暴雨"
-    }
-    basicLayers.addCenterPoint(entity)
-    emit('update:loading-model', true)
-    await processAllDistricts()
-    emit('update:loading-model', false)
-    emit('update:show-info-panel', false)
+  // let rainDatas = await rainTrigger(thematicdatas)
+  rainTrigger(thematicdatas).then(async function(res){
+    let rainDatas = res.data
+    console.log("查询专题图的ID是:", rainDatas)
+    emit("update:handle-setId",rainDatas)
+    console.log(resSaveRain.data.rainDisasterId, "res.data.rainDisasterId")
+    emit("passRainId", resSaveRain.data.rainDisasterId)
 
-  } else {
-    console.log("未找到标记点所在的行政区划")
-  }
+    if (adminArea.value) {
+      let entity = {
+        position: adminArea.value.name,
+        longitude: longitude,
+        latitude: latitude,
+        id: "test_rain",
+        trigger: "暴雨",
+        rainfall: rainfallArry.value[0] || 0,
+        // duration: durationArry.value[0] || 0,
+        occurrenceTime: new Date(),
+        disasterName: timeTransfer.timestampToTimeChina(new Date()) + "西安市暴雨"
+      }
+      basicLayers.addCenterPoint(entity)
+      emit('update:loading-model', true)
+      await processAllDistricts()
+      emit('update:loading-model', false)
+      emit('update:show-info-panel', false)
+      emit("update:generate")
+    } else {
+      console.log("未找到标记点所在的行政区划")
+    }
+  })
+
 }
 
 const processAllDistricts = async () => {
