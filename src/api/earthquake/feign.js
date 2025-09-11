@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-// ´¥·¢µØÕğµ½Èı·½ÔÖÇéÆÀ¹ÀÏµÍ³
+// è§¦å‘åœ°éœ‡åˆ°ä¸‰æ–¹ç¾æƒ…è¯„ä¼°ç³»ç»Ÿ
 export const eqTrigger = (data) =>
     request({
         url: "/feign/eq/trigger",
@@ -8,14 +8,14 @@ export const eqTrigger = (data) =>
         data,
     });
 
-// »ñÈ¡µØÕğ×¨ÌâÍ¼
+// è·å–åœ°éœ‡ä¸“é¢˜å›¾
 export const eqOutputMaps = (query) =>
     request({
         url: "/feign/thematic/map",
         method: "post",
         data: query,
     });
-// »ñÈ¡µØÕğÔÖÇé±¨¸æ
+// è·å–åœ°éœ‡ç¾æƒ…æŠ¥å‘Š
 export const eqOutputReport = (query) =>
     request({
         url: "/feign/disaster/report",
@@ -23,7 +23,7 @@ export const eqOutputReport = (query) =>
         data: query,
     });
 
-// ´¥·¢±©ÓêÊÂ¼ş
+// è§¦å‘æš´é›¨äº‹ä»¶
 export const rainTrigger = (data) => {
     return request({
         url: "/feign/rain/trigger",
