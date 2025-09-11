@@ -40,22 +40,38 @@ export default {
       predictRain:[],
       RainPeriodInfo: null,
       countyStartRainTimeMap: new Map(),
+      stopWatchCurrentTime: null,
+      stopWatchDisasterEvent: null,
     }
   },
   props: ['disasterEvent', 'currentTime'],
 
-  watch: {
-    currentTime() {
-      this.throttledTimeSelect(); // 调用节流后的函数
-    },
-    disasterEvent() {
-      this.getRainPeriodInfo()
-    }
-  },
+  // watch: {
+  //   currentTime() {
+  //     this.throttledTimeSelect(); // 调用节流后的函数
+  //   },
+  //   disasterEvent() {
+  //     this.throttledgetRainPeriodInfo()
+  //   }
+  // },
 
   mounted() {
     // 对 timeSelect 方法进行节流包装
     this.throttledTimeSelect = throttle(this.timeSelect, 1000);
+    this.throttledgetRainPeriodInfo = throttle(this.getRainPeriodInfo, 1000);
+    // 手动创建监听
+    this.stopWatchCurrentTime = this.$watch('currentTime', () => {
+      this.throttledTimeSelect();
+    });
+    this.stopWatchDisasterEvent = this.$watch('disasterEvent', () => {
+      this.throttledgetRainPeriodInfo();
+    });
+  },
+  beforeUnmount() {
+    // 停止监听
+    this.stopWatchCurrentTime?.();
+    this.stopWatchDisasterEvent?.();
+    // console.log('✅ 所有 watch 已停止');
   },
   methods: {
     toggleTableVisibility() {
@@ -63,6 +79,8 @@ export default {
     },
 
     async getRainPeriodInfo() {
+      this.showData=[]
+      this.predictRain=[]
       // console.log(this.disasterEvent, "this.disasterEvent.disasterId)")
 
 // 将字符串分割成数组

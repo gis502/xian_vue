@@ -346,7 +346,7 @@ export default {
                 p.properties.adminCode == district.adcode
             );
             // 调试：输出匹配结果
-            console.log(`匹配 ${district.name} (${district.adcode}):`, point ? "成功" : "失败");
+            // console.log(`匹配 ${district.name} (${district.adcode}):`, point ? "成功" : "失败");
             if (!point) {
               console.warn(`未找到 ${district.name} 的天气数据`);
               return {

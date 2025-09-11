@@ -74,6 +74,7 @@ import {getDisasterRainById, getEarthquakeEventById} from "@/api/system/disaster
 import {geomToCoordinates} from "../../cesium/geomTransfer.js";
 
 export default {
+
   name: "timeLinePlay",
   data: function () {
     return {
@@ -89,20 +90,48 @@ export default {
       endTime: new Date(),
       plots: null,
       jumpTimeListIndex: 0,
+      flightTicket: null,   // ← 用来标记本次飞行是否仍属于本组件
     }
   },
+
+
+  // beforeDestroy() {
+  //   // 1. 清理 timeline 的 mouseup 事件
+  //   if (this.viewer && this.viewer.timeline && this.viewer.timeline.container) {
+  //     this.viewer.timeline.container.onmouseup = null;
+  //   }
+  //
+  //   // 2. 清理 clock 的 onTick 监听（如果你之前 addEventListener 过）
+  //   // 例如：
+  //   if (this.viewer && this.viewer.clock) {
+  //     this.viewer.clock.onTick.removeEventListener(this.someHandler);
+  //   }
+  //
+  //
+  //
+  //   4. 清理可能存在的定时器
+  //   if (this.blinkTimer) {
+  //     clearTimeout(this.blinkTimer);
+  //   }
+  //
+  //   5. 清理弹窗状态（可选）
+  //   this.selectedId = null;
+  //
+  //   console.log("✅ timeLinePlay 资源已清理");
+  // },
   // props: ['viewer','disasterEvent', 'currentTime', 'stopTimePlay', 'isMarkingLayer'],
   props: ['viewer', 'disasterEvent', 'RealDisasterPlots'],
   watch: {
     disasterEvent(newVal) {
       this.startTime = new Date(this.disasterEvent.occurrenceTime);
-      console.log(this.startTime, this.disasterEvent.occurrenceTime, "this.disasterEvent.occurrenceTime")
+      // console.log(this.startTime, this.disasterEvent.occurrenceTime, "this.disasterEvent.occurrenceTime")
       this.endTime = new Date(this.startTime.getTime() + 10 * 24 * 3600 * 1000);
       this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime))
       let realTime = new Date()
       if (realTime >= this.startTime && realTime <= this.endTime) {
         this.ifNewEq = true
       }
+      this.playEnd()
     },
     viewer(newVal) {
       viewer.timeline.container.onmouseup = (e) => {
@@ -117,6 +146,7 @@ export default {
     //   }
     // },
     RealDisasterPlots(newVal) {
+      console.log(this.RealDisasterPlots,"watch RealDisasterPlots")
       this.plots = []
       this.RealDisasterPlots.forEach(item => {
         if (!item.endTime) {
@@ -127,15 +157,28 @@ export default {
         this.plots.push(item);
       });
       this.plots.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-      console.log(this.plots, "this.plots")
+      // console.log(this.plots, "this.plots")
       this.jumpTimeListIndex = 0
       timeLine.HiddenLabels()
+      this.selectedId = 'playStart';
       this.playStart()
     },
   },
   mounted() {
   },
   methods: {
+    // resetPlayState() {
+    //   console.log("resetPlayState")
+    //   // this.endflag = false;
+    //   // this.jumpTimeListIndex = 0;
+    //   // this.currentTime = this.timestampToTimeChina(new Date(this.disasterEvent.occurrenceTime));
+    //   // this.selectedId = 'playStart';
+    //   // this.flyflag = true;
+    //   // if (this.plots && this.plots.length) {
+    //   //   timeLine.makerLabelsShowPersonAndResouce(this.plots);
+    //   // }
+    //   // timeLine.HiddenLabels();
+    // },
     selectButton(id) {
       this.selectedId = id; // 更新选中的按钮ID
     },
@@ -188,9 +231,15 @@ export default {
       timeLine.makerLabelsShowPersonAndResouce(this.plots)
     },
     playStart() {
+      console.log("playStart")
+      // if (this.plots && this.plots.length) {
+      //   // timeLine.makerLabelsShowPersonAndResouce(this.plots);
+      // }
+      // timeLine.HiddenLabels()
+
       this.endflag = false;
       this.flyflag = true
-      timeLine.HiddenLabels()
+      // timeLine.HiddenLabels()
       window.viewer.clock.multiplier = this.currentSpeed
       window.viewer.clockViewModel.shouldAnimate = false;
       this.flyToPointsSequentially()
@@ -208,23 +257,24 @@ export default {
         viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(this.plots[this.jumpTimeListIndex].startTime));
         // const item = this.plotArrinOneTime[this.jumpTimeListIndex];
         const item = this.plots[this.jumpTimeListIndex];
+        this.$emit('plot-step', this.plots[this.jumpTimeListIndex]);
         this.currentTime = this.timestampToTimeChina(new Date(this.plots[this.jumpTimeListIndex].startTime))
         //标签
-        let entitylabel = null
-        let plotId = item.plotId
-        let plotType = item.plotType
-        if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
-          entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-          if (entitylabel) {
-            entitylabel.show = true
-          }
-        } else {
-          getPlotInfos({plotId, plotType}).then(res => {
-            let labeltext = timeLine.labeltext(plotType, res)
-            timeLine.addPointLabel(item, labeltext)
-            entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
-          })
-        }
+        // let entitylabel = null
+        // let plotId = item.plotId
+        // let plotType = item.plotType
+        // if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
+        //   entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
+        //   if (entitylabel) {
+        //     entitylabel.show = true
+        //   }
+        // } else {
+        //   getPlotInfos({plotId, plotType}).then(res => {
+        //     let labeltext = timeLine.labeltext(plotType, res)
+        //     timeLine.addPointLabel(item, labeltext)
+        //     entitylabel = window.labeldataSource.entities.getById(item.plotId + '_label');
+        //   })
+        // }
 
         if (this.endflag) {
           console.log(this.jumpTimeListIndex, this.plots.length, "终止飞行1111");
@@ -235,9 +285,19 @@ export default {
         try {
           let flylog = Number(geomToCoordinates(item.geom)[0][0])
           let flylat = Number(geomToCoordinates(item.geom)[0][1])
-          console.log(flylog, flylat, "flylog,flylat")
+          // console.log(flylog, flylat, "flylog,flylat")
+
+          if (this.flightCtrl) {
+            this.flightCtrl.cancel();
+            this.flightCtrl = null;
+          }
+
+          this.flightCtrl = timeLine.fly(flylog, flylat, 2000);
+          await this.flightCtrl.promise;   // 飞行完成或取消都会继续
+          this.flightCtrl = null;
+
           // 飞到指定点
-          await timeLine.fly(flylog, flylat, 2000);
+          // await timeLine.fly(flylog, flylat, 2000);
           if (this.endflag) {
             console.log(this.jumpTimeListIndex, this.plots.length, "终止飞行222");
             timeLine.makerLabelsShowPersonAndResouce(this.plots)
@@ -245,7 +305,7 @@ export default {
           }
           // 点闪烁
           await timeLine.blinkMarker(item);
-          console.log("blinkMarker else")
+          // console.log("blinkMarker else")
           if (item.plotType === "失踪人员" || item.plotType === "轻伤人员" || item.plotType === "重伤人员" || item.plotType === "危重伤人员" || item.plotType === "死亡人员" || item.plotType === "被困人员" || item.plotType === "已出发队伍" || item.plotType === "正在参与队伍" || item.plotType === "待命队伍") {
           } else {
             window.labeldataSource.entities.removeById(item.plotId + "_label");

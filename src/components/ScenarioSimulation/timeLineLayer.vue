@@ -101,10 +101,10 @@ export default {
     }
   },
   name: "timeLineLayer",
-  props: ['viewer', 'disasterEvent', 'currentTime', 'onceLoadLayer'],
-  watch: {
-    async viewer() {
-      this.currentTime = viewer.clock.currentTime
+  // props: ['viewer', 'disasterEvent', 'currentTime', 'onceLoadLayer'],
+  props: ['viewer', 'disasterEvent',  'onceLoadLayer'],
+  mounted() {
+    this.stopWatchViewer = this.$watch('viewer', async () => {
       await Promise.all([
         basicLayers.loadAdminData(),
         basicLayers.Addmudslide(),
@@ -113,8 +113,9 @@ export default {
         basicLayers.loadFlashFlood(),
         basicLayers.loadWater(),
       ]);
-    },
-    async onceLoadLayer() {
+    });
+    this.stopWatchOnceLoadLayer=this.$watch('onceLoadLayer', () => {
+      // console.log(this.onceLoadLayer,"this.onceLoadLayer")
       if (this.onceLoadLayer) {
         if (this.disasterEvent.trigger == "地震") {
           this.selectedlayers = ['烈度圈', '断裂带', '预警点', "灾害点", '行政区划', '隐患点'];
@@ -124,22 +125,8 @@ export default {
           this.updateMapLayers();
         }
       }
-    },
-    // plotsInfoisReady(newVal) {
-    //   if (newVal && this.PredictInfoIsReady) {
-    //     setTimeout(() => {
-    //       this.viewer.clockViewModel.shouldAnimate = true;
-    //     }, 3000);
-    //   }
-    // },
-    // PredictInfoIsReady(newVal) {
-    //   if (newVal && this.plotsInfoisReady) {
-    //     setTimeout(() => {
-    //       this.viewer.clockViewModel.shouldAnimate = true;
-    //     }, 3000);
-    //   }
-    // },
-    async disasterEvent() {
+    })
+    this.stopWatchDisasterEvent= this.$watch('disasterEvent', async () => {
       if (this.disasterEvent.trigger == "暴雨") {
         function convertToArray(str) {
           return str.split(',').map(item => item.trim());
@@ -162,8 +149,77 @@ export default {
       console.log("updatedRes processDataEqid",PlotInfoWithInfo)
       this.$emit("update:realDisasterPointWithInfo", PlotInfoWithInfo);
       // this.plotsInfoisReady = true;
-    }
+    })
   },
+  beforeUnmount() {
+    // 停止监听
+    this.stopWatchViewer?.();
+    this.stopWatchOnceLoadLayer?.();
+    this.stopWatchDisasterEvent?.();
+    // console.log('✅ 所有 watch 已停止');
+  },
+  // watch: {
+  //   // async viewer() {
+  //   //   // this.currentTime = viewer.clock.currentTime
+  //   //   await Promise.all([
+  //   //     basicLayers.loadAdminData(),
+  //   //     basicLayers.Addmudslide(),
+  //   //     basicLayers.loadLandSlide(),
+  //   //     basicLayers.AddDangerAreaDataSource(),
+  //   //     basicLayers.loadFlashFlood(),
+  //   //     basicLayers.loadWater(),
+  //   //   ]);
+  //   // },
+  //   async onceLoadLayer() {
+  //     if (this.onceLoadLayer) {
+  //       if (this.disasterEvent.trigger == "地震") {
+  //         this.selectedlayers = ['烈度圈', '断裂带', '预警点', "灾害点", '行政区划', '隐患点'];
+  //         this.updateMapLayers();
+  //       } else if (this.disasterEvent.trigger == "暴雨") {
+  //         this.selectedlayers = ['预警点', "灾害点", '行政区划', '隐患点'];
+  //         this.updateMapLayers();
+  //       }
+  //     }
+  //   },
+  //   // plotsInfoisReady(newVal) {
+  //   //   if (newVal && this.PredictInfoIsReady) {
+  //   //     setTimeout(() => {
+  //   //       this.viewer.clockViewModel.shouldAnimate = true;
+  //   //     }, 3000);
+  //   //   }
+  //   // },
+  //   // PredictInfoIsReady(newVal) {
+  //   //   if (newVal && this.plotsInfoisReady) {
+  //   //     setTimeout(() => {
+  //   //       this.viewer.clockViewModel.shouldAnimate = true;
+  //   //     }, 3000);
+  //   //   }
+  //   // },
+  //   async disasterEvent() {
+  //     if (this.disasterEvent.trigger == "暴雨") {
+  //       function convertToArray(str) {
+  //         return str.split(',').map(item => item.trim());
+  //       }
+  //
+  //       // 使用示例
+  //       this.positionArry = convertToArray(this.disasterEvent.position);
+  //       this.rainfallArry = convertToArray(this.disasterEvent.rainfall);
+  //       // this.durationArry = convertToArray(this.disasterEvent.duration);
+  //     }
+  //     this.realDisasterPoint = await selectDisasterRealByDisasterId({
+  //       disasterId: this.disasterEvent.disasterId,
+  //       disasterTrigger: this.disasterEvent.trigger
+  //     })
+  //     console.log("this.realDisasterPoint disasterEvent",this.realDisasterPoint )
+  //     const batchPlotIds = this.realDisasterPoint.map((plot) => plot.plotId);
+  //     const batchPlotTypes = this.realDisasterPoint.map((plot) => plot.plotType);
+  //     // console.log(batchPlotIds,batchPlotTypes,"batchPlotIds,batchPlotTypes,")
+  //     const PlotInfoWithInfo = await getExcelPlotInfo(batchPlotIds, batchPlotTypes);
+  //     console.log("updatedRes processDataEqid",PlotInfoWithInfo)
+  //     this.$emit("update:realDisasterPointWithInfo", PlotInfoWithInfo);
+  //     // this.plotsInfoisReady = true;
+  //   }
+  // },
   components: {},
   methods: {
     toggleLayerFeatures() {
