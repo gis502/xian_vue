@@ -9,6 +9,14 @@ export function getEqOutputMaps(queryParams){
     })
 }
 
+export function downloadReport(data){
+    return request({
+        url:"/feign/download",
+        method: 'post',
+        data: data
+    })
+}
+
 // export function getReport(DTO){
 //     return request({
 //         url: '/feign/download',

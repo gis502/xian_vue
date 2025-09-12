@@ -3,7 +3,7 @@
 
     <div class="eqTheme">
       <el-button type="info" round @click="handlePanel(`thematicMap`)">专题图</el-button>
-      <el-button type="info" round @click="downloadReport">灾情报告</el-button>
+      <el-button type="info" round @click="startDownloadReport">灾情报告</el-button>
     </div>
 
     <!-- 功能面板：专题图/报告/仪器数据等 -->
@@ -73,8 +73,8 @@
 
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
-import {getReport } from "@/api/system/damageassessment.js";
 import { ElMessage } from 'element-plus'
+import {downloadReport} from "@/api/system/damageassessment.js"
 
 export default {
   //接收父组件传来的数据
@@ -213,6 +213,12 @@ export default {
           ]
         };
       }
+    },
+
+    async startDownloadReport(){
+      setTimeout(() => {
+        this.downloadReport();
+      }, 20000);
     },
 
     async downloadReport() {

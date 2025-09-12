@@ -31,13 +31,15 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
                 let thematicMapData = [];
                 console.log("专题图")
                 for (let i = 0; i < data.length; i++) {
-                    const thematicMapObject = {
-                        // imgUrl: data[i].sourceFile,
-                        imgUrl: data[i].sourceFile,
-                        theme: data[i].fileName,
-                    };
-                    console.log("专题图",thematicMapObject)
-                    thematicMapData.push(thematicMapObject);
+                    if (data[i].fileType === "图片"){
+                        const thematicMapObject = {
+                            // imgUrl: data[i].sourceFile,
+                            imgUrl: data[i].sourceFile,
+                            theme: data[i].fileName,
+                        };
+                        console.log("专题图",thematicMapObject)
+                        thematicMapData.push(thematicMapObject);
+                    }
                 }
 
                 returnData.themeName = themeName;
