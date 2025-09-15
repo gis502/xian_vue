@@ -73,8 +73,8 @@
 
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
-import { ElMessage } from 'element-plus'
-import {downloadReport} from "@/api/system/damageassessment.js"
+import {ElMessage} from 'element-plus'
+import {downloadReport, getReport} from "@/api/system/damageassessment.js"
 
 export default {
   //接收父组件传来的数据
@@ -215,10 +215,8 @@ export default {
       }
     },
 
-    async startDownloadReport(){
-      setTimeout(() => {
-        this.downloadReport();
-      }, 20000);
+    async startDownloadReport() {
+      this.downloadReport();
     },
 
     async downloadReport() {
@@ -248,7 +246,7 @@ export default {
           "eqqueueId": this.eqqueueId
         };
 
-        getReport(DTO).then((res)=>{
+        getReport(DTO).then((res) => {
 
           // 获取文件名
           let fileName = `report_${this.eqid}.docx`;
