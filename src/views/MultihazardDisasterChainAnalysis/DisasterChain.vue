@@ -32,9 +32,20 @@
           <i class="el-icon-heavy-rain"></i>
           暴雨灾害信息
         </div>
-        <button class="refresh-btn" @click="getAllRainInfo">
-          <i class="el-icon-refresh"></i>刷新
-        </button>
+        <div class="search-controls">
+          <input
+              v-model="searchQuery"
+              placeholder="搜索灾害名称"
+              class="search-input"
+              @keyup.enter="applySearch"
+          >
+          <button class="search-btn" @click="applySearch">
+            <i class="el-icon-search"></i>搜索
+          </button>
+          <button class="refresh-btn" @click="getAllRainInfo">
+            <i class="el-icon-refresh"></i>刷新
+          </button>
+        </div>
       </div>
 
       <table class="rain-table">
@@ -141,6 +152,9 @@ import {getRain, getRainProbability} from "@/api/system/disasterChain.js";
 
 const currentPage = ref(1);
 const itemsPerPage = 5;
+const searchQuery = ref('');
+const filteredRainData = ref([]);
+const isSearching = ref(false);
 
 const showDisaster = ref(false);
 const showRainLand = ref(false);
@@ -251,20 +265,22 @@ onMounted(() => {
   setupEntityHandler();
 });
 
+
 function selectDisasterChain() {
   showSelect.value = !showSelect.value;
 }
 
 function getAllRainInfo(){
-    try{
-      getRain().then((response) => {
-        rainData.value = response.data;
-        console.log(12122, response.data);
-        // disasterId.value = response.data.disasterId;
-      })
-    }catch (e){
-      console.log("error", e);
-    }
+  try {
+    getRain().then((response) => {
+      rainData.value = response.data;
+      searchQuery.value = ''; // 清空搜索框
+      isSearching.value = false; // 重置搜索状态
+      currentPage.value = 1; // 重置到第一页
+    })
+  } catch (e) {
+    console.log("error", e);
+  }
 }
 
 function stopFlashEntities(disasterType) {
@@ -597,15 +613,34 @@ function flashDisasterPoints(points) {
   }, 50);
 }
 // 计算属性
+// 计算属性
 const paginatedData = computed(() => {
+  const dataSource = isSearching.value ? filteredRainData.value : rainData.value;
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return rainData.value.slice(start, end);
+  return dataSource.slice(start, end);
 });
 
 const totalPages = computed(() => {
-  return Math.ceil(rainData.value.length / itemsPerPage);
+  const dataSource = isSearching.value ? filteredRainData.value : rainData.value;
+  return Math.ceil(dataSource.length / itemsPerPage);
 });
+
+function applySearch() {
+  if (!searchQuery.value.trim()) {
+    isSearching.value = false;
+    currentPage.value = 1;
+    return;
+  }
+
+  const query = searchQuery.value.toLowerCase().trim();
+  filteredRainData.value = rainData.value.filter(item =>
+      item.disasterName.toLowerCase().includes(query)
+  );
+
+  isSearching.value = true;
+  currentPage.value = 1;
+}
 
 // 方法
 function selectDisaster(item) {
@@ -885,27 +920,6 @@ function calculatePopupTop() {
   color: #3c86ff;
 }
 
-.refresh-btn {
-  background-color: #3c86ff;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  transition: background-color 0.3s;
-}
-
-.refresh-btn:hover {
-  background-color: #373e52;
-}
-
-.refresh-btn i {
-  margin-right: 4px;
-}
-
 .rain-table {
   width: 100%;
   border-collapse: collapse;
@@ -999,6 +1013,50 @@ function calculatePopupTop() {
   color: #606266;
 }
 
+.search-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  padding: 6px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 150px;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #3c86ff;
+  outline: none;
+}
+
+.search-btn, .refresh-btn {
+  background-color: #3c86ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.3s;
+  min-width: 60px;
+  height: 30px;
+}
+
+.search-btn:hover, .refresh-btn:hover {
+  background-color: #373e52;
+  transform: translateY(-1px);
+}
+
+.search-btn i, .refresh-btn i {
+  margin-right: 4px;
+}
 /* 滚动条样式 */
 .rain-table tbody::-webkit-scrollbar {
   width: 6px;
