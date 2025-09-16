@@ -180,4 +180,9 @@ function objToArr(obj) {
 .operation-box {
     margin-bottom: 10px;
 }
+
+* ,
+::v-deep .el-table__header th{
+    font-size: 1.2rem !important;
+}
 </style>

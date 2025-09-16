@@ -207,7 +207,7 @@ import basicLayers from "../../cesium/basicLayers";
 // (hazardsParams)致灾因子后端数据（此处是模拟）
 import {addDisaster, addEarthquake, getEarthQuakeReport, hazardsParams} from "../../api/earthquake/datas";
 import {parseTime} from "../../utils/ruoyi";
-
+import {ElMessage} from 'element-plus'
 
 // 常量
 const {province, city} = {
@@ -456,7 +456,7 @@ async function confirmEarthquake(formEl) {
                 console.log("触发成功...");
                 console.log("开始制作专题图...");
                 console.log("开始制作报告...");
-
+                ElMessage("开始生成报告");
                 Object.assign(earthquakeID,response.data)
 
                 thematicEqInfo.eqId = response.data.eqId
@@ -500,6 +500,7 @@ async function confirmEarthquake(formEl) {
                     console.log("触发成功...");
                     console.log("开始制作专题图...");
                     console.log("开始制作报告...");
+                    ElMessage("开始生成报告");
                     Object.assign(earthquakeID,response.data)
 
                     thematicEqInfo.eqId = response.data.eqId
@@ -617,8 +618,8 @@ function setMore() {
   border-radius: 4px;
   z-index: 1000;
   width: 500px;
-  //max-height: 400px;
-  //overflow-y: auto;
+  /*max-height: 400px;
+  //overflow-y: auto;*/
 }
 
 .panel-title {

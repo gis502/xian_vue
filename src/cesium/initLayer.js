@@ -2,8 +2,8 @@ import * as Cesium from "cesium";
 import {Cartographic, Math as CesiumMath} from "cesium";
 import CesiumNavigation from "cesium-navigation-es6";
 const CesiumIonDefaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDBjZjAxOS0wMDhhLTRmZjEtYjNmOC1iNmM2ZmY2ZmQ1N2IiLCJpZCI6MjAxMDI1LCJpYXQiOjE3MTAxNTgxNjJ9.mdbJYEzXQkBnHNqpozz7MvZjJ_X9a3JZRGPA-ytGhLI'
-// const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
-const tdtToken = '78234e018ed03fe3bb28de976dcfa6d3'
+const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
+// const tdtToken = '78234e018ed03fe3bb28de976dcfa6d3'
 // const tdtToken = "ca190ab79716f01d331e8a744589b417"
 //  const tdtToken = "2e8111f9bc84149cbf24f562ed4e9229"
 

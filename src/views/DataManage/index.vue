@@ -92,7 +92,7 @@ function closeCard() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .header {
     padding: 20px;
 }
@@ -109,5 +109,11 @@ function closeCard() {
     background-color: #2f2f2f !important;
     color: #FFF !important;
     cursor: pointer;
+}
+
+* ,
+::v-deep .el-table__header th,
+::v-deep .el-form-item__label{
+    font-size: 1.2rem;
 }
 </style>

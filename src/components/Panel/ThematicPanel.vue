@@ -221,26 +221,6 @@ export default {
 
     async downloadReport() {
       try {
-        // // 获取认证token（根据您的存储方式调整）
-        // const token = localStorage.getItem('access_token') ||
-        //     this.getCookie('Admin-Token');
-        //
-        // const response = await fetch(
-        //     `http://localhost:8080/feign/download/${this.eqid}/${this.eqqueueId}`, {
-        //       method: 'GET',
-        //       headers: {
-        //         'Authorization': `Bearer ${token}`,
-        //         'Accept': '*/*'
-        //       }
-        //     }).catch(err => {
-        //   throw new Error("正在生成报告中,请稍后...");
-        // });
-        // // 检查HTTP响应状态是否成功
-        // if (!response.ok) {
-        //   throw new Error(`请求失败: ${response.statusText}`);
-        // }
-
-
         const DTO = {
           "eqId": this.eqid,
           "eqqueueId": this.eqqueueId
@@ -248,19 +228,30 @@ export default {
 
         getReport(DTO).then((res)=>{
 
-          // 获取文件名
-          let fileName = `report_${this.eqid}.docx`;
-
-          const link = document.createElement('a');
-          link.href = res;
-          console.log(111111, res);
-          link.download = fileName;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
+          if (res === ''){
+            ElMessage({
+              message: '报告生成中...',
+              type: 'warning',
+            })
+          }else {
+            // 获取文件名
+            let fileName = `report_${this.eqid}.docx`;
+            const link = document.createElement('a');
+            link.href = res;
+            console.log(11111112164, res);
+            link.download = fileName;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            ElMessage({
+              message: '报告下载成功',
+              type: 'success',
+            })
+          }
         })
 
       } catch (error) {
+        ElMessage("报告下载失败")
         console.error('下载错误:', error);
       }
     },
