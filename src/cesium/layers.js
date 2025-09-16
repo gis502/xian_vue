@@ -291,9 +291,9 @@ let layers = {
 
             // 使用提供的公式计算长短轴
             //单位米
-            let semiMinorAxis = calculateRa(magnitude, level.ia) * 100;
+            let semiMinorAxis = calculateRa(magnitude, level.ia) * 150;
 
-            let semiMajorAxis = calculateRb(magnitude, level.ib) * 100;
+            let semiMajorAxis = calculateRb(magnitude, level.ib) * 150;
 
             // 根据烈度级别设置透明度
             // let alpha = 0.8 - (level.ia - 5) * 0.3;

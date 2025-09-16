@@ -5,8 +5,8 @@
       v-show="isShow"
       class="earthquake-info-panel"
       :style="{
-      top: 76.444+'px',
-      left: 575.667 + 'px',
+      top: 7 + '%',
+      left: 32 + '%',
     }"
   >
     <div style="padding: 10px">
@@ -617,8 +617,8 @@ function setMore() {
   border-radius: 4px;
   z-index: 1000;
   width: 500px;
-  max-height: 400px;
-  overflow-y: auto;
+  //max-height: 400px;
+  //overflow-y: auto;
 }
 
 .panel-title {

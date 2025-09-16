@@ -246,7 +246,7 @@ export default {
           "eqqueueId": this.eqqueueId
         };
 
-        getReport(DTO).then((res) => {
+        getReport(DTO).then((res)=>{
 
           // 获取文件名
           let fileName = `report_${this.eqid}.docx`;
