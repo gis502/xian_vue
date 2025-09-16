@@ -99,7 +99,7 @@ import hospitalIcon from "@/assets/images/hospital.png"
 import landslideIcon from "@/assets/images/landslide.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
 import flashIcon from "@/assets/images/flashflood.png";
-import waterIcon from "@/assets/images/water.jpg";
+import waterIcon from "@/assets/images/water.png";
 import { ElMessage } from 'element-plus';
 
 

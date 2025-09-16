@@ -944,7 +944,7 @@ export default {
       const flag = [];
       const poin = [];
       this.weather_data.forEach(i => {
-        if (i.rainfall > 50){
+        if (i.rainfall > 30){
           flag.push(i.name);
         }
       });

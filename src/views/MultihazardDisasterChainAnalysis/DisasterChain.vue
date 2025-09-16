@@ -1,4 +1,4 @@
-<template xmlns="http://www.w3.org/1999/html">
+<template>
   <div
       id="cesium-container"
       ref="cesiumContainer"
@@ -11,8 +11,10 @@
       <div class="rain-btn" @click="selectDisasterChain">
         灾害链模型选择
       </div>
+      <div class="rain-btn" @click="toSelectDisaster">
+        选择历史灾害
+      </div>
     </div>
-
     <div v-if="showSelect" class="layerControl-panel">
       <div class="panel-content">
         <label><input type="checkbox" v-model="showRainLand" @change="toggleRainLand"> 暴雨滑坡 </label>
@@ -23,39 +25,48 @@
 <!--        <label><input type="checkbox" v-model="showEarthDebrisFlow" @change="toggleEarthDebrisFlow"> 地震泥石流 </label>-->
       </div>
     </div>
-
     <!-- 暴雨信息卡片 -->
-    <div class="rain-info-card" v-if="rainData">
-      <div class="card-header">
-        <div class="card-title">
+    <div class="rain-table-container" v-if="showDisaster">
+      <div class="table-header">
+        <div class="table-title">
           <i class="el-icon-heavy-rain"></i>
           暴雨灾害信息
         </div>
-        <button class="refresh-btn" @click="getLastRainInfo">
+        <button class="refresh-btn" @click="getAllRainInfo">
           <i class="el-icon-refresh"></i>刷新
         </button>
       </div>
-      <div class="card-content">
-        <div class="info-item">
-          <div class="info-label">灾害名称</div>
-          <div class="info-value">{{ rainData.disasterName }}</div>
-        </div>
 
-        <div class="info-item">
-          <div class="info-label">降雨量</div>
-          <div class="info-value">
-            <span class="rainfall-value">{{ rainData.rainfall }}</span> mm
-          </div>
-        </div>
+      <table class="rain-table">
+        <thead>
+        <tr>
+          <th>灾害名称</th>
+          <th>发生时间</th>
+          <th>降雨量 (mm)</th>
+          <th>位置</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="item in paginatedData"
+            :key="item.disasterId"
+            :class="{ selected: selectedDisasterId === item.disasterId }"
+            @click="selectDisaster(item)"
+        >
+          <td>{{ item.disasterName }}</td>
+          <td>{{ formatTime(item.occurrenceTime) }}</td>
+          <td>{{ item.rainfall }}</td>
+          <td>{{ item.position }}</td>
+        </tr>
+        </tbody>
+      </table>
 
-        <div class="info-item">
-          <div class="info-label">位置</div>
-          <div class="info-value">{{ rainData.position }}</div>
-        </div>
+      <div class="pagination">
+        <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
+        <span>第 {{ currentPage }} 页 / 共 {{ totalPages }} 页</span>
+        <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
       </div>
     </div>
-
-
     <div
         v-if="selectedEntityData"
         class="disaster-popup"
@@ -111,7 +122,6 @@
         </table>
       </div>
     </div>
-
     <!-- 图例 -->
     <Legend></Legend>
     <!-- 表格 -->
@@ -124,12 +134,15 @@ import * as Cesium from "cesium";
 
 import { initCesium } from "@/cesium/initLayer.js";
 import { onMounted, reactive, ref } from "vue";
-import SimulationPoint from "../../components/Earthquake/SimulationPoint.vue";
 import basicLayers from "../../cesium/basicLayers";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import {getRain, getRainProbability} from "@/api/system/disasterChain.js";
 
+const currentPage = ref(1);
+const itemsPerPage = 5;
+
+const showDisaster = ref(false);
 const showRainLand = ref(false);
 const showRainDebrisFlow = ref(false);
 const showRainWater = ref(false);
@@ -234,7 +247,7 @@ onMounted(() => {
       roll: 0.0,
     },
   });
-  getLastRainInfo();
+  getAllRainInfo();
   setupEntityHandler();
 });
 
@@ -242,11 +255,12 @@ function selectDisasterChain() {
   showSelect.value = !showSelect.value;
 }
 
-function getLastRainInfo(){
+function getAllRainInfo(){
     try{
       getRain().then((response) => {
         rainData.value = response.data;
-        disasterId.value = response.data.disasterId;
+        console.log(12122, response.data);
+        // disasterId.value = response.data.disasterId;
       })
     }catch (e){
       console.log("error", e);
@@ -271,6 +285,9 @@ function flash(){
   }
 }
 
+function toSelectDisaster(){
+  showDisaster.value = !showDisaster.value;
+}
 
 function toggleRainLand(){
   if(showRainLand.value){
@@ -579,7 +596,39 @@ function flashDisasterPoints(points) {
     }
   }, 50);
 }
+// 计算属性
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return rainData.value.slice(start, end);
+});
 
+const totalPages = computed(() => {
+  return Math.ceil(rainData.value.length / itemsPerPage);
+});
+
+// 方法
+function selectDisaster(item) {
+  disasterId.value = item.disasterId;
+  // 这里可以调用其他处理选中灾害的函数
+  console.log('选中的灾害ID:', disasterId.value);
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+}
+
+function formatTime(timeString) {
+  return new Date(timeString).toLocaleString('zh-CN');
+}
 // 停止闪烁的函数
 const stopFlashing = () => {
   console.log("停止闪烁");
@@ -752,6 +801,8 @@ function calculatePopupTop() {
   top: 10px;
   right: 10px;
   z-index: 100;
+  display: flex;
+  gap: 6px;
 }
 
 .rain-btn{
@@ -792,73 +843,179 @@ function calculatePopupTop() {
 .panel-content {
   display: flex;
   flex-direction: column;
-  font-size: 12px; /* 缩小字体 */
+  font-size: 16px; /* 缩小字体 */
   gap: 6px; /* 缩小子元素间距 */
 }
 
 /* 新增的暴雨信息卡片样式 */
-.rain-info-card {
+.rain-table-container {
   position: absolute;
-  bottom: 10px;
+  bottom: 20px;
   left: 20px;
-  width: 320px;
-  background: rgba(255, 255, 255, 0.75);
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  color: black;
+  width: 500px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px;
   z-index: 999;
-  overflow: hidden;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
-.card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+.table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(0, 0, 0, 0.05);
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
 }
 
-.card-title {
-  font-size: 18px;
+.table-title {
+  font-size: 16px;
   font-weight: bold;
+  color: #303133;
   display: flex;
   align-items: center;
-  color: black;
 }
 
-.card-content {
+.table-title i {
+  margin-right: 8px;
+  color: #3c86ff;
+}
+
+.refresh-btn {
+  background-color: #3c86ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  font-size: 12px; /* 缩小字体 */
-  gap: 6px; /* 缩小子元素间距 */
+  align-items: center;
+  font-size: 12px;
+  transition: background-color 0.3s;
 }
 
-.info-item {
+.refresh-btn:hover {
+  background-color: #373e52;
+}
+
+.refresh-btn i {
+  margin-right: 4px;
+}
+
+.rain-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.rain-table th {
+  background-color: #f5f7fa;
+  padding: 10px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #606266;
+  border-bottom: 1px solid #ebeef5;
+  position: sticky;
+  top: 0;
+}
+
+.rain-table td {
+  padding: 8px;
+  border-bottom: 1px solid #ebeef5;
+  color: #606266;
+}
+
+.rain-table tbody {
+  display: block;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.rain-table thead, .rain-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.rain-table tbody tr {
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.rain-table tbody tr:hover {
+  background-color: #f5f7fa;
+}
+
+.rain-table tbody tr.selected {
+  background-color: #ecf5ff;
+}
+
+.rain-table tbody tr.selected td {
+  color: #3c86ff;
+  font-weight: 500;
+}
+
+.pagination {
   display: flex;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
-  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  gap: 10px;
 }
 
-.info-label {
-  font-size: 14px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 5px;
+.pagination button {
+  background-color: #3c86ff;
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+  min-width: 60px;
 }
 
-.info-value {
-  font-size: 14px;
-  color: black;
-  word-break: break-all;
+.pagination button:hover:not(:disabled) {
+  background-color: #373e52;
+  color: white;
 }
 
-.rainfall-value {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ff0000;
+.pagination button:disabled {
+  background-color: #373e52;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination span {
+  font-size: 12px;
+  color: #606266;
+}
+
+/* 滚动条样式 */
+.rain-table tbody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rain-table tbody::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.rain-table tbody::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.rain-table tbody::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .refresh-btn {

@@ -134,7 +134,7 @@
   background-size: cover;
 }
 #water {
-  background-image: url("../../assets/images/water.jpg");
+  background-image: url("../../assets/images/water.png");
   background-size: cover;
 }
 #riskArea {

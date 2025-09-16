@@ -74,7 +74,7 @@
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
 import { ElMessage } from 'element-plus'
-import {downloadReport} from "@/api/system/damageassessment.js"
+import {downloadReport, getReport} from "@/api/system/damageassessment.js"
 
 export default {
   //接收父组件传来的数据

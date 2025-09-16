@@ -21,7 +21,7 @@ import landslideIcon from "@/assets/images/landslide.png";
 import riskArea from "@/assets/images/riskArea.png";
 import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
 import flashIcon from "@/assets/images/flashflood.png"
-import waterIcon from "@/assets/images/water.jpg"
+import waterIcon from "@/assets/images/water.png"
 import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"
 import fireFighterIcon from "@/assets/images/firefighter.png"

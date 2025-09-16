@@ -2039,6 +2039,8 @@ export default {
   top: 10px;
   right: 190px;
   z-index: 100;
+  display: flex;
+  flex-direction: column;
   gap: 5px;
 }
 
