@@ -30,7 +30,7 @@
       <el-table-column prop="location" label="位置" width="300" align="center"></el-table-column>
       <el-table-column prop="longitude" label="经度(°)" width="200" header-align="center" align="center"></el-table-column>
       <el-table-column prop="latitude" label="纬度(°)"  width="200" header-align="center" align="center"></el-table-column>
-      <el-table-column label="操作" width="200" header-align="center" align="center">
+      <el-table-column label="操作" width="auto" header-align="center" align="center">
         <template #default="{ row }">
           <el-button type="text" @click="go(row)">查看</el-button>
         </template>

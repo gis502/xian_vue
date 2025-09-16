@@ -73,7 +73,7 @@
 
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
 import {downloadReport, getReport} from "@/api/system/damageassessment.js"
 
 export default {
@@ -215,10 +215,8 @@ export default {
       }
     },
 
-    async startDownloadReport(){
-      setTimeout(() => {
-        this.downloadReport();
-      }, 20000);
+    async startDownloadReport() {
+      this.downloadReport();
     },
 
     async downloadReport() {

@@ -1876,6 +1876,7 @@ function generate(){
     rainDisasterId:rainDisasterId.value
   }
   console.log(RainParams,"触发后的暴雨ID是，，，，，，，，，，")
+
   generateRainReport(RainParams).then((res)=>{
     console.log(res,"generateRainReport res")
     wordRes.value = res.data
@@ -1887,7 +1888,7 @@ function generate(){
     console.log(err)
     setTimeout(()=>{
       generate()
-    },8000)
+    },30000)
   })
 }
 // watch(wordRes,(newV,oldV)=>{
@@ -1917,7 +1918,7 @@ function downloadRainReport(){
   let wordUrl = wordRes.value
   let link = document.createElement('a');
   // try {
-    link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
+    link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
     // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
     link.download = wordUrl;                         // 强制触发下载
     link.click();
