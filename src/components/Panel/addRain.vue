@@ -260,7 +260,11 @@ const confirmRainPoint = async () => {
   // 触发专题图模型
   // let rainDatas = await rainTrigger(thematicdatas)
   rainTrigger(thematicdatas).then(async function(res){
-    let rainDatas = res.data
+    let rainDatas = {
+      rainId: res.data.rainId,
+      rainQueueId: res.data.rainQueueId,
+      rainFullName: thematicdatas.position + thematicdatas.rainfall + "毫米降雨量"
+    }
     console.log("查询专题图的ID是:", rainDatas)
     emit("update:handle-setId",rainDatas)
     console.log(resSaveRain.data.rainDisasterId, "res.data.rainDisasterId")
