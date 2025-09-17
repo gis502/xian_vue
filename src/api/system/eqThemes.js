@@ -1,4 +1,5 @@
-import {getEqOutputMaps } from "@/api/system/damageassessment.js";
+import {getEqOutputMaps} from "./damageassessment.js";
+import {getEqOutputRainMaps} from "./damageassessment.js";
 
 /**
  * 灾损接口：获取专题图件getMap与灾情报告getReport
@@ -7,14 +8,8 @@ import {getEqOutputMaps } from "@/api/system/damageassessment.js";
  * @param eqFullName
  * @param type
  */
-export function handleOutputData(eqid, eqqueueId, eqFullName, type){
-    const DTO = {
-        eqId: eqid,
-        eqqueueId: eqqueueId,
-    };
-
-    const batch = eqqueueId.slice(-1);
-
+export function handleOutputData(eventId, eventQueueId, eventFullName, eventTypeof, type) {
+    const batch = eventQueueId.slice(-1);
     // 初始化返回数据
     let returnData = {
         // 标题
@@ -22,38 +17,75 @@ export function handleOutputData(eqid, eqqueueId, eqFullName, type){
         // 对应数据
         themeData: []
     };
-
     return new Promise((resolve, reject) => {
-        if (type === "thematicMap"){
-            getEqOutputMaps(DTO).then((res) => {
-                const data = res.data;
-                const themeName = eqFullName + "-" + "专题图";
-                let thematicMapData = [];
-                console.log("专题图")
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].fileType === "图片"){
-                        const thematicMapObject = {
-                            // imgUrl: data[i].sourceFile,
-                            imgUrl: data[i].sourceFile,
-                            theme: data[i].fileName,
-                        };
-                        console.log("专题图",thematicMapObject)
-                        thematicMapData.push(thematicMapObject);
+        if (type === "thematicMap") {
+            if (eventTypeof === "地震") {
+                const DTO = {
+                    eqId: eventId,
+                    eqqueueId: eventQueueId,
+                };
+                getEqOutputMaps(DTO).then((res) => {
+                    const data = res.data;
+                    const themeName = eventFullName + "-" + "专题图";
+                    let thematicMapData = [];
+                    console.log("专题图")
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].fileType === "图片") {
+                            const thematicMapObject = {
+                                // imgUrl: data[i].sourceFile,
+                                imgUrl: data[i].sourceFile,
+                                theme: data[i].fileName,
+                            };
+                            console.log("专题图", thematicMapObject)
+                            thematicMapData.push(thematicMapObject);
+                        }
                     }
-                }
+                    returnData.themeName = themeName;
+                    returnData.themeData = thematicMapData;
+                    console.log("返回专题图数据：", returnData)
 
-                returnData.themeName = themeName;
-                returnData.themeData = thematicMapData;
-                console.log("返回专题图数据：", returnData)
+                    resolve(returnData); // 返回更新后的数据
+                }).catch(err => {
+                    //
+                    //reject(err); // 如果请求失败，返回错误
+                    reject("正在生成专题图中,请稍后...");
 
-                resolve(returnData); // 返回更新后的数据
-            }).catch(err => {
-                //
-                //reject(err); // 如果请求失败，返回错误
-                reject("正在生成专题图中,请稍后...");
+                });
+            }
+            else if(eventTypeof === "暴雨") {
+                const rainDto = {
+                    rainId: eventId,
+                    rainQueueId: eventQueueId,
+                };
+                getEqOutputRainMaps(rainDto).then((res) => {
+                    const data = res.data;
+                    const themeName = eventFullName + "-" + "专题图";
+                    let thematicMapData = [];
+                    console.log("专题图")
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].fileType === "图片") {
+                            const thematicMapObject = {
+                                // imgUrl: data[i].sourceFile,
+                                imgUrl: data[i].sourceFile,
+                                theme: data[i].fileName,
+                            };
+                            console.log("专题图", thematicMapObject)
+                            thematicMapData.push(thematicMapObject);
+                        }
+                    }
+                    returnData.themeName = themeName;
+                    returnData.themeData = thematicMapData;
+                    console.log("返回专题图数据：", returnData)
 
-            });
-        }else if (type === "report"){
+                    resolve(returnData); // 返回更新后的数据
+                }).catch(err => {
+                    //
+                    //reject(err); // 如果请求失败，返回错误
+                    reject("正在生成专题图中,请稍后...");
+
+                });
+            }
+        } else if (type === "report") {
             // getDownloadReport(DTO).then((res) => {
             //     console.log("灾情报告数据：", res);
             //     const data = res.data;
