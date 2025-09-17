@@ -86,8 +86,7 @@
     top: `${calculatePopupTop()}px`,
     display: popupVisible ? 'block' : 'none',
     opacity: popupVisible ? '1' : '0',
-    transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
-        @click.stop="stopPropagation">
+    transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}">
       <div class="popup-header">
         <h3 v-if="selectedEntityData.properties.disasterName">{{
             selectedEntityData.properties.disasterName || '未知灾害点'
@@ -149,6 +148,7 @@ import basicLayers from "../../cesium/basicLayers";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import {getRain, getRainProbability} from "@/api/system/disasterChain.js";
+import modal from "@/plugins/modal.js";
 
 const currentPage = ref(1);
 const itemsPerPage = 5;
@@ -647,6 +647,8 @@ function selectDisaster(item) {
   disasterId.value = item.disasterId;
   // 这里可以调用其他处理选中灾害的函数
   console.log('选中的灾害ID:', disasterId.value);
+  modal.msg(`选择成功，选择的灾害id：${disasterId.value}`);
+  showDisaster.value = !showDisaster.value;
 }
 
 function prevPage() {

@@ -677,13 +677,23 @@ export default {
       if (item && item.entity) {
         // 获取实体位置
         const position = item.entity.position.getValue(Cesium.JulianDate.now());
-        console.log(111, item);
 
-        // 飞转到该位置
-        this.viewer.camera.flyTo({
-          destination: position,
-          duration: 1.5,
-          offset: new Cesium.HeadingPitchRange(0, -Math.PI/4, 1000), // 保持一定的视角
+        // 将笛卡尔坐标转换为地理坐标（弧度）
+        const cartographic = Cesium.Cartographic.fromCartesian(position);
+
+        // 将弧度转换为度数
+        const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+        // 使用flyTo飞转到该位置
+        window.viewer.scene.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 4000),
+          orientation: {
+            heading: Cesium.Math.toRadians(0.0),
+            pitch: Cesium.Math.toRadians(-90.0), // 注意：-90度是垂直向下看
+            roll: 0.0,
+          },
+          duration: 2, // 飞行动画持续时间（秒）
         });
       }
     },
