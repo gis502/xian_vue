@@ -9,6 +9,14 @@ export function getEqOutputMaps(queryParams){
     })
 }
 
+export function getEqOutputRainMaps(queryParams){
+    return request({
+        url: '/feign/rain/map',
+        method: 'post',
+        data: queryParams
+    })
+}
+
 export function downloadReport(data){
     return request({
         url:"/feign/download",
