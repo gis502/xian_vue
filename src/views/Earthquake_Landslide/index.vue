@@ -237,18 +237,19 @@
         :trigger="'地震'"
         :rainfall="'0'"
     />
-
-    <!-- 地震模拟 -->
-    <div class="btns-box">
-      <el-button type="warning" @click="startEarthquakeSimulation">地震模拟</el-button>
-      <el-button type="danger" @click="removeEarthquakeSimulation">清除地震模拟</el-button>
-      <el-button type="primary" :plain="true" @click="toggleReportPanel">图件报告产出</el-button>
+    <div class="rain-btn-group">
+      <div class="btn-group">
+        <!-- 地震模拟 -->
+        <div class="admin-btn" :plain="true" @click="toggleReportPanel">图件下载</div>
+        <div class="admin-btn"  @click="removeEarthquakeSimulation">清除模拟</div>
+        <div class="admin-btn"  @click="startEarthquakeSimulation">地震模拟</div>
+      </div>
     </div>
+
     <!-- 图件报告产出面板组件 -->
     <ThematicPanel
         v-if="isReportPanelVisible"
-        :eqRequests="eqRequests"
-        :earthquakeID="earthquakeID"
+        :eventRequests="eqRequests"
         maxHeight="70vh">
     </ThematicPanel>
     <!-- 模拟地震弹窗 -->
@@ -402,9 +403,10 @@ let viewer = null;
 // 图件报告产出
 let isReportPanelVisible = ref(false);
 let eqRequests = {
-  earthquakeFullName: null,
-  eqId: null,
-  eqqueueId: null
+  eventFullName: null,
+  eventId: null,
+  eventQueueId: null,
+  eventTypeof: "地震"
 }
 
 onMounted(() => {
@@ -674,7 +676,7 @@ function entitiesClickPonpHandler() {
             waterDisasterInformation.value = null
             floodDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
 
-          }else if (entity.name === "历史地震灾害"){
+          } else if (entity.name === "历史地震灾害") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
             showBaseInfo.value = true;
@@ -693,7 +695,7 @@ function entitiesClickPonpHandler() {
             waterDisasterInformation.value = null
             historialDisasterInformation.value = entity.disasterData
             // historialDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-            console.log(7545454,historialDisasterInformation.value)
+            console.log(7545454, historialDisasterInformation.value)
 
           } else {
             // ============ 整合 setupEntityClickHandler 的逻辑到这里 ============
@@ -755,9 +757,9 @@ function thematicEqInfo(data) {
   console.log(" eqqueueId：" + data.eqqueueId)
   console.log(" earthquakeFullName：" + data.earthquakeFullName)
   // 地震Id传给子组件
-  eqRequests.eqId = data.eqId
-  eqRequests.eqqueueId = data.eqqueueId
-  eqRequests.earthquakeFullName = data.earthquakeFullName
+  eqRequests.eventId = data.eqId
+  eqRequests.eventQueueId = data.eqqueueId
+  eqRequests.eventFullName = data.earthquakeFullName
 }
 
 //计算点击位置的经纬度和高度
@@ -894,7 +896,7 @@ function removeEarthquakeSimulation() {
 // 产出报告面板
 function toggleReportPanel() {
 
-  if (eqRequests.eqId == null && eqRequests.eqqueueId == null) {
+  if (eqRequests.eventId == null && eqRequests.eventQueueId == null) {
     ElMessage({
       message: '暂无图件，请先模拟地震！',
       type: 'warning',
@@ -1017,5 +1019,44 @@ function stopLoading() {
 .disaster-table tr:last-child th,
 .disaster-table tr:last-child td {
   border-bottom: none; /* 最后一行不显示底边 */
+}
+.admin-btn {
+  background-color: rgb(60 134 255);
+  color: white;
+  padding: 12px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-group {
+  display: flex;
+  flex-direction: row; /*设置主轴方向是水平方向*/
+  align-items: center; /*设置侧轴上，子元素的排列方式为居中对齐*/
+  gap: 5px;
+  margin-left: 20px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+.rain-btn-group {
+  /*width: 100%;*/
+  width: 100%;
+  height: 60px;
+  position: absolute;
+  /*bottom: 0px;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  */
+  background: url(/images/background_image.png) center center no-repeat #fff;
+  color: black;
+  z-index: 1000;
+  top: -60px;
 }
 </style>

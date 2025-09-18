@@ -79,20 +79,24 @@ import {downloadReport, getReport} from "@/api/system/damageassessment.js"
 export default {
   //接收父组件传来的数据
   props: {
-    eqRequests: {
+    eventRequests: {
       type: Object,
-      eqId: null,
-      eqqueueId: null,
-      earthquakeFullName: null
-    }
+      eventId: null,
+      eventQueueId: null,
+      eventFullName: null,
+      eventTypeof: null
+    },
+    wordPath: null
   },
   components: {},
   data() {
     return {
       viewer: null, // Cesium 实例
-      eqid: "", // 地震ID
-      eqqueueId: "", // 地震队列ID
-      earthquakeFullName: "", // 地震全称
+      eventId: "", // 地震ID
+      eventQueueId: "", // 地震队列ID
+      eventFullName: "", // 地震全称
+      eventTypeof: "",
+      wordRes : "",
 
       // 面板显示控制（仅保留实际使用的面板）
       isPanelShow: {
@@ -109,18 +113,33 @@ export default {
       outputData: {},
       imgName: '', // 预览图片名称
       imgUrl: '', // 预览图片地址
-      isNoData: false // 无数据标识
+      isNoData: false, // 无数据标识
+
     };
   },
   mounted() {
     this.init()
   },
+
+  watch(wordPath) {
+    this.wordRes = wordPath
+    console.log("已接收到暴雨文档路径...")
+  },
+
   methods: {
-    //初始化方法
+    // 初始化方法
     init() {
-      this.eqid = this.eqRequests.eqId;
-      this.eqqueueId = this.eqRequests.eqqueueId;
-      this.earthquakeFullName = this.eqRequests.earthquakeFullName;
+      this.eventId = this.eventRequests.eventId;
+      this.eventQueueId = this.eventRequests.eventQueueId;
+      this.eventFullName = this.eventRequests.eventFullName;
+      this.eventTypeof = this.eventRequests.eventTypeof;
+      this.wordRes = this.wordPath
+
+      console.log("this.eventId", this.eventId)
+      console.log("this.eventQueueId", this.eventQueueId)
+      console.log("this.eventFullName", this.eventFullName)
+      console.log("this.eventTypeof", this.eventTypeof)
+      console.log("this.wordRes", this.wordRes)
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
@@ -131,11 +150,6 @@ export default {
           }
         }
       }
-      //目前测试用，后续删除
-      const queryParams = {
-        eqId: this.eqid,
-        eqqueueId: this.eqqueueId
-      };
       // 先关闭其他所有面板
       Object.keys(this.isPanelShow).forEach(key => {
         if (key !== type) this.isPanelShow[key] = false;
@@ -145,7 +159,7 @@ export default {
 
       // 辅助决策报告：请求数据
       if (this.isPanelShow.AssistantDecision) {
-        handleOutputData(this.eqid, this.eqqueueId, this.earthquakeFullName, type).then(res => {
+        handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
           this.outputData = {
             themeName: res.themeName,
             themeData: res.themeData,
@@ -162,7 +176,7 @@ export default {
         // getEqOutputReports(this.eqid, this.eqqueueId).then(res => console.log("灾情报告", res.data));
 
         // 核心数据赋值
-        handleOutputData(this.eqid, this.eqqueueId, this.earthquakeFullName, type).then(res => {
+        handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
           this.outputData = {
             themeName: res.themeName,
             themeData: res.themeData,
@@ -216,14 +230,21 @@ export default {
     },
 
     async startDownloadReport() {
-      this.downloadReport();
+
+      // 地震报告下载。
+      if (this.eventTypeof === "地震") {
+        await this.downloadReport();
+      } else if (this.eventTypeof === "暴雨") {
+        // 下载暴雨报告
+        await this.downloadRainReport();
+      }
     },
 
     async downloadReport() {
       try {
         const DTO = {
-          "eqId": this.eqid,
-          "eqqueueId": this.eqqueueId
+          "eqId": this.eventId,
+          "eqqueueId": this.eventQueueId
         };
 
         getReport(DTO).then((res)=>{
@@ -249,12 +270,28 @@ export default {
             })
           }
         })
-
       } catch (error) {
         ElMessage("报告下载失败")
         console.error('下载错误:', error);
       }
     },
+    async downloadRainReport() {
+      if (!this.wordPath) {
+        ElMessage({
+          message: '报告正在产出中，请稍后再点击...',
+          type: 'warning',
+        })
+        return;
+      }
+      let wordUrl = this.wordPath
+      let link = document.createElement('a');
+      // try {
+      link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      link.download = wordUrl;                         // 强制触发下载
+      link.click();
+    },
+
 
 // 辅助函数：从cookie获取值
     getCookie(name) {
@@ -370,8 +407,8 @@ export default {
 
 .eqTheme {
   position: absolute;
-  top: 80px;
-  left: 49%;
+  top: 10px;
+  left: 79%;
   z-index: 100;
 }
 

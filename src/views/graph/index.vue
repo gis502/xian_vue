@@ -167,37 +167,37 @@
     </div>
 
     <!-- 底部时间轴组件 -->
-    <div class="timeline-container">
-      <div class="timeline-scroll" ref="timelineScroll">
-        <div class="timeline-wrapper" ref="timelineWrapper">
-          <!-- 横线容器 - 用于连接所有月份 -->
-          <div class="timeline-connector"></div>
+<!--    <div class="timeline-container">-->
+<!--      <div class="timeline-scroll" ref="timelineScroll">-->
+<!--        <div class="timeline-wrapper" ref="timelineWrapper">-->
+<!--          &lt;!&ndash; 横线容器 - 用于连接所有月份 &ndash;&gt;-->
+<!--          <div class="timeline-connector"></div>-->
 
-          <div
-              class="timeline-item"
-              v-for="(month, index) in months"
-              :key="index"
-              :class="{ active: currentMonth === index }"
-              @click="handleMonthClick(index)"
-              @mouseenter="showTooltip(index, $event)"
-              @mouseleave="hideTooltip"
-          >
-            <div class="month-circle"></div>
-            <div class="month-label">{{ month }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!--          <div-->
+<!--              class="timeline-item"-->
+<!--              v-for="(month, index) in months"-->
+<!--              :key="index"-->
+<!--              :class="{ active: currentMonth === index }"-->
+<!--              @click="handleMonthClick(index)"-->
+<!--              @mouseenter="showTooltip(index, $event)"-->
+<!--              @mouseleave="hideTooltip"-->
+<!--          >-->
+<!--            <div class="month-circle"></div>-->
+<!--            <div class="month-label">{{ month }}</div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
 
-    <!-- 灾害提示框 -->
-    <div v-if="tooltipVisible" class="tooltip" :style="tooltipStyle">
-      <div class="tooltip-title">频发灾害</div>
-      <div class="tooltip-content">
-        <div v-for="(disaster, idx) in currentDisasters" :key="idx">
-          {{ disasterMap[disaster] || disaster }}
-        </div>
-      </div>
-    </div>
+         <!-- 灾害提示框 -->
+<!--    <div v-if="tooltipVisible" class="tooltip" :style="tooltipStyle">-->
+<!--      <div class="tooltip-title">频发灾害</div>-->
+<!--      <div class="tooltip-content">-->
+<!--        <div v-for="(disaster, idx) in currentDisasters" :key="idx">-->
+<!--          {{ disasterMap[disaster] || disaster }}-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
 
 
   </div>
@@ -286,7 +286,7 @@ const handleNewsPanel = () => {
 //新闻数据处理逻辑
 const fetchNewsData = async (item = lastItem) => {
   lastItem = item
-  console.log('最新数据lastItem:', lastItem)
+  console.log('最新新闻数据lastItem:', lastItem)
   try {
     const res = await getNewsPage(pageNum.value, pageSize.value, lastItem)
     console.log("新闻数据",res)
@@ -375,7 +375,6 @@ const disasterMap = {
 }
 
 // 获取优先展示的灾害（优先有图谱，否则第一条）
-// 缓存，避免重复请求同一个 eqid
 const chartCache = new Map();
 
 // 判断是否有图谱数据（带缓存）
@@ -398,36 +397,51 @@ const hasChartData = async (item) => {
 };
 
 // 获取优先展示的灾害（并发查找 + 提前返回）
-const getPreferredItem = async () => {
+
+// 获取优先展示的灾害（固定返回 rain 类型 154701）
+const getPreferredItem = () => {
   if (allData.value.length === 0) return null;
+  console.log("allData:", allData.value)
 
-  return new Promise((resolve) => {
-    let resolved = false;
+  // 找到 rain 类型且 ID 为 154701 的 item
+  const target = allData.value.find(
+      (item) => item.disasterType === "rain" && item.rainDisasterId === "154701"
+  );
 
-    // 用 AbortController 来取消剩余请求（可选优化）
-    const controller = new AbortController();
-
-    // 并发请求
-    allData.value.forEach(async (item) => {
-      if (resolved) return;
-
-      const hasChart = await hasChartData(item);
-      if (hasChart && !resolved) {
-        resolved = true;
-        controller.abort(); // 取消剩余请求（如果后端支持）
-        resolve(item);
-      }
-    });
-
-    // 超时兜底：如果 1.5 秒内没有找到，返回第一条
-    setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        resolve(allData.value[0]);
-      }
-    }, 1500);
-  });
+  // 如果没找到，就退回第一条
+  return target || allData.value[0];
 };
+
+// const getPreferredItem = async () => {
+//   if (allData.value.length === 0) return null;
+//
+//   return new Promise((resolve) => {
+//     let resolved = false;
+//
+//     // 用 AbortController 来取消剩余请求（可选优化）
+//     const controller = new AbortController();
+//
+//     // 并发请求
+//     allData.value.forEach(async (item) => {
+//       if (resolved) return;
+//
+//       const hasChart = await hasChartData(item);
+//       if (hasChart && !resolved) {
+//         resolved = true;
+//         controller.abort(); // 取消剩余请求（如果后端支持）
+//         resolve(item);
+//       }
+//     });
+//
+//     // 超时兜底：如果 1.5 秒内没有找到，返回第一条
+//     setTimeout(() => {
+//       if (!resolved) {
+//         resolved = true;
+//         resolve(allData.value[0]);
+//       }
+//     }, 1500);
+//   });
+// };
 
 // 获取灾害 ID（支持 14 种类型）
 const disasterIdMap = {
@@ -652,8 +666,15 @@ const handlePageChangeDisaster = (page) => {
   updateTableData();
 };
 const fetchData = async () => {
+
   try {
-    const allowedTypes = monthDisasterMap[currentMonth.value] || [];
+    // const allowedTypes = monthDisasterMap[currentMonth.value] || [];
+    const allowedTypes = [
+      'snow', 'coldDamage', 'earthquake', 'safetyAccident',
+      'drought', 'sandstorm', 'bioDisaster', 'collapse',
+      'landslide', 'galeHail', 'heatwave', 'wildfire',
+      'rain', 'debrisFlow'
+    ];
     const firstPage = await getEarthquakeRainPage({
       pageNum: 1,
       pageSize: 5,
@@ -744,7 +765,7 @@ const filterGraphByDisasterType = (data, disasterType, eqid) => {
 
 
 const getData = async (item) => {
-  console.log("item", item)
+  console.log("默认灾害item", item)
   await fetchNewsData(item);
   try {
     if (!item || !item.disasterType) {
@@ -753,16 +774,10 @@ const getData = async (item) => {
     }
     let eqid;
     let disasterType;
-    if (item.disasterType === 'rain') {
-      eqid = item.rainDisasterId;
-      disasterType = 'rain';
-    } else if (item.disasterType === 'earthquake') {
-      eqid = item.earthquakeDisasterId;
-      disasterType = 'earthquake';
-    } else {
-      // 其他灾害类型处理逻辑，比如洪水、台风
-      eqid = null;
-      disasterType = 'unknown';
+
+    if (item?.disasterType && disasterIdMap[item.disasterType]) {
+      disasterType = item.disasterType;
+      eqid = item[disasterIdMap[disasterType]] || null;
     }
 
     if (!eqid) {
@@ -1439,7 +1454,7 @@ onMounted(async () => {
   await fetchData();
   const targetItem = await getPreferredItem();
   if (targetItem) await getData(targetItem);
-  resetTimer();
+  // resetTimer();
 });
 
 
