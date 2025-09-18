@@ -456,7 +456,7 @@ async function confirmEarthquake(formEl) {
                 console.log("触发成功...");
                 console.log("开始制作专题图...");
                 console.log("开始制作报告...");
-                ElMessage("开始生成报告");
+                // ElMessage("开始生成报告");
                 Object.assign(earthquakeID,response.data)
 
                 thematicEqInfo.eqId = response.data.eqId
@@ -500,7 +500,7 @@ async function confirmEarthquake(formEl) {
                     console.log("触发成功...");
                     console.log("开始制作专题图...");
                     console.log("开始制作报告...");
-                    ElMessage("开始生成报告");
+                    // ElMessage("开始生成报告");
                     Object.assign(earthquakeID,response.data)
 
                     thematicEqInfo.eqId = response.data.eqId

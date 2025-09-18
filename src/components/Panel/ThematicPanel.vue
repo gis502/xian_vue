@@ -247,31 +247,45 @@ export default {
           "eqqueueId": this.eventQueueId
         };
 
-        getReport(DTO).then((res)=>{
+        // 定义定时器变量
+        let checkInterval;
+        const checkReportStatus = () => {
+          getReport(DTO).then((res) => {
 
-          if (res === ''){
-            ElMessage({
-              message: '报告生成中...',
-              type: 'warning',
-            })
-          }else {
-            // 获取文件名
-            let fileName = `report_${this.eqid}.docx`;
-            const link = document.createElement('a');
-            link.href = res;
-            console.log(11111112164, res);
-            link.download = fileName;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            ElMessage({
-              message: '报告下载成功',
-              type: 'success',
-            })
-          }
-        })
-      } catch (error) {
-        ElMessage("报告下载失败")
+            if (res === '') {
+              ElMessage({
+                message: '报告生成中...',
+                type: 'warning',
+              })
+              return;
+            } else {
+              clearInterval(checkInterval);
+              // 获取文件名
+              let fileName = `report_${this.eqid}.docx`;
+              const link = document.createElement('a');
+              link.href = res;
+              link.download = fileName;
+              link.style.display = 'none';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              ElMessage({
+                message: '报告下载成功',
+                type: 'success',
+              });
+            }
+          }).catch((error) => {
+            // 发生错误时清除定时器
+            clearInterval(checkInterval);
+            ElMessage("报告获取失败")
+            console.error('获取报告错误:', error);
+          });
+        };
+        // 立即执行一次检查，然后每隔20秒检查一次
+        checkReportStatus();
+        checkInterval = setInterval(checkReportStatus, 20000);
+      }catch ( error ){
+        ElMessage("报告下载失败");
         console.error('下载错误:', error);
       }
     },
@@ -291,6 +305,9 @@ export default {
       link.download = wordUrl;                         // 强制触发下载
       link.click();
     },
+
+
+
 
 
 // 辅助函数：从cookie获取值
