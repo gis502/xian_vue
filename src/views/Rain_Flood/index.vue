@@ -36,6 +36,8 @@
              @update:generate="generate"
     />
 
+    <LayerControl :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
+
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
         left: `${calculatePopupLeft()}px`,
         top: `${calculatePopupTop()}px`,
@@ -44,7 +46,9 @@
         transform: popupVisible ? 'scale(1)' : 'scale(0.5)'
       }" @click.stop="stopPropagation">
       <div class="popup-header">
-        <h3 v-if="selectedEntityData.properties.teamName">{{ selectedEntityData.properties.teamName || '消防站' }} </h3>
+        <h3 v-if="selectedEntityData.properties.teamName">{{
+            selectedEntityData.properties.teamName || '消防站'
+          }} </h3>
         <h3 v-if="selectedEntityData.properties.hospitalName">{{
             selectedEntityData.properties.hospitalName || '医院'
           }} </h3>
@@ -57,6 +61,15 @@
         <h3 v-if="selectedEntityData.properties.shelterName">{{
             selectedEntityData.properties.shelterName || '避难所'
           }} </h3>
+        <h3 v-if="selectedEntityData.properties.stationName">{{
+            selectedEntityData.properties.stationName || '地铁站'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.bridgeName">{{
+            selectedEntityData.properties.bridgeName || '桥梁'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.reservoirName">{{
+            selectedEntityData.properties.reservoirName || '水库'
+          }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">
@@ -65,6 +78,18 @@
           <tr v-if="selectedEntityData.properties.disasterType">
             <th>灾害类型</th>
             <td>{{ selectedEntityData.properties.disasterType || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.disasterName">
+            <th>名称</th>
+            <td>{{ selectedEntityData.properties.disasterName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.bridgeName">
+            <th>桥梁名称</th>
+            <td>{{ selectedEntityData.properties.bridgeName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.reservoirName">
+            <th>水库名称</th>
+            <td>{{ selectedEntityData.properties.reservoirName || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.unitCode">
             <th>统一编号</th>
@@ -90,9 +115,29 @@
             <th>储备站点名称</th>
             <td>{{ selectedEntityData.properties.storeName || '未知' }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.schoolName">
+            <th>学校名称</th>
+            <td>{{ selectedEntityData.properties.schoolName || '未知' }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.shelterName">
             <th>避难所名称</th>
             <td>{{ selectedEntityData.properties.shelterName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.stationName">
+            <th>地铁站名称</th>
+            <td>{{ selectedEntityData.properties.stationName || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.referToWater">
+            <th>参照积水点</th>
+            <td>{{ selectedEntityData.properties.referToWater || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.depthOfWater">
+            <th>积水深度</th>
+            <td>{{ selectedEntityData.properties.depthOfWater || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.accumulatedWaterAfterAccounting">
+            <th>核算后积水深度</th>
+            <td>{{ selectedEntityData.properties.accumulatedWaterAfterAccounting || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.level">
             <th>级别</th>
@@ -102,9 +147,21 @@
             <th>危险源类型</th>
             <td>{{ selectedEntityData.properties.enterpriseType }}</td>
           </tr>
+          <tr v-if="selectedEntityData.properties.bridgeType">
+            <th>桥梁类型</th>
+            <td>{{ selectedEntityData.properties.bridgeType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.techType">
+            <th>技术类型</th>
+            <td>{{ selectedEntityData.properties.techType }}</td>
+          </tr>
           <tr v-if="selectedEntityData.properties.teamType">
             <th>消防站类型</th>
             <td>{{ selectedEntityData.properties.teamType }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.schoolType">
+            <th>学校类型</th>
+            <td>{{ selectedEntityData.properties.schoolType }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.storeType">
             <th>储备站类型</th>
@@ -117,6 +174,14 @@
           <tr v-if="selectedEntityData.properties.position">
             <th>地理位置</th>
             <td>{{ selectedEntityData.properties.position || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.location">
+            <th>地理位置</th>
+            <td>{{ selectedEntityData.properties.location || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.safetyLv">
+            <th>安全等级</th>
+            <td>{{ selectedEntityData.properties.safetyLv || '未知' }}</td>
           </tr>
           <tr>
             <th>经度</th>
@@ -149,6 +214,14 @@
           <tr v-if="selectedEntityData.properties.scaleGrade">
             <th>规模等级</th>
             <td>{{ selectedEntityData.properties.scaleGrade || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.students">
+            <th>在校学生</th>
+            <td>{{ selectedEntityData.properties.students || '未知' }}</td>
+          </tr>
+          <tr v-if="selectedEntityData.properties.isImportant">
+            <th>是否有重点保护目标</th>
+            <td>{{ selectedEntityData.properties.isImportant || '未知' }}</td>
           </tr>
           <tr v-if="selectedEntityData.properties.riskGrade">
             <th>风险等级</th>
@@ -194,7 +267,6 @@
             <th>避难所最大容纳人数</th>
             <td>{{ selectedEntityData.properties.effectiveNumber || '未知' }}</td>
           </tr>
-
           <tr v-if="selectedEntityData.properties.username">
             <th>巡查员</th>
             <td>{{ selectedEntityData.properties.username || '未知' }}</td>
@@ -293,6 +365,7 @@ import AffectedChart from "@/components/Earthquake/AffectedChart.vue";
 import TimeLine from "@/components/Rain/TimeLine.vue"
 import AddRain from "@/components/Panel/addRain.vue";
 import ThematicPanel from "@/components/Panel/ThematicPanel.vue";
+import LayerControl from "@/components/Rain/LayerControl.vue";
 /* 封装方法 */
 import {initCesium} from '@/cesium/initLayer.js'
 import clickPointsAndShowPanel from "@/cesium/clickPointsAndShowPanel.js";
@@ -308,6 +381,7 @@ import HiddenDisasterPanel from "@/components/Panel/HiddenDisasterPanel.vue";
 import {getAffectPoint, getPolieJiao} from "@/api/earthquake/hazards.js";
 import * as WKT from "wkt";
 import landslide_surface01 from "@/assets/images/landslide_surface01.jpg";
+import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.vue";
 
 let viewer = null
 let rainEffect = null
@@ -352,6 +426,7 @@ let rainId = ref("")
 let rainQueueId = ref("")
 let rainDisasterId = ref(null)
 let wordRes = ref("")
+let clickHandler = ref(null)
 
 let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
@@ -869,6 +944,7 @@ function stopPropagation(e) {
 
 /* 关闭弹窗 */
 function closePopup() {
+  console.log(selectedEntityData,popupVisible.value,"selectedEntityData closePopup")
   popupVisible.value = false;
   selectedEntityData = null;
 }
@@ -1143,7 +1219,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
   districtDisasterData = Object.values(districtStats);
   showLegend.value = !showLegend.value;
 
-  console.log(fenXiFanWei, "fenXiFanWei")
+  // console.log(fenXiFanWei,"fenXiFanWei")
   let impactAreaRequest = []
   new Promise((resolve, reject) => {
     fenXiFanWei.value.forEach((item) => {
@@ -1566,12 +1642,16 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
   }).then(() => {
     impactInsert(impactAreaRequest).then((res) => {
       console.log(res)
+    }).then(() => {
+      impactInsert(impactAreaRequest).then((res) => {
+        // console.log(res)
+      })
     })
+
+    stepStatus.value = 4
+    stepChain = "暴雨-" + list.join("、\n 暴雨-") + "灾害链"
+
   })
-
-  stepStatus.value = 4
-  stepChain = "暴雨-" + list.join("、\n 暴雨-") + "灾害链"
-
 }
 
 
@@ -1773,7 +1853,7 @@ function toggleAdminLayer() {
 }
 
 /* 刷新组件方法 */
-async function refreshComponent() {
+async function refreshComponent(){
   try {
     // 显示加载状态
     loadingModel.value = true
@@ -1968,15 +2048,108 @@ function downloadRainReport() {
     })
     return;
   }
-  console.log(wordRes, "wordRes")
+  // console.log(wordRes, "wordRes")
   let wordUrl = wordRes.value
   let link = document.createElement('a');
   // try {
+  // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
   link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
-  // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
   link.download = wordUrl;                         // 强制触发下载
   link.click();
   loadingModel.value = false
+}
+
+function setupEntityClickHandler() {
+
+  // 清除之前的点击事件处理程序
+  if (clickHandler.value) {
+    clickHandler.value.destroy();
+  }
+
+  // 为左键点击添加事件处理程序
+  clickHandler.value = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+  clickHandler.value.setInputAction((movement) => {
+    // 检查点击是否在实体上
+    const pickedObject = viewer.scene.pick(movement.position);
+    // 判断是否有disasterName属性
+    if (pickedObject.id.disasterData === undefined) {
+      return;
+    }
+    // 隐藏之前的弹出面板
+    closePopup();
+
+    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+      const entity = pickedObject.id;
+      // 获取实体的灾害数据
+      selectedEntityData = entity.disasterData || {};
+      // 计算弹出框位置并显示面板
+      calculateAndShowPopup(entity, movement.position);
+    } else {
+      // 如果点击在空白处，隐藏信息框
+      viewer.selectedEntity = undefined;
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+async function calculateAndShowPopup(entity, movementPosition) {
+  try {
+    const scene = viewer.scene;
+    const clock = viewer.clock;
+    // 获取当前时间
+    const currentTime = clock.currentTime;
+    // 使用当前时间获取位置值
+    const position = entity.position.getValue(currentTime);
+    // 正确检查位置有效性
+    if (!position ||
+        isNaN(position.x) || isNaN(position.y) || isNaN(position.z) ||
+        !isFinite(position.x) || !isFinite(position.y) || !isFinite(position.z)) {
+      console.log('位置无效或未定义');
+      return;
+    }
+    // 转换为窗口坐标
+    const windowPosition = scene.cartesianToCanvasCoordinates(position);
+    if (windowPosition) {
+      // 计算最终位置（添加偏移量）
+      popupPosition = {
+        x: windowPosition.x + 20,
+        y: windowPosition.y - 10
+      };
+      // 检测边界防止面板超出视口
+      checkPopupBoundary();
+      // 显示弹出面板
+      popupVisible.value = true;
+      // 平滑定位到点击的实体
+      await viewer.flyTo(entity, {
+        duration: 0.5,
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+      });
+    }
+  } catch (error) {
+    console.error("计算弹出面板位置出错:", error);
+  }
+}
+
+function checkPopupBoundary() {
+  const panelWidth = 280;
+  const panelHeight = 200;
+  const canvas = viewer.canvas;
+  const rect = canvas.getBoundingClientRect();
+  // 防止面板超出右边界
+  if (popupPosition.x + panelWidth > rect.right) {
+    popupPosition.x = rect.right - panelWidth - 10;
+  }
+  // 防止面板超出下边界
+  if (popupPosition.y + panelHeight > rect.bottom) {
+    popupPosition.y = rect.bottom - panelHeight - 10;
+  }
+  // 防止面板超出左边界
+  if (popupPosition.x < 10) {
+    popupPosition.x = 10;
+  }
+  // 防止面板超出上边界
+  if (popupPosition.y < 10) {
+    popupPosition.y = 10;
+  }
 }
 
 </script>
@@ -2065,5 +2238,28 @@ function downloadRainReport() {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.disaster-popup {
+  position: absolute;
+  z-index: 1000;
+  width: 330px; /* 减小宽度 */
+  background-color: white;
+  border-radius: 6px; /* 减小圆角 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
+  font-family: 'Source Han Sans CN', sans-serif;
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+  transform-origin: top left;
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+  border: 1px solid #e0e0e0;
+  font-size: 13px; /* 减小整体字体大小 */
+}
+.disaster-popup[style*="display: block"] {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  transition: all 0.3s ease;
 }
 </style>

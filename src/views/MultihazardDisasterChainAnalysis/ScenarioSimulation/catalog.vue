@@ -13,7 +13,7 @@
 
     </el-form-item>
     <el-table :data="tableData"
-              height="600px"
+              height="calc(100% - 110px)"
               @row-click="go"
               :stripe="true"
               :header-cell-style="{  }"
@@ -232,5 +232,10 @@ export default {
 
 <style scoped>
 
+* ,
+::v-deep .el-table__header th,
+::v-deep .el-form-item__label{
+  font-size: 1.0rem;
+}
 
 </style>

@@ -12,7 +12,7 @@
             </el-row>
         </el-form>
     </div>
-    <div class="table-box">
+    <div class="table-box" v-if="!showDetail">
         <el-table class="custom-table" :data="tableDatas" border style="width: 100%" @row-click="handleRowClick">
             <el-table-column type="index" label="序号" width="100" align="center" />
             <el-table-column prop="tableName" label="表名" width="500" align="center" />
@@ -75,7 +75,7 @@ onMounted(() => {
     }
   });
     // 获取表格数据
-    queryTableNames('山洪危险点').then((res) => {
+    queryTableNames('').then((res) => {
         tableDatas.value = res.data;
     })
 })
