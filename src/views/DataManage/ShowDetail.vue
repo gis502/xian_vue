@@ -12,9 +12,9 @@
                 </div>
             </div>
         </template>
-        <div class="operation-box">
+        <!-- <div class="operation-box">
             <el-button type="danger" @click="deleteSelectionDatas">删除选中</el-button>
-        </div>
+        </div> -->
         <el-table ref="multipleTable" :data="tableDatas" border style="width: 100%" @row-click="handleRowClick">
             <el-table-column type="selection" width="55" />
             <el-table-column v-for="tableLabel in tableLabels" :prop="tableLabel.key"
