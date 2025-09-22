@@ -14,3 +14,17 @@ export function getRainProbability(disasterParam) {
         data: disasterParam,
     })
 }
+
+export function getEarthQuakeProbability(disasterParam) {
+    return request({
+        url: '/disasterChain/getEarthQuakeProbability',
+        method: 'post',
+        data: disasterParam,
+    })
+}
+export function getEarthQuake(){
+    return request({
+        url: '/disasterChain/getEarthQuake',
+        method: 'get'
+    })
+}

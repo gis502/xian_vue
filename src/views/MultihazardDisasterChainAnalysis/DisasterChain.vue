@@ -17,12 +17,12 @@
     </div>
     <div v-if="showSelect" class="layerControl-panel">
       <div class="panel-content">
-        <label><input type="checkbox" v-model="showRainLand" @change="toggleRainLand"> 暴雨滑坡 </label>
-        <label><input type="checkbox" v-model="showRainDebrisFlow" @change="toggleRainDebrisFlow"> 暴雨泥石流 </label>
-        <label><input type="checkbox" v-model="showRainWater" @change="toggleRainWater"> 暴雨内涝 </label>
-        <label><input type="checkbox" v-model="showRainFlood" @change="toggleRainFlood"> 暴雨山洪 </label>
-<!--        <label><input type="checkbox" v-model="showEarthLand" @change="toggleEarthLand"> 地震滑坡 </label>-->
-<!--        <label><input type="checkbox" v-model="showEarthDebrisFlow" @change="toggleEarthDebrisFlow"> 地震泥石流 </label>-->
+        <label><input type="checkbox" v-model="showRainLand" @change="toggleRainLand" :disabled="disasterTy === 'earthquake'"> 暴雨滑坡 </label>
+        <label><input type="checkbox" v-model="showRainDebrisFlow" @change="toggleRainDebrisFlow" :disabled="disasterTy === 'earthquake'"> 暴雨泥石流 </label>
+        <label><input type="checkbox" v-model="showRainWater" @change="toggleRainWater" :disabled="disasterTy === 'earthquake'"> 暴雨内涝 </label>
+        <label><input type="checkbox" v-model="showRainFlood" @change="toggleRainFlood" :disabled="disasterTy === 'earthquake'"> 暴雨山洪 </label>
+        <label><input type="checkbox" v-model="showEarthLand" @change="toggleEarthLand" :disabled="disasterTy === 'rain'"> 地震滑坡 </label>
+        <label><input type="checkbox" v-model="showEarthDebrisFlow" @change="toggleEarthDebrisFlow" :disabled="disasterTy === 'rain'"> 地震泥石流 </label>
       </div>
     </div>
     <!-- 暴雨信息卡片 -->
@@ -30,7 +30,7 @@
       <div class="table-header">
         <div class="table-title">
           <i class="el-icon-heavy-rain"></i>
-          暴雨灾害信息
+          总灾害信息列表
         </div>
         <div class="search-controls">
           <input
@@ -53,7 +53,7 @@
         <tr>
           <th>灾害名称</th>
           <th>发生时间</th>
-          <th>降雨量 (mm)</th>
+          <th>降雨量 (mm)/震级</th>
           <th>位置</th>
         </tr>
         </thead>
@@ -66,7 +66,7 @@
         >
           <td>{{ item.disasterName }}</td>
           <td>{{ formatTime(item.occurrenceTime) }}</td>
-          <td>{{ item.rainfall }}</td>
+          <td>{{ item.rainfall || item.magnitude }}</td>
           <td>{{ item.position }}</td>
         </tr>
         </tbody>
@@ -147,7 +147,7 @@ import { onMounted, reactive, ref } from "vue";
 import basicLayers from "../../cesium/basicLayers";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
-import {getRain, getRainProbability} from "@/api/system/disasterChain.js";
+import {getRain, getRainProbability, getEarthQuakeProbability, getEarthQuake} from "@/api/system/disasterChain.js";
 import modal from "@/plugins/modal.js";
 
 const currentPage = ref(1);
@@ -170,9 +170,13 @@ let selectedEntityData = ref(null);
 let popupVisible = ref(false);
 let popupPosition =  ref({x: 0, y: 0});
 // 加载
+let rainData = ref([]);
+let earthquakeData = ref([]);
+let combinedData = ref([]); // 新增合并后的数据
+
 let loading = ref(false);
-let rainData = ref({});
 let disasterId = ref(0);
+let disasterTy = ref("");
 let LandEntities = ref([]);
 let FlowEntities= ref([]);
 let FloodEntities = ref([]);
@@ -261,50 +265,102 @@ onMounted(() => {
       roll: 0.0,
     },
   });
-  getAllRainInfo();
+  getAllDisasterInfo();
   setupEntityHandler();
 });
 
-
+//灾害选择
 function selectDisasterChain() {
   showSelect.value = !showSelect.value;
-}
-
-function getAllRainInfo(){
-  try {
-    getRain().then((response) => {
-      rainData.value = response.data;
-      searchQuery.value = ''; // 清空搜索框
-      isSearching.value = false; // 重置搜索状态
-      currentPage.value = 1; // 重置到第一页
-    })
-  } catch (e) {
-    console.log("error", e);
-  }
-}
-
-function stopFlashEntities(disasterType) {
-  highRiskEntities.value = highRiskEntities.value.filter(entity =>
-      entity.disasterType !== disasterType
-  );
-  console.log(`已移除 ${disasterType} 类型实体，剩余:`, highRiskEntities.value.length);
-}
-
-function flash(){
-  if(!(showRainLand.value || showRainFlood.value || showRainWater.value || showRainDebrisFlow.value)){
-    stopFlashing();
-  }else{
-    stopFlashing();
-    setTimeout(() => {
-      flashDisasterPoints(highRiskEntities.value);
-    }, 100);
-  }
 }
 
 function toSelectDisaster(){
   showDisaster.value = !showDisaster.value;
 }
 
+// 修改获取数据的方法
+async function getAllDisasterInfo(){
+  try {
+    // 并行获取暴雨和地震数据
+    const [rainResponse, earthquakeResponse] = await Promise.all([
+      getRain(),
+      getEarthQuake()
+    ]);
+
+    rainData.value = rainResponse.data || [];
+    earthquakeData.value = earthquakeResponse.data || [];
+
+    // 合并数据并添加类型标识
+    combinedData.value = [
+      ...rainData.value.map(item => ({ ...item, disasterType: 'rain' })),
+      ...earthquakeData.value.map(item => ({ ...item, disasterType: 'earthquake' }))
+    ].sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime)); // 按时间降序
+
+    searchQuery.value = ''; // 清空搜索框
+    isSearching.value = false; // 重置搜索状态
+    currentPage.value = 1; // 重置到第一页
+
+  } catch (e) {
+    console.log("error", e);
+  }
+}
+
+// 修改计算属性，使用合并后的数据
+const paginatedData = computed(() => {
+  const dataSource = isSearching.value ? filteredRainData.value : combinedData.value;
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return dataSource.slice(start, end);
+});
+
+const totalPages = computed(() => {
+  const dataSource = isSearching.value ? filteredRainData.value : combinedData.value;
+  return Math.ceil(dataSource.length / itemsPerPage);
+});
+
+// 修改搜索功能
+function applySearch() {
+  if (!searchQuery.value.trim()) {
+    isSearching.value = false;
+    currentPage.value = 1;
+    return;
+  }
+
+  const query = searchQuery.value.toLowerCase().trim();
+  filteredRainData.value = combinedData.value.filter(item =>
+      item.disasterName.toLowerCase().includes(query)
+  );
+
+  isSearching.value = true;
+  currentPage.value = 1;
+}
+// 方法
+function selectDisaster(item) {
+  disasterId.value = item.disasterId;
+  disasterTy.value = item.disasterType;
+  // 这里可以调用其他处理选中灾害的函数
+  console.log('选中的灾害ID:', disasterId.value, '灾害类型:', disasterTy.value);
+  modal.msg(`选择成功，选择的灾害id：${disasterId.value}，选择的灾害类型：${disasterTy.value}`);
+  showDisaster.value = !showDisaster.value;
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+}
+
+function formatTime(timeString) {
+  return new Date(timeString).toLocaleString('zh-CN');
+}
+
+//主体逻辑
 function toggleRainLand(){
   if(showRainLand.value){
     try{
@@ -439,11 +495,70 @@ function toggleRainFlood(){
 }
 
 function toggleEarthLand(){
-  console.log("暂无数据");
+  if(showEarthLand.value){
+    try{
+      const DTO = {
+        disasterId: disasterId.value,
+        disasterType: "滑坡",
+      };
+      // 等待数据获取完成
+      getEarthQuakeProbability(DTO).then((response) =>{
+        setTimeout(() => {
+          console.log("等待2秒后执行");
+          const processedEntities = checkEntity(response.data);
+          LandEntities.value = processedEntities;
+          LandEntities.value.forEach((item) => {
+            dataTypes.type5.data.push({
+              field1: item.name,
+              field2: item.position,
+              field3: item.probability,
+              field4: item.riskGrade,
+              field5: item.lon,
+              field6: item.lat,
+            })
+          })
+        }, 1500); // 2000毫秒 = 2秒
+      })
+    }catch (e){
+      console.log("error", e)
+    }
+  }else{
+    dataTypes.type5.data = [];
+    stopFlashEntities("滑坡");
+    flash();
+  }
 }
 
 function toggleEarthDebrisFlow(){
-  console.log("暂无数据");
+  if(showRainDebrisFlow.value){
+    try{
+      const DTO = {
+        disasterId: disasterId.value,
+        disasterType: "泥石流",
+      };
+      getEarthQuakeProbability(DTO).then((response) => {
+        setTimeout(() => {
+          FlowEntities.value = checkEntity(response.data);
+          FlowEntities.value.forEach((item) => {
+            dataTypes.type6.data.push({
+              field1: item.name,
+              field2: item.position,
+              field3: item.probability,
+              field4: item.riskGrade,
+              field5: item.lon,
+              field6: item.lat,
+            })
+          })
+        }, 1500);
+      })
+    }catch (e){
+      console.log("error", e)
+    }
+  }else{
+    dataTypes.type6.data = [];
+    stopFlashEntities("泥石流");
+    flash();
+  }
 }
 
 function checkEntity(entityData) {
@@ -612,60 +727,6 @@ function flashDisasterPoints(points) {
     }
   }, 50);
 }
-// 计算属性
-// 计算属性
-const paginatedData = computed(() => {
-  const dataSource = isSearching.value ? filteredRainData.value : rainData.value;
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return dataSource.slice(start, end);
-});
-
-const totalPages = computed(() => {
-  const dataSource = isSearching.value ? filteredRainData.value : rainData.value;
-  return Math.ceil(dataSource.length / itemsPerPage);
-});
-
-function applySearch() {
-  if (!searchQuery.value.trim()) {
-    isSearching.value = false;
-    currentPage.value = 1;
-    return;
-  }
-
-  const query = searchQuery.value.toLowerCase().trim();
-  filteredRainData.value = rainData.value.filter(item =>
-      item.disasterName.toLowerCase().includes(query)
-  );
-
-  isSearching.value = true;
-  currentPage.value = 1;
-}
-
-// 方法
-function selectDisaster(item) {
-  disasterId.value = item.disasterId;
-  // 这里可以调用其他处理选中灾害的函数
-  console.log('选中的灾害ID:', disasterId.value);
-  modal.msg(`选择成功，选择的灾害id：${disasterId.value}`);
-  showDisaster.value = !showDisaster.value;
-}
-
-function prevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
-}
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-  }
-}
-
-function formatTime(timeString) {
-  return new Date(timeString).toLocaleString('zh-CN');
-}
 // 停止闪烁的函数
 const stopFlashing = () => {
   console.log("停止闪烁");
@@ -808,6 +869,24 @@ function calculatePopupLeft() {
 function calculatePopupTop() {
   checkPopupBoundary(); // 确保在返回前检查边界
   return popupPosition.value.y;
+}
+
+function stopFlashEntities(disasterType) {
+  highRiskEntities.value = highRiskEntities.value.filter(entity =>
+      entity.disasterType !== disasterType
+  );
+  console.log(`已移除 ${disasterType} 类型实体，剩余:`, highRiskEntities.value.length);
+}
+
+function flash(){
+  if(!(showRainLand.value || showRainFlood.value || showRainWater.value || showRainDebrisFlow.value || showEarthLand.value || showEarthDebrisFlow.value)) {
+    stopFlashing();
+  }else{
+    stopFlashing();
+    setTimeout(() => {
+      flashDisasterPoints(highRiskEntities.value);
+    }, 100);
+  }
 }
 
 
