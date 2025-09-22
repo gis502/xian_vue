@@ -17,10 +17,10 @@
     </div>
     <div v-if="showSelect" class="layerControl-panel">
       <div class="panel-content">
-        <label><input type="checkbox" v-model="showRainLand" @change="toggleRainLand"> 暴雨滑坡 </label>
-        <label><input type="checkbox" v-model="showRainDebrisFlow" @change="toggleRainDebrisFlow"> 暴雨泥石流 </label>
-        <label><input type="checkbox" v-model="showRainWater" @change="toggleRainWater"> 暴雨内涝 </label>
-        <label><input type="checkbox" v-model="showRainFlood" @change="toggleRainFlood"> 暴雨山洪 </label>
+        <label><input type="checkbox" v-model="showRainLand" @change="toggleRainLand"> 暴雨-滑坡 </label>
+        <label><input type="checkbox" v-model="showRainDebrisFlow" @change="toggleRainDebrisFlow"> 暴雨-泥石流 </label>
+        <label><input type="checkbox" v-model="showRainWater" @change="toggleRainWater"> 暴雨-内涝 </label>
+        <label><input type="checkbox" v-model="showRainFlood" @change="toggleRainFlood"> 暴雨-山洪 </label>
 <!--        <label><input type="checkbox" v-model="showEarthLand" @change="toggleEarthLand"> 地震滑坡 </label>-->
 <!--        <label><input type="checkbox" v-model="showEarthDebrisFlow" @change="toggleEarthDebrisFlow"> 地震泥石流 </label>-->
       </div>

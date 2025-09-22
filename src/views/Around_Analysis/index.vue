@@ -47,11 +47,11 @@
         v-if="selectedEntityData"
         class="disaster-popup"
         :style="{
-    left: `${calculatePopupLeft()}px`,
-    top: `${calculatePopupTop()}px`,
-    display: popupVisible ? 'block' : 'none',
-    opacity: popupVisible ? '1' : '0',
-    transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
+        left: `${calculatePopupLeft()}px`,
+        top: `${calculatePopupTop()}px`,
+        display: popupVisible ? 'block' : 'none',
+        opacity: popupVisible ? '1' : '0',
+        transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
         @click.stop="stopPropagation">
       <div class="popup-header">
         <h3 v-if="selectedEntityData.properties.disasterName">{{
