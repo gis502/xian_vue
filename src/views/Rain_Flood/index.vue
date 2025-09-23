@@ -427,8 +427,9 @@ let rainQueueId = ref("")
 let rainDisasterId = ref(null)
 let wordRes = ref("")
 let clickHandler = ref(null)
+let selectedEntityData = ref(null)
 
-let selectedEntityData = reactive(null)
+// let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
 let popupPosition = reactive({x: 0, y: 0})
 let PanelPosition = reactive({x: 0, y: 0})
@@ -687,6 +688,7 @@ function initEntitiesClickPonpHandler() {
         // 如果拾取到实体
         if (Cesium.defined(pickedEntity)) {
           let entity = window.selectedEntity;
+          console.log(window.selectedEntity,"window.selectedEntity")
           // console.log(entity, "拾取entity")
           // 计算图标的世界坐标
           selectedEntityPosition = calculatePosition(click.position);
@@ -727,12 +729,10 @@ function initEntitiesClickPonpHandler() {
             showWaterDisasterInformation.value = false;
 
             disasterInformation = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities)
-
             debrisFlowInformation = null
             riskPointsInformation = null
             waterDisasterInformation = null
             floodDisasterInformation = null
-
 
           } else if (entity.name === "泥石流隐患点") {
             eqCenterPanelVisible = false;
@@ -944,9 +944,9 @@ function stopPropagation(e) {
 
 /* 关闭弹窗 */
 function closePopup() {
-  console.log(selectedEntityData,popupVisible.value,"selectedEntityData closePopup")
+  // console.log(selectedEntityData,popupVisible.value,"selectedEntityData closePopup")
   popupVisible.value = false;
-  selectedEntityData = null;
+  selectedEntityData.value = null;
 }
 
 /* 显示雷达图开关 */
@@ -1922,9 +1922,9 @@ function resetAllStates() {
   showStep.value = false
 
   // 重置响应式对象 - 使用更安全的方式
-  if (selectedEntityData) {
-    Object.keys(selectedEntityData).forEach(key => {
-      delete selectedEntityData[key]
+  if (selectedEntityData.value) {
+    Object.keys(selectedEntityData.value).forEach(key => {
+      delete selectedEntityData.value[key]
     })
   }
 
@@ -2077,11 +2077,16 @@ function setupEntityClickHandler() {
     }
     // 隐藏之前的弹出面板
     closePopup();
+    console.log(pickedObject,"pickedObject")
+    if(pickedObject.id.name === "风险区域" ||pickedObject.id.name === "滑坡隐患点"||pickedObject.id.name === "泥石流隐患点"||pickedObject.id.name === "内涝隐患点"||pickedObject.id.name === "山洪隐患点"){
+      return;
+    }
 
     if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
       const entity = pickedObject.id;
+      // console.log(entity,"entity123")
       // 获取实体的灾害数据
-      selectedEntityData = entity.disasterData || {};
+      selectedEntityData.value = entity.disasterData || {};
       // 计算弹出框位置并显示面板
       calculateAndShowPopup(entity, movement.position);
     } else {
@@ -2118,11 +2123,12 @@ async function calculateAndShowPopup(entity, movementPosition) {
       checkPopupBoundary();
       // 显示弹出面板
       popupVisible.value = true;
+      console.log(popupVisible.value,"popupVisible.value")
       // 平滑定位到点击的实体
-      await viewer.flyTo(entity, {
-        duration: 0.5,
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
-      });
+      // await viewer.flyTo(entity, {
+      //   duration: 0.5,
+      //   offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+      // });
     }
   } catch (error) {
     console.error("计算弹出面板位置出错:", error);

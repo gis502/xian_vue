@@ -9,12 +9,12 @@
       <div class="popup-header">
         <h3>{{ title }}</h3>
 
-        <el-button style="margin: 0 0 0 5px;"
-            type="info"
-            v-text="displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'"
-            @click="displayComponents"
-        ></el-button>
-        <el-button @click="landslideImpact">影响范围分析</el-button>
+<!--        <el-button style="margin: 0 0 0 5px;"-->
+<!--            type="info"-->
+<!--            v-text="displayDisasterCausingFactors ? '显示基本信息' : '显示致灾因子'"-->
+<!--            @click="displayComponents"-->
+<!--        ></el-button>-->
+<!--        <el-button @click="landslideImpact">影响范围分析</el-button>-->
       </div>
 
       <!-- 滑坡信息 -->
