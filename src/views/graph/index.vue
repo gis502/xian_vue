@@ -1417,23 +1417,33 @@ const findPathToNode = (sourceNode, targetNode) => {
 
 
 // 显示描述并聚焦节点
+// 显示描述并聚焦节点
 const showDescription = (item, value) => {
-  item.isOpen = !item.isOpen;
+  const nodeName = item.value;
+  const isCurrentlyExpanded = expandedNodes.has(nodeName);
 
-  // 如果展开了，更新 currentIndex，表示当前项被选中
-  if (item.isOpen) {
-    currentIndex.value = item.id;
+  if (isCurrentlyExpanded) {
+    // 如果图谱已展开，则收缩
+    handleNodeClick({name: nodeName});
+    item.isOpen = false; // 同步目录状态
+    currentIndex.value = null;
+    cancelHighlight();
   } else {
-    // 如果收起了，清除 currentIndex
-    if (currentIndex.value === item.id) {
-      currentIndex.value = null;
-    }
+    // 如果图谱未展开，则展开
+    handleNodeClick({name: nodeName});
+    item.isOpen = true; // 同步目录状态
+    currentIndex.value = item.id;
+    focusNode(value);
   }
-
-  const nodeName = {name:item.value}
-  handleNodeClick(nodeName);
-
-  focusNode(value);
+};
+// 新增：取消高亮函数
+const cancelHighlight = () => {
+  // 取消所有高亮
+  echartsInstance.value.dispatchAction({ type: 'downplay' });
+  // 恢复默认视图
+  echartsInstance.value.dispatchAction({ type: 'restore' });
+  // 清空输入框
+  inputValue.value = '';
 };
 
 
@@ -1443,6 +1453,8 @@ const handleClick = () => {
   emit('bigGraphShow', false)
 };
 const handleChildClick = (child) => {
+  // 设置当前高亮索引
+  currentIndex.value = child.id;
   const newChild = { name: child.value };
   handleNodeClick(newChild);
   focusNode(newChild.name);
@@ -1936,6 +1948,18 @@ onBeforeUnmount(() => {
 
       li.clicked::before {
         background-image: linear-gradient(151deg, #66c8f2, #35f 66%);
+      }
+      .list li.clicked {
+        color: blue;
+        background-color: #f0f8ff; /* 浅蓝色背景 */
+        font-weight: bold;
+      }
+
+      /* 子项的高亮样式 */
+      .list li ul li.clicked {
+        color: blue;
+        background-color: #f0f8ff;
+        font-weight: bold;
       }
     }
 
