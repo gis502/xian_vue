@@ -105,11 +105,8 @@ let basicLayers = {
     cropsLayer: null,   //农田网格
     waterPipeLayer: null,//管网
     roadLayer: null,//公路
-    bridgeLayer: null,//桥梁点
     highwayLayer: null,//高速
     nationalRoadLayer: null,//国道
-    reservoirLayer: null,//水库点
-    subwayLayer: null,//地铁站点
     addCenterPoint(item) {
         // console.log(item,"addCenterPoint item")
         //点的属性 震中点统用一一个方法

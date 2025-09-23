@@ -96,6 +96,25 @@ const showSubway = ref(false);
 
 const layerHandler = ref(null);
 
+function resetShow(){
+  showDisaster.value = true;
+  showHospital.value = false;
+  showDangerSource.value = false;
+  showShelter.value = false;
+  showFire.value = false;
+  showStore.value = false;
+  showSchool.value = false;
+  showPeople.value = false;
+  showCrops.value = false;
+  showPipe.value = false;
+  showRoad.value = false;
+  showBridge.value = false;
+  showHighway.value = false;
+  showNationalRoad.value = false;
+  showReservoir.value = false;
+  showSubway.value = false;
+}
+
 // 图层点击事件处理
 function setupLayerClickHandler() {
   // 清除之前的点击事件处理程序
@@ -370,6 +389,9 @@ function toggleSubway(){
   }
 }
 
+defineExpose({
+  resetShow
+})
 
 </script>
 

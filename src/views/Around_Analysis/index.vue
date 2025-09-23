@@ -743,6 +743,8 @@ export default {
         basicLayers.loadAdminData();
         this.loadData();
 
+        this.$refs.layerControl.resetShow();
+
         // 7. 重新设置点击处理器（延迟执行确保viewer完全初始化）
         setTimeout(() => {
           this.setupEntityClickHandler();
@@ -2033,6 +2035,23 @@ export default {
       this.currentPage = 1;
       this.isExpanded = false;
       this.canMarkAgain = true;
+
+      basicLayers.disasterEntities = [];
+      basicLayers.hospitalEntities = [];
+      basicLayers.storePointsEntities = [];
+      basicLayers.dangerEntities = [];//危险源
+      basicLayers.storePointsEntities= [];//储备点
+      basicLayers.fireFighterEntities= [];//消防站
+      basicLayers.schoolEntities = [];
+      basicLayers.shelterEntities = [];
+      basicLayers.subwayEntities = [];
+      basicLayers.reservoirEntities = [];
+      basicLayers.peopleLayer= null; //人口网格
+      basicLayers.cropsLayer= null;   //农田网格
+      basicLayers.waterPipeLayer= null;//管网
+      basicLayers.roadLayer= null;//公路
+      basicLayers.highwayLayer= null;//高速
+      basicLayers.nationalRoadLayer= null;//国道
     }
   }
 }
