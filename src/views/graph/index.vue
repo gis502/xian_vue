@@ -23,26 +23,29 @@
         />
       </div>
       <div class="container">
-      <div class="list">
-        <li
-            v-for="item in list"
-            :key="item.id"
-            :class="{'clicked': currentIndex === item.id}"
-            @click="showDescription(item,item.value)"
-        >{{ item.value }}({{item.fatherCount}})
-          <!--          如果有子项展开子项-->
-          <ul v-if="item.isOpen">
-            <li
-                v-for="child in item.children"
-                :key="child.id"
-                :class="{'clicked': currentIndex === child.id}"
-                @click.stop="handleChildClick(child)"
-            >
-              {{ child.value}}({{child.sonCount}})
-            </li>
-          </ul>
-        </li>
-      </div>
+        <div class="list">
+          <li
+              v-for="item in list"
+              :key="item.id"
+              :class="{
+        'clicked': currentIndex === item.id ||
+                  (currentChildIndex && item.children &&
+                   item.children.some(child => child.id === currentChildIndex))
+      }"
+              @click="showDescription(item,item.value)"
+          >{{ item.value }}({{item.fatherCount}})
+            <ul v-if="item.isOpen">
+              <li
+                  v-for="child in item.children"
+                  :key="child.id"
+                  :class="{'clicked': currentChildIndex === child.id}"
+                  @click.stop="handleChildClick(child)"
+              >
+                {{ child.value}}({{child.sonCount}})
+              </li>
+            </ul>
+          </li>
+        </div>
       </div>
       <!-- 按钮区域 -->
       <div class="button themes"
@@ -245,6 +248,7 @@ const emit = defineEmits(['bigGraphShow'])
 // 响应式数据
 const inputValue = ref('');
 const currentIndex = ref(null);
+const currentChildIndex = ref(null);
 const showChat = ref(false);
 const loading = ref(false);
 const chart = ref(null);
@@ -1417,7 +1421,6 @@ const findPathToNode = (sourceNode, targetNode) => {
 
 
 // 显示描述并聚焦节点
-// 显示描述并聚焦节点
 const showDescription = (item, value) => {
   const nodeName = item.value;
   const isCurrentlyExpanded = expandedNodes.has(nodeName);
@@ -1427,14 +1430,32 @@ const showDescription = (item, value) => {
     handleNodeClick({name: nodeName});
     item.isOpen = false; // 同步目录状态
     currentIndex.value = null;
+    currentChildIndex.value = null; // 清空子节点高亮
     cancelHighlight();
   } else {
     // 如果图谱未展开，则展开
     handleNodeClick({name: nodeName});
     item.isOpen = true; // 同步目录状态
     currentIndex.value = item.id;
+    currentChildIndex.value = null; // 清空子节点高亮
     focusNode(value);
   }
+};
+
+// 处理子项点击
+const handleChildClick = (child) => {
+  // 找到对应的父节点
+  const parentItem = list.value.find(item =>
+      item.children && item.children.some(c => c.id === child.id)
+  );
+
+  // 同时高亮父节点和子节点
+  currentIndex.value = parentItem ? parentItem.id : null;
+  currentChildIndex.value = child.id;
+
+  const nodeName = {name: child.value};
+  handleNodeClick(nodeName);
+  focusNode(child.value);
 };
 // 新增：取消高亮函数
 const cancelHighlight = () => {
@@ -1452,13 +1473,15 @@ const handleClick = () => {
   // 触发事件通知父组件
   emit('bigGraphShow', false)
 };
-const handleChildClick = (child) => {
-  // 设置当前高亮索引
-  currentIndex.value = child.id;
-  const newChild = { name: child.value };
-  handleNodeClick(newChild);
-  focusNode(newChild.name);
-};
+// 处理子项点击
+// const handleChildClick = (child) => {
+//   // 设置当前高亮索引
+//   currentIndex.value = child.id;
+//
+//   const nodeName = {name: child.value};
+//   handleNodeClick(nodeName);
+//   focusNode(child.value);
+// };
 
 
 
@@ -1951,14 +1974,13 @@ onBeforeUnmount(() => {
       }
       .list li.clicked {
         color: blue;
-        background-color: #f0f8ff; /* 浅蓝色背景 */
+        background-color: #f0f8ff;
         font-weight: bold;
       }
 
-      /* 子项的高亮样式 */
       .list li ul li.clicked {
         color: blue;
-        background-color: #f0f8ff;
+        background-color: #e6f3ff; /* 稍微不同的蓝色以示区分 */
         font-weight: bold;
       }
     }
