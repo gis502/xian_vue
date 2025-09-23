@@ -73,7 +73,8 @@ import * as Cesium from "cesium";
 
 const props = defineProps({
   viewer: Object,
-  setupEntityClickHandler: Function
+  setupEntityClickHandler: Function,
+  otherEntities: Object
 });
 
 const showDisaster = ref(true);
@@ -198,6 +199,11 @@ function toggleDisaster(){
     basicLayers.disasterEntities.forEach(entity => {
       entity.show = showDisaster.value;
     });
+    if(props.otherEntities){
+      props.otherEntities.forEach(entity => {
+        entity.show = showDisaster.value;
+      })
+    }
   }
 }
 

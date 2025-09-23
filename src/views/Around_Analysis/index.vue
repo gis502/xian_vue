@@ -6,13 +6,18 @@
         {{ rainMode ? '取消区域分析' : '标记区域分析' }}
       </div>
       <div class="refresh" @click="refreshView">
-        重置标记区域
+        还原地图状态
       </div>
       <div class="admin-btn" @click="toggleAdminLayer">
         {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
       </div>
     </div>
-    <rain-layer-control :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
+    <rain-layer-control
+        ref="layerControl"
+        :viewer="viewer"
+        :setupEntityClickHandler="setupEntityClickHandler"
+        :otherEntities="disasterEntities"
+    />
     <div class="demo-autocomplete">
       <div class="demo-block">
         <el-autocomplete
@@ -33,7 +38,7 @@
       <div class="panel-content">
         <div class="form-item">
           <label class="jiangyuliang">半径:</label>
-          <input v-model.number="rainfall" type="number" min="0" max="500" step="1" />
+          <input v-model.number="rainfall" type="number" min="0" max="100" step="1" />
           <span>公里</span>
         </div>
         <div class="button-group">
@@ -733,8 +738,8 @@ export default {
         this.getNum();
         this.loadRiverData();
         this.loadLakeData();
-        basicLayers.loadFlashFlood();
-        basicLayers.loadWater();
+        await basicLayers.loadFlood();
+        await basicLayers.loadWater1();
         basicLayers.loadAdminData();
         this.loadData();
 

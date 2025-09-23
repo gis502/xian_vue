@@ -592,6 +592,7 @@ export default {
         // 清除现有信息窗口
         const existingWindows = document.querySelectorAll('.cesium-info-window');
         existingWindows.forEach(win => win.remove());
+        this.tableChange = true;
         // 获取点击位置的实体
         const pickedObject = this.viewer.scene.pick(click.position);
 
@@ -1140,7 +1141,9 @@ export default {
     },
 
     toggleHisDasTableVisibility(){
-      this.tableChange = !this.tableChange;
+      if(this.tableChange == true){
+        this.tableChange = !this.tableChange;
+      }
       // 确保 hisDas 是响应式的数组
       this.hisDas = [...this.history_desaster];
       console.log('历史灾害数据:', this.hisDas);
