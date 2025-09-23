@@ -273,6 +273,7 @@ export default {
                 message: '报告下载成功',
                 type: 'success',
               });
+              return;
             }
           }).catch((error) => {
             // 发生错误时清除定时器
@@ -289,6 +290,7 @@ export default {
         console.error('下载错误:', error);
       }
     },
+
     async downloadRainReport() {
       if (!this.wordPath) {
         ElMessage({
