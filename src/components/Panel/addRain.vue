@@ -481,7 +481,7 @@ onMounted(() => {
 <style scoped>
 .rain-info-panel {
   position: absolute;
-  background-color: rgba(40, 40, 40, 0.8);
+  background-color: rgba(14, 52, 98, 0.8);
   color: white;
   padding: 0;
   border-radius: 6px;
@@ -490,6 +490,7 @@ onMounted(() => {
   overflow-y: auto;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 225, 255, 1);
 }
 
 .panel-title {

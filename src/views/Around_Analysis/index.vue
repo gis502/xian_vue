@@ -2080,7 +2080,7 @@ export default {
 
 
 .rain-btn, .refresh, .admin-btn{
-  background: url("@/assets/images/按钮2.png") center/cover no-repeat;
+  background: url("@/assets/images/按钮.png") center/cover no-repeat;
   color: white;
   padding: 6px 12px;
   border-radius: 8px;
@@ -2218,7 +2218,7 @@ export default {
   position: absolute;
   z-index: 1000;
   width: 330px; /* 减小宽度 */
-  border-radius: 6px; /* 减小圆角 */
+  border-radius: 2px; /* 减小圆角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
   font-family: 'Source Han Sans CN', sans-serif;
   overflow: hidden;
@@ -2227,7 +2227,7 @@ export default {
   opacity: 0;
   transform: scale(0.95);
   pointer-events: none;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(0, 225, 255, 1);
   font-size: 13px; /* 减小整体字体大小 */
 }
 

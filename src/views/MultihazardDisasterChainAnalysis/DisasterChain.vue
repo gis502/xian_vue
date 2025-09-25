@@ -825,7 +825,7 @@ async function calculateAndShowPopup(entity) {
 
       await viewer.flyTo(entity, {
         duration: 0.5,
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 5000)
       });
     }
   } catch (error) {
@@ -922,7 +922,7 @@ function flash(){
 }
 
 .rain-btn{
-  background-color: #3c86ff;
+  background: url("@/assets/images/按钮.png") center/cover no-repeat;
   color: white;
   padding: 6px 12px;
   border-radius: 8px;
@@ -1199,8 +1199,9 @@ function flash(){
   z-index: 1000;
   width: 330px;
   background-color: white;
-  border-radius: 6px;
+  border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 225, 255, 1);
   font-family: 'Source Han Sans CN', sans-serif;
   overflow: hidden;
   transition: opacity 0.2s, transform 0.2s;
@@ -1208,7 +1209,6 @@ function flash(){
   opacity: 0;
   transform: scale(0.95);
   pointer-events: none;
-  border: 1px solid #e0e0e0;
   font-size: 13px;
 }
 
@@ -1221,7 +1221,7 @@ function flash(){
 
 .popup-header {
   padding: 8px 12px;
-  background-color: #f8f9fa;
+  background: rgba(14, 52, 98, 0.95);
   border-bottom: 1px solid #e9ecef;
   display: flex;
   justify-content: space-between;
@@ -1232,7 +1232,7 @@ function flash(){
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: white;
 }
 
 .popup-header button {
@@ -1240,8 +1240,9 @@ function flash(){
   border: none;
   font-size: 14px;
   cursor: pointer;
-  color: #6c757d;
+  color: white;
   transition: color 0.2s;
+  border: 1px solid rgba(0, 225, 255, 1);
 }
 
 .popup-header button:hover {
@@ -1250,6 +1251,13 @@ function flash(){
 
 .popup-content {
   padding: 10px 12px;
+  background: rgba(0, 94, 153, 1);
+  color:white;
+}
+
+.disaster-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .disaster-table th,
@@ -1261,12 +1269,10 @@ function flash(){
 
 .disaster-table th {
   font-weight: 500;
-  color: #495057;
   width: 35%;
 }
 
 .disaster-table td {
-  color: #333;
   word-break: break-all;
 }
 
