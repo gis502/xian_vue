@@ -1217,7 +1217,7 @@ export default {
   color: white;
   padding: 15px;
   border: 1px solid rgba(0, 225, 255, 0.5);
-  border-radius: 16px;
+  border-radius: 2px;
   z-index: 1000;
   width: 361px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -1232,7 +1232,7 @@ export default {
   color: white;
   padding: 15px;
   border: 1px solid rgba(0, 225, 255, 0.5);
-  border-radius: 16px;
+  border-radius: 2px;
   z-index: 1000;
   width: 647px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
