@@ -2275,7 +2275,6 @@ button {
 }
 
 .popup-content {
-  padding: 10px 12px; /* 减小内边距 */
   background: rgba(0, 94, 153, 1);
   color: white;
 }
@@ -2289,7 +2288,7 @@ button {
 .disaster-table td {
   padding: 6px 8px; /* 减小单元格内边距 */
   text-align: left;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #000;
 }
 
 .disaster-table th {

@@ -1237,7 +1237,6 @@ function flash(){
 
 .popup-header button {
   background: none;
-  border: none;
   font-size: 14px;
   cursor: pointer;
   color: white;
@@ -1250,7 +1249,6 @@ function flash(){
 }
 
 .popup-content {
-  padding: 10px 12px;
   background: rgba(0, 94, 153, 1);
   color:white;
 }
@@ -1264,7 +1262,7 @@ function flash(){
 .disaster-table td {
   padding: 6px 8px;
   text-align: left;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #000;
 }
 
 .disaster-table th {
