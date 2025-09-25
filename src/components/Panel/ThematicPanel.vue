@@ -430,6 +430,14 @@ export default {
   left: 79%;
   z-index: 100;
 }
+.eqTheme .el-button {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 1);
+  opacity: 1;
+  background: rgba(13, 101, 162, 0.59);
+  border: 1px solid rgba(148, 170, 212, 1);
+  box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);
+}
 
 /* 功能面板样式（居中显示） */
 .eqPanel {
@@ -440,8 +448,21 @@ export default {
   padding: 0 40px;
   width: 70%;
   height: 70%;
-  background-color: #2d3d51;
+  background: rgba(14, 52, 98, 0.8);
+  opacity: 1;
+  border: 1px solid rgba(14, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
   z-index: 1000;
+}
+
+.eqPanel h2 {
+  color: rgba(255, 255, 255, 1);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0px;
+  line-height: 21.12px;
+  vertical-align: top;
 }
 
 /* 图片列表容器（支持换行+横向滚动） */
@@ -539,11 +560,23 @@ export default {
   top: 50px;
   height: calc(100% - 100px);
   text-align: center;
-  background-color: #2d3d51;
+  background: rgba(14, 52, 98, 0.8);
+  opacity: 1;
+  border: 1px solid rgba(14, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
   border-radius: 10px;
+  padding: 0 40px;
   z-index: 3000;
 }
-
+.thematicMapPreview h2 {
+  color: rgba(255, 255, 255, 1);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0px;
+  line-height: 21.12px;
+  vertical-align: top;
+}
 /* 基础文本样式（统一白色） */
 h2, p {
   color: #fff;

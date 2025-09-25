@@ -14,6 +14,15 @@
             type="default"
             size="medium"
             class="time-dropdown-btn"
+            style="
+            background: rgba(15, 61, 118, 0.6);
+            opacity: 1;
+            border-radius: 2px;
+            border: 1px solid rgba(0, 225, 255, 1);
+            color: rgba(231, 242, 255, 1);
+            font-size: 14px;
+            font-weight: 400;
+            "
         >
           {{ selectedTimeRange }}
           <el-icon class="el-icon--right">
@@ -28,6 +37,7 @@
                 v-for="(item, index) in timeRangeOptions"
                 :key="index"
                 @click="selectTimeRange(item)"
+                class="el-dropdown-item"
             >
               {{ item.label }}
             </el-dropdown-item>
@@ -43,6 +53,7 @@
             placeholder="搜索表格数据..."
             clearable
             @keyup.enter="performSearch"
+            class="search-input"
         />
         <button @click="performSearch">搜索</button>
       </div>
@@ -529,20 +540,23 @@ async function tiggerHistoryDaster(item){
   position: absolute;
   top: 20px;
   width: 600px;
-  background: #ffffff;
+  background: rgba(14, 52, 98, 0.8);
   border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   padding: 20px;
   font-family: "Microsoft YaHei", sans-serif;
   z-index: 1000;
+  border: 1px solid rgba(0, 225, 255, 0.5);
 }
 
 .history-title{
   font-size: 18px;
   font-weight: 600;
-  color: #2c3e50;
+  color: rgba(255, 255, 255, 1);
   white-space: nowrap; /* 禁止标题换行 */
   width: 180px; /* 固定宽度，避免不同屏幕下位置偏移 */
+  opacity: 1;
+  text-align: left;
 }
 
 .disaster-list{
@@ -570,6 +584,19 @@ async function tiggerHistoryDaster(item){
   text-overflow: ellipsis;
   max-width: 180px;
   position: relative;
+}
+
+.disaster-table th{
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.disaster-table td{
+  background-color: rgba(14, 52, 98, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* 鼠标悬停显示完整内容 */
@@ -605,11 +632,13 @@ async function tiggerHistoryDaster(item){
   align-items: center;
   gap: 16px; /* 三者之间的间距，可调整 */
   padding: 12px 24px;
-  background-color: #fff;
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* 轻微阴影增强层次感 */
   margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
 
 /* 时间下拉按钮：圆角矩形样式 */
 .time-dropdown-btn {
@@ -624,7 +653,7 @@ async function tiggerHistoryDaster(item){
 
 /* 时间下拉按钮hover状态 */
 .time-dropdown-btn:hover {
-  background-color: #eef1f5;
+  background-color:rgba(15, 61, 118, 0.6);;
   border-color: #dcdfe6;
 }
 
@@ -633,26 +662,20 @@ async function tiggerHistoryDaster(item){
   width: 100%;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(14, 52, 98, 0.95);
 }
 
-/* 搜索框样式 */
-.search-box input {
-  height: 34px;
-  /* 统一高度 */
-  padding: 5px 10px;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.5);
-  color: black;
-  border: 1px solid #dcdfe6;
-  box-sizing: border-box;
-  transition: border-color 0.3s ease;
-  /* 确保padding和border包含在height内 */
+::v-deep .el-dropdown-item {
+  color: rgba(231, 242, 255, 1); /* 字体颜色 */
+  font-size: 14px; /* 字体大小 */
+  font-weight: 400; /* 字体粗细 */
 }
 
 .search-box input:focus {
   outline: none; /* 清除默认聚焦轮廓 */
   border-color: #3c86ff; /* 聚焦时边框变为主题色 */
   box-shadow: 0 0 0 2px rgba(60, 134, 255, 0.2); /* 轻微发光效果 */
+
 }
 
 .search-box {
@@ -673,22 +696,52 @@ async function tiggerHistoryDaster(item){
 }
 
 .search-box button {
-  background-color: #3c86ff;
   color: white;
-  border: none;
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   height: 34px;
-  /* 统一高度 */
   box-sizing: border-box;
-  /* 确保padding和border包含在height内 */
   white-space: nowrap;
-  /* 防止按钮文字换行 */
+  opacity: 1;
+  background: rgba(13, 101, 162, 0.59);
+  border: 1px solid rgba(148, 170, 212, 1);
 }
 
 .search-box button:hover {
   background-color: #0056b3;
+}
+
+::v-deep .el-pagination__total {
+  color: white !important;
+}
+
+::v-deep .disaster-list {
+  height: 250px;
+  overflow-y: auto;
+  overflow-x: auto;
+
+  /* Firefox 兼容（这里需要同步更新颜色，你之前没改） */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(86, 161, 247, 1) rgba(72, 136, 210, 0.36); /* 滑块色 轨道色 */
+}
+
+/* WebKit 滚动条样式（同样需要穿透） */
+::v-deep .disaster-list::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::v-deep .disaster-list::-webkit-scrollbar-track {
+  border-radius: 4px;
+  background: rgba(86, 161, 247, 1); /* 轨道色 */
+}
+::v-deep .disaster-list::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: rgba(86, 161, 247, 1); /* 滑块色 */
+  transition: background 0.2s;
+}
+::v-deep .disaster-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(86, 161, 247, 0.8); /* hover 可以稍浅一点，区分状态 */
 }
 </style>

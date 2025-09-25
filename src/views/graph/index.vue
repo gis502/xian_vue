@@ -56,7 +56,9 @@
       </div>
       <!-- 新闻展示悬浮框 - 列表表格样式 -->
       <div v-if="isNewsBoxVisible" class="news-float-box">
-        <div class="news-box-title">新闻信息列表</div>
+        <div class="news-box-title">
+          新闻信息列表
+        </div>
         <div class="news-scroll-area fixed-header-table">
           <table class="news-table">
             <thead>
@@ -1781,33 +1783,49 @@ onBeforeUnmount(() => {
     bottom: 80px;
     right: 20px;
     width: 600px;
-    background: #ffffff;
+    background: linear-gradient(270deg, rgba(46, 147, 165, 0.24) 0%, rgba(21, 66, 143, 0.33) 100%), rgba(13, 32, 76, 0.24);
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     padding: 20px;
     font-family: "Microsoft YaHei", sans-serif;
+    opacity: 1;
+    background-blend-mode: normal;
     z-index: 1000;
   }
 
   .chat-title {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 700;
     margin-bottom: 12px;
-    color: #333;
+    color: rgba(255, 255, 255, 1);
+    letter-spacing: 0px;
+    line-height: 21.12px;
+    text-align: center;
+    vertical-align: top;
+    background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+    padding: 10px 16px;
   }
   .toggle-button.closed {
     position: absolute;
-    top: 10px;
-    right: 15px;
     cursor: pointer;
-    color: #666;
+    color: rgba(255, 255, 255, 1);
     font-size: 14px;
-    width: 150px;
+
+    right: 18px;
+    top: 320px;
+    width: 124px;
+    height: 32.41px;
+    opacity: 1;
+    background: rgba(13, 101, 162, 0.59);
+    border: 1px solid rgba(148, 170, 212, 1);
+    box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);
   }
   .disaster-list {
     max-height: 350px;
     overflow-y: auto;
     overflow-x: auto; /* 横向滚动条 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(86, 161, 247, 1) rgba(72, 136, 210, 0.36); /* 滑块色 轨道色 */
   }
 
   .disaster-table {
@@ -1823,12 +1841,19 @@ onBeforeUnmount(() => {
     padding: 10px;
     text-align: center;
     border-bottom: 1px solid #eaeaea;
-    color: #333;
+    color: rgba(255, 255, 255, 1);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 180px;
     position: relative;
+  }
+
+  .disaster-table th{
+    font-weight: 600;
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+    border: 0px solid rgba(255, 255, 255, 1);
   }
 
   /* 鼠标悬停显示完整内容 */
@@ -1885,7 +1910,7 @@ onBeforeUnmount(() => {
       margin-bottom: 10px;
       .search-button, .search-input {
         background-color: rgba(255,255,255,0.8);
-        border: 1px solid rgba(52, 152, 219, 0.3);
+        border: 1px solid rgba(0, 225, 255, 1);
         box-shadow: inset 0 -1px 1px 0 rgba(52, 152, 219, 0.3);
         color: #34495e;
         height: 44px;
@@ -2104,23 +2129,34 @@ onBeforeUnmount(() => {
   right: 20px;
   bottom: 60px;
   width: 500px;
-  max-height: 400px;
+  max-height: 380px;
   border: 1px solid #ddd;
-  background: rgba(0, 0, 0, 0.4); /* 半透明黑色背景 */
-  border-radius: 8px;
+  //background: rgba(0, 0, 0, 0.4); /* 半透明黑色背景 */
+  background: linear-gradient(270deg, rgba(46, 147, 165, 0.24) 0%, rgba(21, 66, 143, 0.33) 100%), rgba(13, 32, 76, 0.24);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  padding: 20px;
+  //padding: 20px;
   z-index: 999;
   font-family: "Microsoft YaHei", sans-serif;
   overflow: hidden;
   text-align: center;
+  background-blend-mode: normal;
+  opacity: 1;
+  border-radius: 10px;
 }
 
 .news-box-title {
-  font-weight: bold;
+  height: 40px;
+  font-weight: 700;
   margin-bottom: 8px;
-  font-size: 16px;
-  color: #FFFFFF;
+  font-size: 18px;
+  opacity: 1;
+  color: rgba(255, 255, 255, 1);
+  letter-spacing: 0px;
+  line-height: 40px;
+  text-align: center;
+  vertical-align: top;
+  border-radius: 0px 0px 0px 1px;
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
 }
 
 .news-scroll-area {
@@ -2157,8 +2193,11 @@ onBeforeUnmount(() => {
 }
 
 .news-table th {
-  background-color: #909399;
+  //background-color: #909399;
   font-weight: 600;
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  border: 0px solid rgba(255, 255, 255, 1);
 }
 
 .truncate-content {
@@ -2314,6 +2353,33 @@ onBeforeUnmount(() => {
   color: #333;
 }
 
+::v-deep .news-scroll-area {
+  height: 276px;
+  overflow-y: auto;
+  overflow-x: auto;
+
+  /* Firefox 兼容（这里需要同步更新颜色，你之前没改） */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(86, 161, 247, 1) rgba(72, 136, 210, 0.36); /* 滑块色 轨道色 */
+}
+
+/* WebKit 滚动条样式（同样需要穿透） */
+::v-deep .news-scroll-area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::v-deep .news-scroll-area::-webkit-scrollbar-track {
+  border-radius: 4px;
+  background: rgba(86, 161, 247, 1); /* 轨道色 */
+}
+::v-deep .news-scroll-area::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: rgba(86, 161, 247, 1); /* 滑块色 */
+  transition: background 0.2s;
+}
+::v-deep .news-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(86, 161, 247, 0.8); /* hover 可以稍浅一点，区分状态 */
+}
 </style>
 
 

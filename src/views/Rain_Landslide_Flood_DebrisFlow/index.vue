@@ -38,8 +38,6 @@
 
     <LayerControl :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
 
-    <div v-if="selectedEntityData">{{selectedEntityData}}</div>
-
     <div v-if="selectedEntityData" class="disaster-popup" :style="{
         left: `${calculatePopupLeft()}px`,
         top: `${calculatePopupTop()}px`,
@@ -429,8 +427,9 @@ let rainQueueId = ref("")
 let rainDisasterId = ref(null)
 let wordRes = ref("")
 let clickHandler = ref(null)
+let selectedEntityData = ref(null)
 
-let selectedEntityData = reactive(null)
+// let selectedEntityData = reactive(null)
 let selectedEntityPosition = reactive(null)
 let popupPosition = reactive({x: 0, y: 0})
 let PanelPosition = reactive({x: 0, y: 0})
@@ -689,7 +688,7 @@ function initEntitiesClickPonpHandler() {
         // 如果拾取到实体
         if (Cesium.defined(pickedEntity)) {
           let entity = window.selectedEntity;
-          console.log(window.selectedEntity,"window.selectedEntity")
+          console.log(window.selectedEntity, "window.selectedEntity")
           // console.log(entity, "拾取entity")
           // 计算图标的世界坐标
           selectedEntityPosition = calculatePosition(click.position);
@@ -947,7 +946,7 @@ function stopPropagation(e) {
 function closePopup() {
   // console.log(selectedEntityData,popupVisible.value,"selectedEntityData closePopup")
   popupVisible.value = false;
-  selectedEntityData = null;
+  selectedEntityData.value = null;
 }
 
 /* 显示雷达图开关 */
@@ -1848,13 +1847,13 @@ function toggleAdminLayer() {
     return;
   } else {
     isReportPanelVisible.value = !isReportPanelVisible.value
-    console.log("暴雨触发成功，获取的id是:",rainRequests)
+    console.log("暴雨触发成功，获取的id是:", rainRequests)
   }
 
 }
 
 /* 刷新组件方法 */
-async function refreshComponent(){
+async function refreshComponent() {
   try {
     // 显示加载状态
     loadingModel.value = true
@@ -1923,9 +1922,9 @@ function resetAllStates() {
   showStep.value = false
 
   // 重置响应式对象 - 使用更安全的方式
-  if (selectedEntityData) {
-    Object.keys(selectedEntityData).forEach(key => {
-      delete selectedEntityData[key]
+  if (selectedEntityData.value) {
+    Object.keys(selectedEntityData.value).forEach(key => {
+      delete selectedEntityData.value[key]
     })
   }
 
@@ -2078,8 +2077,8 @@ function setupEntityClickHandler() {
     }
     // 隐藏之前的弹出面板
     closePopup();
-    console.log(pickedObject,"pickedObject")
-    if(pickedObject.id.name === "风险区域" ||pickedObject.id.name === "滑坡隐患点"||pickedObject.id.name === "泥石流隐患点"||pickedObject.id.name === "内涝隐患点"||pickedObject.id.name === "山洪隐患点"){
+    console.log(pickedObject, "pickedObject")
+    if (pickedObject.id.name === "风险区域" || pickedObject.id.name === "滑坡隐患点" || pickedObject.id.name === "泥石流隐患点" || pickedObject.id.name === "内涝隐患点" || pickedObject.id.name === "山洪隐患点") {
       return;
     }
 
@@ -2087,7 +2086,7 @@ function setupEntityClickHandler() {
       const entity = pickedObject.id;
       // console.log(entity,"entity123")
       // 获取实体的灾害数据
-      selectedEntityData = entity.disasterData || {};
+      selectedEntityData.value = entity.disasterData || {};
       // 计算弹出框位置并显示面板
       calculateAndShowPopup(entity, movement.position);
     } else {
@@ -2124,7 +2123,7 @@ async function calculateAndShowPopup(entity, movementPosition) {
       checkPopupBoundary();
       // 显示弹出面板
       popupVisible.value = true;
-      console.log(popupVisible.value,"popupVisible.value")
+      console.log(popupVisible.value, "popupVisible.value")
       // 平滑定位到点击的实体
       // await viewer.flyTo(entity, {
       //   duration: 0.5,
@@ -2233,10 +2232,8 @@ function checkPopupBoundary() {
 .weather-btn,
 .admin-btn,
 .table-btn {
-  background-color: rgb(60 134 255);
   color: white;
   padding: 12px 12px;
-  border-radius: 12px;
   cursor: pointer;
   font-size: 16px;
   transition: all 0.3s;
@@ -2245,7 +2242,19 @@ function checkPopupBoundary() {
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 1;
+  background-image: url("../../assets/images/按钮.png");
+  background-color: transparent;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin-right: -3px;
+  width: 132px;
 }
+
 .disaster-popup {
   position: absolute;
   z-index: 1000;
@@ -2263,10 +2272,78 @@ function checkPopupBoundary() {
   border: 1px solid #e0e0e0;
   font-size: 13px; /* 减小整体字体大小 */
 }
+
 .disaster-popup[style*="display: block"] {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
   transition: all 0.3s ease;
+}
+
+.popup-header {
+  padding: 8px 12px; /* 减小内边距 */
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 14px; /* 减小标题字体大小 */
+  font-weight: 600;
+  color: white;
+}
+
+button {
+  background-color: #3c86ff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
+}
+
+.popup-header button:hover {
+  color: #333;
+}
+
+.popup-content {
+  padding: 10px 12px; /* 减小内边距 */
+  background: rgba(0, 94, 153, 1);
+  color: white;
+}
+
+.disaster-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.disaster-table th,
+.disaster-table td {
+  padding: 6px 8px; /* 减小单元格内边距 */
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.disaster-table th {
+  font-weight: 500;
+  width: 35%; /* 固定标题列宽度 */
+}
+
+.disaster-table td {
+  word-break: break-all;
+}
+
+.disaster-table tr:last-child th,
+.disaster-table tr:last-child td {
+  border-bottom: none; /* 最后一行不显示底边 */
 }
 </style>

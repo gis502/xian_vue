@@ -91,7 +91,7 @@ function addChart() {
       left: "center",
       top: 0,
       subtextStyle: {
-        color: "#000",
+        color: "white",
         fontSize: 16,
         fontWeight: "bold", // 加粗字体
         marginBottom: 10, // 底部边距
@@ -100,9 +100,7 @@ function addChart() {
         paddingTop: 20, // 顶部内边距
       },
     },
-    // grid,
     grid: grid,
-
     xAxis: {
       type: "category",
       data: chartDatas.xAxis.data,
@@ -112,7 +110,7 @@ function addChart() {
         },
         interval: 0,
         margin: 20,
-        color: "#000", // x轴标签保持白色
+        color: "white", // x轴标签保持白色
         rich: {
           wrap: {
             lineHeight: 18,
@@ -123,7 +121,7 @@ function addChart() {
       },
       axisLine: {
         lineStyle: {
-          color: "#888",
+          color: "rgba(255,255,255,0.6)",
         },
       },
     },
@@ -131,19 +129,20 @@ function addChart() {
       type: "value",
       axisLabel: {
         formatter: "{value}",
-        color: "#000", // y轴标签保持白色
+        color: "white", // y轴标签保持白色
       },
       axisLine: {
         lineStyle: {
-          color: "#888",
+          color: "white",
         },
       },
       splitLine: {
         lineStyle: {
-          color: "rgba(255,255,255,0.1)",
+          color: "white",
         },
       },
     },
+    backgroundColor: 'rgba(14, 52, 98, 0.8)',
     series: [
       {
         data: barData, // 使用带颜色的柱子数据
@@ -177,7 +176,7 @@ function addChart() {
               text: api.value(1),
               x: location[0],
               y: location[1] - 10,
-              fill: "#000",
+              fill: "white",
               font: "12px sans-serif",
               textAlign: "center",
               textVerticalAlign: "bottom",
@@ -206,7 +205,7 @@ function addChart() {
   bottom: 10px; /* 距离顶部20px */
   left: 20px; /* 距离左侧20px */
   /*background-color: white; !* 与图例背景色一致 *!*/
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(14, 52, 98, 0.8);
   color: black;
   padding: 15px;
   border-radius: 16px;
@@ -214,5 +213,6 @@ function addChart() {
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
   font-size: 14px; /* 调整字体大小 */
+  border: 1px solid rgba(0, 225, 255, 0.5);
 }
 </style>

@@ -237,7 +237,15 @@ export default {
           top: 'center',
           feature: {
             mark: {show: true},
-            dataView: {show: true, readOnly: false},
+            dataView: {
+              show: true,
+              readOnly: false,
+              option:{
+                backgroundColor: 'rgba(14, 52, 98, 0.8)',
+                textStyle: { color: 'white' },
+                borderColor: '1px solid rgba(255, 255, 255, 0.2)'
+              }
+            },
             magicType: {show: true, type: ['line', 'bar', 'stack']},
             restore: {show: true},
             saveAsImage: {show: true}
@@ -255,13 +263,13 @@ export default {
         yAxis: [
           {
             type: 'value',
-            axisLine: {lineStyle: {color: 'rgba(255,255,255,0.6)'}},
+            axisLine: {lineStyle: {color: 'white'}},
             axisLabel: {color: 'white'},
-            splitLine: {lineStyle: {color: 'rgba(255,255,255,0.1)'}}
+            splitLine: {lineStyle: {color: 'white'}}
           }
         ],
         series: seriesData,
-        backgroundColor: 'rgba(40, 40, 40, 0.8)'
+        backgroundColor: 'rgba(14, 52, 98, 0.8)'
       };
 
       const option = {...baseOption, ...this.extraOptions.chartOptions};
@@ -302,15 +310,20 @@ export default {
   position: absolute;
   bottom: 10px;
   left: 20px;
-  background-color: rgba(40, 40, 40, 0.8);
+  background: linear-gradient(270deg, rgba(46, 147, 165, 0.24) 0%, rgba(21, 66, 143, 0.33) 100%), rgba(13, 32, 76, 0.24);
+  box-shadow: 0px 0px 9px  rgba(62, 136, 210, 1);
   color: white;
   padding: 15px;
-  border-radius: 4px;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   font-size: 14px;
   width: 430px;
   height: 400px;
+  border: 1px solid #ddd;
+  background-blend-mode: normal;
+  opacity: 1;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+  border: 1px solid rgba(0, 225, 255, 1);
 }
 
 .district-title {
@@ -325,6 +338,7 @@ export default {
   width: 100%;
   height: 300px;
   transition: all 0.3s ease;
+  background: rgba(14, 52, 98, 0.8);
 }
 
 /* 分页控件样式 */

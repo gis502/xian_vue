@@ -1021,10 +1021,8 @@ function stopLoading() {
   border-bottom: none; /* 最后一行不显示底边 */
 }
 .admin-btn {
-  background-color: rgb(60 134 255);
   color: white;
   padding: 12px 12px;
-  border-radius: 12px;
   cursor: pointer;
   font-size: 16px;
   transition: all 0.3s;
@@ -1033,6 +1031,17 @@ function stopLoading() {
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 1;
+  background-image: url("../../assets/images/按钮.png");
+  background-color: transparent;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin-right: -3px;
+  width: 132px;
 }
 .btn-group {
   display: flex;

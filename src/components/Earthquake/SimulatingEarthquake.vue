@@ -9,14 +9,34 @@
       left: 32 + '%',
     }"
   >
-    <div style="padding: 10px">
-      <el-row align="middle" gutter="10">
-        <el-col :span="12" style="text-align: right">
+    <div>
+      <el-row align="middle" gutter="10" style="
+            background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 1);
+            letter-spacing: 0px;
+            line-height: 21.12px;
+            text-align: left;
+            vertical-align: top;
+            box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);
+            ">
+        <el-col :span="12" style=" text-align: right;">
           {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}
         </el-col
         >
         <el-col :span="12">
-          <el-button type="info" round @click="showBaseInfo = !showBaseInfo"
+          <el-button type="info" round @click="showBaseInfo = !showBaseInfo" style="
+          cursor: pointer;
+          color: rgba(255, 255, 255, 1);
+          font-size: 14px;
+          right: 5px;
+          opacity: 1;
+          background: rgba(13, 101, 162, 0.59);
+          border: 1px solid rgba(148, 170, 212, 1);
+          box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);
+          "
           >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息
           </el-button
           >
@@ -612,14 +632,17 @@ function setMore() {
 <style scoped>
 .earthquake-info-panel {
   position: absolute;
-  background-color: rgba(40, 40, 40, 0.9);
   color: white;
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
   width: 500px;
+  background: rgba(14, 52, 98, 0.8);
+  opacity: 1;
+  border: 1px solid rgba(14, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
   /*max-height: 400px;
-  //overflow-y: auto;*/
+  overflow-y: auto;*/
 }
 
 .panel-title {
@@ -636,4 +659,7 @@ function setMore() {
   border-bottom: 1px solid gray;
   width: 100%;
 }
+
+
+
 </style>
