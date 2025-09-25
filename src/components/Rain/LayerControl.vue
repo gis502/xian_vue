@@ -416,24 +416,28 @@ function toggleSubway(){
 }
 
 .graph_legend {
+  padding: 6px;
   position: absolute;
   bottom: 10px;
   left: 15px;
-  border-radius: 16px;
+  border-radius: 2px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  width: 310px;
-  height: 180px;
+  width: 150px;
+  height: 210px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   color: white;
   font-family: Arial, sans-serif;
+  background: rgba(14, 52, 98, 0.8);
+  border: 1px solid rgba(0, 225, 255, 1);
 }
 
 .legend-title1 {
   font-weight: bold;
-  font-size: 12px;
+  font-size: 16px;
+  text-align: center;
 }
 
 .legend-item1 {
@@ -441,7 +445,7 @@ function toggleSubway(){
   align-items: center;
   margin: 3px 0;
   font-size: 12px;
-  width: 50%;
+  width: 100%;
   color: white;
 }
 
