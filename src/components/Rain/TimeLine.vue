@@ -164,6 +164,7 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 15px;
     border-radius: 20px;
+    border: 1px solid rgba(0, 225, 255, 1);
 }
 
 /* 雷达反射率图例样式 */
@@ -174,10 +175,12 @@ onBeforeUnmount(() => {
     flex-direction: column;
     align-items: center;
     flex-shrink: 0;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(14, 52, 98, 0.8);
     padding: 8px;
     border-radius: 4px;
     min-width: 80px;
+    border: 1px solid rgba(0, 225, 255, 1);
+    color:white;
 }
 
 .legend-title {
@@ -218,9 +221,9 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
     font-weight: bold;
-    color: black;
+    color: white;
+    font-size: 12px;
     border-radius: 1px;
 }
 
