@@ -19,7 +19,6 @@
         :otherEntities="disasterEntities"
     />
     <div class="demo-autocomplete">
-      <div class="demo-block">
         <el-autocomplete
             v-model="searchText"
             :fetch-suggestions="querySearch"
@@ -30,7 +29,6 @@
             @select="handleSelect"
             value-key="name"
         />
-      </div>
     </div>
     <!-- 加载状态提示 -->
     <div v-if="showInfoPanel" class="rain-info-panel">
@@ -1986,6 +1984,8 @@ export default {
       this.showAdminLayer = true;
       this.popupVisible = false;
       this.eqCenterPanelVisible = false;
+      this.showTable = false;
+      this.showChart = false;
 
       // 重置数组
       this.disasterEntities = [];
@@ -2080,7 +2080,7 @@ export default {
 
 
 .rain-btn, .refresh, .admin-btn{
-  background-color: #3c86ff;
+  background: url("@/assets/images/按钮2.png") center/cover no-repeat;
   color: white;
   padding: 6px 12px;
   border-radius: 8px;
@@ -2096,34 +2096,7 @@ export default {
 
 
 .rain-btn, .refresh, .admin-btn:hover {
-  background-color: #3c86ff;
-  transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.secondary-panel {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  background-color: rgba(40, 40, 40, 0.8);
-  color: white;
-  padding: 10px; /* 缩小内边距 */
-  border-radius: 4px;
-  z-index: 1000;
-  width: 160px; /* 缩小面板宽度 */
-}
-
-.panel-title1 {
-  font-weight: bold;
-  margin-bottom: 6px; /* 缩小标题与内容间距 */
-  font-size: 12px; /* 缩小字体 */
-}
-
-.panel-content1 {
-  display: flex;
-  flex-direction: column;
-  font-size: 12px; /* 缩小字体 */
-  gap: 6px; /* 缩小子元素间距 */
 }
 
 .panel-content1 label {
@@ -2147,36 +2120,23 @@ export default {
   }
 }
 
-/* 加载指示器 */
-.loading-indicator {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  z-index: 100;
-}
-
 /* 暴雨信息面板样式优化 */
 .rain-info-panel {
   position: absolute;
   top: 250px;
   left: 10px;
-  background-color: rgba(255, 255, 255, 0.75);
-  color: black;
-  padding: 15px;
-  border: 1px solid #FFFFFF;
-  border-radius: 16px;
-  width: 240px;
+  color: white;
+  border: 1px solid rgba(0, 225, 255, 1);
+  border-radius: 2px;
+  width: 220px;
   height: 150px;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: rgba(14, 52, 98, 0.8);
 }
 
 .panel-title {
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 10px;
@@ -2186,9 +2146,10 @@ export default {
 }
 
 .panel-content div {
+  padding: 8px;
   margin-bottom: 12px;
   display: flex;
-
+  color: white;
 }
 
 .panel-content label {
@@ -2201,14 +2162,15 @@ export default {
 .jiangyuliang{
   text-align-last: justify;
 }
+
 .panel-content input {
   width: 60px;
   padding: 6px 8px;
-  border: none;
+  border: 1px solid rgba(0, 225, 255, 1);
   border-radius: 4px;
   text-align: center;
   background-color: rgba(255, 255, 255, 0.2);
-  color: black;
+  color: white;
   height: 30px; /* 固定高度确保垂直居中 */
   box-sizing: border-box; /* 包含内边距 */
 }
@@ -2251,66 +2213,11 @@ export default {
   transform: translateY(-1px);
 }
 
-/* 图例面板样式 */
-.legend-panel {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
-  padding: 10px;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  max-height: 70%;
-  overflow-y: auto;
-}
-
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-
-  margin-right: 6px;
-  border-radius: 2px;
-}
-
-.legend-title1 {
-  width: 100%;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.graph_legend {
-  position: absolute;
-  bottom: 70px;
-  right: 15px;
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid #ffffff;
-  color: black;
-  padding: 10px;
-  border-radius: 16px;
-  z-index: 1000;
-  display: flex;
-  flex-wrap: wrap;
-  width: 310px;
-  height: 300px;
-}
-
-.legend-item1 {
-  display: flex;
-  align-items: center;
-  margin: 3px 0; /* 减少行间距 */
-  font-size: 14px; /* 缩小字体 */
-  width: 50%;
-}
-
 
 .disaster-popup {
   position: absolute;
   z-index: 1000;
   width: 330px; /* 减小宽度 */
-  background-color: white;
   border-radius: 6px; /* 减小圆角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
   font-family: 'Source Han Sans CN', sans-serif;
@@ -2333,7 +2240,7 @@ export default {
 
 .popup-header {
   padding: 8px 12px; /* 减小内边距 */
-  background-color: #f8f9fa;
+  background: rgba(14, 52, 98, 0.95);
   border-bottom: 1px solid #e9ecef;
   display: flex;
   justify-content: space-between;
@@ -2344,7 +2251,7 @@ export default {
   margin: 0;
   font-size: 14px; /* 减小标题字体大小 */
   font-weight: 600;
-  color: #333;
+  color: white;
 }
 
 button {
@@ -2369,6 +2276,8 @@ button {
 
 .popup-content {
   padding: 10px 12px; /* 减小内边距 */
+  background: rgba(0, 94, 153, 1);
+  color: white;
 }
 
 .disaster-table {
@@ -2385,12 +2294,10 @@ button {
 
 .disaster-table th {
   font-weight: 500;
-  color: #495057;
   width: 35%; /* 固定标题列宽度 */
 }
 
 .disaster-table td {
-  color: #333;
   word-break: break-all;
 }
 
@@ -2414,41 +2321,10 @@ button {
   background-color: #308ee0;
 }
 
-/* 风险区表格样式 */
-.risk-table-container {
-  position: fixed;
-  top: 12%;
-  left: 13%;
-  width: 550px;
-  max-height: 700px;
-  overflow: hidden;
-  z-index: 900;
-  transition: all 0.3s ease;
-  background-color: rgba(52, 152, 219, 0.1);
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 15px;
-  background-color: rgba(43,47,51,0.6);
-}
 
 :deep(.el-table tr){
   background-color: rgba(43, 47, 51, 0.6);
   height: 55px;
-}
-
-.title-text {
-  font-size: 16px;
-  font-weight: 500;
-  color: white;
-  text-align: center;
-  width: 100%;
-  margin-top: 15px;
 }
 
 /* 修改 el-table 的样式 */
@@ -2482,14 +2358,6 @@ button {
   background-color: rgba(52, 152, 219, 0.1);
 }
 
-.table-pagination {
-  color: white;
-  padding: 15px 10px;
-  background-color: rgba(43,47,51,0);
-  border-top: 1px solid #ebeef5;
-  display: flex;
-  justify-content: center;
-}
 
 /* 修改分页器样式 */
 :deep(.el-pagination) {
@@ -2566,10 +2434,11 @@ button {
   /* 距离顶部20px */
   right: 350px;
   /* 距离左侧20px */
-  background-color: rgba(255, 255, 255, 0.75);
+  background: linear-gradient(270deg, rgba(46, 147, 165, 0.24) 0%, rgba(39, 98, 200, 0.33) 100%);
+  border: 1px solid rgba(0, 225, 255, 1);
   /* 与图例背景色一致 */
   color: black;
-  padding: 15px;
+  padding: 5px;
   border-radius: 8px;
   z-index: 1000;
   width: 250px;
@@ -2578,28 +2447,21 @@ button {
   gap: 3px;
 }
 
-.demo-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.demo-title {
-  font-size: 0.875rem;
-  color: var(--el-text-color-secondary);
-  min-height: 2.5em;
-  display: flex;
-  align-items: center;
-}
-
 @media screen and (max-width: 768px) {
   .demo-autocomplete {
     gap: 1rem;
   }
-
-  .demo-block {
-    width: 100%;
-  }
 }
 
+:deep(.el-input__wrapper){
+  background: rgba(15, 61, 118, 0.6);
+}
+
+:deep(.el-input__inner){
+  color: white;
+}
+
+:deep(.el-autocomplete__popper) {
+  background: rgba(15, 61, 118, 0.8) !important;
+}
 </style>

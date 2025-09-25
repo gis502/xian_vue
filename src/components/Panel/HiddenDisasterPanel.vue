@@ -781,13 +781,15 @@ function landslideImpact() {
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
+  background: rgba(0, 94, 153, 1);
+  color: white;
 }
 
 .popup-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f8f9fa;
+  background: rgba(14, 52, 98, 0.95);
   padding: 2px 15px;
   border-bottom: 1px solid #e9ecef;
 }
@@ -801,13 +803,14 @@ function landslideImpact() {
 .disaster-info-table {
   width: 100%;
   border-collapse: collapse;
+  color: white;
 }
 
 .disaster-info-table th,
 .disaster-info-table td {
   padding: 8px;
-  border-top: 1px solid #ddd; /* 保留上边框 */
-  border-bottom: 1px solid #ddd; /* 保留底边框 */
+  border-top: 1px solid #000; /* 保留上边框 */
+  border-bottom: 1px solid #000; /* 保留底边框 */
   border-left: none; /* 去除左边框 */
   border-right: none; /* 去除右边框 */
   text-align: left;
@@ -816,7 +819,6 @@ function landslideImpact() {
 }
 
 .disaster-info-table .label {
-  color: #333;
   width: 30%;
   font-size: 13px;
 }
@@ -824,7 +826,7 @@ function landslideImpact() {
 .close-btn {
   font-weight: normal;
   background: none;
-  border: none;
+  border: 1px solid rgba(0, 225, 255, 1);
   padding: 5px 10px;
   cursor: pointer;
   font-size: 14px; /* 减小标题字体大小 */

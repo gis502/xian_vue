@@ -856,16 +856,21 @@ export default {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 0px;
-            border-radius: 6px;
+            border-radius: 2px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
-
+            background: rgba(0, 94, 153, 1);
+            color: white;
+        }
+        .toggle-btn{
+            background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+            color: white;
         }
         .popup-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #f8f9fa;
+            background: rgba(14, 52, 98, 0.95);
             padding: 2px 15px;
             border-bottom: 1px solid #e9ecef;
         }
@@ -877,12 +882,12 @@ export default {
         .disaster-info-table {
             width: 100%;
             border-collapse: collapse;
-
+            color: white;
         }
         .disaster-info-table th, .disaster-info-table td {
             padding: 8px;
-            border-top: 1px solid #ddd;  /* 保留上边框 */
-            border-bottom: 1px solid #ddd;  /* 保留底边框 */
+            border-top: 1px solid #000;  /* 保留上边框 */
+            border-bottom: 1px solid #000;  /* 保留底边框 */
             border-left: none;  /* 去除左边框 */
             border-right: none;  /* 去除右边框 */
             text-align: left;
@@ -890,19 +895,17 @@ export default {
             font-size: 13px;
         }
         .disaster-info-table .label {
-            color: #333;
             width: 30%;
             font-size: 13px;
         }
         .close-btn {
-            font-weight: nom;
             background:none;
-            border: none;
+            border: 1px solid rgba(0, 225, 255, 1);
             padding: 5px 10px;
             cursor: pointer;
             font-size: 14px; /* 减小标题字体大小 */
-            color: #6c757d;
             transition: color 0.2s;
+            color: white;
         }
 
     `;
@@ -1178,14 +1181,14 @@ export default {
 .weather-container {
   display: flex;
   align-items: center;
-  flex: 1; /* 占据中间可用空间 */
+  flex: 1;
   margin: 0 20px;
 }
 
 .weather-info {
   display: flex;
   align-items: center;
-  gap: 10px; /* 元素之间的间距 */
+  gap: 10px;
 }
 
 .weather-item {
@@ -1208,50 +1211,49 @@ export default {
 
 .data-table {
   position: absolute;
-  top: 20px; /* 距离顶部20px */
-  right: 0; /* 距离左侧20px */
-  background-color: rgba(255, 255, 255, 0.75); /* 与图例背景色一致 */
-  color: black;
+  top: 20px;
+  right: 0;
+  background-color: rgba(14, 52, 98, 0.8);
+  color: white;
   padding: 15px;
-  border: 1px solid #FFFFFF;
+  border: 1px solid rgba(0, 225, 255, 0.5);
   border-radius: 16px;
   z-index: 1000;
-  width: 361px; /* 限制表格宽度 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
-  font-size: 14px; /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+  width: 361px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
 }
 
 .warn-point-table {
   position: absolute;
-  top: 20px; /* 距离顶部20px */
-  left: 0; /* 距离左侧20px */
-  background-color: rgba(255, 255, 255, 0.75); /* 与图例背景色一致 */
-  color: black;
+  top: 20px;
+  left: 0;
+  background-color: rgba(14, 52, 98, 0.8);
+  color: white;
   padding: 15px;
-  border: 1px solid #FFFFFF;
+  border: 1px solid rgba(0, 225, 255, 0.5);
   border-radius: 16px;
   z-index: 1000;
-  width: 647px; /* 限制表格宽度 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
-  font-size: 14px; /* 调整字体大小 */
+  width: 647px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
 }
 
 .toggle-point-table-btn{
   position: absolute;
-  top: 5px; /* 调整按钮位置 */
-  left: 5px; /* 调整按钮位置 */
+  top: 5px;
+  left: 5px;
   background-image: linear-gradient(159deg, #1c9fff 2%, #9be7ff 128%);
   color: white;
   border: none;
-  border-radius: 50%; /* 圆形按钮 */
-  width: 25px; /* 按钮宽度 */
-  height: 25px; /* 按钮高度 */
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
   font-size: 14px;
-  line-height: 1; /* 垂直居中文本 */
+  line-height: 1;
   text-align: center;
   cursor: pointer;
-  z-index: 1001; /* 确保按钮在表格内容之上 */
+  z-index: 1001;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1259,19 +1261,19 @@ export default {
 
 .toggle-table-btn {
   position: absolute;
-  top: 5px; /* 调整按钮位置 */
-  right: 5px; /* 调整按钮位置 */
+  top: 5px;
+  right: 5px;
   background-image: linear-gradient(159deg, #1c9fff 2%, #9be7ff 128%);
   color: white;
   border: none;
-  border-radius: 50%; /* 圆形按钮 */
-  width: 25px; /* 按钮宽度 */
-  height: 25px; /* 按钮高度 */
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
   font-size: 14px;
-  line-height: 1; /* 垂直居中文本 */
+  line-height: 1;
   text-align: center;
   cursor: pointer;
-  z-index: 1001; /* 确保按钮在表格内容之上 */
+  z-index: 1001;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1287,90 +1289,108 @@ export default {
 
 .table-title {
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   font-size: 16px;
   text-align: center;
-  margin-top: 0; /* 将 margin-top 设置为0，避免空白区域 */
-  padding-top: 20px; /* 增加内边距，为按钮留出空间 */
+  margin-top: 0;
+  padding-top: 10px;
+  color: white;
 }
 
 .chart-container {
   position: absolute;
-  bottom: 71px; /* 距离顶部20px */
-  left: 0; /* 距离左侧20px */
-  /*background-color: white; !* 与图例背景色一致 *!*/
+  bottom: 71px;
+  left: 0;
   background-color: rgba(255, 255, 255, 0.75);
   color: white;
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
   height: 367px;
-  width: 420px; /* 限制表格宽度 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
-  font-size: 14px; /* 调整字体大小 */
+  width: 420px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
 }
 
 .data-table table {
   width: 100%;
-  border-collapse: collapse; /* 合并边框 */
+  border-collapse: collapse;
 }
 
 .warn-point-table table {
   width: 100%;
-  border-collapse: collapse; /* 合并边框 */
-}
-
-.data-table th,
-.data-table td {
-  height: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
-  padding: 8px 12px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.warn-point-table th,
-.warn-point-table td{
-  height: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 浅色边框 */
-  padding: 8px 12px;
-  text-align: center;
-  font-size: 14px;
+  border-collapse: collapse;
 }
 
 .data-table th {
-  background-color: rgba(255,255,255,0.5); /* 表头背景色 */
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
   font-weight: bold;
-  color: black;
+  height: 50px;
 }
 
 .warn-point-table th {
-  background-color: rgba(255,255,255,0.5); /* 表头背景色 */
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
   font-weight: bold;
-  color: black;
+  height: 50px;
+}
+
+.data-table td {
+  background-color: rgba(14, 52, 98, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
+  height: 50px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.warn-point-table td {
+  background-color: rgba(14, 52, 98, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
+  height: 50px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .data-table tbody tr:nth-child(even) {
-  background-color: rgba(255,255,255,0.5); /* 斑马纹效果 */
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .warn-point-table tbody tr:nth-child(even) {
-  background-color: rgba(255,255,255,0.5); /* 斑马纹效果 */
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .data-table tbody tr:hover {
-  background-color: rgba(70, 70, 70, 0.9); /* 鼠标悬停效果 */
+  background-color: rgba(86, 204, 242, 0.3);
 }
 
 .warn-point-table tbody tr:hover {
-  background-color: rgba(70, 70, 70, 0.9); /* 鼠标悬停效果 */
+  background-color: rgba(86, 204, 242, 0.3);
 }
 
 .pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 15px;
   gap: 10px;
 }
 
@@ -1378,8 +1398,8 @@ export default {
   background-color: #3c86ff;
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
+  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -1396,10 +1416,11 @@ export default {
 .pagination-controls span {
   font-size: 14px;
   font-weight: bold;
+  color: white;
 }
 
 .total-items {
-  color: black;
+  color: white;
   margin-left: 10px;
   font-size: 14px;
 }
@@ -1407,7 +1428,6 @@ export default {
 .legend-content {
   font-size: 12px;
 }
-
 
 .controls {
   position: absolute;
@@ -1434,14 +1454,14 @@ export default {
   padding: 15px;
   border-radius: 4px;
   z-index: 1000;
-  max-width: 200px; /* 限制图例宽度 */
+  max-width: 200px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin: 4px 0; /* 减小行间距 */
-  font-size: 14px; /* 缩小字体 */
+  margin: 4px 0;
+  font-size: 14px;
 }
 
 .legend-icon {
@@ -1506,7 +1526,6 @@ export default {
   color: white;
 }
 
-
 .earthquake-info-panel button {
   margin-top: 10px;
   margin-right: 30px;
@@ -1520,14 +1539,12 @@ export default {
   background-color: #386641;
   color: white;
   width: 100%;
-
 }
 
 .earthquake-info-panel button:last-child {
   background-color: #bc4749;
   color: white;
   width: 100%;
-
 }
 
 .el-select--large {
@@ -1548,4 +1565,10 @@ export default {
   top: 120px;
 }
 
+.no-data {
+  text-align: center;
+  color: white;
+  padding: 20px;
+  font-size: 14px;
+}
 </style>

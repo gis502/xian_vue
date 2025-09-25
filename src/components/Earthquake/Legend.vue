@@ -1,6 +1,9 @@
 <template>
-    <div class="legend">
+  <div class="legend">
+    <div class="legend-header">
       <div class="legend-title">图例</div>
+    </div>
+    <div class="legend-body">
       <div class="legend-item">
         <span class="legend-color" id="earthquake"></span>历史地震震中
       </div>
@@ -73,6 +76,7 @@
         地铁站
       </div>
     </div>
+  </div>
 </template>
 
 <script setup name="Legend">
@@ -80,43 +84,56 @@
 </script>
 
 <style scoped>
-.legend-title {
-  width: 100%;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
 .legend {
   position: absolute;
   bottom: 70px;
   right: 15px;
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid #ffffff;
-  color: black;
-  padding: 10px;
-  border-radius: 16px;
   z-index: 1000;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   width: 310px;
-  height: 300px;
+  height: 275px;
+  overflow: hidden;
+  box-shadow:inset 0px 0px 9px  rgba(62, 136, 210, 1);
+  color: white; /* 设置所有文字为白色 */
+  font-family: Arial, sans-serif;
+  border: 1px solid rgba(0, 225, 255, 1);
+}
+
+.legend-header {
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.legend-body {
+  background: rgba(14, 52, 98, 0.8);
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow: hidden;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin: 3px 0; /* 减少行间距 */
-  font-size: 14px; /* 缩小字体 */
+  margin: 3px 0;
+  font-size: 14px;
   width: 50%;
 }
 
 .legend-color {
-  width: 16px; /* 缩小颜色块 */
-  height: 16px; /* 缩小颜色块 */
-  margin-right: 6px; /* 减少与文字的间距 */
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
+/* 图标样式保持不变 */
 #earthquake {
   background-image: url("../../assets/images/eqMark.png");
   background-size: cover;

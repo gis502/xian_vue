@@ -930,7 +930,7 @@ function flash(){
   font-size: 14px;
   transition: all 0.3s;
   white-space: nowrap;
-  min-width: 100px; /* 最小宽度确保按钮不挤压 */
+  min-width: 100px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -942,41 +942,42 @@ function flash(){
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-
 .layerControl-panel {
   position: absolute;
   top: 50px;
   right: 20px;
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid #ffffff;
-  border-radius: 16px;
-  color: black;
-  padding: 10px; /* 缩小内边距 */
+  background-color: rgba(14, 52, 98, 0.8);
+  border: 1px solid rgba(0, 225, 255, 1);
+  border-radius: 2px;
+  color: white;
+  padding: 10px;
   z-index: 1000;
-  width: 160px; /* 缩小面板宽度 */
+  width: 160px;
 }
 
 .panel-content {
   display: flex;
   flex-direction: column;
-  font-size: 16px; /* 缩小字体 */
-  gap: 6px; /* 缩小子元素间距 */
+  font-size: 16px;
+  gap: 6px;
 }
 
-/* 新增的暴雨信息卡片样式 */
+/* 修改后的暴雨信息卡片样式 */
 .rain-table-container {
   position: absolute;
   bottom: 20px;
   left: 20px;
   width: 500px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
+  background: rgba(14, 52, 98, 0.8);
+  border: 1px solid rgba(0, 225, 255, 0.5);
+  border-radius: 2px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 15px;
   z-index: 999;
   max-height: 400px;
   display: flex;
   flex-direction: column;
+  color: white;
 }
 
 .table-header {
@@ -985,13 +986,13 @@ function flash(){
   align-items: center;
   margin-bottom: 15px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .table-title {
   font-size: 16px;
   font-weight: bold;
-  color: #303133;
+  color: white;
   display: flex;
   align-items: center;
 }
@@ -1010,20 +1011,22 @@ function flash(){
 }
 
 .rain-table th {
-  background-color: #f5f7fa;
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
   padding: 10px 8px;
   text-align: left;
   font-weight: 600;
-  color: #606266;
-  border-bottom: 1px solid #ebeef5;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   position: sticky;
   top: 0;
 }
 
 .rain-table td {
+  background-color: rgba(14, 52, 98, 0.8);
   padding: 8px;
-  border-bottom: 1px solid #ebeef5;
-  color: #606266;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
 }
 
 .rain-table tbody {
@@ -1044,16 +1047,24 @@ function flash(){
 }
 
 .rain-table tbody tr:hover {
-  background-color: #f5f7fa;
+  background-color: rgba(86, 204, 242, 0.3);
 }
 
 .rain-table tbody tr.selected {
-  background-color: #ecf5ff;
+  background-color: rgba(60, 134, 255, 0.3);
 }
 
 .rain-table tbody tr.selected td {
-  color: #3c86ff;
+  color: white;
   font-weight: 500;
+}
+
+.rain-table tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.rain-table tbody tr:nth-child(even):hover {
+  background-color: rgba(86, 204, 242, 0.3);
 }
 
 .pagination {
@@ -1062,14 +1073,14 @@ function flash(){
   align-items: center;
   margin-top: 15px;
   padding-top: 10px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   gap: 10px;
 }
 
 .pagination button {
   background-color: #3c86ff;
-  border: 1px solid #ddd;
-  padding: 4px 8px;
+  border: none;
+  padding: 6px 12px;
   border-radius: 4px;
   color: white;
   cursor: pointer;
@@ -1080,7 +1091,6 @@ function flash(){
 
 .pagination button:hover:not(:disabled) {
   background-color: #373e52;
-  color: white;
 }
 
 .pagination button:disabled {
@@ -1091,7 +1101,8 @@ function flash(){
 
 .pagination span {
   font-size: 12px;
-  color: #606266;
+  color: white;
+  font-weight: bold;
 }
 
 .search-controls {
@@ -1102,11 +1113,17 @@ function flash(){
 
 .search-input {
   padding: 6px 10px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid rgba(0, 225, 255, 1);
   border-radius: 4px;
   font-size: 12px;
   width: 150px;
   transition: border-color 0.3s;
+  background: rgba(15, 61, 118, 0.6);
+  color: white;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .search-input:focus {
@@ -1138,23 +1155,24 @@ function flash(){
 .search-btn i, .refresh-btn i {
   margin-right: 4px;
 }
+
 /* 滚动条样式 */
 .rain-table tbody::-webkit-scrollbar {
   width: 6px;
 }
 
 .rain-table tbody::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .rain-table tbody::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
 }
 
 .rain-table tbody::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .refresh-btn {
@@ -1179,10 +1197,10 @@ function flash(){
 .disaster-popup {
   position: absolute;
   z-index: 1000;
-  width: 330px; /* 减小宽度 */
+  width: 330px;
   background-color: white;
-  border-radius: 6px; /* 减小圆角 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   font-family: 'Source Han Sans CN', sans-serif;
   overflow: hidden;
   transition: opacity 0.2s, transform 0.2s;
@@ -1191,7 +1209,7 @@ function flash(){
   transform: scale(0.95);
   pointer-events: none;
   border: 1px solid #e0e0e0;
-  font-size: 13px; /* 减小整体字体大小 */
+  font-size: 13px;
 }
 
 .disaster-popup[style*="display: block"] {
@@ -1201,9 +1219,8 @@ function flash(){
   transition: all 0.3s ease;
 }
 
-
 .popup-header {
-  padding: 8px 12px; /* 减小内边距 */
+  padding: 8px 12px;
   background-color: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
   display: flex;
@@ -1213,7 +1230,7 @@ function flash(){
 
 .popup-header h3 {
   margin: 0;
-  font-size: 14px; /* 减小标题字体大小 */
+  font-size: 14px;
   font-weight: 600;
   color: #333;
 }
@@ -1221,7 +1238,7 @@ function flash(){
 .popup-header button {
   background: none;
   border: none;
-  font-size: 14px; /* 减小关闭按钮大小 */
+  font-size: 14px;
   cursor: pointer;
   color: #6c757d;
   transition: color 0.2s;
@@ -1232,13 +1249,12 @@ function flash(){
 }
 
 .popup-content {
-  padding: 10px 12px; /* 减小内边距 */
+  padding: 10px 12px;
 }
-
 
 .disaster-table th,
 .disaster-table td {
-  padding: 6px 8px; /* 减小单元格内边距 */
+  padding: 6px 8px;
   text-align: left;
   border-bottom: 1px solid #f0f0f0;
 }
@@ -1246,7 +1262,7 @@ function flash(){
 .disaster-table th {
   font-weight: 500;
   color: #495057;
-  width: 35%; /* 固定标题列宽度 */
+  width: 35%;
 }
 
 .disaster-table td {
@@ -1256,7 +1272,6 @@ function flash(){
 
 .disaster-table tr:last-child th,
 .disaster-table tr:last-child td {
-  border-bottom: none; /* 最后一行不显示底边 */
+  border-bottom: none;
 }
-
 </style>

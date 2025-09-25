@@ -58,7 +58,7 @@ const props = defineProps({
 
 .disaster-info-table .label {
   font-weight: bold;
-  background-color: #f3f4f6;
+  background-color: rgba(14, 52, 98, 0.8);
   width: 35%;
 }
 </style>

@@ -168,53 +168,37 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 }, { deep: true });
 </script>
 
-
 <style scoped lang="scss">
 .data-table {
   position: absolute;
   top: 20px;
-  /* 距离顶部20px */
   left: 20px;
-  /* 距离左侧20px */
-  background-color: rgba(255, 255, 255, 0.75);
-  /* 与图例背景色一致 */
-  color: black;
+  background: rgba(14, 52, 98, 0.8);
+  color: white;
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 2px;
   z-index: 1000;
   width: 550px;
-  /* 限制表格宽度 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  /* 添加阴影效果 */
   font-size: 14px;
-  /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+  border: 1px solid rgba(0, 225, 255, 0.5);
 }
 
 .toggle-table-btn {
   position: absolute;
   top: 5px;
-  /* 调整按钮位置 */
   left: 5px;
-  /* 调整按钮位置 */
-  //background-color: #007bff;
   background-image: linear-gradient(159deg, #1c9fff 2%, #9be7ff 128%);
-  //border-radius: 24px;
   color: white;
   border: none;
   border-radius: 50%;
-  /* 圆形按钮 */
   width: 25px;
-  /* 按钮宽度 */
   height: 25px;
-  /* 按钮高度 */
   font-size: 20px;
   line-height: 1;
-  /* 垂直居中文本 */
   text-align: center;
   cursor: pointer;
   z-index: 1001;
-  /* 确保按钮在表格内容之上 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -226,52 +210,55 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 
 .table-title {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
   font-size: 16px;
   text-align: center;
   margin-top: 0;
-  /* 将 margin-top 设置为0，避免空白区域 */
   padding-top: 0px;
-  /* 增加内边距，为按钮留出空间 */
+  color: white;
 }
 
 .data-table table {
   width: 100%;
   border-collapse: collapse;
-  /* 合并边框 */
-}
-
-.data-table th,
-.data-table td {
-  height: 50px;
-  border: 1px solid #FFFFFF;
-  /* 浅色边框 */
-  padding: 8px 12px;
-  text-align: center;
-  font-size: 14px;
 }
 
 .data-table th {
-  background-color: rgba(255, 255, 255, 0.5);
-  /* 表头背景色 */
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
   font-weight: bold;
 }
 
+.data-table td {
+  background: rgba(14, 52, 98, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
+  height: 50px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .data-table tbody tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.5);
-  /* 斑马纹效果 */
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .data-table tbody tr:hover {
-  background-color: rgba(70, 70, 70, 0.9);
-  /* 鼠标悬停效果 */
+  background-color: rgba(86, 204, 242, 0.3);
 }
 
 .pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 15px;
   gap: 10px;
 }
 
@@ -279,8 +266,8 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
   background-color: #3c86ff;
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
+  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -297,68 +284,62 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 .pagination-controls span {
   font-size: 14px;
   font-weight: bold;
+  color: white;
 }
 
 .total-items {
   margin-left: 10px;
   font-size: 14px;
-  color: black;
+  color: white;
 }
 
-/* 新增样式 */
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   gap: 10px;
-  /* 增加整体元素之间的间距 */
 }
 
 .data-table select,
 .search-box input {
   height: 34px;
-  /* 统一高度 */
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.5);
-  color: black;
-  border: 1px solid #FFFFFF;
+  background: rgba(15, 61, 118, 0.6);
+  color: white;
+  border: 1px solid rgba(0, 225, 255, 1);
   box-sizing: border-box;
-  /* 确保padding和border包含在height内 */
 }
 
 .search-box {
   display: flex;
-  /* 使搜索框和按钮在同一行 */
   align-items: center;
-  gap: 5px;
-  /* 搜索框和按钮之间的间距 */
+  gap: 8px;
   flex-grow: 1;
-  /* 允许搜索框占据更多空间 */
 }
 
 .search-box input {
   flex-grow: 1;
-  /* 搜索框占据剩余空间 */
   width: auto;
-  /* 移除固定宽度 */
+  color: white;
+}
+
+.search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .search-box button {
   background-color: #3c86ff;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   height: 34px;
-  /* 统一高度 */
   box-sizing: border-box;
-  /* 确保padding和border包含在height内 */
   white-space: nowrap;
-  /* 防止按钮文字换行 */
 }
 
 .search-box button:hover {
@@ -367,7 +348,12 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 
 .data-table select {
   flex-shrink: 0;
-  /* 防止下拉菜单被压缩 */
+  color: white;
+}
+
+.data-table select option {
+  background: rgba(15, 61, 118, 0.9);
+  color: white;
 }
 
 ::v-deep .compass {

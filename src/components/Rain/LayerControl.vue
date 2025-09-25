@@ -22,7 +22,7 @@
   </div>
 
   <div class="graph_legend" v-if="showPeople">
-    <div class="legend-title1">地震震级图例</div>
+    <div class="legend-title1">人口密度图例</div>
 
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #b1fe02;"></span>
@@ -373,75 +373,76 @@ function toggleSubway(){
   position: absolute;
   top: 10px;
   right: 20px;
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid #ffffff;
-  border-radius: 16px;
-  color: black;
-  padding: 10px; /* 缩小内边距 */
+  border-radius: 2px;
   z-index: 1000;
-  width: 160px; /* 缩小面板宽度 */
-}
-
-.panel-title {
-  font-weight: bold;
-  margin-bottom: 6px; /* 缩小标题与内容间距 */
-  font-size: 12px; /* 缩小字体 */
+  width: 160px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: white;
+  border: 1px solid rgba(0, 225, 255, 1);
 }
 
 .panel-content {
+  background: rgba(14, 52, 98, 0.8);
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  font-size: 12px; /* 缩小字体 */
-  gap: 6px; /* 缩小子元素间距 */
+  font-size: 12px;
+  gap: 6px;
 }
 
 .panel-content label {
   display: flex;
   align-items: center;
-  gap: 6px; /* 缩小标签内元素间距 */
-  font-size: 12px; /* 缩小字体 */
+  gap: 6px;
+  font-size: 12px;
   cursor: pointer;
+  color: white;
+}
+
+.panel-title {
+  font-weight: bold;
+  font-size: 12px;
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  padding: 8px;
+  text-align: center;
 }
 
 .legend-color {
   width: 16px;
   height: 16px;
-
   margin-right: 6px;
   border-radius: 2px;
-}
-
-.legend-title1 {
-  width: 100%;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
 }
 
 .graph_legend {
   position: absolute;
   bottom: 10px;
   left: 15px;
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid #ffffff;
-  color: black;
-  padding: 10px;
   border-radius: 16px;
   z-index: 1000;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   width: 310px;
   height: 180px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.legend-title1 {
+  font-weight: bold;
+  font-size: 12px;
 }
 
 .legend-item1 {
   display: flex;
   align-items: center;
-  margin: 3px 0; /* 减少行间距 */
-  font-size: 14px; /* 缩小字体 */
+  margin: 3px 0;
+  font-size: 12px;
   width: 50%;
+  color: white;
 }
-
-
 
 </style>

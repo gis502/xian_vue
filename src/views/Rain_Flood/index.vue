@@ -2262,4 +2262,71 @@ function checkPopupBoundary() {
   pointer-events: auto;
   transition: all 0.3s ease;
 }
+
+.popup-header {
+  padding: 8px 12px; /* 减小内边距 */
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 14px; /* 减小标题字体大小 */
+  font-weight: 600;
+  color: white;
+}
+
+button {
+  background-color: #3c86ff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
+}
+
+.popup-header button:hover {
+  color: #333;
+}
+
+.popup-content {
+  padding: 10px 12px; /* 减小内边距 */
+  background: rgba(0, 94, 153, 1);
+  color: white;
+}
+
+.disaster-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.disaster-table th,
+.disaster-table td {
+  padding: 6px 8px; /* 减小单元格内边距 */
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.disaster-table th {
+  font-weight: 500;
+  width: 35%; /* 固定标题列宽度 */
+}
+
+.disaster-table td {
+  word-break: break-all;
+}
+
+.disaster-table tr:last-child th,
+.disaster-table tr:last-child td {
+  border-bottom: none; /* 最后一行不显示底边 */
+}
 </style>
