@@ -37,10 +37,11 @@
 
       <!--搜索组件-->
       <div class="search-box">
-        <input
+        <el-input
             type="text"
             v-model="searchQuery"
             placeholder="搜索表格数据..."
+            clearable
             @keyup.enter="performSearch"
         />
         <button @click="performSearch">搜索</button>

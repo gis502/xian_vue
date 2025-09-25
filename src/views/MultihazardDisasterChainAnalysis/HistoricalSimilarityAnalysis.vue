@@ -241,11 +241,11 @@ let earthquake_hidde = ref(false);
 const _circle = createCircleImage(maxRadius);
 const handleLevelPoints = (data) => {
   rainLevelPoint.value = data;
-  console.log('父组件接收的数据12121212121：', rainLevelPoint.value);
+  // console.log('父组件接收的数据12121212121：', rainLevelPoint.value);
 }
 const handSelectDisaster = (data) => {
  selectDisaster.value = data;
-  console.log('父组件接收的数据43434343434：', selectDisaster.value);
+  // console.log('父组件接收的数据43434343434：', selectDisaster.value);
 }
 onMounted(async () => {
   window.viewer = initCesium("cesium-container");
@@ -607,5 +607,16 @@ button {
 
 .popup-footer button:hover {
   background-color: #308ee0;
+}
+
+::v-deep .history-nar[data-v-60552b0e] {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 2px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
 }
 </style>
