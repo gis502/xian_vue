@@ -336,6 +336,7 @@ function applySearch() {
 }
 // 方法
 function selectDisaster(item) {
+  resetAll();
   disasterId.value = item.disasterId;
   disasterTy.value = item.disasterType;
   // 这里可以调用其他处理选中灾害的函数
@@ -559,6 +560,26 @@ function toggleEarthDebrisFlow(){
     stopFlashEntities("泥石流");
     flash();
   }
+}
+
+function resetAll(){
+  dataTypes.type4.data = [];
+  dataTypes.type6.data = [];
+  dataTypes.type2.data = [];
+  dataTypes.type1.data = [];
+  dataTypes.type3.data = [];
+  dataTypes.type5.data = [];
+  showRainFlood.value = false;
+  showRainLand.value = false;
+  showRainDebrisFlow.value = false;
+  showRainWater.value = false;
+  showEarthDebrisFlow.value = false;
+  showEarthLand.value = false;
+  stopFlashEntities("滑坡");
+  stopFlashEntities("泥石流");
+  stopFlashEntities("山洪");
+  stopFlashEntities("内涝");
+  flash();
 }
 
 function checkEntity(entityData) {
