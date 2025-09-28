@@ -19,32 +19,59 @@
         </el-form>
         <div class="chart-container">
             <el-row class="row">
-                <el-col :span="12">
+                <el-col :span="12" class="table-column">
                     <div class="header">人口受影响情况</div>
-                    <el-table class="table" :data="peopleTableData" style="width: 98%">
+                    <el-table 
+                        class="table" 
+                        :data="peopleTableData" 
+                        style="width: 98%"
+                        :max-height="tableHeight"
+                        header-row-class-name="fixed-header"
+                    >
+                        <el-table-column align="center" type="index" label="序号" width="80" />
                         <el-table-column align="center" prop="hidePoint" label="隐患点名称"/>
-                        <el-table-column align="center" prop="number" label="数量"/>
+                        <el-table-column align="center" prop="number" label="受影响人口数量"/>
                     </el-table>
                 </el-col>
-                <el-col :span="12">
+                <el-col :span="12" class="table-column">
                     <div class="header">交通受影响情况</div>
-                    <el-table class="table" :data="trafficTableData" style="width: 98%">
+                    <el-table 
+                        class="table" 
+                        :data="trafficTableData" 
+                        style="width: 98%"
+                        :max-height="tableHeight"
+                        header-row-class-name="fixed-header"
+                    >
+                        <el-table-column align="center" type="index" label="序号" width="80" />
                         <el-table-column align="center" prop="name" label="道路名称"/>
                     </el-table>
                 </el-col>
             </el-row>
             <el-row class="row">
-                <el-col :span="12">
+                <el-col :span="12" class="table-column">
                     <div class="header">危险源受影响情况</div>
-                    <el-table class="table" :data="dangerTableData" style="width: 98%">
+                    <el-table 
+                        class="table" 
+                        :data="dangerTableData" 
+                        style="width: 98%"
+                        :max-height="tableHeight"
+                        header-row-class-name="fixed-header"
+                    >
+                        <el-table-column align="center" type="index" label="序号" width="80" />
                         <el-table-column align="center" prop="position" label="危险源地址" />
                     </el-table>
                 </el-col>
-                <el-col :span="12">
+                <el-col :span="12" class="table-column">
                     <div class="header">地铁站受影响情况</div>
-                    <el-table class="table" :data="stationTableData" style="width: 98%">
+                    <el-table 
+                        class="table" 
+                        :data="stationTableData" 
+                        style="width: 98%"
+                        :max-height="tableHeight"
+                        header-row-class-name="fixed-header"
+                    >
+                        <el-table-column align="center" type="index" label="序号" width="80" />
                         <el-table-column align="center" prop="name" label="名称"/>
-                        <el-table-column align="center" prop="position" label="地址" />
                     </el-table>
                 </el-col>
             </el-row>
@@ -53,66 +80,121 @@
 </template>
 
 <script lang="js" setup name="CarrierInformationExtraction">
-import { onMounted, ref, onUnmounted, watch } from "vue";
+import { onMounted, ref, onUnmounted, watch, nextTick } from "vue";
 import { useDisasterData } from "../../api/hooks/useDisasterData";
 import CarrierInformation from "../../api/multi_hazard_disaster_chain_risk_model/carrier_information/CarrierInformation";
 
-// 图表引用
-const peopleTableData = ref([
-    {
-        hidePoint: '隐患点9',
-        number: 10
-    }
-]);
-const trafficTableData = ref([
-    {
-        name: 'xx大道'
-    }
-]);
-const dangerTableData = ref([
-    {
-        position: '长安区'
-    }
-]);
-const stationTableData = ref([
-    {
-        name: '地铁站',
-        position: '长安区'
-    }
-]);
+// 表格数据
+const peopleTableData = ref([]);
+const trafficTableData = ref([]);
+const dangerTableData = ref([]);
+const stationTableData = ref([]);
 
 // 灾害名称
 const { disasterNames, form } = useDisasterData();
 
+// 表格高度
+const tableHeight = ref(0);
+
+// 清除表格数据
+const clearTableData = () => {
+    peopleTableData.value = [];
+    trafficTableData.value = [];
+    dangerTableData.value = [];
+    stationTableData.value = [];
+};
+
 // 查询
 function query() {
-    // // 获取人口数据
-    // CarrierInformation.getAffectedPeople(form).then((res) => {
-    //     peopleTableData.value = res.data;
-    // });
+    // 清除现有数据
+    clearTableData();
+    
+    // 获取对应数据
+    CarrierInformation.queryTableInfo(form.value).then((res) => {
+        for(let i = 0; i < res.length; i++) {
+            let item = res[i];
+            item = JSON.parse(item);
+            
+            // 人口
+            if(item.peopleDatas) {
+                peopleTableData.value.push(...removeDuplicates(item.peopleDatas));
+            }
 
-    // // 获取交通数据
-    // CarrierInformation.getAffectedTraffic(form).then((res) => {
-    //     trafficTableData.value = res.data;
-    // });
+            // 交通
+            if(item.trafficDatas) {
+                trafficTableData.value.push(...removeDuplicates(item.trafficDatas));
+            }
 
-    // // 获取危险源数据
-    // CarrierInformation.getAffectedDanger(form).then((res) => {
-    //     dangerTableData.value = res.data;
-    // });
-    // // 地铁站受影响数量
-    // CarrierInformation.getAffectedStation(form).then((res) => {
-    //     stationTableData.value = res.data;
-    // });
+            // 危险源
+            if(item.dangerDatas) {
+                dangerTableData.value.push(...removeDuplicates(item.dangerDatas));
+            }
+
+            // 地铁站
+            if(item.stationDatas) {
+                stationTableData.value.push(...removeDuplicates(item.stationDatas));
+            }
+        }
+        
+        // 最后对每个表格数据再进行一次整体去重
+        peopleTableData.value = removeDuplicates(peopleTableData.value);
+        trafficTableData.value = removeDuplicates(trafficTableData.value);
+        dangerTableData.value = removeDuplicates(dangerTableData.value);
+        stationTableData.value = removeDuplicates(stationTableData.value);
+    });
 }
 
-// 调整图表大小
-const handleResize = () => {
+// 去重函数 - 基于对象的所有值进行去重
+function removeDuplicates(dataArray) {
+    if (!dataArray || !Array.isArray(dataArray)) return [];
     
+    const seen = new Set();
+    return dataArray.filter(item => {
+        // 将对象的所有值排序后拼接成字符串作为唯一标识
+        const values = Object.values(item).sort().join('|');
+        if (seen.has(values)) {
+            return false;
+        }
+        seen.add(values);
+        return true;
+    });
+}
+
+// 计算表格高度
+const calculateTableHeight = () => {
+    nextTick(() => {
+        const rowElements = document.querySelectorAll('.row');
+        if (rowElements.length > 0) {
+            const rowHeight = rowElements[0].offsetHeight;
+            const headerElements = document.querySelectorAll('.header');
+            if (headerElements.length > 0) {
+                const headerHeight = headerElements[0].offsetHeight;
+                // 计算表格高度（减去标题高度和边距）
+                tableHeight.value = rowHeight - headerHeight - 20;
+            }
+        }
+    });
 };
+
+// 调整表格大小
+const handleResize = () => {
+    calculateTableHeight();
+};
+
+function existData(data) {
+    console.log(data)
+}
 
 onMounted(() => {
     window.addEventListener('resize', handleResize);
+    calculateTableHeight();
+
+    let timer = setInterval(() => {
+        if(form.value.disasterId) {
+            query();
+            clearInterval(timer);
+        }
+    }, 100)
 });
 
 onUnmounted(() => {
@@ -120,7 +202,10 @@ onUnmounted(() => {
 });
 
 watch(form, (newValue, oldValue) => {
-    query();
+    // 避免初始加载时触发
+    if (oldValue && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+        query();
+    }
 }, { deep: true })
 </script>
 
@@ -143,18 +228,89 @@ watch(form, (newValue, oldValue) => {
 
 .row {
     height: calc((100vh - 100px) / 2);
+    overflow: hidden;
 }
+
+.table-column {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 .table {
     margin: 0 1%;
+    flex: 1;
+    /* 表格主体背景色：灰色半透明 */
+    background-color: rgba(100, 100, 100, 0.6);
 }
+
 .header {
     padding: 10px 0;
     font-weight: bold;
     color: #fff;
     text-align: center;
 }
+
+/* 表头文字样式：保持白色，与表格主体文字一致 */
 *,
 ::v-deep .el-table .el-table__header-wrapper th{
     font-size: 1.2rem;
+    color: #fff;
+}
+
+/* 表格滚动相关样式 */
+::v-deep .el-table__body-wrapper {
+    overflow-y: auto;
+}
+
+/* 确保表头固定（不影响样式，仅保留固定功能） */
+::v-deep .fixed-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* 表头核心样式调整：背景色改为与表格主体一致的灰色半透明 */
+::v-deep .el-table__header-wrapper {
+    overflow: visible !important;
+}
+::v-deep .el-table__header th {
+    /* 表头背景色 = 表格主体背景色 */
+    background-color: rgba(100, 100, 100, 0.6) !important;
+    /* 清除表头默认边框重叠问题 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 表格行样式：透明背景，避免覆盖表格主体背景 */
+::v-deep .el-table tr {
+    color: #fff;
+    background-color: transparent;
+}
+
+/* 表格单元格样式：白色文字，透明背景 */
+::v-deep .el-table__cell {
+    color: #fff;
+    background-color: transparent;
+}
+
+/* 表格边框样式：统一浅白色边框，增强层次感 */
+::v-deep .el-table th,
+::v-deep .el-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 表格hover效果：加深灰色，保持交互反馈 */
+::v-deep .el-table__row:hover > td {
+    background-color: rgba(130, 130, 130, 0.7) !important;
+}
+
+/* 隐藏滚动条（可选，保持界面简洁） */
+::v-deep .el-table__body-wrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::v-deep .el-table__body-wrapper::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
 }
 </style>

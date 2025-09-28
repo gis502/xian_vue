@@ -52,4 +52,15 @@ export default {
       },
     });
   },
+
+  // 获取表格数据
+  queryTableInfo: async (form) => {
+    return request({
+      url: "/carrier_information/table_info",
+      method: "post",
+      params: {
+        disasterId: form.disasterId,
+      },
+    });
+  }
 };
