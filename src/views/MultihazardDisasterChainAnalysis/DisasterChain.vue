@@ -243,7 +243,7 @@ const showSelect = ref(false);
 
 let viewer = null;
 
-onMounted(() => {
+onMounted(async () => {
   viewer = initCesium("cesium-container");
   window.viewer = viewer;
   // 断裂带
@@ -265,9 +265,45 @@ onMounted(() => {
       roll: 0.0,
     },
   });
-  getAllDisasterInfo();
+
+  // 先获取灾害数据
+  await getAllDisasterInfo();
+
+  // 自动选择最新灾害
+  await autoSelectLatestDisaster();
+
   setupEntityHandler();
 });
+
+// 自动选择最新灾害
+async function autoSelectLatestDisaster() {
+  if (combinedData.value.length > 0) {
+    const latestDisaster = combinedData.value[0]; // 第一个就是最新的，因为已经按时间降序排序
+    disasterId.value = latestDisaster.disasterId;
+    disasterTy.value = latestDisaster.disasterType;
+
+    console.log('自动选择最新灾害:', latestDisaster.disasterName, 'ID:', disasterId.value, '类型:', disasterTy.value);
+    modal.msg(`已自动选择最新灾害：${latestDisaster.disasterName}，灾害类型：${disasterTy.value}`);
+
+    // 根据灾害类型自动勾选对应的灾害链
+    await autoCheckDisasterChain();
+  } else {
+    console.warn('没有可用的灾害数据用于自动选择，请检查数据库连接是否正常');
+  }
+}
+
+// 根据灾害类型自动勾选灾害链
+async function autoCheckDisasterChain() {
+  if (disasterTy.value === 'rain') {
+    // 暴雨灾害：默认勾选暴雨滑坡
+    showRainLand.value = true;
+    await toggleRainLand();
+  } else if (disasterTy.value === 'earthquake') {
+    // 地震灾害：默认勾选地震滑坡
+    showEarthLand.value = true;
+    await toggleEarthLand();
+  }
+}
 
 //灾害选择
 function selectDisasterChain() {
@@ -334,15 +370,19 @@ function applySearch() {
   isSearching.value = true;
   currentPage.value = 1;
 }
-// 方法
-function selectDisaster(item) {
+
+// 修改selectDisaster函数，使其也能自动勾选灾害链
+async function selectDisaster(item) {
   resetAll();
   disasterId.value = item.disasterId;
   disasterTy.value = item.disasterType;
-  // 这里可以调用其他处理选中灾害的函数
+
   console.log('选中的灾害ID:', disasterId.value, '灾害类型:', disasterTy.value);
   modal.msg(`选择成功，选择的灾害id：${disasterId.value}，选择的灾害类型：${disasterTy.value}`);
   showDisaster.value = !showDisaster.value;
+
+  // 选择灾害后也自动勾选对应的灾害链
+  await autoCheckDisasterChain();
 }
 
 function prevPage() {
@@ -361,8 +401,7 @@ function formatTime(timeString) {
   return new Date(timeString).toLocaleString('zh-CN');
 }
 
-//主体逻辑
-function toggleRainLand(){
+async function toggleRainLand(){
   if(showRainLand.value){
     try{
       const DTO = {
@@ -370,7 +409,7 @@ function toggleRainLand(){
         disasterType: "滑坡",
       };
       // 等待数据获取完成
-      getRainProbability(DTO).then((response) =>{
+      await getRainProbability(DTO).then((response) =>{
         setTimeout(() => {
           console.log("等待2秒后执行");
           const processedEntities = checkEntity(response.data);
@@ -397,14 +436,14 @@ function toggleRainLand(){
   }
 }
 
-function toggleRainDebrisFlow() {
+async function toggleRainDebrisFlow() {
   if(showRainDebrisFlow.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "泥石流",
       };
-      getRainProbability(DTO).then((response) => {
+      await getRainProbability(DTO).then((response) => {
         setTimeout(() => {
           FlowEntities.value = checkEntity(response.data);
           FlowEntities.value.forEach((item) => {
@@ -427,17 +466,16 @@ function toggleRainDebrisFlow() {
     stopFlashEntities("泥石流");
     flash();
   }
-
 }
 
-function toggleRainWater(){
+async function toggleRainWater(){
   if(showRainWater.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "内涝",
       };
-      getRainProbability(DTO).then((response) => {
+      await getRainProbability(DTO).then((response) => {
         setTimeout(() => {
           WaterEntities.value = checkEntity(response.data);
           WaterEntities.value.forEach((item) => {
@@ -460,17 +498,16 @@ function toggleRainWater(){
     stopFlashEntities("内涝");
     flash();
   }
-
 }
 
-function toggleRainFlood(){
+async function toggleRainFlood(){
   if(showRainFlood.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "山洪",
       };
-      getRainProbability(DTO).then((response) => {
+      await getRainProbability(DTO).then((response) => {
         setTimeout(() => {
           FloodEntities.value = checkEntity(response.data);
           FloodEntities.value.forEach((item) => {
@@ -495,7 +532,7 @@ function toggleRainFlood(){
   }
 }
 
-function toggleEarthLand(){
+async function toggleEarthLand(){
   if(showEarthLand.value){
     try{
       const DTO = {
@@ -503,7 +540,7 @@ function toggleEarthLand(){
         disasterType: "滑坡",
       };
       // 等待数据获取完成
-      getEarthQuakeProbability(DTO).then((response) =>{
+      await getEarthQuakeProbability(DTO).then((response) =>{
         setTimeout(() => {
           console.log("等待2秒后执行");
           const processedEntities = checkEntity(response.data);
@@ -530,14 +567,14 @@ function toggleEarthLand(){
   }
 }
 
-function toggleEarthDebrisFlow(){
-  if(showRainDebrisFlow.value){
+async function toggleEarthDebrisFlow(){
+  if(showEarthDebrisFlow.value){
     try{
       const DTO = {
         disasterId: disasterId.value,
         disasterType: "泥石流",
       };
-      getEarthQuakeProbability(DTO).then((response) => {
+      await getEarthQuakeProbability(DTO).then((response) => {
         setTimeout(() => {
           FlowEntities.value = checkEntity(response.data);
           FlowEntities.value.forEach((item) => {
