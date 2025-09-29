@@ -842,12 +842,14 @@ async function calculateAndShowPopup(entity) {
 
       checkPopupBoundary();
 
-      popupVisible.value = true;
-
       await viewer.flyTo(entity, {
-        duration: 0.5,
+        duration: 1,
         offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 5000)
       });
+
+      popupVisible.value = true;
+
+
     }
   } catch (error) {
     console.error("计算弹出面板位置出错:", error);
