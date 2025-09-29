@@ -20,12 +20,6 @@
     <Legend></Legend>
     <!-- chart -->
     <Chart v-if="showAnalysis" :chartDatas="chartDatas"></Chart>
-    <!-- 历史相似灾害匹配 -->
-    <HistoricalDisasterMatch
-        v-if="showAnalysis"
-        :disasterList="disasterList"
-        :selectDisaster="selectDisaster"
-    ></HistoricalDisasterMatch>
     <div
         v-if="selectedEntityData"
         class="disaster-popup"
