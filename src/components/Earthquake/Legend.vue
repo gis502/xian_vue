@@ -86,13 +86,13 @@
 <style scoped>
 .legend {
   position: absolute;
-  bottom: 70px;
+  bottom: 20px;
   right: 15px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   width: 310px;
-  height: 275px;
+  height: 295px;
   overflow: hidden;
   box-shadow:inset 0px 0px 9px  rgba(62, 136, 210, 1);
   color: white; /* 设置所有文字为白色 */

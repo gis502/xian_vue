@@ -37,6 +37,16 @@
       </el-table-column>
     </el-table>
 
+<!--    <el-pagination-->
+<!--        @size-change="handleSizeChange"-->
+<!--        @current-change="handleCurrentChange"-->
+<!--        :current-page="currentPage"-->
+<!--        :page-sizes="pageSizes"-->
+<!--        :page-size="pageSize"-->
+<!--        style="display: flex; justify-content: center; margin-top: 20px;"-->
+<!--        layout="total, sizes, prev, pager, next, jumper"-->
+<!--        :total="total"-->
+<!--    >-->
     <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -44,7 +54,7 @@
         :page-sizes="pageSizes"
         :page-size="pageSize"
         style="display: flex; justify-content: center; margin-top: 20px;"
-        layout="total, sizes, prev, pager, next, jumper"
+        layout="total, prev, pager, next, jumper"
         :total="total"
     >
     </el-pagination>

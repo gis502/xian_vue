@@ -17,30 +17,30 @@
             margin-bottom: 12px;
             color: rgba(255, 255, 255, 1);
             letter-spacing: 0px;
-            line-height: 21.12px;
-            text-align: left;
+            line-height: 30px;
+            text-align: center;
             vertical-align: top;
             box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);
             ">
-        <el-col :span="12" style=" text-align: right;">
+        <el-col :span="13" style=" text-align: right;">
           {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}
         </el-col
         >
-        <el-col :span="12">
-          <el-button type="info" round @click="showBaseInfo = !showBaseInfo" style="
-          cursor: pointer;
-          color: rgba(255, 255, 255, 1);
-          font-size: 14px;
-          right: 5px;
-          opacity: 1;
-          background: rgba(13, 101, 162, 0.59);
-          border: 1px solid rgba(148, 170, 212, 1);
-          box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);
-          "
-          >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息
-          </el-button
-          >
-        </el-col>
+<!--        <el-col :span="12">-->
+<!--          <el-button type="info" round @click="showBaseInfo = !showBaseInfo" style="-->
+<!--          cursor: pointer;-->
+<!--          color: rgba(255, 255, 255, 1);-->
+<!--          font-size: 14px;-->
+<!--          right: 5px;-->
+<!--          opacity: 1;-->
+<!--          background: rgba(13, 101, 162, 0.59);-->
+<!--          border: 1px solid rgba(148, 170, 212, 1);-->
+<!--          box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);-->
+<!--          "-->
+<!--          >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息-->
+<!--          </el-button-->
+<!--          >-->
+<!--        </el-col>-->
       </el-row>
     </div>
     <div class="panel-content">

@@ -180,6 +180,7 @@ function updateEntryDistrict(position) {
 }
 
 const confirmRainPoint = async () => {
+  emit('update:loading-model', true)
   emit('update:handle-step-status', 2)
   // console.log(entries.value,111);
   // 找到降雨量最大的区域
@@ -259,6 +260,7 @@ const confirmRainPoint = async () => {
   let thematicdatas = processData(thematicRequests);
   // 触发专题图模型
   // let rainDatas = await rainTrigger(thematicdatas)
+
   rainTrigger(thematicdatas).then(async function(res){
     let rainDatas = {
       rainId: res.data.rainId,
@@ -283,7 +285,7 @@ const confirmRainPoint = async () => {
         disasterName: timeTransfer.timestampToTimeChina(new Date()) + "西安市暴雨"
       }
       basicLayers.addCenterPoint(entity)
-      emit('update:loading-model', true)
+      // emit('update:loading-model', true)
       await processAllDistricts()
       emit('update:loading-model', false)
       emit('update:show-info-panel', false)
