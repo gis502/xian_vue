@@ -195,11 +195,11 @@ const dataTypes = reactive({
       value: "type2",
     },
     {
-      name: "暴雨山洪",
+      name: "暴雨内涝",
       value: "type3",
     },
     {
-      name: "暴雨内涝",
+      name: "暴雨山洪",
       value: "type4",
     },
     {
