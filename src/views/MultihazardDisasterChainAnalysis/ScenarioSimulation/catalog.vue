@@ -91,6 +91,7 @@ export default {
   },
   methods: {
     async getDisasterEvents() {
+      this.eventList=[]
       let earthquakeList = await getAllEarthquakeList();
       let disasterRainList = await getAllDisasterRain();
       // console.log(earthquakeList,disasterRainList, "disasterRainList")
