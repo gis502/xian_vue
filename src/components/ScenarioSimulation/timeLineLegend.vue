@@ -67,6 +67,7 @@ export default {
 }
 
 .legend-title {
+  color: #fff;
   width: 100%;
   font-weight: bold;
   margin-bottom: 10px;
@@ -77,7 +78,10 @@ export default {
   position: absolute;
   top:2vh;
   right: 4vw;
-  background-color: rgba(255, 255, 255, 0.75);
+  background: rgba(14, 52, 98, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 225, 255, 0.5);
+  /*background-color: rgba(255, 255, 255, 0.75);*/
   border: 1px solid #ffffff;
   color: black;
   padding: 10px;
@@ -107,6 +111,7 @@ export default {
   margin-bottom: 10px;
 }
 .legend-label {
+  color: #fff;
   font-size: 0.9rem;
   text-indent: 0.5em;
 }

@@ -43,20 +43,20 @@ export default {
         {id: '8', name: '烈度圈', disabled: false},
         {id: '9', name: '断裂带', disabled: false},
 
-        {id: '10', name: '医院', disabled: false},
-        {id: '11', name: '风险源', disabled: false},
-        {id: '12', name: '避难所', disabled: false},
-        {id: '13', name: '消防站', disabled: false},
-        {id: '14', name: '储备点', disabled: false},
-        {id: '15', name: '人口网格', disabled: false},
-        {id: '16', name: '农田网格', disabled: false},
-        {id: '17', name: '管网系统', disabled: false},
-        {id: '18', name: '交通道路', disabled: false},
-        {id: '19', name: '桥梁', disabled: false},
-        {id: '20', name: '高速', disabled: false},
-        {id: '21', name: '国道', disabled: false},
-        {id: '22', name: '水库', disabled: false},
-        {id: '23', name: '地铁站', disabled: false},
+        // {id: '10', name: '医院', disabled: false},
+        // {id: '11', name: '风险源', disabled: false},
+        // {id: '12', name: '避难所', disabled: false},
+        // {id: '13', name: '消防站', disabled: false},
+        // {id: '14', name: '储备点', disabled: false},
+        // {id: '15', name: '人口网格', disabled: false},
+        // {id: '16', name: '农田网格', disabled: false},
+        // {id: '17', name: '管网系统', disabled: false},
+        // {id: '18', name: '交通道路', disabled: false},
+        // {id: '19', name: '桥梁', disabled: false},
+        // {id: '20', name: '高速', disabled: false},
+        // {id: '21', name: '国道', disabled: false},
+        // {id: '22', name: '水库', disabled: false},
+        // {id: '23', name: '地铁站', disabled: false},
       ],
       //是否第一次加载，进入页面就加载的，默认值为true.第一次add加载，之后显示隐藏
       firstLoad: {
@@ -411,14 +411,15 @@ export default {
   position: absolute;
   top: 2vh;
   right: 4vw;
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid #ffffff;
-  color: black;
+  background: rgba(14, 52, 98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 225, 255, 0.5);
+  color: white;
   padding: 10px;
   border-radius: 4px;
   z-index: 1000;
   width: 15vh;
-  height: 87vh;
+  height: 27vh;
 }
 
 .panel-title1 {

@@ -267,15 +267,15 @@ export default {
   position: absolute;
   top: 2vh; /* 距离顶部20px */
   right: 4vw; /* 距离左侧20px */
-  background-color: rgba(255,255,255,0.75); /* 与图例背景色一致 */
-  color: black;
+  background: rgba(14, 52, 98, 0.8);
+  color: white;
   padding: 15px;
   border-radius: 8px;
   z-index: 10;
   width: 300px; /* 限制表格宽度 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   font-size: 12px; /* 调整字体大小 */
-  /* position: relative; /* 移除此行，因为子元素的绝对定位不需要它 */
+  border: 1px solid rgba(0, 225, 255, 0.5);
 }
 
 .toggle-table-btn {
@@ -328,16 +328,31 @@ export default {
 }
 
 .data-table th {
-  background-color: rgba(255,255,255,0.5); /* 表头背景色 */
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 12px;
+  text-align: center;
   font-weight: bold;
 }
-
+.data-table td {
+  background: rgba(14, 52, 98, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
+  height: 50px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .data-table tbody tr:nth-child(even) {
   background-color: rgba(255,255,255,0.5); /* 斑马纹效果 */
 }
 
 .data-table tbody tr:hover {
-  background-color: rgba(70, 70, 70, 0.9); /* 鼠标悬停效果 */
+  background-color: rgba(86, 204, 242, 0.3);
 }
 
 .pagination-controls {
@@ -375,7 +390,7 @@ export default {
 .total-items {
   margin-left: 10px;
   font-size: 12px;
-  color: black;
+  color: white;
 }
 
 /* 新增样式 */
@@ -389,13 +404,13 @@ export default {
 
 .data-table select,
 .search-box input {
-  height: 34px; /* 统一高度 */
-  padding: 5px 10px;
+  height: 34px;
+  padding: 6px 12px;
   border-radius: 4px;
-  background-color: rgba(255,255,255,0.5);
-  color: black;
-  border: 1px solid #FFFFFF;
-  box-sizing: border-box; /* 确保padding和border包含在height内 */
+  background: rgba(15, 61, 118, 0.6);
+  color: white;
+  border: 1px solid rgba(0, 225, 255, 1);
+  box-sizing: border-box;
 }
 
 .search-box {
