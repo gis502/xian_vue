@@ -58,7 +58,7 @@ export default {
   mounted() {
     // 获取初始数据
     axios
-        .get("http://localhost:8085/model/bayes/grade")
+        .get("http://10.22.245.246:8085/model/bayes/grade")
         .then((response) => {
           const data = response.data;
           this.localFactors = this.initializeFactors(data);
@@ -190,7 +190,7 @@ export default {
 
         // 发起 POST 请求（body = { data: { ... } }）
         axios
-            .post("http://localhost:8085/model/bayes/change", payload, {
+            .post("http://10.22.245.246:8085/model/bayes/change", payload, {
               headers: {"Content-Type": "application/json"}
             })
             .then(() => {
