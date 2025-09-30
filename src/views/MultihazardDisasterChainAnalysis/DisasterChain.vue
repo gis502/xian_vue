@@ -1005,7 +1005,7 @@ function flash(){
 .layerControl-panel {
   position: absolute;
   top: 50px;
-  right: 20px;
+  right: 0px;
   background-color: rgba(14, 52, 98, 0.8);
   border: 1px solid rgba(0, 225, 255, 1);
   border-radius: 2px;

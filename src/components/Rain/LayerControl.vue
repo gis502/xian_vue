@@ -372,7 +372,7 @@ function toggleSubway(){
 .layerControl-panel {
   position: absolute;
   top: 10px;
-  right: 20px;
+  right: 0px;
   border-radius: 2px;
   z-index: 1000;
   width: 160px;

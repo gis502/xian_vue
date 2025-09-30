@@ -53,7 +53,9 @@ import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js";
 import {getAllEarthquakeList} from "@/api/system/disasterEvents.js";
 
 let basicLayers = {
-    geoUrl: '/geoserver/xian/wms', //你的geoserverUrl,格式：/geoserver/工作空间名/wms
+    // 修改geoUrl以正确配合代理配置
+    // 原配置: geoUrl: '/geoserver/xian/wms'
+    geoUrl: '/geo', // 代理会处理路径重写，只需保留基础路径
     peopleLayerName: 'xian:xian_people', // 格式：工作空间名:图层名
     cropsLayerName: 'xian:xian_crops',
     waterPipeLayerName: 'xian:xian_water_pipe',
@@ -688,23 +690,23 @@ let basicLayers = {
     },
     //添加图层
     addLayers(name) {
+        // 根据用户提供的有效GeoServer WMS服务URL配置
         return window.viewer.imageryLayers.addImageryProvider(
             new Cesium.WebMapServiceImageryProvider({
-                url: this.geoUrl,
+                url: `${this.geoUrl}/geoserver/xian/wms`,
                 layers: name,
                 parameters: {
                     tiled: true,
                     transparent: true,
                     format: 'image/png',
                     srs: 'EPSG:4490',
-                    version: '1.1.1',
+                    version: '1.1.0', // 与用户提供的有效URL版本一致
                 },
                 flyTo: true,
                 show: true,
             })
         );
     },
-
     showHiddenEntity(type) {
         let toRemove = window.viewer.entities.values.filter(
             e => e.name === type

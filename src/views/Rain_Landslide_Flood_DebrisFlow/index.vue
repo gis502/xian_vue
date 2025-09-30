@@ -442,7 +442,7 @@ let floodDisasterInformation = reactive(null)
 let selectedPosition = reactive(null)
 let timeLabels = reactive([])
 let radarImages = reactive([
-  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820135900000.PNG.png',
+  '/tes',
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820140500000.PNG.png',
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820141100000.PNG.png',
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820141700000.PNG.png',
@@ -999,7 +999,7 @@ function radarData() {
   getRadarData().then(res => {
     let data = res.data
     console.log(data, "RadarData")
-    // radarImages = []
+    radarImages = []
     data.forEach(item => {
       console.log(item)
       let d = new Date(item.obsdate);
@@ -1007,7 +1007,7 @@ function radarData() {
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
       // console.log("/radarimages"+item.r0href)
-      // radarImages.push("/radarimages/"+item.r0href)   // 图片在这添加
+      radarImages.push("/radarimages/"+item.r0href)   // 图片在这添加
       // radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
       timeLabels.push(time)
     })
@@ -2053,7 +2053,8 @@ function downloadRainReport() {
   let link = document.createElement('a');
   // try {
   // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
-  link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+  // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+  link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
   link.download = wordUrl;                         // 强制触发下载
   link.click();
   loadingModel.value = false

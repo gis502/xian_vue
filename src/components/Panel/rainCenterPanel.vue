@@ -41,7 +41,7 @@ import timeTransfer from "@/cesium/timeTransfer.js";
 export default {
   data() {
     return {
-      positionEntity: {x: 0, y: 0},
+      positionEntity: {x: 600, y: 20},
       rainInfo: {}
     }
   },
@@ -60,6 +60,7 @@ export default {
   computed: {
     // 调整弹框位置
     styleObject() {
+      console.log(this.positionEntity)
       return {
         positionEntity: "absolute",
         left: `${this.positionEntity.x}px`,
