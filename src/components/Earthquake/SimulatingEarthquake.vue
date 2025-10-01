@@ -228,7 +228,7 @@ import basicLayers from "../../cesium/basicLayers";
 import {addDisaster, addEarthquake, getEarthQuakeReport, hazardsParams} from "../../api/earthquake/datas";
 import {parseTime} from "../../utils/ruoyi";
 import {ElMessage} from 'element-plus'
-
+import * as Cesium from 'cesium';
 // 常量
 const {province, city} = {
   province: "陕西省",
@@ -549,11 +549,38 @@ async function confirmEarthquake(formEl) {
         }
       };
       if (favEllipsePoints.length!==0){
+        // 计算7度区的长轴距离
+        let sevenDistance = 0;
+        base.circleParam.forEach(item => {
+          if (item.intensity == 7){
+            sevenDistance = Math.max(item.semiMinorAxis, item.semiMajorAxis);
+          }
+        })
+
+        // 循环修改距离震源的距离，用降雨量代替，方便调用同一个模型
+        const hypocenter = Cesium.Cartesian3.fromDegrees(position.longitude, position.latitude, 0);
+        favEllipsePoints.forEach(item => {
+          // 获取隐患点经纬度
+          const hide = Cesium.Cartesian3.fromDegrees(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, 0);
+
+          // 距离
+          let distance = Math.ceil(Cesium.Cartesian3.distance(hypocenter, hide));
+
+          // 对距离进行比例化处理
+          distance = 150 - (distance / sevenDistance) * 150;
+
+          // 修改降雨量
+          for(let i = 0; i < item.factorVoList.length; i++) {
+            // 修正：移除多余的 "item" 拼写错误
+            if(item.factorVoList[i] && item.factorVoList[i].attributeNameAlias && item.factorVoList[i].attributeNameAlias == 'rainfall') {
+              item.factorVoList[i].factorValue = distance;
+            }
+          }
+        })
+
         const [points, probabilityPoints] =
             await obtainTheProbabilityOfSimulatedPointRisk(favEllipsePoints);
         emit('updateEqInfo', probabilityPoints)
-        console.log("points",points)
-        console.log("probabilityPoints",probabilityPoints)
         layers.flashHiddenDisasterPoints(probabilityPoints, pulse)
         // 处理表格和chart数据
         addDatasToTableAndChart(points);

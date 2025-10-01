@@ -15,14 +15,14 @@
         <div class="legend-color" id="debrisflow"></div>
         泥石流隐患点
       </div>
-      <div class="legend-item">
-        <div class="legend-color" id="flashflood"></div>
-        山洪
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" id="water"></div>
-        内涝点
-      </div>
+<!--      <div class="legend-item">-->
+<!--        <div class="legend-color" id="flashflood"></div>-->
+<!--        山洪-->
+<!--      </div>-->
+<!--      <div class="legend-item">-->
+<!--        <div class="legend-color" id="water"></div>-->
+<!--        内涝点-->
+<!--      </div>-->
       <div class="legend-item">
         <div class="legend-color" id="riskArea"></div>
         风险区域

@@ -20,8 +20,8 @@ useSimulationPointStore().clearSimulationPoints();
 basicLayers.AddDangerAreaDataSource()
 basicLayers.loadLandSlide()
 basicLayers.Addmudslide()
-basicLayers.loadFlashFlood()
-basicLayers.loadWater()
+// basicLayers.loadFlashFlood()
+// basicLayers.loadWater()
 basicLayers.loadHistoricalEarthquake()
 onBeforeMount(() => {
   useSimulationPointStore().clearSimulationPoints();
