@@ -18,6 +18,9 @@
     transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
         @click.stop="stopPropagation">
       <div class="popup-header">
+        <h3 v-if="selectedEntityData.properties.disasterName">{{
+            selectedEntityData.properties.disasterName || '隐患点'
+          }} </h3>
         <h3 v-if="selectedEntityData.properties.teamName">{{
             selectedEntityData.properties.teamName || '消防站'
           }} </h3>
@@ -32,6 +35,18 @@
           }} </h3>
         <h3 v-if="selectedEntityData.properties.shelterName">{{
             selectedEntityData.properties.shelterName || '避难所'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.stationName">{{
+            selectedEntityData.properties.stationName || '地铁站'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.bridgeName">{{
+            selectedEntityData.properties.bridgeName || '桥梁'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.reservoirName">{{
+            selectedEntityData.properties.reservoirName || '水库'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.schoolName">{{
+            selectedEntityData.properties.schoolName || '学校'
           }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
@@ -942,8 +957,7 @@ function stopLoading() {
   position: absolute;
   z-index: 1000;
   width: 330px; /* 减小宽度 */
-  background-color: white;
-  border-radius: 6px; /* 减小圆角 */
+  border-radius: 2px; /* 减小圆角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
   font-family: 'Source Han Sans CN', sans-serif;
   overflow: hidden;
@@ -952,7 +966,7 @@ function stopLoading() {
   opacity: 0;
   transform: scale(0.95);
   pointer-events: none;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(0, 225, 255, 1);
   font-size: 13px; /* 减小整体字体大小 */
 }
 
@@ -966,7 +980,7 @@ function stopLoading() {
 
 .popup-header {
   padding: 8px 12px; /* 减小内边距 */
-  background-color: #f8f9fa;
+  background: rgba(14, 52, 98, 0.95);
   border-bottom: 1px solid #e9ecef;
   display: flex;
   justify-content: space-between;
@@ -977,16 +991,23 @@ function stopLoading() {
   margin: 0;
   font-size: 14px; /* 减小标题字体大小 */
   font-weight: 600;
-  color: #333;
+  color: white;
 }
 
-.popup-header button {
-  background: none;
+button {
+  background-color: #3c86ff;
+  color: white;
   border: none;
-  font-size: 14px; /* 减小关闭按钮大小 */
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  color: #6c757d;
-  transition: color 0.2s;
+  transition: background-color 0.3s ease;
+  height: 34px;
+  /* 统一高度 */
+  box-sizing: border-box;
+  /* 确保padding和border包含在height内 */
+  white-space: nowrap;
+  /* 防止按钮文字换行 */
 }
 
 .popup-header button:hover {
@@ -994,7 +1015,8 @@ function stopLoading() {
 }
 
 .popup-content {
-  padding: 10px 12px; /* 减小内边距 */
+  background: rgba(0, 94, 153, 1);
+  color: white;
 }
 
 
@@ -1002,17 +1024,15 @@ function stopLoading() {
 .disaster-table td {
   padding: 6px 8px; /* 减小单元格内边距 */
   text-align: left;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #000;
 }
 
 .disaster-table th {
   font-weight: 500;
-  color: #495057;
   width: 35%; /* 固定标题列宽度 */
 }
 
 .disaster-table td {
-  color: #333;
   word-break: break-all;
 }
 

@@ -70,6 +70,9 @@
         <h3 v-if="selectedEntityData.properties.reservoirName">{{
             selectedEntityData.properties.reservoirName || '水库'
           }} </h3>
+        <h3 v-if="selectedEntityData.properties.schoolName">{{
+            selectedEntityData.properties.schoolName || '学校'
+          }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
       <div class="popup-content">

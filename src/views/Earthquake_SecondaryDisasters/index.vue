@@ -31,17 +31,35 @@
         transform: popupVisible ? 'scale(1)' : 'scale(0.5)'}"
         @click.stop="stopPropagation">
       <div class="popup-header">
-        <h3 v-if="showRainPoints">{{
-            selectedEntityData.disasterType || '隐患点'
+        <h3 v-if="selectedEntityData.properties.disasterName">{{
+            selectedEntityData.properties.disasterName || '隐患点'
           }} </h3>
-        <h3 v-if="earthquakeHospital">{{
+        <h3 v-if="selectedEntityData.properties.teamName">{{
+            selectedEntityData.properties.teamName || '消防站'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.hospitalName">{{
             selectedEntityData.properties.hospitalName || '医院'
           }} </h3>
-        <h3 v-if="earthquakeRisk">{{
+        <h3 v-if="selectedEntityData.properties.dangerName">{{
             selectedEntityData.properties.dangerName || '风险源'
           }} </h3>
-        <h3 v-if="earthquake_hidde">{{
-            selectedEntityData.properties.disaster_name || '隐患点'
+        <h3 v-if="selectedEntityData.properties.storeName">{{
+            selectedEntityData.properties.storeName || '储备点'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.shelterName">{{
+            selectedEntityData.properties.shelterName || '避难所'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.stationName">{{
+            selectedEntityData.properties.stationName || '地铁站'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.bridgeName">{{
+            selectedEntityData.properties.bridgeName || '桥梁'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.reservoirName">{{
+            selectedEntityData.properties.reservoirName || '水库'
+          }} </h3>
+        <h3 v-if="selectedEntityData.properties.schoolName">{{
+            selectedEntityData.properties.schoolName || '学校'
           }} </h3>
         <button @click="closePopup"> 关闭</button>
       </div>
