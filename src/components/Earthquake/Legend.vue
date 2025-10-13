@@ -33,15 +33,11 @@
       </div>
       <div class="legend-item">
         <div class="legend-color" id="predictMidDisaster"></div>
-        中风险预警点
+        中风险预警点(闪烁)
       </div>
       <div class="legend-item">
         <div class="legend-color" id="predictHighDisaster"></div>
-        高风险预警点
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" id="realDisaster"></div>
-        灾害点
+        高风险预警点(闪烁)
       </div>
       <div class="legend-item">
         <div class="legend-color" id="hospital"></div>
@@ -75,6 +71,10 @@
         <div class="legend-color" id="subwayPoint"></div>
         地铁站
       </div>
+      <div class="legend-item">
+        <div class="legend-color" id="schoolPoint"></div>
+        学校
+      </div>
     </div>
   </div>
 </template>
@@ -92,7 +92,7 @@
   display: flex;
   flex-direction: column;
   width: 310px;
-  height: 295px;
+  height: 265px;
   overflow: hidden;
   box-shadow:inset 0px 0px 9px  rgba(62, 136, 210, 1);
   color: white; /* 设置所有文字为白色 */
@@ -170,10 +170,6 @@
   background-image: url("../../assets/images/中风险预警点.png");
   background-size: cover;
 }
-#realDisaster {
-  background-image: url("../../assets/images/灾害点.png");
-  background-size: cover;
-}
 #hospital {
   background-image: url("../../assets/images/hospital.png");
   background-size: cover;
@@ -204,6 +200,10 @@
 }
 #subwayPoint {
   background-image: url("../../assets/images/subway.png");
+  background-size: cover;
+}
+#schoolPoint {
+  background-image: url("../../assets/images/school.png");
   background-size: cover;
 }
 </style>
