@@ -1226,17 +1226,17 @@ export default {
 
 .warn-point-table {
   position: absolute;
-  top: 60px;
-  left: 0;
-  background-color: rgba(14, 52, 98, 0.8);
+  top: 65px;
+  left: 20px;
+  background: rgba(14, 52, 98, 0.8);
   color: white;
   padding: 15px;
-  border: 1px solid rgba(0, 225, 255, 0.5);
   border-radius: 2px;
   z-index: 1000;
-  width: 647px;
+  width: 550px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   font-size: 14px;
+  border: 1px solid rgba(0, 225, 255, 0.5);
 }
 
 .toggle-point-table-btn{

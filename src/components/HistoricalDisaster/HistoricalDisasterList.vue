@@ -538,14 +538,16 @@ async function tiggerHistoryDaster(item){
 <style scoped lang="scss">
 .history-list{
   position: absolute;
-  top: 20px;
-  width: 600px;
+  top: 65px;
+  left: 20px;
   background: rgba(14, 52, 98, 0.8);
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  padding: 20px;
-  font-family: "Microsoft YaHei", sans-serif;
+  color: white;
+  padding: 15px;
+  border-radius: 2px;
   z-index: 1000;
+  width: 550px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
   border: 1px solid rgba(0, 225, 255, 0.5);
 }
 

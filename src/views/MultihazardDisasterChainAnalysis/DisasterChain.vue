@@ -8,10 +8,14 @@
       element-loading-background="rgba(122, 122, 122, 0.8)"
   >
     <div class="controls">
-      <div class="rain-btn" @click="selectDisasterChain">
+      <div class="rain-btn"
+           :class="{ active: activeBtn === 'rain' }"
+           @click="selectDisasterChain">
         灾害链模型选择
       </div>
-      <div class="choose-btn" @click="toSelectDisaster">
+      <div class="choose-btn"
+           :class="{ active: activeBtn === 'choose' }"
+           @click="toSelectDisaster">
         选择历史灾害
       </div>
     </div>
@@ -182,6 +186,7 @@ let FlowEntities= ref([]);
 let FloodEntities = ref([]);
 let WaterEntities= ref([]);
 let highRiskEntities = ref([]);
+let activeBtn = ref('');
 
 // 表格数据
 const dataTypes = reactive({
@@ -308,10 +313,20 @@ async function autoCheckDisasterChain() {
 //灾害选择
 function selectDisasterChain() {
   showSelect.value = !showSelect.value;
+  if (showSelect.value){
+    activeBtn.value = 'rain';
+  }else {
+    activeBtn.value = '';
+  }
 }
 
 function toSelectDisaster(){
   showDisaster.value = !showDisaster.value;
+  if (showDisaster.value){
+    activeBtn.value = 'choose';
+  }else {
+    activeBtn.value = '';
+  }
 }
 
 // 修改获取数据的方法
@@ -974,32 +989,42 @@ function flash(){
 
 .controls {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 100;
-  display: flex;
-  gap: 6px;
+  top: 53px;
+  right: 164px;
+  z-index: 1000;
+  width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px 0;
 }
 
 .rain-btn, .choose-btn{
-  background: url("@/assets/images/按钮3.png") center/contain no-repeat;
   color: white;
-  padding: 6px 25px;
-  border-radius: 8px;
+  padding: 12px 12px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   transition: all 0.3s;
   white-space: nowrap;
   min-width: 100px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  opacity: 1;
+  background-image: url("../../assets/images/按钮3.png");
+  background-color: transparent;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin-right: -3px;
+  width: 180px;
 }
 
-.rain-btn:hover {
-  background-color: #373e52;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.rain-btn.active,
+.choose-btn.active{
+  background-image: url("@/assets/images/按钮4.png");
 }
 
 .layerControl-panel {

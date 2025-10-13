@@ -832,7 +832,6 @@ function updatePopupPosition() {
   });
 }
 
-
 // 模拟地震
 function startEarthquakeSimulation() {
   activeBtn.value = 'simulator';
