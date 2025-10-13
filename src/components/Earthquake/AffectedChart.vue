@@ -308,7 +308,7 @@ export default {
 <style scoped>
 .bar-chart-container {
   position: absolute;
-  bottom: 10px;
+  bottom: 2px;
   left: 20px;
   background: linear-gradient(270deg, rgba(46, 147, 165, 0.24) 0%, rgba(21, 66, 143, 0.33) 100%), rgba(13, 32, 76, 0.24);
   box-shadow: 0px 0px 9px  rgba(62, 136, 210, 1);
@@ -317,7 +317,7 @@ export default {
   z-index: 1000;
   font-size: 14px;
   width: 430px;
-  height: 400px;
+  height: 380px;
   border: 1px solid #ddd;
   background-blend-mode: normal;
   opacity: 1;

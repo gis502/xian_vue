@@ -921,8 +921,6 @@ function removeEarthquakeSimulation() {
 // 产出报告面板
 function toggleReportPanel() {
 
-  activeBtn.value = 'firmware';
-
   if (eqRequests.eventId == null && eqRequests.eventQueueId == null) {
     ElMessage({
       message: '暂无图件，请先模拟地震！',
@@ -932,6 +930,11 @@ function toggleReportPanel() {
     return;
   } else {
     isReportPanelVisible.value = !isReportPanelVisible.value
+    if (isReportPanelVisible.value) {
+      activeBtn.value = 'firmware'
+    } else {
+      activeBtn.value = ''
+    }
   }
 }
 

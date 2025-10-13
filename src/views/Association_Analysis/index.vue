@@ -1226,7 +1226,7 @@ export default {
 
 .warn-point-table {
   position: absolute;
-  top: 65px;
+  top: 120px;
   left: 20px;
   background: rgba(14, 52, 98, 0.8);
   color: white;

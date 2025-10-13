@@ -425,7 +425,7 @@ let weatherActive = ref(false)
 let loadingModel = ref(false)
 let isLoading = ref(false)
 let loadingText = ref('加载数据中...')
-let showAdminLayer = ref(true)
+let showAdminLayer = ref(false)
 let popupVisible = ref(false)
 let stepStatus = ref(0)
 let stepChain = ref("暴雨灾害链")
@@ -488,7 +488,7 @@ let dataTypeHiddenDisaster = reactive({
       value: "type3",
     },
     {
-      name: "山洪",
+      name: "山洪预警点",
       value: "type4",
     },
     // {
@@ -517,19 +517,19 @@ let dataTypeHiddenDisaster = reactive({
     // }
   ],
   type1: {
-    headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["滑坡名称", "位置", "规模等级", "险情等级"],
     data: [],
   },
   type2: {
-    headers: ["泥石流灾害名称", "位置", "规模等级", "险情等级"],
+    headers: ["泥石流名称", "位置", "规模等级", "险情等级"],
     data: [],
   },
   type3: {
-    headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+    headers: ["内涝名称", "位置", "规模等级", "险情等级"],
     data: [],
   },
   type4: {
-    headers: ["区县", "街道", "人口数量"],
+    headers: ["山洪名称", "街道","经度","纬度"],
     data: [],
   },
   // type5: {
@@ -1147,13 +1147,14 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
         })
         break;
       case "山洪":
+        console.log(item,"山洪")
         dataTypeHiddenDisaster.type4.data.push({
           field1: item.geologicalDisasterHideDTO.disasterName,
           field2: item.geologicalDisasterHideDTO.position,
-          field3: item.geologicalDisasterHideDTO.scaleGrade,
-          field4: item.geologicalDisasterHideDTO.riskGrade,
-          field5: item.geologicalDisasterHideDTO.lon,
-          field6: item.geologicalDisasterHideDTO.lat,
+          field3: item.geologicalDisasterHideDTO.lon.toFixed(2),
+          field4: item.geologicalDisasterHideDTO.lat.toFixed(2),
+          field5: item.geologicalDisasterHideDTO.scaleGrade,
+          field6: item.geologicalDisasterHideDTO.riskGrade,
         })
         break;
       default:
@@ -1225,7 +1226,7 @@ function handleHiddenDisasterPointUpdate(probabilityPoints) {
       });
     }
   });
-  // console.log(districtStats,123)
+  console.log(dataTypeHiddenDisaster,"dataTypeHiddenDisaster")
   // 统计结果转换为数组格式
   districtDisasterData = Object.values(districtStats);
   showLegend.value = !showLegend.value;
@@ -1843,12 +1844,12 @@ function releaseAllResources() {
 
 /* 行政区划按钮 */
 function toggleAdminLayer() {
-  activeBtn.value = 'admin'
+
   // showAdminLayer.value = !showAdminLayer.value;
   // if (showAdminLayer.value) {
-  //   basicLayers.loadAdminData()
+  //   activeBtn.value = 'admin'
   // } else {
-  //   basicLayers.removeAdminData()
+  //   activeBtn.value = ''
   // }
 
   if (rainRequests.eventId == null && rainRequests.eventQueueId == null) {
@@ -1860,6 +1861,11 @@ function toggleAdminLayer() {
     return;
   } else {
     isReportPanelVisible.value = !isReportPanelVisible.value
+    if (isReportPanelVisible.value) {
+      activeBtn.value = 'admin'
+    } else {
+      activeBtn.value = ''
+    }
     console.log("暴雨触发成功，获取的id是:", rainRequests)
   }
 

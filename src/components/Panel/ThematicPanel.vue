@@ -427,7 +427,7 @@ export default {
 .eqTheme {
   position: absolute;
   top: 120px;
-  left: 65%;
+  left: 72%;
   z-index: 100;
 }
 .eqTheme .el-button {
