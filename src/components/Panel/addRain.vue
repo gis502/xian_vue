@@ -70,7 +70,7 @@ const emit = defineEmits([
 ])
 
 // Reactive data
-const positionEntity = ref({x: 580, y: 20})
+const positionEntity = ref({x: 950, y: 72})
 const districts = ref([
   {name: "新城区", code: "610102", longitude: 108.95711992089143, latitude: 34.302601231374936},
   {name: "碑林区", code: "610103", longitude: 108.95711992089143, latitude: 34.25257505041645},

@@ -218,6 +218,19 @@
         </table>
       </div>
     </div>
+    <div class="btn-group">
+      <!-- 地震模拟 -->
+      <div class="simulator-earthquake"
+           :class="{ active: activeBtn === 'simulator' }"
+           @click="startEarthquakeSimulation">地震模拟</div>
+      <div class="eliminate-earthquake"
+           :class="{ active: activeBtn === 'eliminate' }"
+           @click="removeEarthquakeSimulation">清除模拟</div>
+      <div class="firmware"
+           :class="{ active: activeBtn === 'firmware' }"
+           :plain="true"
+           @click="toggleReportPanel">图件下载</div>
+    </div>
     <!-- 图例 -->
     <rain-layer-control :viewer="viewer"/>
     <Legend></Legend>
@@ -253,12 +266,7 @@
         :rainfall="'0'"
     />
     <div class="rain-btn-group">
-      <div class="btn-group">
-        <!-- 地震模拟 -->
-        <div class="admin-btn" :plain="true" @click="toggleReportPanel">图件下载</div>
-        <div class="admin-btn"  @click="removeEarthquakeSimulation">清除模拟</div>
-        <div class="admin-btn"  @click="startEarthquakeSimulation">地震模拟</div>
-      </div>
+
     </div>
 
     <!-- 图件报告产出面板组件 -->
@@ -324,7 +332,7 @@ let popupVisible = ref(false);
 let popupPosition = ref({x: 0, y: 0});
 let clickHandler = ref(null);
 let earthquakeID = reactive({})
-
+let activeBtn = ref('');
 // 脉冲
 let pulse = null;
 
@@ -827,6 +835,7 @@ function updatePopupPosition() {
 
 // 模拟地震
 function startEarthquakeSimulation() {
+  activeBtn.value = 'simulator';
   // 如果已经在监听则不再重复添加
   if (isMonitoringEarthquake) return;
 
@@ -892,6 +901,7 @@ function cancelEarthquake() {
 
 // 清除地震模拟
 function removeEarthquakeSimulation() {
+  activeBtn.value = 'eliminate';
   // 清除地震中心点
   basicLayers.removeCenterPoint("earthquakeCenter");
 
@@ -906,16 +916,20 @@ function removeEarthquakeSimulation() {
 
   // 隐藏chart
   showChart.value = false;
+  activeBtn.value = '';
 }
 
 // 产出报告面板
 function toggleReportPanel() {
+
+  activeBtn.value = 'firmware';
 
   if (eqRequests.eventId == null && eqRequests.eventQueueId == null) {
     ElMessage({
       message: '暂无图件，请先模拟地震！',
       type: 'warning',
     })
+    activeBtn.value = '';
     return;
   } else {
     isReportPanelVisible.value = !isReportPanelVisible.value
@@ -1040,7 +1054,7 @@ button {
 .disaster-table tr:last-child td {
   border-bottom: none; /* 最后一行不显示底边 */
 }
-.admin-btn {
+.eliminate-earthquake, .simulator-earthquake, .firmware {
   color: white;
   padding: 12px 12px;
   cursor: pointer;
@@ -1052,7 +1066,7 @@ button {
   align-items: center;
   justify-content: center;
   opacity: 1;
-  background-image: url("../../assets/images/按钮.png");
+  background-image: url("../../assets/images/按钮3.png");
   background-color: transparent;
   background-size: 100%;
   background-repeat: no-repeat;
@@ -1061,17 +1075,22 @@ button {
   box-shadow: none;
   border-radius: 0;
   margin-right: -3px;
-  width: 132px;
+  width: 180px;
+}
+.eliminate-earthquake.active,
+.simulator-earthquake.active,
+.firmware.active{
+  background-image: url("@/assets/images/按钮4.png");
 }
 .btn-group {
-  display: flex;
-  flex-direction: row; /*设置主轴方向是水平方向*/
-  align-items: center; /*设置侧轴上，子元素的排列方式为居中对齐*/
-  gap: 5px;
-  margin-left: 20px;
   position: absolute;
-  right: 12px;
-  top: 12px;
+  top: 53px;
+  right: 314px;
+  z-index: 1000;
+  width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px 0;
 }
 .rain-btn-group {
   /*width: 100%;*/

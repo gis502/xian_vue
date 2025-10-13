@@ -57,8 +57,8 @@
       <RouterView />
     </div>
 
-    <!-- 右侧子菜单：暴雨/地震页面均显示所有子菜单 -->
-    <div class="right-submenu" v-if="showSubmenu">
+    <!-- 左侧子菜单：暴雨/地震页面均显示所有子菜单 -->
+    <div class="left-submenu" v-if="showSubmenu">
       <RouterLink to="/around_analysis" class="submenu-btn" active-class="submenu-btn-active">
         周边分析
       </RouterLink>
@@ -174,36 +174,66 @@ watch(
   background-color: #f5f7fa;
 }
 
-.right-submenu {
+.left-submenu {
   position: absolute;
-  top: 80px;
-  right: 260px;
+  top: 100px;
+  left: 650px;
   z-index: 1000;
   width: 180px;
-  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 15px 0;
 }
 
 .submenu-btn {
-  display: block;
-  width: 100%;
-  padding: 12px 20px;
-  box-sizing: border-box;
-  text-decoration: none;
-  color: #333;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.submenu-btn:hover {
-  background-color: #f0f7ff;
+  color: white;
+  padding: 12px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  background-image: url("src/assets/images/按钮5.png");
+  background-color: transparent;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin-right: -3px;
+  width: 170px;
 }
 
 .submenu-btn-active {
-  background-color: #e6f7ff;
-  color: #1890ff;
-  font-weight: 500;
+  padding: 12px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  background-image: url("src/assets/images/按钮6.png");
+  background-color: transparent;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin-right: -3px;
+  width: 170px;
 }
+
+.submenu-btn:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 </style>

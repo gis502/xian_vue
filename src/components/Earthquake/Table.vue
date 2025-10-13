@@ -171,7 +171,7 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 <style scoped lang="scss">
 .data-table {
   position: absolute;
-  top: 20px;
+  top: 65px;
   left: 20px;
   background: rgba(14, 52, 98, 0.8);
   color: white;

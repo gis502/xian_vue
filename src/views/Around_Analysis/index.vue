@@ -502,6 +502,13 @@ export default {
     basicLayers.loadWater1();
     basicLayers.loadAdminData();
     this.loadData();
+    const buttons = document.querySelectorAll('.rain-btn, .refresh, .admin-btn');
+    buttons.forEach(button => {
+      button.addEventListener('click', function() {
+        buttons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
   },
   beforeDestroy() {
     this.releaseAllResources();
@@ -2083,9 +2090,9 @@ export default {
 
 
 .rain-btn, .refresh, .admin-btn{
-  background: url("@/assets/images/按钮.png") center/cover no-repeat;
+  background: url("@/assets/images/按钮3.png") center/contain no-repeat;
   color: white;
-  padding: 6px 12px;
+  padding: 6px 34px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
@@ -2097,8 +2104,13 @@ export default {
   justify-content: flex-end;
 }
 
+.rain-btn.active,
+.refresh.active,
+.admin-btn.active {
+  background-image: url("@/assets/images/按钮4.png");
+}
 
-.rain-btn, .refresh, .admin-btn:hover {
+.rain-btn:hover, .refresh:hover, .admin-btn:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 

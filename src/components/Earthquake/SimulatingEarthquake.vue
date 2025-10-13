@@ -6,7 +6,7 @@
       class="earthquake-info-panel"
       :style="{
       top: 7 + '%',
-      left: 32 + '%',
+      left: 43 + '%',
     }"
   >
     <div>

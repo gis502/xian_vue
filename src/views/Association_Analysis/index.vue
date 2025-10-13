@@ -1211,7 +1211,7 @@ export default {
 
 .data-table {
   position: absolute;
-  top: 20px;
+  top: 60px;
   right: 0;
   background-color: rgba(14, 52, 98, 0.8);
   color: white;
@@ -1226,7 +1226,7 @@ export default {
 
 .warn-point-table {
   position: absolute;
-  top: 20px;
+  top: 60px;
   left: 0;
   background-color: rgba(14, 52, 98, 0.8);
   color: white;

@@ -314,7 +314,7 @@
 
     <TimeLine :timeDate="timeLabels" v-if="showRadarSatelliteMap" ref="timeLineRef" @radarIndex="radarIndex"/>
 
-    <div class="rain-btn-group">
+    <div class="rain-btn-group" v-if="showStep">
       <div class="rain-step" v-if="showStep">
         <el-steps :active="stepStatus" finish-status="success" simple
                   style="margin-top: 0px;background-color: #ffffff00;">
@@ -325,32 +325,38 @@
           <!--          、暴雨-泥石流、暴雨-山洪、暴雨-内涝-->
         </el-steps>
       </div>
-      <div class="btn-group">
-        <div class="rain-btn" @click="toggleRainMode">
-          暴雨触发
-        </div>
-        <div class="weather-btn" @click="radars">
-          卫星云图
-        </div>
-        <div class="admin-btn"  @click="toggleAdminLayer">
-          图件下载
-        </div>
-<!--        <div class="table-btn" @click="downloadRainReport">-->
-<!--          报告下载-->
-<!--        </div>-->
-        <div class="table-btn" @click="showRiskTable = !showRiskTable">
-          信息表格
-        </div>
-        <div class="table-btn" @click="refreshComponent">
-          场景重置
-        </div>
-        <!--        <div>-->
-        <!--          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>-->
-        <!--        </div>-->
-        <!--        <div class="weather-btn" @click="toggleWeatherEffect" :class="{ 'disabled': rainMode }">-->
-        <!--          {{ weatherActive ? '停止降雨' : '模拟降雨' }}-->
-        <!--        </div>-->
+    </div>
+    <div class="btn-group">
+      <div class="rain-btn"
+           :class="{ active: activeBtn === 'rain' }"
+           @click="toggleRainMode">
+        暴雨触发
       </div>
+      <div class="weather-btn"
+           :class="{ active: activeBtn === 'weather' }"
+           @click="radars">
+        卫星云图
+      </div>
+      <div class="admin-btn"
+           :class="{ active: activeBtn === 'admin' }"
+           @click="toggleAdminLayer">
+        图件下载
+      </div>
+      <!--        <div class="table-btn" @click="downloadRainReport">-->
+      <!--          报告下载-->
+      <!--        </div>-->
+      <div class="table-btn" @click="showRiskTable = !showRiskTable">
+        信息表格
+      </div>
+      <div class="reset-btn" @click="refreshComponent">
+        场景重置
+      </div>
+      <!--        <div>-->
+      <!--          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>-->
+      <!--        </div>-->
+      <!--        <div class="weather-btn" @click="toggleWeatherEffect" :class="{ 'disabled': rainMode }">-->
+      <!--          {{ weatherActive ? '停止降雨' : '模拟降雨' }}-->
+      <!--        </div>-->
     </div>
   </div>
 </template>
@@ -359,7 +365,7 @@
 
 /* 外部库 */
 import * as Cesium from 'cesium';
-import {onMounted, nextTick} from "vue";
+import {onMounted, nextTick, ref} from "vue";
 import html2canvas from "html2canvas";
 import {ElMessage} from 'element-plus'
 /* 封装组件 */
@@ -467,6 +473,7 @@ let radarImages = reactive([
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820155000000.PNG.png',
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820155600000.PNG.png'
 ])
+let activeBtn = ref('');
 let dataTypeHiddenDisaster = reactive({
   filterCriteria: [
     {
@@ -879,6 +886,7 @@ function updatePopupPosition() {
 
 /* 触发暴雨信息弹窗 */
 function toggleRainMode() {
+  activeBtn.value = 'rain';
   stepStatus.value = 1
   showStep.value = true
   // 若不允许标记且当前为开启状态，则直接关闭
@@ -956,6 +964,7 @@ function closePopup() {
 /* 显示雷达图开关 */
 function radars() {
   if (showRadarSatelliteMap.value) {
+    activeBtn.value = ''
     // 隐藏卫星云图
     if (radarSatelliteEntity) {
       viewer.entities.remove(radarSatelliteEntity);
@@ -965,6 +974,7 @@ function radars() {
     }
     showRadarSatelliteMap.value = false;
   } else {
+    activeBtn.value = 'weather'
     showRadarSatelliteMap.value = true;
     new Promise((resolve) => {
       radarData()
@@ -1836,6 +1846,7 @@ function releaseAllResources() {
 
 /* 行政区划按钮 */
 function toggleAdminLayer() {
+  activeBtn.value = 'admin'
   // showAdminLayer.value = !showAdminLayer.value;
   // if (showAdminLayer.value) {
   //   basicLayers.loadAdminData()
@@ -1848,6 +1859,7 @@ function toggleAdminLayer() {
       message: '暂无图件，请先模拟暴雨！',
       type: 'warning',
     })
+    activeBtn.value = ''
     return;
   } else {
     isReportPanelVisible.value = !isReportPanelVisible.value
@@ -2184,10 +2196,9 @@ function checkPopupBoundary() {
   display: flex;
   align-items: center;
   */
-  background: url(/images/background_image.png) center center no-repeat #fff;
+  background: rgba(14, 52, 98, 0.8);
   color: black;
   z-index: 1000;
-  top: -60px;
 }
 
 .rain-step {
@@ -2222,20 +2233,21 @@ function checkPopupBoundary() {
 }
 
 .btn-group {
-  display: flex;
-  flex-direction: row; /*设置主轴方向是水平方向*/
-  align-items: center; /*设置侧轴上，子元素的排列方式为居中对齐*/
-  gap: 5px;
-  margin-left: 20px;
   position: absolute;
-  right: 12px;
-  top: 12px;
+  top: 53px;
+  right: 314px;
+  z-index: 1000;
+  width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px 0;
 }
 
 .rain-btn,
 .weather-btn,
 .admin-btn,
-.table-btn {
+.table-btn,
+.reset-btn{
   color: white;
   padding: 12px 12px;
   cursor: pointer;
@@ -2247,7 +2259,7 @@ function checkPopupBoundary() {
   align-items: center;
   justify-content: center;
   opacity: 1;
-  background-image: url("../../assets/images/按钮.png");
+  background-image: url("../../assets/images/按钮3.png");
   background-color: transparent;
   background-size: 100%;
   background-repeat: no-repeat;
@@ -2256,8 +2268,17 @@ function checkPopupBoundary() {
   box-shadow: none;
   border-radius: 0;
   margin-right: -3px;
-  width: 132px;
+  width: 180px;
 }
+
+.rain-btn.active,
+.weather-btn.active,
+.admin-btn.active,
+.table-btn.active,
+.reset-btn.active{
+  background-image: url("@/assets/images/按钮4.png");
+}
+
 .disaster-popup {
   position: absolute;
   z-index: 1000;

@@ -11,7 +11,7 @@
       <div class="rain-btn" @click="selectDisasterChain">
         灾害链模型选择
       </div>
-      <div class="rain-btn" @click="toSelectDisaster">
+      <div class="choose-btn" @click="toSelectDisaster">
         选择历史灾害
       </div>
     </div>
@@ -981,10 +981,10 @@ function flash(){
   gap: 6px;
 }
 
-.rain-btn{
-  background: url("@/assets/images/按钮.png") center/cover no-repeat;
+.rain-btn, .choose-btn{
+  background: url("@/assets/images/按钮3.png") center/contain no-repeat;
   color: white;
-  padding: 6px 12px;
+  padding: 6px 25px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;

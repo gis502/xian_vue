@@ -1,6 +1,8 @@
 <template>
   <div class="button-container">
-    <el-button type="primary" @click="drawer = true">
+    <el-button class="custom-btn"
+               :class="{ active: activeBtn === 'match' }"
+               @click="drawer = true; activeBtn = 'match'">
       相似历史灾害匹配
     </el-button>
   </div>
@@ -77,13 +79,13 @@ const { disasterList, selectDisaster } = defineProps([
     "disasterList",
     "selectDisaster"
 ]);
-console.log("544646446",disasterList)
-console.log("selectDisaster",selectDisaster)
+const activeBtn = ref('');
 for (let i=0;i<disasterList.length; i++){
   if (disasterList[i].disasterType===selectDisaster.disasterType){
     disasterMatch.value.push(disasterList[i])
   }
 }
+console.log(7823916,drawer.value)
 console.log("disasterMatch",disasterMatch.value.length)
 </script>
 
@@ -94,6 +96,31 @@ console.log("disasterMatch",disasterMatch.value.length)
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
+}
+
+/* 自定义按钮基础样式（覆盖element默认样式） */
+.custom-btn {
+  /* 移除element默认背景和边框，避免冲突 */
+  border: none !important;
+  /* 基础背景图片（默认状态） */
+  background: url("@/assets/images/按钮3.png") center/contain no-repeat !important;
+  color: white !important; /* 文字颜色 */
+  padding: 6px 34px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  transition: all 0.3s !important;
+  white-space: nowrap !important;
+  min-width: 100px !important;
+  /* 确保内容居中（根据需求调整） */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 选中状态样式（切换为选中图片） */
+.custom-btn.active {
+  background-image: url("@/assets/images/按钮4.png") !important;
 }
 
 .drawer-content {
