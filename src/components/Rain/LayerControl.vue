@@ -10,7 +10,7 @@
       <label><input type="checkbox" v-model="showStore" @change="toggleStorePoints"> 显示储备点 </label>
       <label><input type="checkbox" v-model="showSchool" @change="toggleSchool"> 显示学校 </label>
       <label><input type="checkbox" v-model="showPeople" @change="togglePeople"> 显示人口网格 </label>
-      <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>
+<!--      <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>-->
       <label><input type="checkbox" v-model="showPipe" @change="toggleWaterPipe"> 显示管网系统 </label>
       <label><input type="checkbox" v-model="showRoad" @change="toggleRoad"> 显示交通道路 </label>
       <label><input type="checkbox" v-model="showBridge" @change="toggleBridge"> 显示桥梁 </label>

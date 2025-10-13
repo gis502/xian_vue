@@ -177,7 +177,7 @@ watch(
 .left-submenu {
   position: absolute;
   top: 100px;
-  left: 650px;
+  left: 576px;
   z-index: 1000;
   width: 180px;
   border-radius: 8px;
@@ -195,7 +195,8 @@ watch(
   min-width: 100px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
+  text-indent: 2em;
   opacity: 1;
   background-image: url("src/assets/images/按钮5.png");
   background-color: transparent;
@@ -206,10 +207,11 @@ watch(
   box-shadow: none;
   border-radius: 0;
   margin-right: -3px;
-  width: 170px;
+  width: 220px;
 }
 
 .submenu-btn-active {
+  color: white;
   padding: 12px 12px;
   cursor: pointer;
   font-size: 16px;
@@ -218,7 +220,8 @@ watch(
   min-width: 100px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
+  text-indent: 2em;
   opacity: 1;
   background-image: url("src/assets/images/按钮6.png");
   background-color: transparent;
@@ -229,7 +232,7 @@ watch(
   box-shadow: none;
   border-radius: 0;
   margin-right: -3px;
-  width: 170px;
+  width: 220px;
 }
 
 .submenu-btn:hover {

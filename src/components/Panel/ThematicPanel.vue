@@ -302,8 +302,8 @@ export default {
       let wordUrl = this.wordPath
       let link = document.createElement('a');
       // try {
+      // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
       link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
-      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
       link.download = wordUrl;                         // 强制触发下载
       link.click();
     },
@@ -426,8 +426,8 @@ export default {
 
 .eqTheme {
   position: absolute;
-  top: 10px;
-  left: 79%;
+  top: 120px;
+  left: 65%;
   z-index: 100;
 }
 .eqTheme .el-button {
@@ -442,8 +442,8 @@ export default {
 /* 功能面板样式（居中显示） */
 .eqPanel {
   position: absolute;
-  top: 50%;
-  left: calc(0.5 * (100% - 333px));
+  top: 53%;
+  left: calc(0.5 * (100% - 100px));
   transform: translate(-50%, -50%);
   padding: 0 40px;
   width: 70%;
@@ -452,7 +452,7 @@ export default {
   opacity: 1;
   border: 1px solid rgba(14, 255, 255, 0.6);
   backdrop-filter: blur(20px);
-  z-index: 1000;
+  z-index: 1100;
 }
 
 .eqPanel h2 {

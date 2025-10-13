@@ -21,7 +21,7 @@
     <!-- chart -->
     <Chart v-if="showAnalysis" :chartDatas="chartDatas"></Chart>
     <div
-        v-if="selectedEntityData"
+        v-if="selectedEntityData.length>0"
         class="disaster-popup"
         :style="{
         left: `${calculatePopupLeft()}px`,

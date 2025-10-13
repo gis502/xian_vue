@@ -252,7 +252,7 @@ watch(form, (newValue, oldValue) => {
 }
 
 /* 表头文字样式：保持白色，与表格主体文字一致 */
-*,
+
 ::v-deep .el-table .el-table__header-wrapper th{
     font-size: 1.2rem;
     color: #fff;

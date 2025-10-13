@@ -330,7 +330,7 @@
           暴雨触发
         </div>
         <div class="weather-btn" @click="radars">
-          卫星云图
+          雷达云图
         </div>
         <div class="admin-btn"  @click="toggleAdminLayer">
           图件下载
@@ -1001,10 +1001,9 @@ function radars() {
 function radarData() {
   getRadarData().then(res => {
     let data = res.data
-    console.log(data, "RadarData")
+    console.log(data, "RadarData1")
     radarImages = []
     data.forEach(item => {
-      console.log(item)
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -1015,9 +1014,8 @@ function radarData() {
       timeLabels.push(time)
     })
     timeLabels.reverse()
-    // console.log(timeLabels, 'radardata')
+    console.log(timeLabels, 'radardata2')
   })
-  // this.timeLabels = getRadarData()
 }
 
 /* 添加雷达云图 */

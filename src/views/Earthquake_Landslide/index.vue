@@ -223,13 +223,13 @@
       <div class="simulator-earthquake"
            :class="{ active: activeBtn === 'simulator' }"
            @click="startEarthquakeSimulation">地震模拟</div>
-      <div class="eliminate-earthquake"
-           :class="{ active: activeBtn === 'eliminate' }"
-           @click="removeEarthquakeSimulation">清除模拟</div>
       <div class="firmware"
            :class="{ active: activeBtn === 'firmware' }"
            :plain="true"
            @click="toggleReportPanel">图件下载</div>
+      <div class="eliminate-earthquake"
+           :class="{ active: activeBtn === 'eliminate' }"
+           @click="removeEarthquakeSimulation">清除模拟</div>
     </div>
     <!-- 图例 -->
     <rain-layer-control :viewer="viewer"/>
@@ -367,7 +367,7 @@ const dataTypes = reactive({
 });
 
 // 显示表格
-const showTable = ref(false);
+const showTable = ref(true);
 
 // 显示chart
 const showChart = ref(false);
@@ -1085,7 +1085,7 @@ button {
 .btn-group {
   position: absolute;
   top: 53px;
-  right: 314px;
+  right: 164px;
   z-index: 1000;
   width: 180px;
   border-radius: 8px;

@@ -662,7 +662,7 @@ function setMore() {
   color: white;
   padding: 15px;
   border-radius: 4px;
-  z-index: 1000;
+  z-index: 1100;
   width: 500px;
   background: rgba(14, 52, 98, 0.8);
   opacity: 1;

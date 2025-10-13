@@ -332,15 +332,15 @@
            @click="toggleRainMode">
         暴雨触发
       </div>
-      <div class="weather-btn"
-           :class="{ active: activeBtn === 'weather' }"
-           @click="radars">
-        卫星云图
-      </div>
       <div class="admin-btn"
            :class="{ active: activeBtn === 'admin' }"
            @click="toggleAdminLayer">
         图件下载
+      </div>
+      <div class="weather-btn"
+           :class="{ active: activeBtn === 'weather' }"
+           @click="radars">
+        卫星云图
       </div>
       <!--        <div class="table-btn" @click="downloadRainReport">-->
       <!--          报告下载-->
@@ -362,7 +362,6 @@
 </template>
 
 <script setup>
-
 /* 外部库 */
 import * as Cesium from 'cesium';
 import {onMounted, nextTick, ref} from "vue";
@@ -1015,7 +1014,6 @@ function radarData() {
     console.log(data, "RadarData")
     // radarImages = []
     data.forEach(item => {
-      console.log(item)
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -1026,9 +1024,8 @@ function radarData() {
       timeLabels.push(time)
     })
     timeLabels.reverse()
-    // console.log(timeLabels, 'radardata')
+    console.log(timeLabels, 'radardata2')
   })
-  // this.timeLabels = getRadarData()
 }
 
 /* 添加雷达云图 */
@@ -1863,13 +1860,13 @@ function toggleAdminLayer() {
     return;
   } else {
     isReportPanelVisible.value = !isReportPanelVisible.value
-    console.log("暴雨触发成功，获取的id是:",rainRequests)
+    console.log("暴雨触发成功，获取的id是:", rainRequests)
   }
 
 }
 
 /* 刷新组件方法 */
-async function refreshComponent(){
+async function refreshComponent() {
   try {
     // 显示加载状态
     loadingModel.value = true
@@ -2068,8 +2065,9 @@ function downloadRainReport() {
   let wordUrl = wordRes.value
   let link = document.createElement('a');
   // try {
-  link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
-  // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+  // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
+  link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+  // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
   link.download = wordUrl;                         // 强制触发下载
   link.click();
   loadingModel.value = false
@@ -2093,8 +2091,8 @@ function setupEntityClickHandler() {
     }
     // 隐藏之前的弹出面板
     closePopup();
-    console.log(pickedObject,"pickedObject")
-    if(pickedObject.id.name === "风险区域" ||pickedObject.id.name === "滑坡隐患点"||pickedObject.id.name === "泥石流隐患点"||pickedObject.id.name === "内涝隐患点"||pickedObject.id.name === "山洪隐患点"){
+    console.log(pickedObject, "pickedObject")
+    if (pickedObject.id.name === "风险区域" || pickedObject.id.name === "滑坡隐患点" || pickedObject.id.name === "泥石流隐患点" || pickedObject.id.name === "内涝隐患点" || pickedObject.id.name === "山洪隐患点") {
       return;
     }
 
@@ -2139,7 +2137,7 @@ async function calculateAndShowPopup(entity, movementPosition) {
       checkPopupBoundary();
       // 显示弹出面板
       popupVisible.value = true;
-      console.log(popupVisible.value,"popupVisible.value")
+      console.log(popupVisible.value, "popupVisible.value")
       // 平滑定位到点击的实体
       // await viewer.flyTo(entity, {
       //   duration: 0.5,
@@ -2235,7 +2233,7 @@ function checkPopupBoundary() {
 .btn-group {
   position: absolute;
   top: 53px;
-  right: 314px;
+  right: 189px;
   z-index: 1000;
   width: 180px;
   border-radius: 8px;
@@ -2257,7 +2255,8 @@ function checkPopupBoundary() {
   min-width: 100px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
+  text-indent: 2em;
   opacity: 1;
   background-image: url("../../assets/images/按钮3.png");
   background-color: transparent;
@@ -2268,7 +2267,7 @@ function checkPopupBoundary() {
   box-shadow: none;
   border-radius: 0;
   margin-right: -3px;
-  width: 180px;
+  width: 195px;
 }
 
 .rain-btn.active,
@@ -2296,6 +2295,7 @@ function checkPopupBoundary() {
   border: 1px solid #e0e0e0;
   font-size: 13px; /* 减小整体字体大小 */
 }
+
 .disaster-popup[style*="display: block"] {
   opacity: 1;
   transform: scale(1);
