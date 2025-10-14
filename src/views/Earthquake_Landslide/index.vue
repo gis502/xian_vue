@@ -611,21 +611,27 @@ function entitiesClickPonpHandler() {
             console.log("地震中心...")
             eqCenterPanelVisible.value = true;
             rainCenterPanelVisible.value = false;
+            showHistorialDisaster.value = false;
             showBaseInfo.value = false;
             PanelData.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+            historialDisasterInformation.value = null;
           } else if (entity.name === "暴雨中心") {
             eqCenterPanelVisible.value = false;
+            showHistorialDisaster.value = false;
             rainCenterPanelVisible.value = true;
             showBaseInfo.value = false;
             PanelData.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
+            historialDisasterInformation.value = null;
           } else if (entity.name === "滑坡隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
+            showHistorialDisaster.value = false;
             showBaseInfo.value = true;
             baseInfoTitle.value = entity.name;
             showDisasterInformation.value = true;
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = false;
+            historialDisasterInformation.value = null;
 
             disasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
             console.log("disasterInformation", disasterInformation)
@@ -635,6 +641,7 @@ function entitiesClickPonpHandler() {
           } else if (entity.name === "泥石流隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
+            showHistorialDisaster.value = false;
             showBaseInfo.value = true;
             // this.PanelPosition = selectedEntityPosition.value; // 更新位置
             baseInfoTitle.value = entity.name;
@@ -655,50 +662,13 @@ function entitiesClickPonpHandler() {
             baseInfoTitle.value = entity.name;
             showDisasterInformation.value = false;
             showdebrisFlowInformation.value = false;
+            showHistorialDisaster.value = false;
             showRiskPointsInformation.value = true;
 
             historialDisasterInformation.value = null;
             disasterInformation.value = null
             debrisFlowInformation.value = null
             riskPointsInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-          } else if (entity.name === "内涝隐患点") {
-            eqCenterPanelVisible.value = false;
-            rainCenterPanelVisible.value = false;
-            showBaseInfo.value = true;
-            baseInfoTitle.value = entity.name;
-            showDisasterInformation.value = false;
-            showdebrisFlowInformation.value = false;
-            showRiskPointsInformation.value = false;
-            showWaterDisasterInformation.value = true;
-            showFloodDisasterInformation.value = false;
-            showHistorialDisaster.value = false;
-
-            historialDisasterInformation.value = null;
-            disasterInformation.value = null
-            debrisFlowInformation.value = null
-            riskPointsInformation.value = null
-            waterDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-            floodDisasterInformation.value = null
-
-          } else if (entity.name === "山洪隐患点") {
-            eqCenterPanelVisible.value = false;
-            rainCenterPanelVisible.value = false;
-            showBaseInfo.value = true;
-            baseInfoTitle.value = entity.name;
-            showDisasterInformation.value = false;
-            showdebrisFlowInformation.value = false;
-            showRiskPointsInformation.value = false;
-            showWaterDisasterInformation.value = false;
-            showFloodDisasterInformation.value = true;
-            showHistorialDisaster.value = false;
-
-            historialDisasterInformation.value = null;
-            disasterInformation.value = null
-            debrisFlowInformation.value = null
-            riskPointsInformation.value = null
-            waterDisasterInformation.value = null
-            floodDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-
           } else if (entity.name === "历史地震灾害") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
@@ -717,8 +687,6 @@ function entitiesClickPonpHandler() {
             riskPointsInformation.value = null
             waterDisasterInformation.value = null
             historialDisasterInformation.value = entity.disasterData
-            // historialDisasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-            console.log(7545454, historialDisasterInformation.value)
 
           } else {
             // ============ 整合 setupEntityClickHandler 的逻辑到这里 ============
