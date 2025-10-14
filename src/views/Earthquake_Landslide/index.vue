@@ -628,16 +628,25 @@ function entitiesClickPonpHandler() {
             showHistorialDisaster.value = false;
             showBaseInfo.value = true;
             baseInfoTitle.value = entity.name;
-            showDisasterInformation.value = true;
+
+            // 确保先重置所有显示状态
+            showDisasterInformation.value = false;
             showdebrisFlowInformation.value = false;
             showRiskPointsInformation.value = false;
+
+            // 使用 nextTick 确保状态更新
+            await nextTick(() => {
+              showDisasterInformation.value = true;
+              showdebrisFlowInformation.value = false;
+              showRiskPointsInformation.value = false;
+
+              // 使用新的对象引用确保响应式更新
+              disasterInformation.value = {...clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)};
+              debrisFlowInformation.value = null;
+              riskPointsInformation.value = null;
+            });
+
             historialDisasterInformation.value = null;
-
-            disasterInformation.value = clickPointsAndShowPanel.extractDataForPanel(entity, matchedHiddenHighlightEntities.value)
-            console.log("disasterInformation", disasterInformation)
-
-            debrisFlowInformation.value = null
-            riskPointsInformation.value = null
           } else if (entity.name === "泥石流隐患点") {
             eqCenterPanelVisible.value = false;
             rainCenterPanelVisible.value = false;
@@ -735,10 +744,14 @@ function entitiesClickPonpHandler() {
 // 更新地震信息
 function updateEqInfo(data) {
 
+  matchedHiddenHighlightEntities.value = [];
+
   data.forEach(item => {
     // console.log(item, "item...要点击的，，，")
     matchedHiddenHighlightEntities.value.push(item)
   })
+
+  matchedHiddenHighlightEntities.value = [...matchedHiddenHighlightEntities.value];
 
 }
 
@@ -803,6 +816,7 @@ function updatePopupPosition() {
 // 模拟地震
 function startEarthquakeSimulation() {
   activeBtn.value = 'simulator';
+  resetAllPanelData();
   // 如果已经在监听则不再重复添加
   if (isMonitoringEarthquake) return;
 
@@ -878,12 +892,10 @@ function removeEarthquakeSimulation() {
   // 清除预警点脉冲
   pulse.removePulseEntity();
 
-  // 隐藏表格
-  showTable.value = false;
-
   // 隐藏chart
   showChart.value = false;
   activeBtn.value = '';
+  resetAllPanelData();
 }
 
 // 产出报告面板
@@ -904,6 +916,36 @@ function toggleReportPanel() {
       activeBtn.value = ''
     }
   }
+}
+
+// 重置所有面板数据
+function resetAllPanelData() {
+  // 使用 ref 的 .value 赋值来确保响应式更新
+  showBaseInfo.value = false;
+
+  // 重置灾害信息数据
+  disasterInformation.value = {};
+  debrisFlowInformation.value = {};
+  riskPointsInformation.value = {};
+  waterDisasterInformation.value = {};
+  floodDisasterInformation.value = {};
+  historialDisasterInformation.value = {};
+
+  // 重置显示状态
+  showDisasterInformation.value = false;
+  showdebrisFlowInformation.value = false;
+  showRiskPointsInformation.value = false;
+  showWaterDisasterInformation.value = false;
+  showFloodDisasterInformation.value = false;
+  showHistorialDisaster.value = false;
+
+  // 重置匹配的高亮实体
+  matchedHiddenHighlightEntities.value = [];
+
+  // 强制触发更新
+  nextTick(() => {
+    console.log('所有面板数据已重置');
+  });
 }
 
 // 加载
