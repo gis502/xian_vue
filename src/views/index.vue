@@ -2,7 +2,7 @@
   <div class="index-container">
     <!-- 顶部导航栏 -->
     <nav class="top-nav">
-      <img :src="logo" alt="Logo" style="height: 50px;margin-right: 20px;" />
+      <img :src="logo" alt="Logo" style="height: 50px;margin-right: 100px;" />
       <div class="nav-btn-group">
         <!-- 暴雨主菜单：基于Pinia状态激活 -->
         <RouterLink 
@@ -139,7 +139,7 @@ watch(
   height: 100%;
   display: flex;
   align-items: center;
-  margin-left: 20px;
+  margin-left: 100px;
   float: left;
 }
 
@@ -181,7 +181,7 @@ watch(
   z-index: 1000;
   width: 180px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
   padding: 15px 0;
 }
 
@@ -198,7 +198,7 @@ watch(
   justify-content: left;
   text-indent: 2em;
   opacity: 1;
-  background-image: url("src/assets/images/按钮5.png");
+  background-image: url("../assets/images/按钮5.png");
   background-color: transparent;
   background-size: 100%;
   background-repeat: no-repeat;
@@ -223,7 +223,7 @@ watch(
   justify-content: left;
   text-indent: 2em;
   opacity: 1;
-  background-image: url("src/assets/images/按钮6.png");
+  background-image: url("../assets/images/按钮6.png");
   background-color: transparent;
   background-size: 100%;
   background-repeat: no-repeat;

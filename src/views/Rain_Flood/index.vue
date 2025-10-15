@@ -1012,17 +1012,25 @@ function radarData() {
   getRadarData().then(res => {
     let data = res.data
     console.log(data, "RadarData")
-    // radarImages = []
+    radarImages = []
     data.forEach(item => {
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-      // console.log("/radarimages"+item.r0href)
-      // radarImages.push("/radarimages/"+item.r0href)   // 图片在这添加
+      console.log("/radarimages"+item.r0href)
+      radarImages.push("/radarimages"+item.r0href)   // 图片在这添加
       // radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
       timeLabels.push(time)
     })
+    // let dat = Array.from(radarImages)
+    // radarImages = []
+    // dat.forEach(item=>{
+    //   console.log("item","http://192.168.194.129/images"+item)
+    //   radarImages.push("/radarimages"+item)
+    // })
+    // console.log("radarImages",radarImages)
+    // console.log("dat",dat)
     timeLabels.reverse()
     console.log(timeLabels, 'radardata2')
   })
@@ -2071,9 +2079,8 @@ function downloadRainReport() {
   let wordUrl = wordRes.value
   let link = document.createElement('a');
   // try {
-  // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
-  link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
-  // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
+  // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+  link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
   link.download = wordUrl;                         // 强制触发下载
   link.click();
   loadingModel.value = false
@@ -2243,7 +2250,7 @@ function checkPopupBoundary() {
   z-index: 1000;
   width: 180px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
   padding: 15px 0;
 }
 

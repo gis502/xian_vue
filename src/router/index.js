@@ -75,7 +75,14 @@ export const constantRoutes = [
         path: 'carrier_information_extraction',
         component: () => import('@/views/CarrierInformationExtraction/Index.vue'),
         name: 'Carrier_Information_Extraction'
-      }
+      },
+      {
+        path: '/thdTimeLine/:id/:trigger',
+        component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
+        name: 'thdTimeLine',
+        props: true,
+        hidden: true
+      },
     ]
   },
   {
@@ -101,13 +108,13 @@ export const constantRoutes = [
     hidden: true
   },
   // 灾害链时间线页面
-  {
-    path: '/thdTimeLine/:id/:trigger',
-    component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
-    name: 'thdTimeLine',
-    props: true,
-    hidden: true
-  },
+  // {
+  //   path: '/thdTimeLine/:id/:trigger',
+  //   component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
+  //   name: 'thdTimeLine',
+  //   props: true,
+  //   hidden: true
+  // },
   // 个人中心
   {
     path: '/user',

@@ -306,7 +306,7 @@
     <!-- chart -->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <!-- 表格 -->
-    <Table v-if="showTable" :dataTypes="dataTypes"></Table>
+    <Table v-if="true" :dataTypes="dataTypes"></Table>
   </div>
 </template>
 
