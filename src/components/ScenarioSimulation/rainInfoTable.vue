@@ -265,7 +265,7 @@ export default {
 <style scoped lang="scss">
 .data-table {
   position: absolute;
-  top: 2vh; /* 距离顶部20px */
+  top: 6vh; /* 距离顶部20px */
   right: 4vw; /* 距离左侧20px */
   background: rgba(14, 52, 98, 0.8);
   color: white;

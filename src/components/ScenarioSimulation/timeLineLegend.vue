@@ -48,7 +48,7 @@ export default {
 .LegendButton {
   position: absolute;
   right: 2vw;
-  top: 6vh;
+  top: 10vh;
   width: 32px;
   height: 32px;
   background-color: #303336;
@@ -76,7 +76,7 @@ export default {
 
 .timelineLegend {
   position: absolute;
-  top:2vh;
+  top:6vh;
   right: 4vw;
   background: rgba(14, 52, 98, 0.8);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

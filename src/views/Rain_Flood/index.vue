@@ -340,7 +340,7 @@
       <div class="weather-btn"
            :class="{ active: activeBtn === 'weather' }"
            @click="radars">
-        卫星云图
+        雷达云图
       </div>
       <!--        <div class="table-btn" @click="downloadRainReport">-->
       <!--          报告下载-->

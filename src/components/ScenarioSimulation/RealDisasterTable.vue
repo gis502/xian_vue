@@ -317,7 +317,7 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .data-table {
   position: absolute;
-  top: 52vh; /* 距离顶部20px */
+  top: 56vh; /* 距离顶部20px */
   left: 20px; /* 距离左侧20px */
   background: rgba(14, 52, 98, 0.8);
   color: white;

@@ -302,8 +302,8 @@ export default {
       let wordUrl = this.wordPath
       let link = document.createElement('a');
       // try {
-      link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
-      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
+      link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
       link.download = wordUrl;                         // 强制触发下载
       link.click();
     },

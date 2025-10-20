@@ -389,7 +389,7 @@ export default {
 .positionFlyToButton {
   position: absolute;
   right: 2vw;
-  top: 2vh;
+  top: 6vh;
   width: 32px;
   height: 32px;
   background-color: #303336;
@@ -409,7 +409,7 @@ export default {
 
 .universalPanel {
   position: absolute;
-  top: 2vh;
+  top: 6vh;
   right: 4vw;
   background: rgba(14, 52, 98);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

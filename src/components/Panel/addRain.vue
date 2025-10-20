@@ -143,6 +143,10 @@ let area = reactive({
   '周至县': {
     longitude: 108.1020792556726,
     latitude: 33.974619753671824
+  },
+  '新城区': {
+    longitude: 108.97963285,
+    latitude: 34.28257942
   }
 })
 
@@ -223,8 +227,6 @@ const confirmRainPoint = async () => {
   entries.value.forEach(item => {
     if (item.rainfall > 0) { // 降雨量为0不存入数组
 
-      // console.log(item, "这里会是是是是是是是是是")
-
       positionArry.value.push(item.name)
       rainfallArry.value.push(item.rainfall)
       longitudeArray.value.push(item.longitude)
@@ -232,18 +234,17 @@ const confirmRainPoint = async () => {
       // durationArry.value.push(item.duration)
     }
   })
-
   let requestData = {
     "rainfall": rainfallArry.value.join(","),
     // "duration": durationArry.value.join(","),
     "longitude": longitude,
     "latitude": latitude,
     "position": positionArry.value.join(","),
-    "disasterName": timeTransfer.timestampToTimeChina(new Date) + adminArea.value.name + "暴雨",
+    "disasterName": timeTransfer.timestampToTimeChina(new Date) + maxRainfallEntry.name + "暴雨",
     "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
     "rainType": rainType.value
   }
-  // console.log(requestData, "requestData saveRain")
+  console.log(requestData, "requestData saveRain")
 
   let resSaveRain = await saveRain(requestData)
   // 处理触发数据，选择降雨量最大的一条数据进行专题图产出
@@ -274,7 +275,8 @@ const confirmRainPoint = async () => {
 
     if (adminArea.value) {
       let entity = {
-        position: adminArea.value.name,
+        // position: adminArea.value.name,
+        positon: maxRainfallEntry.name,
         longitude: longitude,
         latitude: latitude,
         id: "test_rain",
