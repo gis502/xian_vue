@@ -244,6 +244,58 @@ export default {
       }
     },
 
+    async downloadReportFirst() {
+      try {
+        const DTO = {
+          "eqId": this.eventId,
+          "eqqueueId": this.eventQueueId
+        };
+
+        // 定义定时器变量
+        let checkInterval;
+        const checkReportStatus = () => {
+          getReport(DTO).then((res) => {
+
+            if (res === '') {
+              // ElMessage({
+              //   message: '报告生成中...',
+              //   type: 'warning',
+              // })
+              return;
+            } else {
+              clearInterval(checkInterval);
+              // 获取文件名
+              // let fileName = `report_${this.eqid}.docx`;
+              // const link = document.createElement('a');
+              // link.href = res;
+              // link.download = fileName;
+              // link.style.display = 'none';
+              // document.body.appendChild(link);
+              // link.click();
+              // document.body.removeChild(link);
+              ElNotification({
+                title: '灾情报告',
+                message: "报告产出成功，请点击图件下载按钮下载！",
+                duration: 0,
+              })
+              return;
+            }
+          }).catch((error) => {
+            // 发生错误时清除定时器
+            clearInterval(checkInterval);
+            ElMessage("报告获取失败")
+            console.error('获取报告错误:', error);
+          });
+        };
+        // 立即执行一次检查，然后每隔20秒检查一次
+        checkReportStatus();
+        checkInterval = setInterval(checkReportStatus, 20000);
+      }catch ( error ){
+        ElMessage("报告下载失败");
+        console.error('下载错误:', error);
+      }
+    },
+
     async downloadReport() {
       try {
         const DTO = {

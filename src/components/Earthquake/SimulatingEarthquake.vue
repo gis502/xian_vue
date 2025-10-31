@@ -227,8 +227,9 @@ import basicLayers from "../../cesium/basicLayers";
 // (hazardsParams)致灾因子后端数据（此处是模拟）
 import {addDisaster, addEarthquake, getEarthQuakeReport, hazardsParams} from "../../api/earthquake/datas";
 import {parseTime} from "../../utils/ruoyi";
-import {ElMessage} from 'element-plus'
+import {ElMessage, ElNotification} from 'element-plus'
 import * as Cesium from 'cesium';
+import {getReport} from "@/api/system/damageassessment.js";
 // 常量
 const {province, city} = {
   province: "陕西省",
@@ -241,6 +242,7 @@ let showBaseInfo = ref(true);
 // 表单对象
 const ruleFormRef = ref();
 const earthquakeDamage = ref([])
+let notification = ref(null)
 
 // 表单元素
 let form = reactive({
@@ -360,8 +362,10 @@ const {position, dataTypes, chartDatas, pulse, earthquakeID} = defineProps([
   "dataTypes",
   "chartDatas",
   "pulse",
-  "earthquakeID"
+  "earthquakeID",
 ]);
+
+
 
 // 接收传递的方法
 const emit = defineEmits([
@@ -374,6 +378,7 @@ const emit = defineEmits([
   "stopLoading",
   "updateEqInfo",
   "thematicEqInfo",
+  "closeNotification"
 ]);
 
 // 添加模拟
@@ -445,6 +450,13 @@ async function confirmEarthquake(formEl) {
             .catch(error => {
               console.error("灾害信息添加失败", error);
             });
+        notification.value = ElNotification({
+          title: '灾情报告',
+          message: "报告正在产出中...",
+          duration: 0,
+        })
+        // emit("closeNotification")
+        // thematicPanel.value.downloadReportFirst()
         if (form.magnitude<7.0){
           let report_param = reactive({
             eqName: form.fullName,
@@ -476,14 +488,18 @@ async function confirmEarthquake(formEl) {
                 console.log("触发成功...");
                 console.log("开始制作专题图...");
                 console.log("开始制作报告...");
+
+                // emit("closeNotification",notification)
                 // ElMessage("开始生成报告");
                 Object.assign(earthquakeID,response.data)
 
                 thematicEqInfo.eqId = response.data.eqId
                 thematicEqInfo.eqqueueId = response.data.eqqueueId
+
+                console.log(thematicEqInfo.eqId,thematicEqInfo.eqqueueId,"asdasdasd")
                 // 传递给父组件
                 emit("thematicEqInfo", thematicEqInfo)
-
+                downloadReportFirst(thematicEqInfo.eqId,thematicEqInfo.eqqueueId)
               })
               .catch(error => {
                 console.log("获取报告失败", error)
@@ -525,8 +541,10 @@ async function confirmEarthquake(formEl) {
 
                     thematicEqInfo.eqId = response.data.eqId
                     thematicEqInfo.eqqueueId = response.data.eqqueueId
+                    console.log(thematicEqInfo.eqId,thematicEqInfo.eqqueueId,"asdasdasd")
                     // 传递给父组件
                     emit("thematicEqInfo", thematicEqInfo)
+                    downloadReportFirst(thematicEqInfo.eqId,thematicEqInfo.eqqueueId)
                   })
                   .catch(error => {
                     console.log("获取报告失败", error)
@@ -599,6 +617,59 @@ async function confirmEarthquake(formEl) {
     }
   });
   // console.log("+++++++++++++++++++++++++++")
+}
+
+async function downloadReportFirst(eventId,eventQueueId) {
+  console.log("123downloadReportFirstdownloadReportFirstdownloadReportFirst")
+  try {
+    const DTO = {
+      "eqId": eventId,
+      "eqqueueId": eventQueueId
+    };
+
+    // 定义定时器变量
+    let checkInterval;
+    const checkReportStatus = () => {
+      getReport(DTO).then((res) => {
+        if (res === '') {
+          // ElMessage({
+          //   message: '报告生成中...',
+          //   type: 'warning',
+          // })
+          return;
+        } else {
+          clearInterval(checkInterval);
+          // 获取文件名
+          // let fileName = `report_${this.eqid}.docx`;
+          // const link = document.createElement('a');
+          // link.href = res;
+          // link.download = fileName;
+          // link.style.display = 'none';
+          // document.body.appendChild(link);
+          // link.click();
+          // document.body.removeChild(link);
+          notification.value.close()
+          ElNotification({
+            title: '灾情报告',
+            message: "报告产出成功，请点击图件下载按钮下载！",
+            duration: 0,
+          })
+          return;
+        }
+      }).catch((error) => {
+        // 发生错误时清除定时器
+        clearInterval(checkInterval);
+        ElMessage("报告获取失败")
+        console.error('获取报告错误:', error);
+      });
+    };
+    // 立即执行一次检查，然后每隔20秒检查一次
+    checkReportStatus();
+    checkInterval = setInterval(checkReportStatus, 20000);
+  }catch ( error ){
+    ElMessage("报告下载失败");
+    console.error('下载错误:', error);
+  }
 }
 
 // 处理表格和chart数据

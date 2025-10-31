@@ -274,6 +274,7 @@
 
     <!-- 图件报告产出面板组件 -->
     <ThematicPanel
+        ref="thematicPanel"
         v-if="isReportPanelVisible"
         :eventRequests="eqRequests"
         maxHeight="70vh">
@@ -295,6 +296,7 @@
         @stopLoading="stopLoading"
         @updateEqInfo="updateEqInfo"
         @thematicEqInfo="thematicEqInfo"
+        @closeNotification="closeNotification"
     ></SimulatingEarthquake>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
@@ -425,6 +427,7 @@ let earthquakeSimulationPosition = ref({});
 let isMonitoringEarthquake = false;
 let earthquakeClickHandler = null;
 let viewer = null;
+let reportNotification = ref(null)
 
 // 图件报告产出
 let isReportPanelVisible = ref(false);
@@ -434,6 +437,8 @@ let eqRequests = {
   eventQueueId: null,
   eventTypeof: "地震"
 }
+let thematicPanel = ref(null)
+
 
 onMounted(() => {
   viewer = initCesium("cesium-container");
@@ -458,6 +463,25 @@ onMounted(() => {
   });
 
 });
+
+function closeNotification(){
+  console.log(thematicPanel.value,thematicPanel,"thematicPanelthematicPanelthematicPanelthematicPanel")
+  if (thematicPanel.value && thematicPanel.value.downloadReportFirst) {
+    thematicPanel.value.downloadReportFirst();
+  } else {
+    console.warn('ThematicPanel组件未加载或downloadReportFirst方法不存在');
+    // 可以选择直接打开报告面板然后再调用方法
+    if (!isReportPanelVisible.value) {
+      isReportPanelVisible.value = true;
+      // 等待组件渲染后再调用方法
+      nextTick(() => {
+        if (thematicPanel.value && thematicPanel.value.downloadReportFirst) {
+          thematicPanel.value.downloadReportFirst();
+        }
+      });
+    }
+  }
+}
 
 // 显示表格
 function displayTable() {
