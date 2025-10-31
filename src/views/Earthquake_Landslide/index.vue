@@ -230,6 +230,9 @@
       <div class="eliminate-earthquake"
            :class="{ active: activeBtn === 'eliminate' }"
            @click="removeEarthquakeSimulation">清除模拟</div>
+      <div class="eliminate-earthquake"
+           :class="{ active: activeBtn === 'eliminate' }"
+           @click="homePosition">视角重置</div>
     </div>
     <!-- 图例 -->
     <rain-layer-control :viewer="viewer"/>
@@ -896,6 +899,18 @@ function removeEarthquakeSimulation() {
   showChart.value = false;
   activeBtn.value = '';
   resetAllPanelData();
+}
+
+// 视角重置
+function homePosition(){
+  window.viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 200000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0),
+      pitch: Cesium.Math.toRadians(-90),
+      roll: 0.0,
+    },
+  });
 }
 
 // 产出报告面板

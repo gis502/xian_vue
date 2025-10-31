@@ -28,7 +28,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     const data = res.data;
                     const themeName = eventFullName + "-" + "专题图";
                     let thematicMapData = [];
-                    console.log("专题图")
+                    console.log("专题图",data)
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
                             const thematicMapObject = {

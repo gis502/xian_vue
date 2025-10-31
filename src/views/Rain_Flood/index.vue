@@ -351,6 +351,9 @@
       <div class="reset-btn" @click="refreshComponent">
         场景重置
       </div>
+      <div class="reset-btn" @click="homePosition">
+        视角重置
+      </div>
       <!--        <div>-->
       <!--          <button class="table-btn " style="border: none;" @click="toggleFactorPanel">致灾因子信息</button>-->
       <!--        </div>-->
@@ -1921,6 +1924,18 @@ async function refreshComponent() {
     // 隐藏加载状态
     loadingModel.value = false
   }
+}
+
+/* 视角重置 */
+function homePosition(){
+  window.viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(108.93, 34.27, 300000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0),
+      pitch: Cesium.Math.toRadians(-90),
+      roll: 0.0
+    }
+  });
 }
 
 /* 重置所有状态变量 */

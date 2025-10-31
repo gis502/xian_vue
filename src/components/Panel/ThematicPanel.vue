@@ -73,7 +73,7 @@
 
 <script>
 import {handleOutputData} from "@/api/system/eqThemes.js";
-import {ElMessage} from 'element-plus'
+import {ElMessage, ElNotification} from 'element-plus'
 import {downloadReport, getReport} from "@/api/system/damageassessment.js"
 
 export default {
@@ -143,6 +143,7 @@ export default {
     },
     // 面板切换（控制不同类型面板显示/隐藏）
     handlePanel(type) {
+
       for (const key in this.isPanelShow) {
         if (this.isPanelShow.hasOwnProperty(key)) {
           if (key !== type && this.isPanelShow[key] === true) {
@@ -159,7 +160,9 @@ export default {
 
       // 辅助决策报告：请求数据
       if (this.isPanelShow.AssistantDecision) {
+        console.log("123haha",this.eventId, this.eventQueueId, this.eventFullName)
         handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
+
           this.outputData = {
             themeName: res.themeName,
             themeData: res.themeData,
@@ -177,6 +180,7 @@ export default {
 
         // 核心数据赋值
         handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
+          console.log("123",res,"123123")
           this.outputData = {
             themeName: res.themeName,
             themeData: res.themeData,
@@ -302,8 +306,8 @@ export default {
       let wordUrl = this.wordPath
       let link = document.createElement('a');
       // try {
-      // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
-      link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
+      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
       link.download = wordUrl;                         // 强制触发下载
       link.click();
     },
