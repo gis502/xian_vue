@@ -278,6 +278,7 @@
         :eventRequests="eqRequests"
         maxHeight="70vh">
     </ThematicPanel>
+
     <!-- 模拟地震弹窗 -->
     <SimulatingEarthquake
         v-if="showEarthquakeSimulation"
@@ -286,6 +287,7 @@
         :chartDatas="chartDatas"
         :earthquakeID="earthquakeID"
         :pulse="pulse"
+        @updateHypocenter = "updateHypocenter"
         @displayTable="displayTable"
         @hideTable="hideTable"
         @displayChart="displayChart"
@@ -296,6 +298,41 @@
         @updateEqInfo="updateEqInfo"
         @thematicEqInfo="thematicEqInfo"
     ></SimulatingEarthquake>
+
+    <!-- 震源信息 -->
+    <div class="hypocenter"
+         v-if="showHypocenter"
+         :style="{top: hypocenterTop, left: hypocenterLeft}"
+         @click.stop
+    >
+
+      <tabel>
+        <tr>
+          <td>名称</td>
+          <td>{{ hypocenterForm.fullName }}</td>
+        </tr>
+        <tr>
+          <td>震中位置</td>
+          <td>{{ hypocenterForm.position }}</td>
+        </tr>
+        <tr>
+          <td>震中经纬</td>
+          <td>经度：{{ hypocenterForm.longitude }}°E，纬度：{{ hypocenterForm.latitude }}°N</td>
+        </tr>
+        <tr>
+          <td>震级</td>
+          <td>{{ hypocenterForm.magnitude }}级</td>
+        </tr>
+        <tr>
+          <td>震源深度</td>
+          <td>{{ hypocenterForm.depth }}</td>
+        </tr>
+        <tr>
+          <td>时间</td>
+          <td>{{ hypocenterForm.dateTime }}</td>
+        </tr>
+      </tabel>
+    </div>
 
     <!-- 引入各个模拟点：滑坡、泥石流、风险点 -->
     <SimulationPoint></SimulationPoint>
@@ -336,6 +373,21 @@ let popupPosition = ref({x: 0, y: 0});
 let clickHandler = ref(null);
 let earthquakeID = reactive({})
 let activeBtn = ref('');
+
+// 显示震源提示
+let showHypocenter = ref(true);
+let hypocenterTop = ref(0);
+let hypocenterLeft = ref(0);
+let hypocenterForm = ref({});
+
+function updateHypocenter(childShowHypocenter, childHypocenterTop, childHypocenterLeft, childHypocenterForm) {
+  showHypocenter.value = childShowHypocenter;
+  hypocenterTop.value = childHypocenterTop;
+  hypocenterLeft.value = childHypocenterLeft;
+  hypocenterForm.value = childHypocenterForm;
+}
+
+
 // 脉冲
 let pulse = null;
 
@@ -435,6 +487,11 @@ let eqRequests = {
   eventTypeof: "地震"
 }
 
+const handleClickOutsideHypocenter = () => {
+  showHypocenter.value = false;
+};
+
+
 onMounted(() => {
   viewer = initCesium("cesium-container");
   window.viewer = viewer;
@@ -456,7 +513,6 @@ onMounted(() => {
       roll: 0.0,
     },
   });
-
 });
 
 // 显示表格
@@ -760,9 +816,6 @@ function updateEqInfo(data) {
 
 function thematicEqInfo(data) {
 
-  console.log(" eqId：" + data.eqId)
-  console.log(" eqqueueId：" + data.eqqueueId)
-  console.log(" earthquakeFullName：" + data.earthquakeFullName)
   // 地震Id传给子组件
   eqRequests.eventId = data.eqId
   eqRequests.eventQueueId = data.eqqueueId
@@ -1133,5 +1186,49 @@ button {
   color: black;
   z-index: 1000;
   top: -60px;
+}
+
+.hypocenter {
+  position: absolute; /* 配合top/left绝对定位 */
+  background: #fff; /* 白色背景 */
+  padding: 15px; /* 内边距 */
+  border-radius: 8px; /* 圆角边框 */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 轻微阴影增强层次感 */
+  border: 1px solid #f0f0f0; /* 浅灰边框 */
+  z-index: 100; /* 确保在地图上方显示 */
+  min-width: 300px; /* 最小宽度，避免内容过挤 */
+}
+
+.hypocenter table {
+  width: 100%; /* 表格占满容器 */
+  border-collapse: collapse; /* 合并边框 */
+}
+
+/* 单元格基础样式：加!important强制生效，文字居中 */
+.hypocenter table td {
+  padding: 8px 12px !important; /* 强制内边距 */
+  border-bottom: 1px solid #f5f5f5 !important; /* 强制行分隔线 */
+  font-size: 14px !important; /* 强制文字大小 */
+  text-align: center !important; /* 文字居中 */
+}
+
+/* 最后一行去掉下边框（强制生效） */
+.hypocenter table tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* 左侧标签列：强制样式+居中 */
+.hypocenter table td:first-child {
+  font-weight: 500 !important;
+  color: #666 !important;
+  width: 35% !important; /* 强制固定宽度 */
+  text-align: center !important; /* 标签列也居中 */
+}
+
+/* 右侧内容列：强制样式+居中 */
+.hypocenter table td:last-child {
+  color: #333 !important;
+  word-break: break-all !important; /* 强制长文本换行 */
+  text-align: center !important; /* 内容列居中 */
 }
 </style>
