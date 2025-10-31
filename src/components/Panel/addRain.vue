@@ -47,6 +47,7 @@ import * as Cesium from 'cesium'
 import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js"
 import {getRain} from '@/api/system/aroundanalysis.js'
 import {rainTrigger} from "@/api/earthquake/feign.js";
+import {ElNotification} from "element-plus";
 
 // Props
 const props = defineProps({
@@ -57,7 +58,9 @@ const props = defineProps({
   PanelPosition: {
     type: Object,
     required: true
-  }
+  },
+  reportStatus:Boolean,
+  reportInfo:String,
 })
 
 // Emits
@@ -66,7 +69,8 @@ const emit = defineEmits([
   'update:handleWeather',
   'update:loading-model',
   'update:show-info-panel',
-  'update:matched-huapo-entities'
+  'update:matched-huapo-entities',
+  'update:closeNotification'
 ])
 
 // Reactive data
@@ -149,7 +153,6 @@ let area = reactive({
     latitude: 34.28257942
   }
 })
-
 
 // Computed
 const styleObject = computed(() => {
@@ -274,6 +277,7 @@ const confirmRainPoint = async () => {
     console.log(resSaveRain.data.rainDisasterId, "res.data.rainDisasterId")
     emit("passRainId", resSaveRain.data.rainDisasterId)
 
+
     if (adminArea.value) {
       let entity = {
         // position: adminArea.value.name,
@@ -293,6 +297,14 @@ const confirmRainPoint = async () => {
       emit('update:loading-model', false)
       emit('update:show-info-panel', false)
       emit("update:generate")
+
+      props.reportStatus = !props.reportStatus
+      let notification = ElNotification({
+        title: '灾情报告',
+        message: props.reportInfo,
+        duration: 0,
+      })
+      emit("update:closeNotification",notification)
     } else {
       console.log("未找到标记点所在的行政区划")
     }

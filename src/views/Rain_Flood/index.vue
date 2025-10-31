@@ -15,6 +15,8 @@
     <AffectedChart v-if="showLegend" :dimensions="dimensions" :source="districtDisasterData"/>
 
     <AddRain v-if="showInfoPanel"
+             :reportStatus="reportStatus"
+             :reportInfo="reportInfo"
              :selectedPositionLonAndLat="selectedPosition"
              :PanelPosition="PanelPosition"
              @passRainId="(value)=>{rainDisasterId = value}"
@@ -34,6 +36,7 @@
                rainRequests.eventFullName=v.rainFullName
              }"
              @update:generate="generate"
+             @update:closeNotification="closeNotification"
     />
 
     <LayerControl :viewer="viewer" :setupEntityClickHandler="setupEntityClickHandler"/>
@@ -369,7 +372,7 @@
 import * as Cesium from 'cesium';
 import {onMounted, nextTick, ref} from "vue";
 import html2canvas from "html2canvas";
-import {ElMessage} from 'element-plus'
+import {ElMessage, ElNotification} from 'element-plus'
 /* 封装组件 */
 import Legend from "@/components/Earthquake/Legend.vue";
 import Table from "@/components/Earthquake/Table.vue";
@@ -584,6 +587,9 @@ let rainRequests = {
   eventQueueId: null,
   eventTypeof: "暴雨"
 }
+let reportStatus = ref(false)
+let reportInfo = ref("报告正在产出中...")
+let reportNotification = ref(null)
 
 onMounted(() => {
   viewer = initCesium("cesiumContainer")
@@ -2054,10 +2060,17 @@ function generate() {
   generateRainReport(RainParams).then((res) => {
     console.log(res, "generateRainReport res")
     wordRes.value = res.data
+    reportInfo.value = "报告产出成功，请点击图件下载按钮下载！"
 
     ElMessage({
       message: '报告产出成功！',
       type: 'success',
+    })
+    reportNotification.value.close()
+    ElNotification({
+      title: '灾情报告',
+      message: "报告产出成功，请点击图件下载按钮下载！",
+      duration: 0,
     })
   }).catch((err) => {
     console.log(err)
@@ -2065,6 +2078,9 @@ function generate() {
       generate()
     }, 30000)
   })
+}
+function closeNotification(notf){
+  reportNotification.value = notf
 }
 
 // watch(wordRes,(newV,oldV)=>{
