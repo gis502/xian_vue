@@ -82,7 +82,7 @@ export const constantRoutes = [
         name: 'Carrier_Information_Extraction'
       },
       {
-        path: '/thdTimeLine/:id/:trigger',
+        path: '/admins//thdTimeLine/:id/:trigger',
         component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
         name: 'thdTimeLine',
         props: true,
