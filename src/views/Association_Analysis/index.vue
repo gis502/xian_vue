@@ -136,8 +136,6 @@
 
 <script>
 import * as Cesium from "cesium";
-
-
 import "cesium/Source/Widgets/widgets.css";
 import lineData from "@/assets/西安断层数据.json";
 import DebrisFlow from "@/assets/static/disaster/Huapo.json"

@@ -77,6 +77,7 @@ export class PulseTool {
           this._duration,
           level === '高' ? Cesium.Color.RED : Cesium.Color.YELLOW
       );
+      console.log("111",level,probability,pt)
 
       // 记录映射关系，可同时存储概率信息
       this._entityPulseMap[key] = {

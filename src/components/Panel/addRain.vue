@@ -196,6 +196,7 @@ const confirmRainPoint = async () => {
 
   // 获取对应区域的经纬度坐标
   let targetArea = area[maxRainfallEntry.name];
+  console.log('目标区域经纬度坐标:', targetArea);
 
   let destination = Cesium.Cartesian3.fromDegrees(
       targetArea.longitude,

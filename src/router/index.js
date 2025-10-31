@@ -7,16 +7,21 @@ import { createWebHistory, createRouter } from 'vue-router'
  * hidden: true                     // 当设置 true 时该路由不会在侧边栏出现
  * name:'router-name'               // 设定路由的名字，使用<keep-alive>时必须填写
  * meta : {
-    title: 'title'                  // 设置该路由在侧边栏和面包屑中展示的名字
-    icon: 'svg-name'                // 设置该路由的图标
-  }
+ title: 'title'                  // 设置该路由在侧边栏和面包屑中展示的名字
+ icon: 'svg-name'                // 设置该路由的图标
+ }
  */
 
 // 公共路由
 export const constantRoutes = [
-  // 首页路由，使用@/views/index.vue替代默认Layout
+  // 添加根路径重定向规则，访问/时跳转到/admins/rain_flood
   {
     path: '/',
+    redirect: '/admins/rain_flood'
+  },
+  // 首页路由，使用@/views/index.vue替代默认Layout
+  {
+    path: '/admins/',
     component: () => import('@/views/index.vue'),
     redirect: '/rain_flood',
     name: 'Home',
@@ -87,11 +92,11 @@ export const constantRoutes = [
   },
   {
     path: '/index',
-    redirect: '/'
+    redirect: '/admins/rain_flood'  // 同时修改/index路径的重定向目标
   },
   // 登录页
   {
-    path: '/login',
+    path: '/admins/login',
     component: () => import('@/views/login'),
     hidden: true
   },
@@ -107,17 +112,9 @@ export const constantRoutes = [
     component: () => import('@/views/error/401'),
     hidden: true
   },
-  // 灾害链时间线页面
-  // {
-  //   path: '/thdTimeLine/:id/:trigger',
-  //   component: () => import('@/views/MultihazardDisasterChainAnalysis/ScenarioSimulation/thdTimeLine.vue'),
-  //   name: 'thdTimeLine',
-  //   props: true,
-  //   hidden: true
-  // },
   // 个人中心
   {
-    path: '/user',
+    path: '/admins/user',
     hidden: true,
     redirect: 'noredirect',
     children: [
@@ -135,13 +132,13 @@ export const constantRoutes = [
 export const dynamicRoutes = [
   // 保留必要的动态路由配置
   {
-    path: '/monitor/job-log',
+    path: '/admins/monitor/job-log',
     component: () => import('@/views/index.vue'), // 使用首页组件作为容器
     hidden: true,
     permissions: ['monitor:job:list'],
     children: [
       {
-        path: 'index/:jobId(\\d+)',
+        path: 'admins/index/:jobId(\\d+)',
         component: () => import('@/views/monitor/job/log'),
         name: 'JobLog',
         meta: { title: '调度日志', activeMenu: '/monitor/job' }
@@ -149,13 +146,13 @@ export const dynamicRoutes = [
     ]
   },
   {
-    path: '/tool/gen-edit',
+    path: '/admins/tool/gen-edit',
     component: () => import('@/views/index.vue'), // 使用首页组件作为容器
     hidden: true,
     permissions: ['tool:gen:edit'],
     children: [
       {
-        path: 'index/:tableId(\\d+)',
+        path: 'admins/index/:tableId(\\d+)',
         component: () => import('@/views/tool/gen/editTable'),
         name: 'GenEdit',
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }

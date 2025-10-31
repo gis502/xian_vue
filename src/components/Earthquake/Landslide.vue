@@ -59,7 +59,7 @@ watch(() => props, (newProps) => {
 }, {deep: true});
 
 onMounted(() => {
-  // console.log("props.info,props.info.predict",props.info,props.info.predict,props.info.predict.level[0],props.info.predict.probability[0],props.info.predict.disasterType)
+  console.log("props.info,props.info.predict",props.info,props.info.predict,props.info.predict.level[0],props.info.predict.probability[0],props.info.predict.disasterType)
   dangerLevel.value = props.info.predict.level[0]
   probability.value = props.info.predict.probability[0]
   disasterType.value = props.info.predict.disasterType

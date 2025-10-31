@@ -6,7 +6,7 @@
       <div class="nav-btn-group">
         <!-- 暴雨主菜单：基于Pinia状态激活 -->
         <RouterLink 
-          to="/rain_flood" 
+          to="/admins/rain_flood"
           class="nav-btn"
           @click="selectMenuStore.setCurrentMainMenu('rain')"
           :class="{ 'nav-btn-active': selectMenuStore.currentMainMenu === 'rain' }"
@@ -16,7 +16,7 @@
 
         <!-- 地震主菜单：基于Pinia状态激活 -->
         <RouterLink 
-          to="/earthquake_landslide" 
+          to="/admins/earthquake_landslide"
           class="nav-btn"
           @click="selectMenuStore.setCurrentMainMenu('earthquake')"
           :class="{ 'nav-btn-active': selectMenuStore.currentMainMenu === 'earthquake' }"
@@ -26,7 +26,7 @@
 
         <!-- 其他主菜单：默认精确匹配 -->
         <RouterLink 
-          to="/graph" 
+          to="/admins/graph"
           class="nav-btn" 
           active-class="nav-btn-active"
           @click="selectMenuStore.setCurrentMainMenu('')"
@@ -34,7 +34,7 @@
           多灾种灾害链分析
         </RouterLink>
         <RouterLink 
-          to="/scenario_simulation" 
+          to="/admins/scenario_simulation"
           class="nav-btn" 
           active-class="nav-btn-active"
           @click="selectMenuStore.setCurrentMainMenu('')"
@@ -42,7 +42,7 @@
           灾害链情景推演
         </RouterLink>
         <RouterLink 
-          to="/data_management" 
+          to="/admins/data_management"
           class="nav-btn" 
           active-class="nav-btn-active"
           @click="selectMenuStore.setCurrentMainMenu('')"
@@ -59,22 +59,22 @@
 
     <!-- 左侧子菜单：暴雨/地震页面均显示所有子菜单 -->
     <div class="left-submenu" v-if="showSubmenu">
-      <RouterLink to="/around_analysis" class="submenu-btn" active-class="submenu-btn-active">
+      <RouterLink to="/admins/around_analysis" class="submenu-btn" active-class="submenu-btn-active">
         周边分析
       </RouterLink>
-      <RouterLink to="/association_analysis" class="submenu-btn" active-class="submenu-btn-active">
+      <RouterLink to="/admins/association_analysis" class="submenu-btn" active-class="submenu-btn-active">
         关联分析
       </RouterLink>
-      <RouterLink to="/earthquake_secondary_disasters" class="submenu-btn" active-class="submenu-btn-active">
+      <RouterLink to="/admins/earthquake_secondary_disasters" class="submenu-btn" active-class="submenu-btn-active">
         次生衍生灾害链分析
       </RouterLink>
-      <RouterLink to="/historical_similarity_analysis" class="submenu-btn" active-class="submenu-btn-active">
+      <RouterLink to="/admins/historical_similarity_analysis" class="submenu-btn" active-class="submenu-btn-active">
         历史相似性分析
       </RouterLink>
-      <RouterLink to="/disaster_chain" class="submenu-btn" active-class="submenu-btn-active">
+      <RouterLink to="/admins/disaster_chain" class="submenu-btn" active-class="submenu-btn-active">
         灾害链模型库测试
       </RouterLink>
-      <RouterLink to="/carrier_information_extraction" class="submenu-btn" active-class="submenu-btn-active">
+      <RouterLink to="/admins/carrier_information_extraction" class="submenu-btn" active-class="submenu-btn-active">
         承载体信息提取
       </RouterLink>
     </div>
@@ -94,7 +94,7 @@ const route = useRoute();
 
 // 子菜单显示逻辑
 const showSubmenu = computed(() => {
-  return ['/rain_flood', '/earthquake_landslide', '/around_analysis', '/association_analysis', '/earthquake_secondary_disasters', '/historical_similarity_analysis', '/disaster_chain'].includes(route.path);
+  return ['/admins/rain_flood', '/admins/earthquake_landslide', '/admins/around_analysis', '/admins/association_analysis', '/admins/earthquake_secondary_disasters', '/admins/historical_similarity_analysis', '/admins/disaster_chain'].includes(route.path);
 });
 
 // 监听路由变化：当直接通过URL进入暴雨/地震页面时，自动激活对应主菜单
