@@ -26,21 +26,21 @@
           {{ showBaseInfo ? "地震信息" : "致灾因子信息" }}
         </el-col
         >
-<!--        <el-col :span="12">-->
-<!--          <el-button type="info" round @click="showBaseInfo = !showBaseInfo" style="-->
-<!--          cursor: pointer;-->
-<!--          color: rgba(255, 255, 255, 1);-->
-<!--          font-size: 14px;-->
-<!--          right: 5px;-->
-<!--          opacity: 1;-->
-<!--          background: rgba(13, 101, 162, 0.59);-->
-<!--          border: 1px solid rgba(148, 170, 212, 1);-->
-<!--          box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);-->
-<!--          "-->
-<!--          >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息-->
-<!--          </el-button-->
-<!--          >-->
-<!--        </el-col>-->
+        <!--        <el-col :span="12">-->
+        <!--          <el-button type="info" round @click="showBaseInfo = !showBaseInfo" style="-->
+        <!--          cursor: pointer;-->
+        <!--          color: rgba(255, 255, 255, 1);-->
+        <!--          font-size: 14px;-->
+        <!--          right: 5px;-->
+        <!--          opacity: 1;-->
+        <!--          background: rgba(13, 101, 162, 0.59);-->
+        <!--          border: 1px solid rgba(148, 170, 212, 1);-->
+        <!--          box-shadow: inset 0px 0px 5px rgba(149, 197, 255, 1), -3px 4px 4px rgba(20, 58, 101, 1);-->
+        <!--          "-->
+        <!--          >查看{{ showBaseInfo ? "致灾因子参数" : "基本" }}信息-->
+        <!--          </el-button-->
+        <!--          >-->
+        <!--        </el-col>-->
       </el-row>
     </div>
     <div class="panel-content">
@@ -97,12 +97,12 @@
         </el-row>
         <el-row gutter="10">
           <el-col :span="12">
-            <el-form-item label="纬度" prop="longitude">
+            <el-form-item label="经度" prop="longitude">
               <el-input v-model="form.longitude" type="number"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="经度" prop="latitude">
+            <el-form-item label="纬度" prop="latitude">
               <el-input v-model="form.latitude" type="number"/>
             </el-form-item>
           </el-col>
@@ -264,7 +264,6 @@ let form = reactive({
 });
 
 
-
 // 致灾因子参数
 let hazardsForm = reactive({
   elevation: 0,
@@ -374,10 +373,24 @@ const emit = defineEmits([
   "stopLoading",
   "updateEqInfo",
   "thematicEqInfo",
+  "updateHypocenter"
 ]);
 
 // 添加模拟
 async function confirmEarthquake(formEl) {
+  const cartesian3 = Cesium.Cartesian3.fromDegrees(
+      position.longitude,
+      position.latitude,
+      0 // 高度，根据需要调整
+  );
+  const screenCoord = window.viewer.scene.cartesianToCanvasCoordinates(cartesian3);
+
+  // 3. 屏幕坐标的 x 对应 left，y 对应 top，加10px偏移
+  const hypocenterLeft = `${screenCoord.x + 10}px`; // 转为字符串+px单位
+  const hypocenterTop = `${screenCoord.y + 10}px`;
+
+  emit("updateHypocenter", true, hypocenterTop, hypocenterLeft, form);
+
   pulse.removePulseEntity();
   if (!formEl) return;
   // 验证
@@ -407,14 +420,14 @@ async function confirmEarthquake(formEl) {
       // 添加地震中心位置
       basicLayers.addCenterPoint({
         id: "earthquakeCenter",
-        disasterName: "",
+        disasterName: form.name,
         trigger: "",
         longitude: position.longitude,
         latitude: position.latitude,
       });
       const base = layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
       //计算人员伤亡
-      if (form.magnitude>=6.0){
+      if (form.magnitude >= 6.0) {
         let circle_param = reactive({
           name: form.name,
           fullName: form.fullName,
@@ -435,7 +448,7 @@ async function confirmEarthquake(formEl) {
           city: city,
         });
         //地震页面修改完成后使用
-        console.log("circle_param",circle_param);
+        console.log("circle_param", circle_param);
         // 调用函数发送请求,将地震添加到数据库
         await addEarthquake(circle_param)
             .then(response => {
@@ -445,7 +458,7 @@ async function confirmEarthquake(formEl) {
             .catch(error => {
               console.error("灾害信息添加失败", error);
             });
-        if (form.magnitude<7.0){
+        if (form.magnitude < 7.0) {
           let report_param = reactive({
             eqName: form.fullName,
             eqAddr: form.position,
@@ -463,7 +476,7 @@ async function confirmEarthquake(formEl) {
             diePopMin: earthquakeDamage.value.diePopMin,
             intensity: base.circleParam[0].intensity,
           })
-          console.log(96321025,report_param)
+          console.log(96321025, report_param)
           let thematicEqInfo = {
             // 震源地质+ 震级+ 地震
             earthquakeFullName: form.position + form.magnitude + "级地震",
@@ -477,7 +490,7 @@ async function confirmEarthquake(formEl) {
                 console.log("开始制作专题图...");
                 console.log("开始制作报告...");
                 // ElMessage("开始生成报告");
-                Object.assign(earthquakeID,response.data)
+                Object.assign(earthquakeID, response.data)
 
                 thematicEqInfo.eqId = response.data.eqId
                 thematicEqInfo.eqqueueId = response.data.eqqueueId
@@ -488,9 +501,9 @@ async function confirmEarthquake(formEl) {
               .catch(error => {
                 console.log("获取报告失败", error)
               })
-        }else {
-          for (let i=0;i<base.circleParam.length;i++){
-            if (base.circleParam[i].intensity===9){
+        } else {
+          for (let i = 0; i < base.circleParam.length; i++) {
+            if (base.circleParam[i].intensity === 9) {
               let report_param = reactive({
                 eqName: form.fullName,
                 eqAddr: form.position,
@@ -508,7 +521,7 @@ async function confirmEarthquake(formEl) {
                 diePopMin: earthquakeDamage.value.diePopMin,
                 intensity: base.circleParam[i].intensity,
               })
-              console.log(96321025,report_param)
+              console.log(96321025, report_param)
               let thematicEqInfo = {
                 // 震源地质+ 震级+ 地震
                 earthquakeFullName: form.position + form.magnitude + "级地震",
@@ -521,7 +534,7 @@ async function confirmEarthquake(formEl) {
                     console.log("开始制作专题图...");
                     console.log("开始制作报告...");
                     // ElMessage("开始生成报告");
-                    Object.assign(earthquakeID,response.data)
+                    Object.assign(earthquakeID, response.data)
 
                     thematicEqInfo.eqId = response.data.eqId
                     thematicEqInfo.eqqueueId = response.data.eqqueueId
@@ -541,18 +554,19 @@ async function confirmEarthquake(formEl) {
       console.log("inEllipsePoints", inEllipsePoints);
       const favEllipsePoints = [];
       // 获取各个点的风险概率
-      if (inEllipsePoints.length!==0){
-        for (let i=0; i<inEllipsePoints.length;i++){
-          if (inEllipsePoints[i].factorVoList!=null){
+      if (inEllipsePoints.length !== 0) {
+        for (let i = 0; i < inEllipsePoints.length; i++) {
+          if (inEllipsePoints[i].factorVoList != null) {
             favEllipsePoints.push(inEllipsePoints[i])
           }
         }
-      };
-      if (favEllipsePoints.length!==0){
+      }
+      ;
+      if (favEllipsePoints.length !== 0) {
         // 计算7度区的长轴距离
         let sevenDistance = 0;
         base.circleParam.forEach(item => {
-          if (item.intensity == 7){
+          if (item.intensity == 7) {
             sevenDistance = Math.max(item.semiMinorAxis, item.semiMajorAxis);
           }
         })
@@ -570,9 +584,9 @@ async function confirmEarthquake(formEl) {
           distance = 150 - (distance / sevenDistance) * 150;
 
           // 修改降雨量
-          for(let i = 0; i < item.factorVoList.length; i++) {
+          for (let i = 0; i < item.factorVoList.length; i++) {
             // 修正：移除多余的 "item" 拼写错误
-            if(item.factorVoList[i] && item.factorVoList[i].attributeNameAlias && item.factorVoList[i].attributeNameAlias == 'rainfall') {
+            if (item.factorVoList[i] && item.factorVoList[i].attributeNameAlias && item.factorVoList[i].attributeNameAlias == 'rainfall') {
               item.factorVoList[i].factorValue = distance;
             }
           }
@@ -686,7 +700,4 @@ function setMore() {
   border-bottom: 1px solid gray;
   width: 100%;
 }
-
-
-
 </style>
