@@ -95,29 +95,34 @@ export default {
       let earthquakeList = await getAllEarthquakeList();
       let disasterRainList = await getAllDisasterRain();
       // console.log(earthquakeList,disasterRainList, "disasterRainList")
-      earthquakeList.data.forEach((item) => {
-        // console.log(item, "earthquakeListforEach")
-        this.eventList.push({
-          id:item.disasterId,
-          name: item.disasterName,
-          trigger: '地震',
-          occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
-          location: item.position,
-          longitude: Number(item.longitude).toFixed(2),
-          latitude: Number(item.latitude).toFixed(2),
-        })
-      });
+      // earthquakeList.data.forEach((item) => {
+      //   if(item.disasterId == 7) {
+      //     // console.log(item, "earthquakeListforEach")
+      //     this.eventList.push({
+      //       id:item.disasterId,
+      //       name: item.disasterName,
+      //       trigger: '地震',
+      //       occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
+      //       location: item.position,
+      //       longitude: Number(item.longitude).toFixed(2),
+      //       latitude: Number(item.latitude).toFixed(2),
+      //     })
+      //   }
+      // });
       disasterRainList.data.forEach((item) => {
-        // console.log(item, "disasterRainListforEach")
-        this.eventList.push({
-          id:item.disasterId,
-          name: item.disasterName,
-          trigger: '暴雨',
-          occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
-          location: item.position,
-          longitude: Number(item.longitude).toFixed(2),
-          latitude: Number(item.latitude).toFixed(2),
-        })
+        if(item.disasterId == 166273) {
+          // console.log(item, "disasterRainListforEach")
+          this.eventList.push({
+            id:item.disasterId,
+            name: item.disasterName,
+            trigger: '暴雨',
+            occurrenceTime: this.timestampToTimeChina(item.occurrenceTime),
+            location: item.position,
+            longitude: Number(item.longitude).toFixed(2),
+            latitude: Number(item.latitude).toFixed(2),
+          })
+        }
+
       });
       this.eventList.sort((a, b) => {
         const dateA = new String(a.occurrenceTime);
