@@ -426,7 +426,7 @@ export default {
             value: "type2",
           },
           {
-            name: "风险区",
+            name: "山洪隐患点",
             value: "type3",
           },
           {
@@ -453,6 +453,10 @@ export default {
             name: "学校",
             value: "type9",
           },
+          {
+            name: "风险区",
+            value: "type10",
+          },
         ],
         type1: {
           headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
@@ -463,7 +467,7 @@ export default {
           data: [],
         },
         type3: {
-          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          headers: ["山洪点名称", "位置"],
           data: [],
         },
         type4: {
@@ -489,7 +493,11 @@ export default {
         type9: {
           headers: ["学校名称", "位置", "在校学生数", "是否重要"],
           data: [],
-        }
+        },
+        type10: {
+          headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
       },
     }
   },
@@ -1083,25 +1091,6 @@ export default {
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
               show: true
             },
-            // // 文字
-            // label: {
-            //   text: `${position}`,
-            //   font: '15pt Source Han Sans CN',
-            //   fillColor: Cesium.Color.WHITE,
-            //   backgroundColor: Cesium.Color.AQUA,
-            //   showBackground: false,
-            //   outline: true,
-            //   outlineColor: Cesium.Color.BLACK,
-            //   outlineWidth: 10,
-            //   scale: 1.0,
-            //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            //   verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            //   horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-            //   pixelOffset: new Cesium.Cartesian2(-70, -35),
-            //   distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 40000),
-            //   show: false
-            // },
-            // 添加灾害类型信息，用于弹窗显示
             description: this.createDisasterDescription({position}, '次生灾害风险区'),
             // 保存原始样式，用于闪烁恢复
             originalColor: Cesium.Color.ORANGE,
@@ -1241,7 +1230,7 @@ export default {
 
       this.viewer.flyTo(entity, {
         duration: 1.5,
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-30), 5000)
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), 20000)
       });
     },
     cancelRainPoint() {
@@ -1395,6 +1384,14 @@ export default {
       const landslidePointsInside = [];
       const debrisFlowPointsInside = [];
       const secondaryRiskPointsInside = [];
+      const floodPointsInside = [];
+
+      basicLayers.flashFloodPoints.forEach(point =>{
+        if(this.isPointInCircle(point, centerCartesian, majorRadius)){
+          floodPointsInside.push(point);
+        }
+      })
+
       // 检查所有滑坡点
       this.landslidePoints.forEach(point => {
         if (this.isPointInCircle(point, centerCartesian, majorRadius)) {
@@ -1415,9 +1412,10 @@ export default {
       });
       // 合并所有在圆内的灾害点坐标
       const allPointsInside = [
-        ...landslidePointsInside,
-        ...debrisFlowPointsInside,
-        ...secondaryRiskPointsInside
+          ...floodPointsInside,
+          ...landslidePointsInside,
+          ...debrisFlowPointsInside,
+          ...secondaryRiskPointsInside
       ];
       // 闪烁在椭圆内的灾害点
       if (allPointsInside.length > 0) {
@@ -1428,6 +1426,7 @@ export default {
         console.log(`滑坡点: ${landslidePointsInside.length}`);
         console.log(`泥石流点: ${debrisFlowPointsInside.length}`);
         console.log(`次生灾害风险点: ${secondaryRiskPointsInside.length}`);
+        console.log(`山洪：${floodPointsInside.length}`)
 
         // 预处理：将坐标数组转换为字符串集合
         const dangerA = new Set();
@@ -1444,8 +1443,13 @@ export default {
         debrisFlowPointsInside.forEach(coords => {
           flowA.add(coords.join(','));
         });
+        const flood = new Set();
+        floodPointsInside.forEach(coords => {
+          flood.add(coords.join(','));
+        });
 
         // 主逻辑
+        const floodDates = basicLayers.floodData?.features || [];
         const dangerAreaDates = this.DangerAreaData?.features || [];
         const landSlideDates = this.HuapoData?.features || [];
         const flowDates = this.NishiliuData?.features || [];
@@ -1456,7 +1460,7 @@ export default {
           // 检查坐标字符串是否存在于集合中
           if (dangerA.has(coordsStr1)) {
             console.log("找到了匹配的坐标:", entityCoords1);
-            this.dataTypes.type3.data.push({
+            this.dataTypes.type10.data.push({
               field1: entity.properties.disasterName,
               field2: entity.properties.position,
               field3: entity.properties.inspectorName,
@@ -1495,6 +1499,21 @@ export default {
               field2: entity.properties.position,
               field3: entity.properties.scaleGrade,
               field4: entity.properties.riskGrade,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
+        //山洪表数据加载
+        floodDates.forEach(entity => {
+          const entityCoords = entity.geometry.coordinates;
+          const coordsStr = entityCoords.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (flood.has(coordsStr)) {
+            console.log("找到了匹配的坐标:", entityCoords);
+            this.dataTypes.type3.data.push({
+              field1: entity.properties.disasterName,
+              field2: entity.properties.position,
               field5: entity.properties.lon,
               field6: entity.properties.lat,
             });

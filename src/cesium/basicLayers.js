@@ -589,7 +589,6 @@ let basicLayers = {
                     this.schoolEntities.push(entity);
                 }
                 else if(type == '风险区'){
-
                 }
                 else if(type == '桥梁'){
                     this.bridgeEntities.push(entity);

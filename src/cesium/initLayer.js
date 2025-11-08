@@ -2,10 +2,10 @@ import * as Cesium from "cesium";
 import {Cartographic, Math as CesiumMath} from "cesium";
 import CesiumNavigation from "cesium-navigation-es6";
 const CesiumIonDefaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZDBjZjAxOS0wMDhhLTRmZjEtYjNmOC1iNmM2ZmY2ZmQ1N2IiLCJpZCI6MjAxMDI1LCJpYXQiOjE3MTAxNTgxNjJ9.mdbJYEzXQkBnHNqpozz7MvZjJ_X9a3JZRGPA-ytGhLI'
-// const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
+const tdtToken = "fc6cb1139b8eed4f79439130eb34eb00"
 // const tdtToken = '78234e018ed03fe3bb28de976dcfa6d3'
 // const tdtToken = "ca190ab79716f01d331e8a744589b417"
- const tdtToken = "2e8111f9bc84149cbf24f562ed4e9229"
+//  const tdtToken = "2e8111f9bc84149cbf24f562ed4e9229"
 //  const tdtToken = "88055d3d7f13f8f7e6e8eeb67cf6d78a"
 
 export function initCesium(container,clock) {
@@ -53,6 +53,18 @@ export function initCesium(container,clock) {
     viewer.scene.globe.enableLighting = false//全局光照
     viewer.shadows = false
 
+    try {
+        // 强制使用兼容的着色器版本
+        viewer.scene.frameState.context.shaderCache.shaderVersion = 100;
+
+        // 禁用可能引起问题的后期处理效果
+        viewer.scene.postProcessStages.fxaa.enabled = false;
+        viewer.scene.requestRenderMode = false; // 启用按需渲染
+        viewer.scene.maximumRenderTimeChange = Infinity; // 避免时间相关的问题
+    } catch (e) {
+        console.warn('着色器兼容性设置失败:', e);
+    }
+
     let providers = imageryProvider(0)
     providers.forEach(provider => {
         viewer.imageryLayers.addImageryProvider(provider);
@@ -60,6 +72,48 @@ export function initCesium(container,clock) {
 
     return viewer
 }
+
+// 修复着色器版本兼容性
+function patchShaders() {
+    // 保存原始方法
+    const originalCreateShaderProgram = Cesium.ShaderProgram.prototype._bind;
+
+    Cesium.ShaderProgram.prototype._bind = function() {
+        // 修改片段着色器源代码
+        if (this._fragmentShaderText && this._fragmentShaderText.includes('#version 300 es')) {
+            // 降级到 GLSL ES 1.00
+            this._fragmentShaderText = this._fragmentShaderText
+                .replace(/#version 300 es/g, '')
+                .replace(/in\s+vec2\s+v_textureCoordinates;/g, 'varying vec2 v_textureCoordinates;')
+                .replace(/out\s+vec4\s+fragColor;/g, '')
+                .replace(/fragColor\s*=/g, 'gl_FragColor =')
+                .replace(/texture\(/g, 'texture2D(');
+
+            // 添加 precision 声明
+            if (!this._fragmentShaderText.includes('precision')) {
+                this._fragmentShaderText = 'precision mediump float;\n' + this._fragmentShaderText;
+            }
+        }
+
+        // 修改顶点着色器源代码
+        if (this._vertexShaderText && this._vertexShaderText.includes('#version 300 es')) {
+            this._vertexShaderText = this._vertexShaderText
+                .replace(/#version 300 es/g, '')
+                .replace(/in\s+/g, 'attribute ')
+                .replace(/out\s+/g, 'varying ');
+
+            if (!this._vertexShaderText.includes('precision')) {
+                this._vertexShaderText = 'precision mediump float;\n' + this._vertexShaderText;
+            }
+        }
+
+        // 调用原始方法
+        return originalCreateShaderProgram.call(this);
+    };
+}
+
+// 应用着色器修复
+patchShaders();
 
 function imageryProvider(type) {
     const option = {
