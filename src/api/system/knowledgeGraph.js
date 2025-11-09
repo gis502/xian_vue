@@ -38,3 +38,13 @@ export function getEarthquakeRainPage(data) {
         data: data, // 自动转为JSON，axios默认Content-Type为application/json
     });
 }
+
+export function getInfoById(id) {
+    return request({
+        url: '/earthquake-rain/getInfoById',
+        method: 'post',
+        params: {  // 使用 params 会作为查询参数传递
+            id: id
+        }
+    });
+}

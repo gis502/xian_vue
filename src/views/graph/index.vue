@@ -139,6 +139,7 @@
           <tr>
             <th style="width: 50px">序号</th>
             <th>灾害名称</th>
+            <th>降雨量/震级</th>
             <th>发生时间</th>
           </tr>
           </thead>
@@ -149,6 +150,10 @@
              <span class="clickable"
                    @click="getData(item)"
                    :title="item.disasterName">{{ item.disasterName }}</span>
+            </td>
+            <td>
+             <span class="clickable"
+                   :title="getDisplayValue(item)">{{ getDisplayValue(item) }}</span>
             </td>
             <td :title="formatDate(item.occurTime)">
               {{ formatDate(item.occurTime) }}
@@ -212,7 +217,11 @@
 import {Search} from "@element-plus/icons-vue";
 import * as echarts from 'echarts';
 import {ref, onMounted, onBeforeUnmount, nextTick} from 'vue';
-import {getChartDataBy, getEarthquakeRainPage, getNewsPage} from "@/api/system/knowledgeGraph.js";
+import {
+  getChartDataBy,
+  getEarthquakeRainPage,
+  getNewsPage
+} from "@/api/system/knowledgeGraph.js";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import eqentity1 from '@/assets/images/eqentity1.png'
@@ -664,7 +673,6 @@ const updateTableData = () => {
   const end = currentPage.value * pageSizeNum.value;
   tableData.value = allData.value.slice(start, end);
 };
-// 翻页事件
 
 
 const handlePageChangeDisaster = (page) => {
@@ -766,8 +774,6 @@ const filterGraphByDisasterType = (data, disasterType, eqid) => {
     return targetId === eqid;
   });
 };
-
-
 
 
 const getData = async (item) => {
@@ -1484,6 +1490,15 @@ const handleClick = () => {
 //   handleNodeClick(nodeName);
 //   focusNode(child.value);
 // };
+
+function getDisplayValue(item) {
+  // 如果是地震类型，显示震级；否则显示降雨量
+  if (item.disasterType && item.disasterType.includes('earthquake')) {
+    return item.magnitude ? item.magnitude + '级' : '-';
+  } else {
+    return item.rainfall ? item.rainfall + 'mm' : '-';
+  }
+}
 
 
 
