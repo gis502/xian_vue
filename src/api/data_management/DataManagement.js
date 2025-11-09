@@ -36,3 +36,29 @@ export async function deleteTableData(data) {
         data: data
     });
 }
+
+/**
+ * 添加数据
+ * @param {*} data
+ * @returns
+ */
+export async function addTableData(data) {
+    return request({
+        url: "data_management/add",
+        method: "post",
+        data: data
+    }).data;
+}
+
+/**
+ * 修改数据
+ * @param {*} data
+ * @returns
+ */
+export async function updateTableData(data) {
+    return request({
+        url: "data_management/update",
+        method: "post",
+        data: data
+    }).data;
+}
