@@ -228,7 +228,7 @@ const currentPointPageData = computed(() => {
 
 function getDisplayValue(item) {
   // 如果是地震类型，显示震级；否则显示降雨量
-  if (item.disasterType && item.disasterType.includes('earthquake')) {
+  if (item.disasterType && item.disasterType.includes('地震')) {
     return item.magnitude ? item.magnitude + '级' : '-';
   } else {
     return item.rainfall ? item.rainfall + 'mm' : '-';
