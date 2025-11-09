@@ -53,7 +53,7 @@
   <el-dialog v-model="dialogAddVisible" title="添加数据" width="800">
     <!-- 遍历数据 -->
     <div v-for="(tableLabel, index) in tableLabels" :key="index">
-      <div class="input-group">
+      <div class="input-group" v-if="!(primaryKey || []).includes(tableLabel.key)">
         <span class="label">{{ tableLabel.value || tableLabel.key }}</span>
         <div class="input-container">
           <el-input
@@ -121,6 +121,9 @@ const totalPage = ref(0);
 // 主键
 const primaryKey = ref([]);
 
+// 字段类型
+const fieldTypes = ref({});
+
 // 显示删除提示
 const dialogVisible = ref(false);
 
@@ -153,6 +156,7 @@ function getTableData() {
     tableLabels.value = objToArr(res.keyInfo);
     totalPage.value = res.allPage;
     primaryKey.value = res.primaryKey;
+    fieldTypes.value = getFieldType(res.keyInfo)
 
     // 修改添加修改数据表单
     clearFormDatas(addUpdateForm)
@@ -226,7 +230,8 @@ function handleAdd() {
     tableName: props.queryTableFields.tableName,
     datas: [
       addUpdateForm.value
-    ]
+    ],
+    fieldTypes: fieldTypes.value
   }
   addTableData(datas).then((res) => {
     console.log(res)
@@ -235,6 +240,7 @@ function handleAdd() {
       // 清除数据
       clearFormDatas(addUpdateForm);
       ElMessage.success("添加成功。");
+      getTableData();
     } else {
       ElMessage.error("添加失败。");
     }
@@ -275,8 +281,9 @@ function handleUpdate() {
     tableName: props.queryTableFields.tableName,
     idName: primaryKey.value,
     id: ids,
-    newData: addUpdateForm.value,
-    oldData: ids.length == 0 ? selectedRows[0] : {}
+    newData: [addUpdateForm.value],
+    oldData: ids.length == 0 ? [selectedRows[0]] : [],
+    fieldTypes: fieldTypes.value
   }
 
   updateTableData(datas).then((res) => {
@@ -399,6 +406,20 @@ function objToArr(obj) {
   return Object.entries(obj).map(([key, value]) => {
     return {key: value.key, value: value.value};
   });
+}
+
+/**
+ * 获取字段类型
+ * @param keyInfo
+ * @return {{}}
+ */
+function getFieldType(keyInfo) {
+  const result = {};
+  keyInfo.forEach((item) => {
+    result[item.key] = item.type;
+  })
+
+  return result;
 }
 </script>
 <style scoped>

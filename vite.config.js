@@ -56,8 +56,8 @@ export default defineConfig(({ mode, command }) => {
         },
         // 添加图片服务器代理
         '/radarimages': {
-          target: 'http://10.22.245.247:8900',
-          // target: 'http://192.168.194.129/images',
+          // target: 'http://10.22.245.247:8900',
+          target: 'http://192.168.194.129/images',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/radarimages/, '')
         },

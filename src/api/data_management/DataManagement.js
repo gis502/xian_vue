@@ -47,7 +47,7 @@ export async function addTableData(data) {
         url: "data_management/add",
         method: "post",
         data: data
-    }).data;
+    });
 }
 
 /**
@@ -60,5 +60,5 @@ export async function updateTableData(data) {
         url: "data_management/update",
         method: "post",
         data: data
-    }).data;
+    });
 }
