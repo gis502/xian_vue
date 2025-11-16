@@ -22,6 +22,25 @@ export class PulseTool {
   }
 
   /**
+   * 创建蓝色圆形图片
+   * @param radius
+   * @param color
+   * @return {string}
+   */
+  createBlueCircleTexture(radius = 10, color = 'rgba(0, 120, 255, 0.6)') {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = radius * 2;
+    canvas.height = radius * 2;
+    // 绘制蓝色圆形
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    return canvas.toDataURL();
+  }
+
+  /**
    * 绘制脉冲
    * @param {array} points - 绘制点的合集
    */
@@ -100,6 +119,12 @@ export class PulseTool {
   createOptimizedPulseCircle(pulseId, lon, lat, maxRadius, duration, color) {
     // console.log("createOptimizedPulseCirclecreateOptimizedPulseCircle")
     const startTime = Cesium.JulianDate.now();
+
+    // 删除蓝色背景
+    const bgEntity = this._viewer.entities.getById(`background-blue-${lon}-${lat}`);
+    if (bgEntity) {
+      this._viewer.entities.remove(bgEntity);
+    }
 
     const entity = window.viewer.entities.add({
       id: pulseId,

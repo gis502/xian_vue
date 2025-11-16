@@ -48,6 +48,7 @@ import {useSimulationPointStore} from "@/store/earthquake/simulation_points.js"
 import {getRain} from '@/api/system/aroundanalysis.js'
 import {rainTrigger} from "@/api/earthquake/feign.js";
 import {ElNotification} from "element-plus";
+import {PulseTool} from "@/cesium/pulse.js";
 
 // Props
 const props = defineProps({
@@ -238,6 +239,7 @@ const confirmRainPoint = async () => {
       // durationArry.value.push(item.duration)
     }
   })
+
   let requestData = {
     "rainfall": rainfallArry.value.join(","),
     // "duration": durationArry.value.join(","),
@@ -248,7 +250,6 @@ const confirmRainPoint = async () => {
     "occurrenceTime": timeTransfer.timestampToTimeWithT(new Date),
     "rainType": rainType.value
   }
-  console.log(requestData, "requestData saveRain")
 
   let resSaveRain = await saveRain(requestData)
   // 处理触发数据，选择降雨量最大的一条数据进行专题图产出
@@ -384,7 +385,30 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
   let requestData = {
     data: []
   }
+  // 创建闪烁工具
+  const pulse = new PulseTool(window.viewer)
+  // 添加蓝色背景
+  const circleTexture = pulse.createBlueCircleTexture(18);
+
   matchedHuapoData.forEach(item => {
+    const bgEntityId = `background-blue-${item.geologicalDisasterHideDTO.lon}-${item.geologicalDisasterHideDTO.lat}`;
+    const entity =  window.viewer.entities.getById(bgEntityId);
+    console.log(3823923, bgEntityId)
+    if(! entity) {
+      // 创建固定大小的蓝色圆圈（Billboard）
+      window.viewer.entities.add({
+        id: bgEntityId,
+        position: Cesium.Cartesian3.fromDegrees(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat),
+        billboard: {
+          image: circleTexture, // 蓝色圆形纹理
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER, // 中心点对齐
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY // 避免被地形/模型遮挡
+        }
+      });
+    }
+
     let entityId = ''
     if (item.geologicalDisasterHideDTO.disasterType === "风险区域") {
       entityId = "风险区域" + item.geologicalDisasterHideDTO.unitCode
@@ -417,8 +441,6 @@ const caculateRainSlideTrigger = async (matchedHuapoData, pointSet) => {
   try {
     let matchedHuapoEntities = []
     const res = await rainSlideTrigger(requestData)
-    // emit("update:handle-setId",res)
-    console.log(res.data, "rainSlideTrigger返回结果")
     let formatAnalyzedData = res.data || []
 
     formatAnalyzedData.forEach(item => {

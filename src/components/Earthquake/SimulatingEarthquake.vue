@@ -488,7 +488,6 @@ async function confirmEarthquake(formEl) {
             diePopMin: earthquakeDamage.value.diePopMin,
             intensity: base.circleParam[0].intensity,
           })
-          console.log(96321025, report_param)
           let thematicEqInfo = {
             // 震源地质+ 震级+ 地震
             earthquakeFullName: form.position + form.magnitude + "级地震",
@@ -569,7 +568,28 @@ async function confirmEarthquake(formEl) {
 
       // 处理各个模拟点
       let inEllipsePoints = layers.getAllHiddeninEllipse(position.longitude, position.latitude, form.magnitude);
-      console.log("inEllipsePoints", inEllipsePoints);
+
+      // 添加蓝色背景
+      const circleTexture = pulse.createBlueCircleTexture(15);;
+      inEllipsePoints.forEach(pointEntity => {
+        const entityId = `background-blue-${pointEntity.geologicalDisasterHideDTO.lon}-${pointEntity.geologicalDisasterHideDTO.lat}`;
+        const entity =  window.viewer.entities.getById(entityId);
+        if(! entity) {
+          // 创建固定大小的蓝色圆圈（Billboard）
+          window.viewer.entities.add({
+            id: entityId,
+            position: Cesium.Cartesian3.fromDegrees(pointEntity.geologicalDisasterHideDTO.lon, pointEntity.geologicalDisasterHideDTO.lat),
+            billboard: {
+              image: circleTexture, // 蓝色圆形纹理
+              horizontalOrigin: Cesium.HorizontalOrigin.CENTER, // 中心点对齐
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY // 避免被地形/模型遮挡
+            }
+          });
+        }
+      });
+
       const favEllipsePoints = [];
       // 获取各个点的风险概率
       if (inEllipsePoints.length !== 0) {
