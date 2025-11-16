@@ -1,6 +1,6 @@
 <template>
-  <span class="text">危险程度：{{ dangerLevel }}</span>
-  <span class="text">产生{{ disasterType }}的概率：{{ probability }}%</span>
+  <span v-if = "probability && probability > 0"  class="text">危险程度：{{ dangerLevel }}</span>
+  <span v-if = "probability && probability > 0"  class="text">产生{{ disasterType }}的概率：{{ probability }}%</span>
   <table class="disaster-info-table">
     <tbody>
     <tr>
