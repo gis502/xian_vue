@@ -34,7 +34,7 @@
       <div class="table-header">
         <div class="table-title">
           <i class="el-icon-heavy-rain"></i>
-          总灾害信息列表
+          {{ tableTitle }}
         </div>
         <div class="search-controls">
           <input
@@ -46,7 +46,7 @@
           <button class="search-btn" @click="applySearch">
             <i class="el-icon-search"></i>搜索
           </button>
-          <button class="refresh-btn" @click="getAllRainInfo">
+          <button class="refresh-btn" @click="getAllDisasterInfo">
             <i class="el-icon-refresh"></i>刷新
           </button>
         </div>
@@ -57,7 +57,7 @@
         <tr>
           <th>灾害名称</th>
           <th>发生时间</th>
-          <th>降雨量 (mm)/震级</th>
+          <th>{{ valueColumnName }}</th>
           <th>位置</th>
         </tr>
         </thead>
@@ -147,12 +147,13 @@
 import * as Cesium from "cesium";
 
 import { initCesium } from "@/cesium/initLayer.js";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, computed } from "vue";
 import basicLayers from "../../cesium/basicLayers";
 import Table from "../../components/Earthquake/Table.vue";
 import Legend from "../../components/Earthquake/Legend.vue";
 import {getRain, getRainProbability, getEarthQuakeProbability, getEarthQuake} from "@/api/system/disasterChain.js";
 import modal from "@/plugins/modal.js";
+import {useSelectedEdge} from "@/store/useSelectedEdge.js";
 
 const currentPage = ref(1);
 const itemsPerPage = 5;
@@ -169,6 +170,10 @@ const showEarthLand = ref(false);
 const showEarthDebrisFlow = ref(false);
 const flashInterval = ref(null);
 const haloCollection = ref(null);
+
+// 获取点击的状态
+const selectedEdge = useSelectedEdge();
+console.log('当前灾害类型:', selectedEdge.edgeFlag);
 
 let selectedEntityData = ref(null);
 let popupVisible = ref(false);
@@ -188,57 +193,156 @@ let WaterEntities= ref([]);
 let highRiskEntities = ref([]);
 let activeBtn = ref('');
 
-// 表格数据
+// 计算属性：根据当前灾害类型返回表格标题
+const tableTitle = computed(() => {
+  return selectedEdge.edgeFlag === 'rain' ? '暴雨灾害信息列表' : '地震灾害信息列表';
+});
+
+// 计算属性：根据当前灾害类型返回数值列名称
+const valueColumnName = computed(() => {
+  return selectedEdge.edgeFlag === 'rain' ? '降雨量 (mm)' : '震级';
+});
+
+// 计算属性：根据当前灾害类型返回表格数据配置
+// 计算属性：根据当前灾害类型返回表格数据配置
+const tableDataConfig = computed(() => {
+  if (selectedEdge.edgeFlag === 'rain') {
+    return {
+      filterCriteria: [
+        {
+          name: "暴雨滑坡",
+          value: "type1",
+        },
+        {
+          name: "暴雨泥石流",
+          value: "type2",
+        },
+        {
+          name: "暴雨内涝",
+          value: "type3",
+        },
+        {
+          name: "暴雨山洪",
+          value: "type4",
+        },
+      ],
+      type1: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type2: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type3: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type4: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      }
+    };
+  } else if (selectedEdge.edgeFlag === 'earthquake') {
+    return {
+      filterCriteria: [
+        {
+          name: "地震滑坡",
+          value: "type1",  // 改为 type1
+        },
+        {
+          name: "地震泥石流",
+          value: "type2",  // 改为 type2
+        },
+      ],
+      type1: {  // 地震滑坡映射到 type1
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type2: {  // 地震泥石流映射到 type2
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      }
+    };
+  } else {
+    // 默认情况（保持原有逻辑）
+    return {
+      filterCriteria: [
+        {
+          name: "暴雨滑坡",
+          value: "type1",
+        },
+        {
+          name: "暴雨泥石流",
+          value: "type2",
+        },
+        {
+          name: "暴雨内涝",
+          value: "type3",
+        },
+        {
+          name: "暴雨山洪",
+          value: "type4",
+        },
+        {
+          name: "地震滑坡",
+          value: "type5",
+        },
+        {
+          name: "地震泥石流",
+          value: "type6",
+        },
+      ],
+      type1: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type2: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type3: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type4: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type5: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      },
+      type6: {
+        headers: ["灾害名称", "位置", "发生概率", "险情等级"],
+        data: [],
+      }
+    };
+  }
+});
+
+// 修改原有的 dataTypes 为响应式对象，基于 tableDataConfig
 const dataTypes = reactive({
-  filterCriteria: [
-    {
-      name: "暴雨滑坡",
-      value: "type1",
-    },
-    {
-      name: "暴雨泥石流",
-      value: "type2",
-    },
-    {
-      name: "暴雨内涝",
-      value: "type3",
-    },
-    {
-      name: "暴雨山洪",
-      value: "type4",
-    },
-    {
-      name: "地震滑坡",
-      value: "type5",
-    },
-    {
-      name: "地震泥石流",
-      value: "type6",
-    },
-  ],
-  type1: {
-    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
-    data: [],
+  get filterCriteria() {
+    return tableDataConfig.value.filterCriteria;
   },
-  type2: {
-    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
-    data: [],
+  get type1() {
+    return tableDataConfig.value.type1 || { headers: [], data: [] };
   },
-  type3: {
-    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
-    data: [],
+  get type2() {
+    return tableDataConfig.value.type2 || { headers: [], data: [] };
   },
-  type4: {
-    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
-    data: [],
+  get type3() {
+    return tableDataConfig.value.type3 || { headers: [], data: [] };
   },
-  type5: {
-    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
-    data: [],
+  get type4() {
+    return tableDataConfig.value.type4 || { headers: [], data: [] };
   },
-  type6: {
-    headers: ["灾害名称", "位置", "发生概率", "险情等级"],
-    data: [],
+  get type5() {
+    return tableDataConfig.value.type5 || { headers: [], data: [] };
+  },
+  get type6() {
+    return tableDataConfig.value.type6 || { headers: [], data: [] };
   }
 });
 
@@ -252,7 +356,9 @@ onMounted(async () => {
   viewer = initCesium("cesium-container");
   window.viewer = viewer;
   // 断裂带
-  basicLayers.addFaultZone();
+  if(selectedEdge.edgeFlag === 'earthquake'){
+    basicLayers.addFaultZone();
+  }
   // 行政区
   basicLayers.loadAdminData();
   basicLayers.loadRisk();
@@ -329,23 +435,38 @@ function toSelectDisaster(){
   }
 }
 
-// 修改获取数据的方法
+// 修改获取数据的方法：根据edgeFlag只加载对应的灾害数据
 async function getAllDisasterInfo(){
   try {
-    // 并行获取暴雨和地震数据
-    const [rainResponse, earthquakeResponse] = await Promise.all([
-      getRain(),
-      getEarthQuake()
-    ]);
+    // 根据edgeFlag决定加载哪种灾害数据
+    if (selectedEdge.edgeFlag === 'rain') {
+      // 只加载暴雨数据
+      const rainResponse = await getRain();
+      rainData.value = rainResponse.data || [];
+      combinedData.value = rainData.value.map(item => ({ ...item, disasterType: 'rain' }))
+          .sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime)); // 按时间降序
+    } else if (selectedEdge.edgeFlag === 'earthquake') {
+      // 只加载地震数据
+      const earthquakeResponse = await getEarthQuake();
+      earthquakeData.value = earthquakeResponse.data || [];
+      combinedData.value = earthquakeData.value.map(item => ({ ...item, disasterType: 'earthquake' }))
+          .sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime)); // 按时间降序
+    } else {
+      // 默认情况：加载全部数据（保持原有逻辑）
+      const [rainResponse, earthquakeResponse] = await Promise.all([
+        getRain(),
+        getEarthQuake()
+      ]);
 
-    rainData.value = rainResponse.data || [];
-    earthquakeData.value = earthquakeResponse.data || [];
+      rainData.value = rainResponse.data || [];
+      earthquakeData.value = earthquakeResponse.data || [];
 
-    // 合并数据并添加类型标识
-    combinedData.value = [
-      ...rainData.value.map(item => ({ ...item, disasterType: 'rain' })),
-      ...earthquakeData.value.map(item => ({ ...item, disasterType: 'earthquake' }))
-    ].sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime)); // 按时间降序
+      // 合并数据并添加类型标识
+      combinedData.value = [
+        ...rainData.value.map(item => ({ ...item, disasterType: 'rain' })),
+        ...earthquakeData.value.map(item => ({ ...item, disasterType: 'earthquake' }))
+      ].sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime)); // 按时间降序
+    }
 
     searchQuery.value = ''; // 清空搜索框
     isSearching.value = false; // 重置搜索状态
@@ -561,7 +682,7 @@ async function toggleEarthLand(){
           const processedEntities = checkEntity(response.data);
           LandEntities.value = processedEntities;
           LandEntities.value.forEach((item) => {
-            dataTypes.type5.data.push({
+            dataTypes.type1.data.push({
               field1: item.name,
               field2: item.position,
               field3: item.probability,
@@ -576,7 +697,7 @@ async function toggleEarthLand(){
       console.log("error", e)
     }
   }else{
-    dataTypes.type5.data = [];
+    dataTypes.type1.data = [];
     stopFlashEntities("滑坡");
     flash();
   }
@@ -593,7 +714,7 @@ async function toggleEarthDebrisFlow(){
         setTimeout(() => {
           FlowEntities.value = checkEntity(response.data);
           FlowEntities.value.forEach((item) => {
-            dataTypes.type6.data.push({
+            dataTypes.type2.data.push({
               field1: item.name,
               field2: item.position,
               field3: item.probability,
@@ -608,19 +729,23 @@ async function toggleEarthDebrisFlow(){
       console.log("error", e)
     }
   }else{
-    dataTypes.type6.data = [];
+    dataTypes.type2.data = [];
     stopFlashEntities("泥石流");
     flash();
   }
 }
 
 function resetAll(){
-  dataTypes.type4.data = [];
-  dataTypes.type6.data = [];
-  dataTypes.type2.data = [];
+  // 清理暴雨相关数据
   dataTypes.type1.data = [];
+  dataTypes.type2.data = [];
   dataTypes.type3.data = [];
+  dataTypes.type4.data = [];
+
+  // 清理地震相关数据
   dataTypes.type5.data = [];
+  dataTypes.type6.data = [];
+
   showRainFlood.value = false;
   showRainLand.value = false;
   showRainDebrisFlow.value = false;
@@ -823,46 +948,46 @@ const stopFlashing = () => {
 };
 
 function setupEntityHandler(){
-    window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
-      // 假设你想在点击时获取经纬度
-      const scene = window.viewer.scene;
-      try {
-        const cartesianPosition = scene.pickPosition(click.position);
-        if (cartesianPosition) {
-          // 将笛卡尔坐标转换为弧度表示的制图坐标
-          const cartographic = Cesium.Cartographic.fromCartesian(cartesianPosition);
-          // 将弧度转换为度数得到经纬度，以及获取高度
-          const longitude = Cesium.Math.toDegrees(cartographic.longitude);
-          const latitude = Cesium.Math.toDegrees(cartographic.latitude);
-          const height = cartographic.height;
-          console.log("经度:", longitude, "纬度:", latitude, "高度 (米):", height);
-        } else {
-          console.warn("无法获取点击位置的三维坐标。");
-        }
-      } catch (error) {
-        console.error("在坐标转换过程中发生错误:", error);
-      }
-      // 检查点击位置是否拾取到实体
-      let pickedEntity = window.viewer.scene.pick(click.position);
-      window.selectedEntity = pickedEntity?.id;
-      // 隐藏之前的弹出面板
-      closePopup();
-
-      if (Cesium.defined(pickedEntity) && Cesium.defined(pickedEntity.id)) {
-        const entity = pickedEntity.id;
-        // 检查是否有 disasterData 属性（灾害点实体）
-        if (entity.disasterData !== undefined) {
-          // 获取实体的灾害数据
-          selectedEntityData.value = entity.disasterData || {};
-          // 计算弹出框位置并显示面板
-          await calculateAndShowPopup(entity, click.position);
-        }
+  window.viewer.screenSpaceEventHandler.setInputAction(async (click) => {
+    // 假设你想在点击时获取经纬度
+    const scene = window.viewer.scene;
+    try {
+      const cartesianPosition = scene.pickPosition(click.position);
+      if (cartesianPosition) {
+        // 将笛卡尔坐标转换为弧度表示的制图坐标
+        const cartographic = Cesium.Cartographic.fromCartesian(cartesianPosition);
+        // 将弧度转换为度数得到经纬度，以及获取高度
+        const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+        const height = cartographic.height;
+        console.log("经度:", longitude, "纬度:", latitude, "高度 (米):", height);
       } else {
-        // 如果点击在空白处，隐藏信息框
-        window.viewer.selectedEntity = undefined;
-        closePopup();
+        console.warn("无法获取点击位置的三维坐标。");
       }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    } catch (error) {
+      console.error("在坐标转换过程中发生错误:", error);
+    }
+    // 检查点击位置是否拾取到实体
+    let pickedEntity = window.viewer.scene.pick(click.position);
+    window.selectedEntity = pickedEntity?.id;
+    // 隐藏之前的弹出面板
+    closePopup();
+
+    if (Cesium.defined(pickedEntity) && Cesium.defined(pickedEntity.id)) {
+      const entity = pickedEntity.id;
+      // 检查是否有 disasterData 属性（灾害点实体）
+      if (entity.disasterData !== undefined) {
+        // 获取实体的灾害数据
+        selectedEntityData.value = entity.disasterData || {};
+        // 计算弹出框位置并显示面板
+        await calculateAndShowPopup(entity, click.position);
+      }
+    } else {
+      // 如果点击在空白处，隐藏信息框
+      window.viewer.selectedEntity = undefined;
+      closePopup();
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 function closePopup() {

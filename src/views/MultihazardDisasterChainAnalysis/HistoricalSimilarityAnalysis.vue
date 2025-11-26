@@ -217,6 +217,7 @@ import Legend from "../../components/Earthquake/Legend.vue";
 import Chart from "../../components/Earthquake/Chart.vue";
 import HistoricalDisasterMatch from "@/components/HistoricalDisaster/HistoricalDisasterMatch.vue";
 import Table from "@/components/Earthquake/Table.vue";
+import {useSelectedEdge} from "@/store/useSelectedEdge.js";
 
 
 const showAnalysis = ref(false);
@@ -226,6 +227,7 @@ const loading = ref(false);
 const selectDisaster = ref([]);
 const maxRadius = 30;
 const duration = 5;
+
 
 //弹窗逻辑
 let popupPosition = reactive({x: 0, y: 0});

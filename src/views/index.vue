@@ -8,7 +8,7 @@
         <RouterLink 
           to="/admins/rain_flood"
           class="nav-btn"
-          @click="selectMenuStore.setCurrentMainMenu('rain')"
+          @click="clickNav('rain')"
           :class="{ 'nav-btn-active': selectMenuStore.currentMainMenu === 'rain' }"
         >
           暴雨灾害链
@@ -18,7 +18,7 @@
         <RouterLink 
           to="/admins/earthquake_landslide"
           class="nav-btn"
-          @click="selectMenuStore.setCurrentMainMenu('earthquake')"
+          @click="clickNav('earthquake')"
           :class="{ 'nav-btn-active': selectMenuStore.currentMainMenu === 'earthquake' }"
         >
           地震灾害链
@@ -86,9 +86,12 @@ import { computed, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { useSelectMenuStore } from '@/store/menu/select_menu.js';
 import logo from '@/assets/logo/mainlogo.png';
+import {useSelectedEdge} from "@/store/useSelectedEdge.js";
 
 // 初始化Pinia存储
 const selectMenuStore = useSelectMenuStore();
+
+const selectedEdge = useSelectedEdge();
 // 获取当前路由
 const route = useRoute();
 
@@ -110,6 +113,11 @@ watch(
   },
   { immediate: true }
 );
+
+function clickNav(type) {
+  selectMenuStore.setCurrentMainMenu(type)
+  selectedEdge.edgeFlag = type;
+}
 </script>
 
 <style scoped>

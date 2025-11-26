@@ -119,7 +119,7 @@ import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
 import flashIcon from "@/assets/images/flashflood.png";
 import waterIcon from "@/assets/images/water.png";
 import { ElMessage } from 'element-plus';
-
+import {useSelectedEdge} from "@/store/useSelectedEdge.js";
 
 const tableData = ref([])
 const disTotal = ref(0)
@@ -137,6 +137,9 @@ const searchQuery = ref("");
 const rainAffectPoints = ref([]);
 const levelPoints = ref([]);
 const selectDisaster = ref([]);
+// 获取点击的状态
+const selectedEdge = useSelectedEdge()
+console.log(12313123131233132,selectedEdge.edgeFlag)
 
 //接收父组件传来的数据
 const { chartDatas, disasterList, rainLevelPoint } = defineProps([
@@ -267,10 +270,19 @@ const fetchData = async () => {
     mergedData.sort((a, b) => new Date(b.occurrenceTime) - new Date(a.occurrenceTime));
 
     // 保存原始完整数据
-    originalTableData.value = mergedData;
+    // originalTableData.value = mergedData;
     Object.assign(disasterList, mergedData)
-    // 默认显示全部数据
-    tableData.value = mergedData;
+    // 根据 selectedEdge.edgeFlag 过滤显示的数据
+    if (selectedEdge.edgeFlag === 'rain') {
+      // 只显示暴雨数据
+      tableData.value = mergedData.filter(item => item.disasterType === "暴雨");
+      originalTableData.value = mergedData.filter(item => item.disasterType === "暴雨");
+    } else {
+      // 显示地震数据或其他情况显示全部数据
+      tableData.value = mergedData.filter(item => item.disasterType === "地震");
+      originalTableData.value = mergedData.filter(item => item.disasterType === "地震");
+    }
+
     disTotal.value = mergedData.length;
 
     console.log("获取到的灾害数据",tableData)
