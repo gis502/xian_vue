@@ -2157,7 +2157,7 @@ export default {
 /* 暴雨信息面板样式优化 */
 .rain-info-panel {
   position: absolute;
-  top: 250px;
+  top: 300px;
   left: 10px;
   color: white;
   border: 1px solid rgba(0, 225, 255, 1);

@@ -456,22 +456,68 @@ let layers = {
     },
 
     //找烈度圈相交点预警点
+    // getAllHiddeninEllipse(longitude, latitude, magnitude) {
+    //     let allHiddenDisasterinEllipse = [];
+    //     let rotation = layers.calculateRotation(longitude, latitude, magnitude)
+    //     const params = this.calculateEllipseParams(magnitude).at(-2);
+    //
+    //     let validPoints = useSimulationPointStore().simulationPoints.filter(
+    //         item => item && item.geologicalDisasterHideDTO
+    //     );
+    //     validPoints.forEach((item) => {
+    //         if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
+    //             // item.predict = null;
+    //             allHiddenDisasterinEllipse.push(item)
+    //         }
+    //     })
+    //     // console.log(2323,allHiddenDisasterinEllipse)
+    //     return allHiddenDisasterinEllipse
+    // },
     getAllHiddeninEllipse(longitude, latitude, magnitude) {
         let allHiddenDisasterinEllipse = [];
-        let rotation = layers.calculateRotation(longitude, latitude, magnitude)
-        const params = layers.calculateEllipseParams(magnitude).at(-2);
+        // 1. 入参合法性校验：避免无效计算和报错
+        if (!longitude || !latitude || !magnitude || isNaN(Number(longitude)) || isNaN(Number(latitude)) || isNaN(Number(magnitude))) {
+            console.warn("getAllHiddeninEllipse：经纬度/震级参数无效", {longitude, latitude, magnitude});
+            return allHiddenDisasterinEllipse;
+        }
 
-        let validPoints = useSimulationPointStore().simulationPoints.filter(
-            item => item && item.geologicalDisasterHideDTO
+        // 2. 计算旋转角度（补充默认值，避免rotation为undefined）
+        let rotation = layers.calculateRotation(longitude, latitude, magnitude) || 0;
+
+        // 3. 替换.at(-2)为兼容写法，解决ES2022语法兼容问题 + 数组越界保护
+        const ellipseParams = this.calculateEllipseParams(magnitude) || [];
+        // 取倒数第二个元素：优先判断数组长度，不足则取最后一个，兜底空对象
+        const params = ellipseParams.length >= 2
+            ? ellipseParams[ellipseParams.length - 2]
+            : (ellipseParams.length > 0 ? ellipseParams[0] : {});
+
+        // 4. 参数兜底：避免访问semiMajorAxis/semiMinorAxis时报错
+        const semiMajorAxis = params.semiMajorAxis || 0;
+        const semiMinorAxis = params.semiMinorAxis || 0;
+        if (semiMajorAxis <= 0 || semiMinorAxis <= 0) {
+            console.warn("getAllHiddeninEllipse：椭圆参数无效", {semiMajorAxis, semiMinorAxis});
+            return allHiddenDisasterinEllipse;
+        }
+
+        // 5. 筛选有效隐患点（强化空值校验）
+        const simulationStore = useSimulationPointStore();
+        let validPoints = (simulationStore?.simulationPoints || []).filter(
+            item => item && item.geologicalDisasterHideDTO && !isNaN(Number(item.geologicalDisasterHideDTO.lon)) && !isNaN(Number(item.geologicalDisasterHideDTO.lat))
         );
+
+        // 6. 遍历判断点是否在椭圆内（强制转换为数字，避免字符串计算）
         validPoints.forEach((item) => {
-            if (this.isPointInEllipse1(item.geologicalDisasterHideDTO.lon, item.geologicalDisasterHideDTO.lat, longitude, latitude, params.semiMajorAxis, params.semiMinorAxis, rotation)) {
-                // item.predict = null;
-                allHiddenDisasterinEllipse.push(item)
+            const pointLon = Number(item.geologicalDisasterHideDTO.lon);
+            const pointLat = Number(item.geologicalDisasterHideDTO.lat);
+            const centerLon = Number(longitude);
+            const centerLat = Number(latitude);
+
+            if (this.isPointInEllipse1(pointLon, pointLat, centerLon, centerLat, semiMajorAxis, semiMinorAxis, rotation)) {
+                allHiddenDisasterinEllipse.push(item);
             }
         })
-        // console.log(2323,allHiddenDisasterinEllipse)
-        return allHiddenDisasterinEllipse
+
+        return allHiddenDisasterinEllipse;
     },
 
     isPointInEllipse(pointLon, pointLat, centerLon, centerLat, majorAxis, minorAxis, rotation) {

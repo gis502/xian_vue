@@ -1,5 +1,7 @@
 import {getEqOutputMaps} from "./damageassessment.js";
 import {getEqOutputRainMaps} from "./damageassessment.js";
+import * as http from "node:http";
+import request from "@/utils/request.js";
 
 /**
  * 灾损接口：获取专题图件getMap与灾情报告getReport
@@ -31,6 +33,19 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     console.log("专题图",data)
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
+                            const paths = data[i].sourceFile.split("/");
+                            // 后端请求迁移文件
+                            request(
+                                {
+                                    url: '/file/remove',
+                                    method: 'post',
+                                    params: {
+                                        url: encodeURIComponent(data[i].sourceFile)
+                                    },
+                                }
+                            )
+                            data[i].sourceFile = `/imgs/${paths[paths.length - 1]}`
+
                             const thematicMapObject = {
                                 // imgUrl: data[i].sourceFile,
                                 imgUrl: data[i].sourceFile,
@@ -64,6 +79,19 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     console.log("专题图")
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
+                            const paths = data[i].sourceFile.split("/");
+                            // 后端请求迁移文件
+                            request(
+                                {
+                                    url: '/file/remove',
+                                    method: 'post',
+                                    params: {
+                                        url: encodeURIComponent(data[i].sourceFile),
+                                    },
+                                }
+                            )
+                            data[i].sourceFile = `/imgs/${paths[paths.length - 1]}`
+
                             const thematicMapObject = {
                                 // imgUrl: data[i].sourceFile,
                                 imgUrl: data[i].sourceFile,
