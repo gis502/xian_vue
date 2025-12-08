@@ -55,8 +55,8 @@ const router = useRouter();
 const {proxy} = getCurrentInstance();
 
 const loginForm = ref({
-  username: "admin",
-  password: "gis502502",
+  username: "",//admin
+  password: "",//gis502502
 });
 
 const loginRules = {
