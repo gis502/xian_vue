@@ -610,8 +610,6 @@ export default {
           roll: 0.0
         }
       });
-      // 初始化下雨效果
-      this.initRainEffect();
       document.addEventListener('keydown', this.onKeyDown);
     },
     // 收集所有可搜索的实体
@@ -1239,84 +1237,6 @@ export default {
     onKeyDown(event) {
       if (event.key === 'Escape' && this.rainMode) {
         this.toggleRainMode();
-      }
-    },
-    // 初始化下雨效果
-    initRainEffect() {
-      const rainFragmentShader = `
-    #version 300 es
-    precision highp float;
-
-    uniform sampler2D colorTexture;
-    uniform float rainIntensity;
-    uniform vec4 rainArea;
-    in vec2 v_textureCoordinates;
-    out vec4 fragColor;
-
-    float hash(float x){
-        return fract(sin(x*23.3)*13.13);
-    }
-
-    // 检查点是否在矩形区域内
-    bool isInRainArea(vec2 uv, vec4 area) {
-        return uv.x >= area.x && uv.x <= area.x + area.z &&
-               uv.y >= area.y && uv.y <= area.y + area.w;
-    }
-
-    void main(){
-        float time = czm_frameNumber / 120.0;
-        vec2 resolution = czm_viewport.zw;
-        vec2 uv=(gl_FragCoord.xy*2.-resolution.xy)/min(resolution.x,resolution.y);
-        vec3 c=vec3(.6,.7,.8);
-        float a=-.4;
-        float si=sin(a),co=cos(a);
-        uv*=mat2(co,-si,si,co);
-        uv*=length(uv+vec2(0,8.9))*.3+1.;
-        float v=1.-sin(hash(floor(uv.x*100.))*2.);
-
-        // 归一化的屏幕坐标
-        vec2 screenUV = gl_FragCoord.xy / resolution;
-
-        // 控制雨滴参数
-        float density = 5.0 * rainIntensity;
-        float brightness = 20.0 * rainIntensity;
-        float threshold = 0.95 - 0.1 * rainIntensity;
-
-        float b=clamp(abs(sin(20.*time*v+uv.y*density))-threshold,0.,1.)*brightness;
-        c*=v*b;
-
-        fragColor = mix(
-            texture(colorTexture, v_textureCoordinates),
-            vec4(c, 1),
-            0.5 * rainIntensity
-        );
-    }
-  `;
-      this.rainEffect = new Cesium.PostProcessStage({
-        fragmentShader: rainFragmentShader,
-        uniforms: {
-          rainIntensity: 0.5,
-          rainArea: new Cesium.Cartesian4(0.25, 0.25, 0.5, 0.5)
-        }
-      });
-      // 添加到场景但默认禁用
-      this.viewer.scene.postProcessStages.add(this.rainEffect);
-      this.rainEffect.enabled = false;
-      //设置半径
-      this.setRainIntensity = (value) => {
-        this.rainEffect.uniforms.rainIntensity = Math.max(0.0, Math.min(1.0, value));
-        this.updateRainUI(value); // 更新UI显示
-      };
-    },
-    // 更新雨UI显示
-    updateRainUI(intensity) {
-      if (this.rainControlUI) {
-        const percentage = Math.round(intensity * 100);
-        this.rainControlUI.intensityLabel.textContent = `降雨量: ${percentage}%`;
-        this.rainControlUI.intensitySlider.value = percentage;
-        // 根据雨的强度改变按钮颜色
-        const hue = 100 - intensity * 50; // 从蓝色到深蓝色
-        this.rainControlUI.toggleBtn.style.backgroundColor = `hsl(${hue}, 80%, 45%)`;
       }
     },
     // 添加区域圆
