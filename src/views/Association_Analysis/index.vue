@@ -63,12 +63,6 @@
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.scaleGrade">
             {{ item.scaleGrade}}
           </td>
-<!--          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.city">-->
-<!--            {{ item.city }}-->
-<!--          </td>-->
-<!--          <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.county">-->
-<!--            {{ item.county}}-->
-<!--          </td>-->
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.village">
             {{ item.village}}
           </td>
@@ -124,6 +118,99 @@
       <!-- 添加空数据提示 -->
       <div v-if="iswarn_point_table && hisDas.length === 0" class="no-data">
         暂无历史案例数据
+      </div>
+    </div>
+
+    <div
+        v-show="popupVisible"
+        class="cesium-info-window"
+        :style="{ left: popupPosition.left + 'px', top: popupPosition.top + 'px' }"
+    >
+      <div class="disaster-popup">
+        <div class="popup-header">
+          <h3>{{ popupType === 'riskArea' ? '风险区信息' : '隐患点信息' }}</h3>
+          <button class="toggle-btn" @click="handleMatchHistory">匹配历史案例</button>
+          <button class="close-btn" @click="handleClosePopup">关闭</button>
+        </div>
+        <table class="disaster-info-table">
+          <tbody>
+          <!-- 滑坡/泥石流隐患点 -->
+          <template v-if="popupType === 'slide' || popupType === 'flow'">
+            <tr>
+              <td class="label">城市</td>
+              <td>{{ popupInfo.city }}</td>
+            </tr>
+            <tr>
+              <td class="label">地区</td>
+              <td>{{ popupInfo.county }}</td>
+            </tr>
+            <tr>
+              <td class="label">灾害名称</td>
+              <td>{{ popupInfo.disasterName }}</td>
+            </tr>
+            <tr>
+              <td class="label">经度</td>
+              <td>{{ popupInfo.lon }}</td>
+            </tr>
+            <tr>
+              <td class="label">纬度</td> <!-- 修复原经度重复问题 -->
+              <td>{{ popupInfo.lat }}</td>
+            </tr>
+            <tr>
+              <td class="label">灾害位置</td>
+              <td>{{ popupInfo.position }}</td>
+            </tr>
+            <tr>
+              <td class="label">危险等级</td>
+              <td>{{ popupInfo.riskGrade }}</td>
+            </tr>
+            <tr>
+              <td class="label">规模等级</td>
+              <td>{{ popupInfo.scaleGrade }}</td>
+            </tr>
+          </template>
+
+          <!-- 风险区信息 -->
+          <template v-if="popupType === 'riskArea'">
+            <tr>
+              <td class="label">风险区名称</td>
+              <td>{{ popupInfo.disasterName }}</td>
+            </tr>
+            <tr>
+              <td class="label">巡查员姓名</td>
+              <td>{{ popupInfo.inspectorName }}</td>
+            </tr>
+            <tr>
+              <td class="label">巡查员电话</td>
+              <td>{{ popupInfo.inspectorTele }}</td>
+            </tr>
+            <tr>
+              <td class="label">经度</td>
+              <td>{{ popupInfo.lon }}</td>
+            </tr>
+            <tr>
+              <td class="label">纬度</td> <!-- 修复原经度重复问题 -->
+              <td>{{ popupInfo.lat }}</td>
+            </tr>
+            <tr>
+              <td class="label">风险区位置</td>
+              <td>{{ popupInfo.position }}</td>
+            </tr>
+            <tr>
+              <td class="label">住房</td>
+              <td>{{ popupInfo.housing }}户</td>
+            </tr>
+            <tr>
+              <td class="label">户籍人口</td>
+              <td>{{ popupInfo.addressPopulation }}</td>
+            </tr>
+            <tr>
+              <td class="label">居民户数</td>
+              <td>{{ popupInfo.residentCounts }}</td>
+            </tr>
+          </template>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -256,6 +343,9 @@ export default {
       tableChange: true, //表格变化
       hisDas: null,
       districtColors: {}, // 存储各区县的颜色
+      popupInfo: {},
+      popupType: '',          // 弹窗类型（slide/flow/riskArea）
+      currentPopupCounty: ''  // 缓存当前弹窗的区县（用于匹配历史案例）
     };
   },
 
@@ -402,36 +492,6 @@ export default {
     },
     togglePointTableVisibility(){
       this.iswarn_point_table = !this.iswarn_point_table;
-    },
-    locatedXiAn() {
-      //默认定位到西安
-      const savedView = localStorage.getItem('mapView');
-      if (savedView) {
-        const {destination, orientation} = JSON.parse(savedView);
-        this.viewer.camera.setView({destination, orientation});
-      } else {
-        this.viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(108.0, 34.2, 200000.0),
-          orientation: {
-            // 指向
-            heading: 6.283185307179581,
-            // 视角
-            pitch: -1.5688168484696687,
-            roll: 0.0
-          }
-        });
-      }
-      // 添加视图变化监听器，保存当前视图到localStorage
-      this.viewer.camera.changed.addEventListener(() => {
-        const position = this.viewer.camera.position;
-        const heading = this.viewer.camera.heading;
-        //const pitch = this.viewer.camera.pitch;
-        //const roll = this.viewer.camera.roll;
-        localStorage.setItem('mapView', JSON.stringify({
-          destination: position,
-          orientation: {heading}
-        }));
-      });
     },
     AddSlide(){
       let pointInfo;
@@ -580,367 +640,106 @@ export default {
       this.setupEntityClickHandler();
     },
     setupEntityClickHandler() {
-      // 清除旧的事件处理程序
       if (this.entityClickHandler) {
         this.entityClickHandler.destroy();
       }
-      // 添加新的事件处理程序
       this.entityClickHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.canvas);
       this.entityClickHandler.setInputAction((click) => {
-        // 清除现有信息窗口
-        const existingWindows = document.querySelectorAll('.cesium-info-window');
-        existingWindows.forEach(win => win.remove());
+        // 隐藏弹窗（替代原生移除DOM）
+        this.popupVisible = false;
         this.tableChange = true;
-        // 获取点击位置的实体
-        const pickedObject = this.viewer.scene.pick(click.position);
 
+        const pickedObject = this.viewer.scene.pick(click.position);
         if (pickedObject && Cesium.defined(pickedObject.id)) {
           const entity = pickedObject.id;
-          if (entity.userData && entity.userData.type === 'slide') {
-
-            //屏幕坐标转世界坐标
+          if (entity.userData && ['slide', 'flow', 'riskArea'].includes(entity.userData.type)) {
             let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
-            //世界坐标转经纬度
             let ellipsoid=this.viewer.scene.globe.ellipsoid;
             let cartographic=ellipsoid.cartesianToCartographic(cartesian);
-            let lat=Cesium.Math.toDegrees(cartographic.latitude);
-            let lon=Cesium.Math.toDegrees(cartographic.longitude);
-            this.viewer.camera.flyTo({
-              destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-              orientation: {
-                // 指向
-                heading: 6.283185307179581,
-                // 视角
-                pitch: -1.5688168484696687,
-                roll: 0.0
-              },
-              duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-              complete: () => {
-                // 飞行完成后显示信息窗口
-                this.showInfoList(entity.userData.info,entity);
-              }
-
-            });
-          }
-          else if (entity.userData && entity.userData.type === 'flow') {
-            //屏幕坐标转世界坐标
-            let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
-            //世界坐标转经纬度
-            let ellipsoid=this.viewer.scene.globe.ellipsoid;
-            let cartographic=ellipsoid.cartesianToCartographic(cartesian);
-            let lat=Cesium.Math.toDegrees(cartographic.latitude);
-            let lon=Cesium.Math.toDegrees(cartographic.longitude);
-            this.viewer.camera.flyTo({
-              destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-              orientation: {
-                // 指向
-                heading: 6.283185307179581,
-                // 视角
-                pitch: -1.5688168484696687,
-                roll: 0.0
-              },
-              duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-              complete: () => {
-                // 飞行完成后显示信息窗口
-                this.showInfoList(entity.userData.info,entity);
-              }
-
-            });
-          }
-          else if (entity.userData && entity.userData.type === 'riskArea') {
-            //屏幕坐标转世界坐标
-            let cartesian = this.viewer.scene.globe.pick(this.viewer.camera.getPickRay(click.position),this.viewer.scene);
-            //世界坐标转经纬度
-            let ellipsoid=this.viewer.scene.globe.ellipsoid;
-            let cartographic=ellipsoid.cartesianToCartographic(cartesian);
-            let lat=Cesium.Math.toDegrees(cartographic.latitude);
-            let lon=Cesium.Math.toDegrees(cartographic.longitude);
-            this.viewer.camera.flyTo({
-              destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
-              orientation: {
-                // 指向
-                heading: 6.283185307179581,
-                // 视角
-                pitch: -1.5688168484696687,
-                roll: 0.0
-              },
-              duration: 1.0, // 设置飞行持续时间为1秒（默认约3秒）
-              complete: () => {
-                // 飞行完成后显示信息窗口
-                this.showInfoList(entity.userData.info,entity);
-              }
-
-            });
+            // let lat=Cesium.Math.toDegrees(cartographic.latitude);
+            // let lon=Cesium.Math.toDegrees(cartographic.longitude);
+            this.showInfoList(entity.userData.info,entity);
+            // this.viewer.camera.flyTo({
+            //   destination: Cesium.Cartesian3.fromDegrees(lon, lat, 5000),
+            //   orientation: {
+            //     heading: 6.283185307179581,
+            //     pitch: -1.5688168484696687,
+            //     roll: 0.0
+            //   },
+            //   duration: 1.0,
+            //   complete: () => {
+            //     this.showInfoList(entity.userData.info,entity);
+            //   }
+            // });
           }
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     },
 
     showInfoList(info,entity) {
-      // 清除现有信息窗口
-      const existingWindows = document.querySelectorAll('.cesium-info-window');
-      existingWindows.forEach(win => win.remove());
+      // 隐藏原有弹窗（如果有）
+      this.popupVisible = false;
+
       // 获取实体位置的屏幕坐标
       const position = entity.position.getValue(this.viewer.clock.currentTime);
       const canvasPosition = this.viewer.scene.cartesianToCanvasCoordinates(position);
-      if (!canvasPosition) return; // 位置不可见时返回
-      // 创建信息列表DOM（可替换为框架组件）
-      const container = document.createElement('div');
-      container.className = 'cesium-info-window';
-      // 计算窗口位置（基于屏幕坐标偏移）
-      const left = canvasPosition.x + 250; // 右侧显示
-      const top = canvasPosition.y + 20; // 垂直居中
-      container.style.cssText = `
-        position: absolute;
-        left: ${left}px;
-        top: ${top-10}px;
-        width: 300px;
-        background: white;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        padding: 0px;
-        z-index: 1000;
-        max-height: 450px;
-        overflow-y: auto;
-      `;
-      // 构建信息列表内容
-      if (entity.userData.type == 'slide'){
-        container.innerHTML = `
-            <div class="disaster-popup">
-                <div class="popup-header">
-                    <h3>隐患点信息</h3>
-                    <button class="toggle-btn">匹配历史案例</button>
-                    <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
-                </div>
-                <table class="disaster-info-table">
-                    <tbody>
-                        <tr>
-                          <td class="label">城市</td>
-                          <td>${info.city}</td>
-                        </tr>
-                           <tr>
-                          <td class="label">地区</td>
-                          <td>${info.county}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">灾害名称</td>
-                          <td>${info.disasterName}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">经度</td>
-                          <td>${info.lon}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">经度</td>
-                          <td>${info.lat}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">灾害位置</td>
-                          <td>${info.position}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">危险等级</td>
-                          <td>${info.riskGrade}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">规模等级</td>
-                          <td>${info.scaleGrade}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        `;
-      } else if (entity.userData.type == 'flow'){
-        container.innerHTML = `
-          <div class="disaster-popup">
-              <div class="popup-header">
-                  <h3>隐患点信息</h3>
-                  <button class="toggle-btn">匹配历史案例</button>
-                  <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
-              </div>
-              <table class="disaster-info-table">
-                <tbody>
-                  <tr>
-                    <td class="label">城市</td>
-                    <td>${info.city}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">地区</td>
-                    <td>${info.county}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">灾害名称</td>
-                    <td>${info.disasterName}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">经度</td>
-                    <td>${info.lon}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">经度</td>
-                    <td>${info.lat}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">灾害位置</td>
-                    <td>${info.position}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">危险等级</td>
-                    <td>${info.riskGrade}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">规模等级</td>
-                    <td>${info.scaleGrade}</td>
-                  </tr>
-                 </tbody>
-              </table>
-          </div>
-        `;
-      }else if (entity.userData.type == 'riskArea'){
-        container.innerHTML = `
-            <div class="disaster-popup">
-                <div class="popup-header">
-                    <h3>风险区信息</h3>
-                    <button class="toggle-btn">匹配历史案例</button>
-                    <button onclick="this.parentNode.parentNode.remove()" class="close-btn">关闭</button>
-                </div>
-                <table class="disaster-info-table">
-                    <tbody>
-                        <tr>
-                          <td class="label">风险区名称</td>
-                          <td>${info.disasterName}</td>
-                        </tr>
-                           <tr>
-                          <td class="label">巡查员姓名</td>
-                          <td>${info.inspectorName}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">巡查员电话</td>
-                          <td>${info.inspectorTele}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">经度</td>
-                          <td>${info.lon}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">经度</td>
-                          <td>${info.lat}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">风险区位置</td>
-                          <td>${info.position}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">住房</td>
-                          <td>${info.housing}户</td>
-                        </tr>
-                        <tr>
-                          <td class="label">户籍人口</td>
-                          <td>${info.addressPopulation}</td>
-                        </tr>
-                        <tr>
-                          <td class="label">居民户数</td>
-                          <td>${info.residentCounts}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        `;
-      }
-      // 添加以下 CSS 样式，让表格更美观
-      const style = document.createElement('style');
-      style.textContent = `
-        .disaster-popup {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 0px;
-            border-radius: 2px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 减小阴影 */
-            background: rgba(0, 94, 153, 1);
-            color: white;
-        }
-        .toggle-btn{
-            background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
-            color: white;
-        }
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(14, 52, 98, 0.95);
-            padding: 2px 15px;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .popup-header h3 {
-            font-size: 14px;
-            font-weight: bold;
-            font-family: 'Source Han Sans CN';
-        }
-        .disaster-info-table {
-            width: 100%;
-            border-collapse: collapse;
-            color: white;
-        }
-        .disaster-info-table th, .disaster-info-table td {
-            padding: 8px;
-            border-top: 1px solid #000;  /* 保留上边框 */
-            border-bottom: 1px solid #000;  /* 保留底边框 */
-            border-left: none;  /* 去除左边框 */
-            border-right: none;  /* 去除右边框 */
-            text-align: left;
-            font-family: 'Source Han Sans CN';
-            font-size: 13px;
-        }
-        .disaster-info-table .label {
-            width: 30%;
-            font-size: 13px;
-        }
-        .close-btn {
-            background:none;
-            border: 1px solid rgba(0, 225, 255, 1);
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 14px; /* 减小标题字体大小 */
-            transition: color 0.2s;
-            color: white;
+      if (!canvasPosition) return;
+
+      // 1. 设置弹窗位置（替代原生style.cssText）
+      this.popupPosition = {
+        left: canvasPosition.x + 10,  // 右侧显示
+        top: canvasPosition.y + 10     // 垂直偏移（原top-10）
+      };
+
+      // 2. 设置弹窗数据和类型
+      this.popupInfo = { ...info };
+      this.popupType = entity.userData.type;
+      this.currentCounty = info.county; // 存储区县，用于匹配历史案例
+
+      // 3. 调整弹窗位置（防止超出视口）
+      this.adjustWindowPosition();
+
+      // 4. 显示弹窗
+      this.popupVisible = true;
+    },
+    adjustWindowPosition() {
+      this.$nextTick(() => {
+        const popupEl = document.querySelector('.cesium-info-window');
+        if (!popupEl) return;
+
+        const rect = popupEl.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const newPosition = { ...this.popupPosition };
+
+        // 右侧溢出时调整
+        if (rect.right > viewportWidth) {
+          newPosition.left = this.popupPosition.left - (rect.right - viewportWidth + 20);
         }
 
-    `;
-      document.head.appendChild(style);
-      // 添加到页面
-      document.body.appendChild(container);
-      // 检查是否超出视口边界并调整位置
-      this.adjustWindowPosition(container);
-      // 然后手动绑定事件
-      const toggleBtn = container.querySelector('.toggle-btn');
-      toggleBtn.addEventListener('click', () => {
-        this.GetHistoryDisaster(info.county);
-      });
-      const closeBtn = container.querySelector('.close-btn');
-      closeBtn.addEventListener('click', () => {
-        this.closHisHisDasTableVisibility();
+        // 底部溢出时调整
+        if (rect.bottom > viewportHeight) {
+          newPosition.top = this.popupPosition.top - (rect.bottom - viewportHeight + 20);
+        }
+
+        // 顶部溢出时调整
+        if (rect.top < 0) {
+          newPosition.top = 20;
+        }
+
+        // 更新响应式位置
+        this.popupPosition = newPosition;
       });
     },
-    adjustWindowPosition(container) {
-      const rect = container.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
 
-      // 右侧溢出时调整
-      if (rect.right > viewportWidth) {
-        container.style.left = `${parseInt(container.style.left) - (rect.right - viewportWidth + 20)}px`;
-      }
+    handleMatchHistory() {
+      this.GetHistoryDisaster(this.currentCounty);
+      this.tableChange = false;
+    },
 
-      // 底部溢出时调整
-      if (rect.bottom > viewportHeight) {
-        container.style.top = `${parseInt(container.style.top) - (rect.bottom - viewportHeight + 20)}px`;
-      }
-
-      // 顶部溢出时调整
-      if (rect.top < 0) {
-        container.style.top = '20px';
-      }
+    handleClosePopup() {
+      this.popupVisible = false;
+      this.closHisHisDasTableVisibility();
     },
     flashPoints(){
       const flag = [];
@@ -1569,4 +1368,91 @@ export default {
   padding: 20px;
   font-size: 14px;
 }
+
+:deep(.cesium-info-window) {
+  position: absolute;
+  width: 300px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  padding: 0px;
+  z-index: 1000;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+:deep(.disaster-popup) {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0px;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(0, 94, 153, 1);
+  color: white;
+}
+
+:deep(.toggle-btn) {
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+:deep(.popup-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(14, 52, 98, 0.95);
+  padding: 2px 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+:deep(.popup-header h3) {
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'Source Han Sans CN';
+  margin: 5px 0;
+}
+
+:deep(.disaster-info-table) {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+}
+
+:deep(.disaster-info-table th),
+:deep(.disaster-info-table td) {
+  padding: 8px;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  border-left: none;
+  border-right: none;
+  text-align: left;
+  font-family: 'Source Han Sans CN';
+  font-size: 13px;
+}
+
+:deep(.disaster-info-table .label) {
+  width: 30%;
+  font-size: 13px;
+}
+
+:deep(.close-btn) {
+  background: none;
+  border: 1px solid rgba(0, 225, 255, 1);
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+  color: white;
+  border-radius: 2px;
+}
+
+:deep(.close-btn:hover) {
+  background: rgba(0, 225, 255, 0.2);
+}
+
 </style>
