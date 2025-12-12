@@ -2,7 +2,7 @@
   <div class="index-container">
     <!-- 顶部导航栏 -->
     <nav class="top-nav">
-      <img :src="logo" alt="Logo" style="height: 50px;margin-right: 100px;" />
+      <img :src="logo" alt="Logo" style="height: 50px;margin-right: 100px; opacity: 0;" />
       <div class="nav-btn-group">
         <!-- 暴雨主菜单：基于Pinia状态激活 -->
         <RouterLink 
