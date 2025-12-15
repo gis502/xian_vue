@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">西安智慧应急<br></br>多灾种灾害链分析专项</h3>
+      <h3 class="title"><br></br>多灾种灾害链软件开发技术服务</h3>
       <el-form-item prop="username">
         <el-input
             v-model="loginForm.username"

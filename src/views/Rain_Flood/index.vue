@@ -478,6 +478,28 @@ let radarImages = reactive([
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820155000000.PNG.png',
   '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820155600000.PNG.png'
 ])
+let radarImages1 = reactive([
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820135900000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820140500000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820141100000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820141700000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820142400000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820143000000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820143600000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820144200000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820144800000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820145400000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820150000000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820150700000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820151300000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820151900000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820152500000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820153100000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820153700000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820154300000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820155000000.PNG.png',
+  '/test/SEVP_AOC_RDCP_SLDAS3_ECREF_AZ9290_L88_PI_20250820155600000.PNG.png'
+])
 let activeBtn = ref('');
 let dataTypeHiddenDisaster = reactive({
   filterCriteria: [
@@ -994,6 +1016,8 @@ function radars() {
   }
 }
 
+
+
 /* 获取雷达时间轴时间和图片 */
 // function radarData() {
 //   getRadarData().then(res => {
@@ -1021,15 +1045,15 @@ function radarData() {
   getRadarData().then(res => {
     let data = res.data
     console.log(data, "RadarData")
-    radarImages = []
+    // radarImages = []
     data.forEach(item => {
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
       console.log("/radarimages"+item.r0href)
-      radarImages.push("/radarimages"+item.r0href)   // 图片在这添加
-      // radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
+      // radarImages.push("/radarimages"+item.r0href)   // 图片在这添加
+
       timeLabels.push(time)
     })
     // let dat = Array.from(radarImages)

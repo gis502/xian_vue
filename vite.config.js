@@ -33,7 +33,9 @@ export default defineConfig(({ mode, command }) => {
         // https://cn.vitejs.dev/config/#server-proxy
         '/dev-api': {
           // target: 'http://10.22.245.246:8080',
-          target: 'http://localhost:8080',
+          // target: 'http://localhost:8080',
+          // target: 'http://10.17.122.248:8080',
+          target: 'http://10.7.71.1:18007',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, '')
         },
@@ -43,21 +45,27 @@ export default defineConfig(({ mode, command }) => {
           rewrite: (path) => path.replace(/^\/tdtproxy/, ''),
         },
         '/prod-api': {
-           target: 'http://localhost:8080',
+           // target: 'http://localhost:8080',
           // target: 'http://10.22.245.246:8080',
+          // target: 'http://10.17.122.248:8080',
+          target: 'http://10.7.71.1:18007',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/prod-api/, '')
         },
         '/geo': {
           // target: 'http://10.22.245.246:8088',
-          target: 'http://localhost:8089',
+          // target: 'http://localhost:8089',
+          // target: 'http://10.17.122.248:8088',
+          target: 'http://10.7.71.1:8087',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/geo/, '')
         },
         // 添加图片服务器代理
         '/radarimages': {
           // target: 'http://10.22.245.247:8900',
-          target: 'http://192.168.194.129/images',
+          // target: 'http://192.168.194.129/images',
+          // target: 'http://10.17.122.248:8900',
+          target: 'http://10.7.71.1:8900',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/radarimages/, '')
         },
