@@ -180,7 +180,7 @@ export default {
 
         // 核心数据赋值
         handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
-          console.log("123",res,"123123")
+          console.log("123",res,"122113")
           this.outputData = {
             themeName: res.themeName,
             themeData: res.themeData,
@@ -360,7 +360,7 @@ export default {
       // link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
       // link.href = 'http://localhost:8080/admins/downloadReport/file/' + wordUrl;
       // link.href = 'http://10.17.122.248:8080/admins/downloadReport/file/' + wordUrl;
-      link.href = 'http://10.7.71.1:8080/admins/downloadReport/file/' + wordUrl;
+      link.href = 'http://10.7.71.1:18007/admins/downloadReport/file/' + wordUrl;
         link.download = wordUrl;                         // 强制触发下载
       link.click();
     },

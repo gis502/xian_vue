@@ -48,7 +48,8 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
 
                             const thematicMapObject = {
                                 // imgUrl: data[i].sourceFile,
-                                imgUrl: data[i].sourceFile,
+                                // imgUrl: data[i].sourceFile,
+                                imgUrl: 'http://10.7.71.1'+data[i].localSourceFile,
                                 theme: data[i].fileName,
                             };
                             console.log("专题图", thematicMapObject)
@@ -76,7 +77,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     const data = res.data;
                     const themeName = eventFullName + "-" + "专题图";
                     let thematicMapData = [];
-                    console.log("专题图")
+                    console.log("专题图baoyu",data,)
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
                             const paths = data[i].sourceFile.split("/");
@@ -94,7 +95,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
 
                             const thematicMapObject = {
                                 // imgUrl: data[i].sourceFile,
-                                imgUrl: data[i].sourceFile,
+                                imgUrl: 'http://10.7.71.1'+data[i].localSourceFile,
                                 theme: data[i].fileName,
                             };
                             console.log("专题图", thematicMapObject)

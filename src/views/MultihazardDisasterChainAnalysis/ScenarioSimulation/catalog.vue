@@ -110,7 +110,7 @@ export default {
       //   }
       // });
       disasterRainList.data.forEach((item) => {
-        if(item.disasterId == 166273) {
+        if(item.disasterId == 211738) {
           // console.log(item, "disasterRainListforEach")
           this.eventList.push({
             id:item.disasterId,
