@@ -364,6 +364,20 @@
       <!--          {{ weatherActive ? '停止降雨' : '模拟降雨' }}-->
       <!--        </div>-->
     </div>
+    <div class="left-button-group">
+      <div class="rain-title" @click="toggleRainMode">
+        暴雨内涝灾害链(50mm)
+      </div>
+      <div class="rain-title" @click="toggleRainMode">
+        暴雨滑坡灾害链(80mm)
+      </div>
+      <div class="rain-title" @click="toggleRainMode">
+        暴雨洪涝滑坡灾害链(100mm)
+      </div>
+      <div class="rain-title" @click="toggleRainMode">
+        暴雨泥石流灾害链(110mm)
+      </div>
+    </div>
   </div>
 </template>
 
@@ -2412,5 +2426,41 @@ button {
 .disaster-table tr:last-child th,
 .disaster-table tr:last-child td {
   border-bottom: none; /* 最后一行不显示底边 */
+}
+
+.rain-title{
+  color: white;
+  padding: 12px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  text-indent: 2em;
+  opacity: 1;
+  background-image: url("@/assets/images/按钮5.png");
+  background-color: transparent;
+  /* 关键修改：纵向100%填满（不变形），宽度自动（保持原图左侧比例） */
+  background-size: 100% 75%;
+  background-repeat: repeat-x; /* 右侧空白部分用图片右侧边缘重复填充（视觉=拉长） */
+  background-position: left center; /* 图片左对齐，左侧保持原图，右侧自动扩展 */
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin-right: -3px;
+  width: 270px; /* 宽度改为270px */
+}
+.left-button-group{
+  position: absolute;
+  top: 320px;
+  left: 573px;
+  z-index: 1000;
+  width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
+  padding: 15px 0;
 }
 </style>
