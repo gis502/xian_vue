@@ -1021,15 +1021,15 @@ function radarData() {
   getRadarData().then(res => {
     let data = res.data
     console.log(data, "RadarData")
-    radarImages = []
+    // radarImages = []
     data.forEach(item => {
       let d = new Date(item.obsdate);
       let pad = n => n.toString().padStart(2, '0');
       // let alltime =`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       let time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
       console.log("/radarimages"+item.r0href)
-      radarImages.push("/radarimages"+item.r0href)   // 图片在这添加
-      // radarImages.push("http://10.22.245.247:8900"+item.r0href)   // 图片在这添加
+      // radarImages.push("/radarimages"+item.r0href)   // 图片在这添加
+
       timeLabels.push(time)
     })
     // let dat = Array.from(radarImages)

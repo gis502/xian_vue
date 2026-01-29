@@ -26,7 +26,7 @@
             <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
             <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
           </div>
-          <img :src="item.imgUrl" style="width: 95%; height: 80%;"/>
+          <img alt="" :src="item.imgUrl" style="width: 95%; height: 80%;"/>
           <p style="margin: 10px; ">{{ item.theme }}</p>
         </div>
       </div>
@@ -357,8 +357,8 @@ export default {
       }
       let wordUrl = this.wordPath
       let link = document.createElement('a');
-      link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
-      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      // link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
+      link.href = 'http://localhost:8080/admins/downloadReport/file/' + wordUrl;
         link.download = wordUrl;                         // 强制触发下载
       link.click();
     },
@@ -482,7 +482,7 @@ export default {
 .eqTheme {
   position: absolute;
   top: 120px;
-  left: 72%;
+  left: 67%;
   z-index: 100;
 }
 .eqTheme .el-button {

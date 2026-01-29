@@ -44,7 +44,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                                     },
                                 }
                             )
-                            data[i].sourceFile = `/imgs/${paths[paths.length - 1]}`
+                            data[i].sourceFile = `http://t7embs4k6.hn-bkt.clouddn.com/${paths[paths.length - 1]}`
 
                             const thematicMapObject = {
                                 // imgUrl: data[i].sourceFile,
@@ -90,7 +90,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                                     },
                                 }
                             )
-                            data[i].sourceFile = `/imgs/${paths[paths.length - 1]}`
+                            data[i].sourceFile = `http://t7embs4k6.hn-bkt.clouddn.com/${paths[paths.length - 1]}`
 
                             const thematicMapObject = {
                                 // imgUrl: data[i].sourceFile,
@@ -114,28 +114,28 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                 });
             }
         } else if (type === "report") {
-            // getDownloadReport(DTO).then((res) => {
-            //     console.log("灾情报告数据：", res);
-            //     const data = res.data;
-            //     const themeName = eqFullName + "-" + "灾情报告";
-            //     let reportData = [];
-            //     console.log("报告")
-            //     for (let i = 0; i < res.data.length; i++) {
-            //         const reportObject = {
-            //             docxUrl: `${zaisunimageipLocal}${data[i].sourceFile}`,
-            //             theme: data[i].fileName,
-            //         };
-            //         console.log(reportObject)
-            //         reportData.push(reportObject);
-            //     }
-            //
-            //     returnData.themeName = themeName;
-            //     returnData.themeData = reportData;
-            //     console.log("返回报告数据：", returnData)
-            //     resolve(returnData); // 这里也是异步，所以也需要 resolve
-            // }).catch(err => {
-            //     reject(err);
-            // });
+            getDownloadReport(DTO).then((res) => {
+                console.log("灾情报告数据：", res);
+                const data = res.data;
+                const themeName = eqFullName + "-" + "灾情报告";
+                let reportData = [];
+                console.log("报告")
+                for (let i = 0; i < res.data.length; i++) {
+                    const reportObject = {
+                        docxUrl: `${zaisunimageipLocal}${data[i].sourceFile}`,
+                        theme: data[i].fileName,
+                    };
+                    console.log(reportObject)
+                    reportData.push(reportObject);
+                }
+
+                returnData.themeName = themeName;
+                returnData.themeData = reportData;
+                console.log("返回报告数据：", returnData)
+                resolve(returnData); // 这里也是异步，所以也需要 resolve
+            }).catch(err => {
+                reject(err);
+            });
         }
     })
 }
