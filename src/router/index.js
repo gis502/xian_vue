@@ -17,7 +17,8 @@ export const constantRoutes = [
   // 添加根路径重定向规则，访问/时跳转到/admins/rain_flood
   {
     path: '/',
-    redirect: '/admins/login'
+    // redirect: '/admins/login'
+    redirect: '/admins/rain_flood'
   },
   // 首页路由，使用@/views/index.vue替代默认Layout
   {
