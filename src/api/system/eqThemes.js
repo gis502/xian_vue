@@ -33,21 +33,38 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     console.log("专题图",data)
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
-                            const paths = data[i].sourceFile.split("/");
+                            // ========== 核心修改：拼接完整的图片访问路径 ==========
+                            // 截取sourceFile中/home/后的目录层级（匹配后端存储路径）
+                            const homeIndex = data[i].sourceFile.indexOf('/home/');
+                            let imgPath = '';
+                            if (homeIndex !== -1) {
+                                // 保留/home/后的完整路径，拼接到/imgs/后
+                                const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/home/'.length);
+                                imgPath = `/imgs/${pathAfterHome}`;
+                            } else {
+                                // 兼容无/home/的场景，保留原逻辑
+                                const paths = data[i].sourceFile.split("/");
+                                imgPath = `/imgs/${paths[paths.length - 1]}`;
+                            }
+                            data[i].sourceFile = imgPath;
+                            // ==================================================
+
                             // 后端请求迁移文件
                             request(
                                 {
                                     url: '/file/remove',
                                     method: 'post',
                                     params: {
-                                        url: encodeURIComponent(data[i].sourceFile)
+                                        url: encodeURIComponent('http://10.22.245.247' +
+                                            data[i].sourceFile.replace('/imgs/', '/home/'))
+
                                     },
                                 }
                             )
-                            data[i].sourceFile = `/imgs/${paths[paths.length - 1]}`
+
+                            console.log("-------专题图--------------", data[i].sourceFile)
 
                             const thematicMapObject = {
-                                // imgUrl: data[i].sourceFile,
                                 imgUrl: data[i].sourceFile,
                                 theme: data[i].fileName,
                             };
@@ -61,10 +78,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
 
                     resolve(returnData); // 返回更新后的数据
                 }).catch(err => {
-                    //
-                    //reject(err); // 如果请求失败，返回错误
                     reject("正在生成专题图中,请稍后...");
-
                 });
             }
             else if(eventTypeof === "暴雨") {
@@ -79,21 +93,36 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     console.log("专题图")
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
-                            const paths = data[i].sourceFile.split("/");
+                            // ========== 核心修改：拼接完整的图片访问路径 ==========
+                            // 截取sourceFile中/home/后的目录层级（匹配后端存储路径）
+                            const homeIndex = data[i].sourceFile.indexOf('/home/');
+                            let imgPath = '';
+                            if (homeIndex !== -1) {
+                                // 保留/home/后的完整路径，拼接到/imgs/后
+                                const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/home/'.length);
+                                imgPath = `/imgs/${pathAfterHome}`;
+                            } else {
+                                // 兼容无/home/的场景，保留原逻辑
+                                const paths = data[i].sourceFile.split("/");
+                                imgPath = `/imgs/${paths[paths.length - 1]}`;
+                            }
+                            data[i].sourceFile = imgPath;
+                            // ==================================================
+
                             // 后端请求迁移文件
                             request(
                                 {
                                     url: '/file/remove',
                                     method: 'post',
                                     params: {
-                                        url: encodeURIComponent(data[i].sourceFile),
+                                        url: encodeURIComponent('http://10.22.245.247' + data[i].sourceFile.replace('/imgs/','/home/')),
                                     },
                                 }
                             )
-                            data[i].sourceFile = `/imgs/${paths[paths.length - 1]}`
+
+                            console.log("-------专题图--------------", data[i].sourceFile)
 
                             const thematicMapObject = {
-                                // imgUrl: data[i].sourceFile,
                                 imgUrl: data[i].sourceFile,
                                 theme: data[i].fileName,
                             };
@@ -107,13 +136,11 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
 
                     resolve(returnData); // 返回更新后的数据
                 }).catch(err => {
-                    //
-                    //reject(err); // 如果请求失败，返回错误
                     reject("正在生成专题图中,请稍后...");
-
                 });
             }
         } else if (type === "report") {
+            // 原报告逻辑保持不变
             // getDownloadReport(DTO).then((res) => {
             //     console.log("灾情报告数据：", res);
             //     const data = res.data;

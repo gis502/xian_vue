@@ -7,7 +7,7 @@
            :class="{ 'red-highlight': entry.rainfall > 30 }">
         <!--        <label class="form-label district-label">区县:</label>-->
         <span class="district-name">{{ entry.name }}</span>
-        <label :for="'rainfall-' + index" class="form-label rain-label">累积12小时降雨量:</label>
+        <label :for="'rainfall-' + index" class="form-label rain-label">累计12小时降雨量:</label>
         <input style="margin-right: 10px;" v-model.number="entry.rainfall" type="number" min="0" max="500" step="1"
                :id="'rainfall-' + index"/>
         <span style="margin-right: 20px;">毫米</span>
@@ -475,7 +475,7 @@ function processData(data) {
   // 4. 提取对应值并转换经纬度为双精度（number类型）
   return {
     disasterName: data.disasterName,
-    rainfall: maxRainfall,
+    rainfall: maxRainfall.toString(),
     // 核心：使用Number()转换为双精度浮点数
     latitude: Number(latitudeArr[maxIndex]),
     longitude: Number(longitudeArr[maxIndex]),
