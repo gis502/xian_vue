@@ -5,7 +5,7 @@
       <img :src="logo" alt="Logo" style="height: 50px;margin-right: 100px;" />
       <div class="nav-btn-group">
         <!-- 暴雨主菜单：基于Pinia状态激活 -->
-        <RouterLink 
+        <RouterLink
           to="/admins/rain_flood"
           class="nav-btn"
           @click="clickNav('rain')"
@@ -15,7 +15,7 @@
         </RouterLink>
 
         <!-- 地震主菜单：基于Pinia状态激活 -->
-        <RouterLink 
+        <RouterLink
           to="/admins/earthquake_landslide"
           class="nav-btn"
           @click="clickNav('earthquake')"
@@ -25,25 +25,25 @@
         </RouterLink>
 
         <!-- 其他主菜单：默认精确匹配 -->
-        <RouterLink 
+        <RouterLink
           to="/admins/graph"
-          class="nav-btn" 
+          class="nav-btn"
           active-class="nav-btn-active"
           @click="selectMenuStore.setCurrentMainMenu('')"
         >
           多灾种灾害链分析
         </RouterLink>
-        <RouterLink 
+        <RouterLink
           to="/admins/scenario_simulation"
-          class="nav-btn" 
+          class="nav-btn"
           active-class="nav-btn-active"
           @click="selectMenuStore.setCurrentMainMenu('')"
         >
           灾害链情景推演
         </RouterLink>
-        <RouterLink 
+        <RouterLink
           to="/admins/data_management"
-          class="nav-btn" 
+          class="nav-btn"
           active-class="nav-btn-active"
           @click="selectMenuStore.setCurrentMainMenu('')"
         >
