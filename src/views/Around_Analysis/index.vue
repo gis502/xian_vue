@@ -1728,7 +1728,7 @@ export default {
       const entitiesToFlash = [];
       const readyEntities = [
           ...this.disasterEntities,
-          ...basicLayers.disasterEntityes
+          ...basicLayers.disasterEntities
       ];
       readyEntities.forEach(entity => {
         const position = entity.position.getValue(Cesium.JulianDate.now());

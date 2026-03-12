@@ -610,7 +610,7 @@ let basicLayers = {
                     this.subwayEntities.push(entity);
                 }
                 else{
-                    this.disasterEntityes.push(entity);
+                    this.disasterEntities.push(entity);
                 }
             })
             return points;
