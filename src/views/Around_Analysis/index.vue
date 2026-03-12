@@ -457,6 +457,10 @@ export default {
             name: "风险区",
             value: "type10",
           },
+          {
+            name: "内涝",
+            value: "type11",
+          }
         ],
         type1: {
           headers: ["滑坡灾害名称", "位置", "规模等级", "险情等级"],
@@ -496,6 +500,10 @@ export default {
         },
         type10: {
           headers: ["风险区名称", "位置", "巡查员姓名", "联系方式"],
+          data: [],
+        },
+        type11: {
+          headers: ["内涝名称", "位置", "内涝等级", "内涝类型"],
           data: [],
         },
       },
@@ -555,7 +563,6 @@ export default {
     // 提取实体名称的方法
     getEntityName(entity) {
       const properties = entity.disasterData?.properties || {};
-
 
       // 根据不同的实体类型提取对应的名称字段
       if (properties.disasterName) return properties.disasterName;
@@ -636,7 +643,7 @@ export default {
 
       // 收集basicLayers中已显示的实体
       const layerEntities = [
-        {array: basicLayers.disasterEntities, type: '医院'},
+        {array: basicLayers.disasterEntities, type: '灾害点'},
         {array: basicLayers.hospitalEntities, type: '医院'},
         {array: basicLayers.dangerEntities, type: '风险源'},
         {array: basicLayers.shelterEntities, type: '避难所'},
@@ -1202,7 +1209,6 @@ export default {
       const entity = this.viewer.entities.add({
         position: cartesian,
         point: {
-          // 根据降雨量调整点大小
           pixelSize: 15,
           color: Cesium.Color.DARKRED,
           outlineColor: Cesium.Color.WHITE,
@@ -1211,7 +1217,6 @@ export default {
         }
       });
 
-      // 添加暴雨影响区域椭圆面
       const ellipseEntity = this.addRainEllipse(cartesian, this.rainfall);
       this.rainPoints.push(entity);
       this.rainPoints.push({ellipse: ellipseEntity});
@@ -1305,6 +1310,13 @@ export default {
       const debrisFlowPointsInside = [];
       const secondaryRiskPointsInside = [];
       const floodPointsInside = [];
+      const waterPointsInside = [];
+
+      basicLayers.waterPoints.forEach(point =>{
+        if(this.isPointInCircle(point, centerCartesian, majorRadius)){
+          waterPointsInside.push(point);
+        }
+      })
 
       basicLayers.flashFloodPoints.forEach(point =>{
         if(this.isPointInCircle(point, centerCartesian, majorRadius)){
@@ -1335,7 +1347,8 @@ export default {
           ...floodPointsInside,
           ...landslidePointsInside,
           ...debrisFlowPointsInside,
-          ...secondaryRiskPointsInside
+          ...secondaryRiskPointsInside,
+          ...waterPointsInside
       ];
       // 闪烁在椭圆内的灾害点
       if (allPointsInside.length > 0) {
@@ -1347,6 +1360,7 @@ export default {
         console.log(`泥石流点: ${debrisFlowPointsInside.length}`);
         console.log(`次生灾害风险点: ${secondaryRiskPointsInside.length}`);
         console.log(`山洪：${floodPointsInside.length}`)
+        console.log(`内涝点: ${waterPointsInside.length}`)
 
         // 预处理：将坐标数组转换为字符串集合
         const dangerA = new Set();
@@ -1368,12 +1382,34 @@ export default {
           flood.add(coords.join(','));
         });
 
+        const water = new Set();
+        waterPointsInside.forEach(coords => {
+          water.add(coords.join(','));
+        })
+
         // 主逻辑
+        const waterDates = basicLayers.waterData?.features || [];
         const floodDates = basicLayers.floodData?.features || [];
         const dangerAreaDates = this.DangerAreaData?.features || [];
         const landSlideDates = this.HuapoData?.features || [];
         const flowDates = this.NishiliuData?.features || [];
         //风险区表数据加载
+        waterDates.forEach(entity => {
+          const entityCoords = entity.geometry.coordinates;
+          const coordsStr = entityCoords.join(',');
+          // 检查坐标字符串是否存在于集合中
+          if (water.has(coordsStr)) {
+            console.log("找到了匹配的坐标:", entityCoords);
+            this.dataTypes.type11.data.push({
+              field1: entity.properties.disasterName,
+              field2: entity.properties.position,
+              field3: entity.properties.scaleGrade,
+              field4: entity.properties.riskGrade,
+              field5: entity.properties.lon,
+              field6: entity.properties.lat,
+            });
+          }
+        });
         dangerAreaDates.forEach(entity => {
           const entityCoords1 = entity.geometry.coordinates;
           const coordsStr1 = entityCoords1.join(',');
@@ -1690,7 +1726,11 @@ export default {
 
       // 从所有灾害实体中查找匹配的点
       const entitiesToFlash = [];
-      this.disasterEntities.forEach(entity => {
+      const readyEntities = [
+          ...this.disasterEntities,
+          ...basicLayers.disasterEntityes
+      ];
+      readyEntities.forEach(entity => {
         const position = entity.position.getValue(Cesium.JulianDate.now());
         const cartographic = Cesium.Cartographic.fromCartesian(position);
         const entityPoint = [
