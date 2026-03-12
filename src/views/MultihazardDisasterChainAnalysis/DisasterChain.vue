@@ -120,10 +120,6 @@
             <th>纬度</th>
             <td>北纬{{ selectedEntityData.properties.lat || '未知' }}</td>
           </tr>
-          <tr v-if="selectedEntityData.properties.riskGrade">
-            <th>风险等级</th>
-            <td>{{ selectedEntityData.properties.riskGrade || '未知' }}</td>
-          </tr>
           <tr v-if="selectedEntityData.probability">
             <th>发生概率</th>
             <td>{{ selectedEntityData.probability || '0' }}</td>
