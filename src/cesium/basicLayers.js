@@ -33,6 +33,9 @@ import bridgeIcon from "@/assets/images/bridge.png"
 import reservoirIcon from "@/assets/images/reservoir.png"
 import subwayIcon from "@/assets/images/subway.png"
 
+//新的行政区划数据
+import XIANXZQH from "@/assets/static/area/xian_xzjx.json"
+
 import {dataOnHiddenDangerPointsOfDebrisFlow, landslideHazardPointData, riskVillageData,} from "@/api/earthquake/datas";
 import {
     getDangerous,
@@ -308,6 +311,12 @@ let basicLayers = {
         // });
         Promise.all(tasks).then(() => console.log('所有区县加载完成'))
     },
+
+    // 加载新的行政区划
+    loadNewAdminData(administrationData) {
+
+    },
+
     removeAdminData() {
         // 遍历当前所有数据源
         const toRemove = window.viewer.dataSources._dataSources.filter(
