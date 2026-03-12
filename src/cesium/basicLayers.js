@@ -78,6 +78,7 @@ let basicLayers = {
     subwayEntities: [],
     reservoirEntities: [],
     bridgeEntities: [],
+    disasterEntityes: [],
     flashFloodPoints: [],//山洪点
     waterPoints: [],
     hospitalPoints: [],//医院点
@@ -600,7 +601,7 @@ let basicLayers = {
                     this.subwayEntities.push(entity);
                 }
                 else{
-                    this.disasterEntities.push(entity);
+                    this.disasterEntityes.push(entity);
                 }
             })
             return points;

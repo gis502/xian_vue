@@ -780,6 +780,19 @@ function checkEntity(entityData) {
         level: element.level,
       };
 
+      // 同时更新 properties 对象，确保弹窗能获取到数据
+      if (!matchedEntity.properties) {
+        matchedEntity.properties = {};
+      }
+      matchedEntity.properties.probability = element.probability;
+      matchedEntity.properties.level = element.level;
+
+      // 如果 properties 中有嵌套结构，也要更新
+      if (matchedEntity.properties.data) {
+        matchedEntity.properties.data.probability = element.probability;
+        matchedEntity.properties.data.level = element.level;
+      }
+
       // 检查高风险条件
       const probability = parseFloat(element.probability) || 0;
       const isHighLevel = element.level && element.level.includes("高");
