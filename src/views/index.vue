@@ -49,6 +49,14 @@
         >
           数据管理
         </RouterLink>
+        <RouterLink
+          to="/admins/file_management"
+          class="nav-btn"
+          active-class="nav-btn-active"
+          @click="selectMenuStore.setCurrentMainMenu('')"
+        >
+          文件管理
+        </RouterLink>
       </div>
     </nav>
 

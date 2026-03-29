@@ -52,6 +52,11 @@ export const constantRoutes = [
         name: 'Data_Management'
       },
       {
+        path: 'file_management',
+        component: () => import('@/views/DataManage/FileManagement'),
+        name: 'File_Management'
+      },
+      {
         path: 'around_analysis',
         component: () => import('@/views/Around_Analysis'),
         name: 'Around_Analysis'
