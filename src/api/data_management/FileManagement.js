@@ -41,19 +41,6 @@ export function deleteDisasterFiles(disasterId, disasterType) {
   })
 }
 
-/**
- * 打包下载灾害文件
- * @param {string} disasterId - 灾害 ID
- * @param {string} disasterType - 灾害类型
- */
-export function downloadAllFiles(disasterId, disasterType) {
-  return request({
-    url: `/disaster/file/downloadAll/${disasterId}/${disasterType}`,
-    method: 'get',
-    responseType: 'blob'
-  })
-}
-
 // 灾害类型枚举
 export const DisasterType = {
   RAIN: 'rain',

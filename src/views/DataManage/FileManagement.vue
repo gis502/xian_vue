@@ -199,10 +199,7 @@ import Pagination from '@/components/Pagination';
 import {
   getDisasterList,
   getFileList,
-  deleteDisasterFiles,
-  downloadAllFiles,
-  DisasterType,
-  OutputType
+  deleteDisasterFiles
 } from '@/api/data_management/FileManagement';
 
 // 响应式数据
