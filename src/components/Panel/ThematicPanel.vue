@@ -26,7 +26,7 @@
             <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
             <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
           </div>
-          <img :src="item.imgUrl" style="width: 95%; height: 80%;"/>
+          <img :src="getImageUrl(item.imgUrl)" style="width: 95%; height: 80%;"/>
           <p style="margin: 10px; ">{{ item.theme }}</p>
         </div>
       </div>
@@ -62,7 +62,7 @@
     <!-- 图片预览弹窗 -->
     <div class="thematicMapPreview" v-if="isPreviewShow">
       <h2>{{ imgName }}</h2>
-      <img :src="imgUrl" style="width: 80%; height: 80%;">
+      <img :src="getImageUrl(imgUrl)" style="width: 80%; height: 80%;">
       <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
         <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
         <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
@@ -127,6 +127,17 @@ export default {
   },
 
   methods: {
+    // 获取图片 URL（根据环境动态选择）
+    getImageUrl(imgPath) {
+      if (!imgPath) return '';
+      // 如果已经是完整的 http/https 链接，直接返回
+      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+        return imgPath;
+      }
+      // 否则添加环境变量中的图片服务器地址
+      const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://localhost:8090';
+      return imageServer + imgPath;
+    },
     // 初始化方法
     init() {
       this.eventId = this.eventRequests.eventId;
@@ -356,9 +367,19 @@ export default {
         return;
       }
       let wordUrl = this.wordPath
+      // 如果 wordUrl 包含完整的 http 地址，提取相对路径部分
+      if (wordUrl.includes('http://') || wordUrl.includes('https://')) {
+        try {
+          const urlObj = new URL(wordUrl);
+          wordUrl = urlObj.pathname; // 提取路径部分，如 /imgs/xxx.docx
+        } catch (e) {
+          console.error('URL 解析失败:', e);
+        }
+      }
       let link = document.createElement('a');
-      link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
-      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      // 根据环境获取对应的 Word 服务器地址
+      const wordServer = import.meta.env.VITE_APP_WORD_SERVER || 'http://localhost:8091';
+      link.href = wordServer + '/admins/downloadReport/file/' + wordUrl;
         link.download = wordUrl;                         // 强制触发下载
       link.click();
     },

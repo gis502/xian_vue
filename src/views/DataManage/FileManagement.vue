@@ -4,14 +4,14 @@
     <el-card class="search-card" shadow="hover">
       <el-form :model="queryParams" :inline="true" label-width="80px">
         <el-form-item label="灾害类型">
-          <el-select 
-            v-model="queryParams.disasterType" 
-            placeholder="请选择灾害类型" 
+          <el-select
+            v-model="queryParams.disasterType"
+            placeholder="请选择灾害类型"
             clearable
             style="width: 200px"
           >
             <el-option label="暴雨" value="rain" />
-            <el-option label="地震" value="earthquake" />
+<!--            <el-option label="地震" value="earthquake" />-->
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -32,9 +32,9 @@
         </div>
       </template>
 
-      <el-table 
-        v-loading="loading" 
-        :data="disasterList" 
+      <el-table
+        v-loading="loading"
+        :data="disasterList"
         style="width: 100%"
         :row-style="{ cursor: 'pointer' }"
         @row-click="handleRowClick"
@@ -61,24 +61,16 @@
         </el-table-column>
         <el-table-column label="操作" width="300" fixed="right" align="center">
           <template #default="scope">
-            <el-button 
-              type="primary" 
+            <el-button
+              type="primary"
               size="small"
               icon="View"
               @click.stop="handleViewFiles(scope.row)"
             >
               查看文件
             </el-button>
-            <el-button 
-              type="success" 
-              size="small"
-              icon="Download"
-              @click.stop="handleBatchDownload(scope.row)"
-            >
-              打包下载
-            </el-button>
-            <el-button 
-              type="danger" 
+            <el-button
+              type="danger"
               size="small"
               icon="Delete"
               @click.stop="handleDelete(scope.row)"
@@ -100,9 +92,9 @@
     </el-card>
 
     <!-- 文件列表对话框 -->
-    <el-dialog 
-      v-model="fileDialogVisible" 
-      title="灾害文件详情" 
+    <el-dialog
+      v-model="fileDialogVisible"
+      title="灾害文件详情"
       width="1200px"
       :close-on-click-modal="false"
       destroy-on-close
@@ -110,14 +102,7 @@
       <template #header>
         <div class="dialog-header">
           <span class="dialog-title">{{ currentDisaster?.disasterName }} - 文件列表</span>
-          <el-button 
-            type="primary" 
-            icon="Download" 
-            @click="handleBatchDownload(currentDisaster)"
-            :disabled="!fileList || fileList.length === 0"
-          >
-            打包下载全部
-          </el-button>
+
         </div>
       </template>
 
@@ -127,16 +112,16 @@
             <el-empty description="暂无图片文件" />
           </div>
           <div v-else class="image-grid">
-            <el-card 
-              v-for="(file, index) in imageFiles" 
+            <el-card
+              v-for="(file, index) in imageFiles"
               :key="index"
               class="image-card"
               shadow="hover"
             >
               <div class="image-wrapper">
-                <el-image 
-                  :src="file.sourceFile" 
-                  :preview-src-list="[file.sourceFile]"
+                <el-image
+                  :src="getImageUrl(file)"
+                  :preview-src-list="[getPreviewUrl(file)]"
                   fit="cover"
                   class="preview-image"
                   :preview-teleported="true"
@@ -156,9 +141,9 @@
                   <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
                 </div>
                 <div class="file-actions">
-                  <el-button 
-                    type="primary" 
-                    size="small" 
+                  <el-button
+                    type="primary"
+                    size="small"
                     icon="Download"
                     @click="handleDownloadSingle(file)"
                   >
@@ -189,8 +174,8 @@
             <el-table-column prop="createTime" label="创建时间" width="170" align="center" />
             <el-table-column label="操作" width="120" align="center" fixed="right">
               <template #default="scope">
-                <el-button 
-                  type="primary" 
+                <el-button
+                  type="primary"
                   size="small"
                   icon="Download"
                   @click="handleDownloadSingle(scope.row)"
@@ -211,9 +196,9 @@ import { ref, reactive, computed, onMounted, toRefs } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Refresh, View, Download, Delete, Picture } from '@element-plus/icons-vue';
 import Pagination from '@/components/Pagination';
-import { 
-  getDisasterList, 
-  getFileList, 
+import {
+  getDisasterList,
+  getFileList,
   deleteDisasterFiles,
   downloadAllFiles,
   DisasterType,
@@ -234,7 +219,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 20,
-    disasterType: ''
+    disasterType: 'rain'
   }
 });
 
@@ -257,11 +242,19 @@ const documentFiles = computed(() => {
   });
 });
 
-// 获取图片 URL（直接使用 sourceFile，已经是完整链接）
-function getImageUrl(relativePath) {
-  if (!relativePath) return '';
-  // sourceFile 已经是完整的 http/https 链接，直接返回
-  return relativePath;
+// 获取图片 URL（根据环境动态选择）
+function getImageUrl(file) {
+  if (!file || !file.localSourceFile) return '';
+  let imageServer = import.meta.env.VITE_APP_IMAGE_SERVER;
+  if(file.type == 2) {
+    imageServer = import.meta.env.VITE_APP_WORD_SERVER;
+  }
+  return imageServer + file.localSourceFile;
+}
+
+// 获取预览图片 URL（使用 sourceFile）
+function getPreviewUrl(file) {
+  return getImageUrl( file);
 }
 
 // 格式化文件大小
@@ -307,8 +300,8 @@ function handleViewFiles(row) {
   fileDialogVisible.value = true;
   activeTab.value = 'image';
   loading.value = true;
-  
-  getFileList(row.disasterId, row.disasterType)
+
+  getFileList(row.disasterId, row.disasterType, row.occurrenceTime)
     .then(response => {
       fileList.value = response.data || [];
     })
@@ -329,8 +322,7 @@ function handleTabChange(tabName) {
 // 单个文件下载
 function handleDownloadSingle(file) {
   try {
-    // 直接使用 sourceFile 链接
-    const url = file.sourceFile;
+    const url = getImageUrl(file);
     // 创建临时链接并触发下载
     const link = document.createElement('a');
     link.href = url;
@@ -348,36 +340,6 @@ function handleDownloadSingle(file) {
     }
   } catch (error) {
     ElMessage.error('下载失败：' + error.message);
-  }
-}
-
-// 批量下载
-async function handleBatchDownload(row) {
-  if (!row || !row.disasterId) {
-    ElMessage.warning('无效的灾害信息');
-    return;
-  }
-
-  try {
-    ElMessage.info('正在准备打包下载，请稍候...');
-    
-    const response = await downloadAllFiles(row.disasterId, row.disasterType);
-    
-    // 创建下载链接
-    const blob = new Blob([response.data], { type: 'application/zip' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${row.disasterName}_文件包.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    ElMessage.success('打包下载成功');
-  } catch (error) {
-    console.error('下载失败:', error);
-    ElMessage.error('打包下载失败：' + (error.message || '未知错误'));
   }
 }
 
@@ -421,7 +383,7 @@ onMounted(() => {
 
 .search-card {
   margin-bottom: 20px;
-  
+
   ::v-deep .el-card__body {
     padding: 18px;
   }
@@ -437,7 +399,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
+
   .header-title {
     font-size: 16px;
     font-weight: bold;
@@ -448,7 +410,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
+
   .dialog-title {
     font-size: 18px;
     font-weight: bold;
@@ -469,30 +431,30 @@ onMounted(() => {
 
 .image-card {
   transition: all 0.3s;
-  
+
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   }
-  
+
   .image-wrapper {
     height: 200px;
     overflow: hidden;
     border-radius: 4px 4px 0 0;
     background-color: #f5f5f5;
-    
+
     .preview-image {
       width: 100%;
       height: 100%;
       cursor: pointer;
-      
+
       ::v-deep .el-image__inner {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
     }
-    
+
     .image-error {
       display: flex;
       flex-direction: column;
@@ -500,17 +462,17 @@ onMounted(() => {
       justify-content: center;
       height: 200px;
       color: #909399;
-      
+
       .el-icon {
         font-size: 40px;
         margin-bottom: 10px;
       }
     }
   }
-  
+
   .image-info {
     padding: 12px;
-    
+
     .file-name {
       font-size: 14px;
       font-weight: 500;
@@ -519,19 +481,19 @@ onMounted(() => {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
+
     .file-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-      
+
       .file-size {
         font-size: 12px;
         color: #909399;
       }
     }
-    
+
     .file-actions {
       text-align: center;
     }

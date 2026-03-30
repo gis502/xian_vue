@@ -2122,10 +2122,21 @@ function downloadRainReport() {
   }
   // console.log(wordRes, "wordRes")
   let wordUrl = wordRes.value
+  // 如果 wordUrl 包含完整的 http 地址，提取相对路径部分
+  if (wordUrl.includes('http://') || wordUrl.includes('https://')) {
+    try {
+      const urlObj = new URL(wordUrl);
+      wordUrl = urlObj.pathname; // 提取路径部分，如 /imgs/xxx.docx
+    } catch (e) {
+      console.error('URL 解析失败:', e);
+    }
+  }
   let link = document.createElement('a');
   // try {
   // link.href = 'http://localhost:8080/admins/downloadReport/file/' + wordUrl;
-  link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
+  // 根据环境获取对应的 Word 服务器地址
+  const wordServer = import.meta.env.VITE_APP_WORD_SERVER || 'http://localhost:8091';
+  link.href = wordServer + '/admins/downloadReport/file/' + wordUrl;
   link.download = wordUrl;                         // 强制触发下载
   link.click();
   loadingModel.value = false

@@ -19,12 +19,13 @@ export function getDisasterList(query) {
  * 获取灾害文件列表
  * @param {string} disasterId - 灾害 ID
  * @param {string} disasterType - 灾害类型
+ * @param {string} occurrenceTime - 灾害发生时间
  */
-export function getFileList(disasterId, disasterType) {
+export function getFileList(disasterId, disasterType, occurrenceTime) {
   return request({
     url: '/disaster/file/fileList',
     method: 'get',
-    params: { disasterId, disasterType }
+    params: { disasterId, disasterType, occurrenceTime }
   })
 }
 

@@ -50,14 +50,13 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                             // ==================================================
 
                             // 后端请求迁移文件
+                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
                             request(
                                 {
                                     url: '/file/remove',
                                     method: 'post',
                                     params: {
-                                        url: encodeURIComponent('http://10.22.245.247' +
-                                            data[i].sourceFile.replace('/imgs/', '/home/'))
-
+                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/home/')),
                                     },
                                 }
                             )
@@ -110,12 +109,13 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                             // ==================================================
 
                             // 后端请求迁移文件
+                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
                             request(
                                 {
                                     url: '/file/remove',
                                     method: 'post',
                                     params: {
-                                        url: encodeURIComponent('http://10.22.245.247' + data[i].sourceFile.replace('/imgs/','/home/')),
+                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/home/')),
                                     },
                                 }
                             )
