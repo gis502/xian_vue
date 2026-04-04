@@ -431,7 +431,7 @@ async function confirmEarthquake(formEl) {
         latitude: position.latitude,
       });
       const base = layers.DrawEllipse(position.longitude, position.latitude, form.magnitude);
-      //计算人员伤亡
+      // 计算人员伤亡
       if (form.magnitude >= 6.0) {
         let circle_param = reactive({
           name: form.name,

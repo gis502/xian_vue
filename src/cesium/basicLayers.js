@@ -17,10 +17,10 @@ import ZhouZhi from '@/assets/static/area/ZhouZhi.json';
 import centerstar from "@/assets/icons/TimeLine/黄点点.png";
 import lineData from "@/assets/西安断层数据（新）.json";
 
-import landslideIcon from "@/assets/images/landslide.png";
+import landslideIcon from "@/assets/images/landslide2.png";
 import riskArea from "@/assets/images/riskArea.png";
-import debrisFlowIcon from "@/assets/images/DebrisFlow.png";
-import flashIcon from "@/assets/images/flashflood.png"
+import debrisFlowIcon from "@/assets/images/DebrisFlow1.png";
+import flashIcon from "@/assets/images/flashflood1.png"
 import waterIcon from "@/assets/images/water.png"
 import dangerSourceIcon from "@/assets/images/gasstation.png"
 import hospitalIcon from "@/assets/images/hospital.png"

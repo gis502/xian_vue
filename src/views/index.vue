@@ -83,7 +83,7 @@
         灾害链模型库测试
       </RouterLink>
       <RouterLink to="/admins/carrier_information_extraction" class="submenu-btn" active-class="submenu-btn-active">
-        承载体信息提取
+        承灾体
       </RouterLink>
     </div>
   </div>
