@@ -394,13 +394,13 @@ async function confirmEarthquake(formEl) {
   const hypocenterLeft = `${screenCoord.x + 10}px`; // 转为字符串+px单位
   const hypocenterTop = `${screenCoord.y + 10}px`;
 
-  emit("updateHypocenter", true, hypocenterTop, hypocenterLeft, form);
-
   pulse.removePulseEntity();
   if (!formEl) return;
   // 验证
   formEl.validate(async (valid, fields) => {
     if (valid) {
+      emit("updateHypocenter", true, hypocenterTop, hypocenterLeft, form);
+
       // 隐藏显示
       emit("hideTable");
       emit("hideChart");
