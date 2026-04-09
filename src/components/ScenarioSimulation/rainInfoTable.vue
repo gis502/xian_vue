@@ -8,7 +8,7 @@
       <thead>
       <tr>
         <th style="width: 20%;">区域</th>
-        <th style="width: 20%;">累计降雨量</th>
+<!--        <th style="width: 20%;">累计降雨量</th>-->
 <!--        <th style="width: 20%;">累计时长</th>-->
         <th style="width: 20%;">预计降雨量</th>
 <!--        <th style="width: 20%;">预计时长</th>-->
@@ -17,7 +17,7 @@
       <tbody>
       <tr v-for="(item, index) in showData" :key="index">
         <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.area }}</td>
-        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.totalRainfall }}mm</td>
+<!--        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.totalRainfall }}mm</td>-->
 <!--        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.duration }}小时</td>-->
         <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.predictTotalRainfall}}mm</td>
 <!--        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.predictDuration}}小时</td>-->

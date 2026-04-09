@@ -28,6 +28,11 @@
       </thead>
 
       <tbody>
+        <tr v-if="filteredTableData.length === 0">
+          <td :colspan="tableHeaders.length" class="no-data-cell">
+            暂无数据
+          </td>
+        </tr>
         <tr v-for="(item, index) in paginatedTableData" :key="index" @click="handleTableClick(item)">
           <template v-for="(value, key) in item">
             <td v-if="key !== 'field5' && key !== 'field6'"
@@ -175,7 +180,7 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
   left: 20px;
   background: rgba(14, 52, 98, 0.8);
   color: white;
-  padding: 15px;
+  padding: 10px;
   border-radius: 2px;
   z-index: 1000;
   width: 550px;
@@ -252,6 +257,13 @@ watch(() => props.show, (newDataTypes, oldDataTypes) => {
 
 .data-table tbody tr:hover {
   background-color: rgba(86, 204, 242, 0.3);
+}
+
+.no-data-cell {
+  text-align: center;
+  padding: 30px 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
 }
 
 .pagination-controls {
