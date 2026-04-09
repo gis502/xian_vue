@@ -114,11 +114,11 @@
           <el-table v-else :data="imageFiles" style="width: 100%">
             <el-table-column prop="fileName" label="文件名" min-width="300" show-overflow-tooltip />
             <el-table-column prop="fileExtension" label="格式" width="100" align="center" />
-            <el-table-column prop="fileSize" label="大小" width="120" align="center">
-              <template #default="scope">
-                {{ formatFileSize(scope.row.fileSize) }}
-              </template>
-            </el-table-column>
+<!--            <el-table-column prop="fileSize" label="大小" width="120" align="center">-->
+<!--              <template #default="scope">-->
+<!--                {{ formatFileSize(scope.row.fileSize) }}-->
+<!--              </template>-->
+<!--            </el-table-column>-->
             <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
             <el-table-column label="操作" width="150" align="center" fixed="right">
               <template #default="scope">
@@ -149,11 +149,11 @@
               </template>
             </el-table-column>
             <el-table-column prop="fileExtension" label="格式" width="100" align="center" />
-            <el-table-column prop="fileSize" label="大小" width="120" align="center">
-              <template #default="scope">
-                {{ formatFileSize(scope.row.fileSize) }}
-              </template>
-            </el-table-column>
+<!--            <el-table-column prop="fileSize" label="大小" width="120" align="center">-->
+<!--              <template #default="scope">-->
+<!--                {{ formatFileSize(scope.row.fileSize) }}-->
+<!--              </template>-->
+<!--            </el-table-column>-->
             <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
             <el-table-column label="操作" width="150" align="center" fixed="right">
               <template #default="scope">
