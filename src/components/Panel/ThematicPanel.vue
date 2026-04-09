@@ -26,7 +26,23 @@
             <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
             <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
           </div>
-          <img :src="item.imgUrl" style="width: 95%; height: 80%;"/>
+          
+          <!-- 图片加载状态容器 -->
+          <div class="image-container" style="width: 95%; height: 80%; position: relative;">
+            <!-- 加载中状态 -->
+            <div v-if="imageLoadingStates[index]" class="loading-overlay">
+              <div class="loading-spinner"></div>
+              <p class="loading-text">正在加载图片...</p>
+            </div>
+            
+            <!-- 图片本身 -->
+            <img 
+              :src="item.imgUrl" 
+              :style="{ width: '100%', height: '100%', objectFit: 'contain', display: imageLoadingStates[index] ? 'none' : 'block' }"
+              @load="handleImageLoad(index)"
+            />
+          </div>
+          
           <p style="margin: 10px; ">{{ item.theme }}</p>
         </div>
       </div>
@@ -115,6 +131,9 @@ export default {
       imgUrl: '', // 预览图片地址
       isNoData: false, // 无数据标识
 
+      // 图片加载状态管理
+      imageLoadingStates: {}, // 记录每张图片的加载状态 { index: boolean }
+
     };
   },
   mounted() {
@@ -169,6 +188,9 @@ export default {
             type: type
           };
           this.isNoData = res.themeData.length === 0;
+          
+          // 初始化图片加载状态
+          this.initImageLoadingStates();
         });
         console.log('outputData', this.outputData);
       }
@@ -187,6 +209,9 @@ export default {
             type: type
           };
           this.isNoData = res.themeData.length === 0;
+          
+          // 初始化图片加载状态
+          this.initImageLoadingStates();
         });
       }
 
@@ -207,6 +232,9 @@ export default {
             {imgUrl: "http://10.16.7.69/image/instrument/乡镇仪器地震烈度分布.jpeg", theme: "乡镇仪器地震烈度分布"}
           ]
         };
+        
+        // 初始化图片加载状态
+        this.initImageLoadingStates();
       }
 
       // 仪器烈度报告：静态数据（无需请求）
@@ -231,6 +259,25 @@ export default {
           ]
         };
       }
+    },
+
+    // 初始化图片加载状态
+    initImageLoadingStates() {
+      if (this.outputData.themeData && Array.isArray(this.outputData.themeData)) {
+        this.imageLoadingStates = {};
+        this.outputData.themeData.forEach((item, index) => {
+          // 如果有图片URL，设置为加载中状态
+          if (item.imgUrl) {
+            this.$set(this.imageLoadingStates, index, true);
+          }
+        });
+      }
+    },
+
+    // 图片加载成功回调
+    handleImageLoad(index) {
+      this.$set(this.imageLoadingStates, index, false);
+      console.log(`图片 ${index} 加载成功`);
     },
 
     async startDownloadReport() {
@@ -538,6 +585,53 @@ export default {
 
 }
 
+/* 图片加载状态样式 */
+.image-container {
+  position: relative;
+  background-color: rgba(14, 52, 98, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* 加载中遮罩层 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(14, 52, 98, 0.8);
+  z-index: 10;
+}
+
+/* 加载动画 - 旋转圆圈 */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #409eff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 加载文本 */
+.loading-text {
+  color: #fff;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
 /* 图片项悬浮操作按钮 */
 .panelButtons {
   position: absolute;
@@ -548,6 +642,7 @@ export default {
   justify-content: center;
   align-items: center;
   background-color: rgba(43, 61, 81, 0.6);
+  z-index: 20;
 }
 
 /* 操作按钮通用样式 */
