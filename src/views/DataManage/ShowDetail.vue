@@ -1,98 +1,181 @@
 <template>
 
   <!-- 内容 -->
-  <el-card class="card">
+  <el-card class="card" shadow="hover">
     <template #header>
       <div class="card-header">
-        <span>表数据</span>
-        <div class="close" @click="emit('closeCard')">
-          <el-icon>
+        <div class="header-left">
+          <el-icon class="header-icon"><DataLine /></el-icon>
+          <span class="header-title">表数据</span>
+        </div>
+        <div class="close" @click="emit('closeCard')" title="关闭">
+          <el-icon :size="20">
             <Close/>
           </el-icon>
         </div>
       </div>
     </template>
+    
     <div class="operation-box">
-      <el-button type="danger" @click="deleteSelectionDatas">删除选中</el-button>
-      <el-button type="info" @click="addBtnClick">新增数据</el-button>
-      <el-button type="warning" @click="updateBtnClick">修改选中</el-button>
-      <el-button type="success" @click="export2Excel">导出数据</el-button>
-
+      <el-button type="danger" icon="Delete" @click="deleteSelectionDatas" class="action-button">
+        删除选中
+      </el-button>
+      <el-button type="primary" icon="Plus" @click="addBtnClick" class="action-button">
+        新增数据
+      </el-button>
+      <el-button type="warning" icon="Edit" @click="updateBtnClick" class="action-button">
+        修改选中
+      </el-button>
+      <el-button type="success" icon="Download" @click="export2Excel" class="action-button">
+        导出数据
+      </el-button>
     </div>
-    <el-table ref="multipleTable" :data="tableDatas" border style="width: 100%" @row-click="handleRowClick">
-      <el-table-column type="selection" width="55"/>
-      <el-table-column v-for="tableLabel in tableLabels" :prop="tableLabel.key"
-                       :label="tableLabel.value ? (tableLabel.key + '(' + tableLabel.value + ')') : tableLabel.key"
-                       align="center"/>
+    
+    <el-table 
+      ref="multipleTable" 
+      :data="tableDatas" 
+      border 
+      stripe
+      style="width: 100%" 
+      @row-click="handleRowClick"
+      :scrollbar-always-on="true"
+      highlight-current-row
+      class="beautified-table"
+    >
+      <el-table-column type="selection" width="55" align="center" fixed />
+      <el-table-column 
+        v-for="tableLabel in tableLabels" 
+        :key="tableLabel.key"
+        :prop="tableLabel.key"
+        :label="tableLabel.value ? (tableLabel.key + '(' + tableLabel.value + ')') : tableLabel.key"
+        align="center"
+        min-width="120"
+        show-overflow-tooltip
+      />
     </el-table>
+    
     <template #footer>
-      <el-pagination style="float: right;" background layout="prev, pager, next" :page-count="totalPage"
-                     v-model:current-page="pageNum" @update:current-page="getTableData"/>
+      <div class="pagination-wrapper">
+        <el-pagination 
+          background 
+          layout="total, prev, pager, next, jumper" 
+          :page-count="totalPage"
+          :page-size="props.queryTableFields.pageSize"
+          v-model:current-page="pageNum" 
+          @update:current-page="getTableData"
+          class="custom-pagination"
+        />
+      </div>
     </template>
   </el-card>
 
   <!-- 删除提示 -->
-  <el-dialog v-model="dialogVisible" title="删除数据" width="500">
-    <span>确定删除以下数据吗？一旦删除将无法恢复，请谨慎操作！！！</span>
-    <el-table :data="deleteTableDatas" border style="width: 100%" @row-click="handleRowClick">
-      <el-table-column v-for="tableLabel in tableLabels" :prop="tableLabel.key"
-                       :label="tableLabel.value ? (tableLabel.key + '(' + tableLabel.value + ')') : tableLabel.key"
-                       align="center"/>
-    </el-table>
+  <el-dialog 
+    v-model="dialogVisible" 
+    title="确认删除" 
+    width="600px"
+    class="delete-dialog"
+    :close-on-click-modal="false"
+  >
+    <div class="dialog-content">
+      <el-alert
+        title="警告：此操作不可恢复！"
+        type="warning"
+        :closable="false"
+        show-icon
+        class="warning-alert"
+      />
+      <p class="dialog-text">确定要删除以下 <strong>{{ deleteTableDatas.length }}</strong> 条数据吗？</p>
+      <el-table 
+        :data="deleteTableDatas" 
+        border 
+        stripe
+        style="width: 100%" 
+        max-height="300"
+        class="preview-table"
+      >
+        <el-table-column 
+          v-for="tableLabel in tableLabels" 
+          :key="tableLabel.key"
+          :prop="tableLabel.key"
+          :label="tableLabel.value ? (tableLabel.key + '(' + tableLabel.value + ')') : tableLabel.key"
+          align="center"
+          min-width="100"
+          show-overflow-tooltip
+        />
+      </el-table>
+    </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmDelete">
-          确认
+        <el-button @click="dialogVisible = false" icon="Close">取消</el-button>
+        <el-button type="danger" @click="confirmDelete" icon="Check">
+          确认删除
         </el-button>
       </div>
     </template>
   </el-dialog>
 
   <!-- 添加弹窗 -->
-  <el-dialog v-model="dialogAddVisible" title="添加数据" width="800">
-    <!-- 遍历数据 -->
-    <div v-for="(tableLabel, index) in tableLabels" :key="index">
-      <div class="input-group" v-if="!(primaryKey || []).includes(tableLabel.key)">
-        <span class="label">{{ tableLabel.value || tableLabel.key }}</span>
-        <div class="input-container">
+  <el-dialog 
+    v-model="dialogAddVisible" 
+    title="添加数据" 
+    width="700px"
+    class="form-dialog"
+    :close-on-click-modal="false"
+  >
+    <el-form label-position="top" class="custom-form">
+      <div v-for="(tableLabel, index) in tableLabels" :key="index">
+        <el-form-item 
+          v-if="!(primaryKey || []).includes(tableLabel.key)"
+          :label="tableLabel.value || tableLabel.key"
+          class="form-item"
+        >
           <el-input
-              v-model="addUpdateForm[tableLabel.key]"
-              class="responsive-input"
+            v-model="addUpdateForm[tableLabel.key]"
+            placeholder="请输入" + (tableLabel.value || tableLabel.key)
+            clearable
           />
-        </div>
+        </el-form-item>
       </div>
-    </div>
+    </el-form>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="dialogAddVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleAdd">
-          确认
+        <el-button @click="dialogAddVisible = false" icon="Close">取消</el-button>
+        <el-button type="primary" @click="handleAdd" icon="Check">
+          确认添加
         </el-button>
       </div>
     </template>
   </el-dialog>
 
   <!-- 修改弹窗 -->
-  <el-dialog v-model="dialogUpdateVisible" title="修改数据" width="800">
-    <!-- 遍历数据 -->
-    <div v-for="(tableLabel, index) in tableLabels" :key="index">
-      <div class="input-group">
-        <span class="label">{{ tableLabel.value || tableLabel.key }}</span>
-        <div class="input-container">
+  <el-dialog 
+    v-model="dialogUpdateVisible" 
+    title="修改数据" 
+    width="700px"
+    class="form-dialog"
+    :close-on-click-modal="false"
+  >
+    <el-form label-position="top" class="custom-form">
+      <div v-for="(tableLabel, index) in tableLabels" :key="index">
+        <el-form-item 
+          :label="tableLabel.value || tableLabel.key"
+          class="form-item"
+        >
           <el-input
-              v-model="addUpdateForm[tableLabel.key]"
-              class="responsive-input"
-              :disabled="(primaryKey || []).includes(tableLabel.key)"
+            v-model="addUpdateForm[tableLabel.key]"
+            :disabled="(primaryKey || []).includes(tableLabel.key)"
+            placeholder="请输入" + (tableLabel.value || tableLabel.key)
+            clearable
           />
-        </div>
+        </el-form-item>
       </div>
-    </div>
+    </el-form>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="dialogUpdateVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUpdate">
-          确认
+        <el-button @click="dialogUpdateVisible = false" icon="Close">取消</el-button>
+        <el-button type="primary" @click="handleUpdate" icon="Check">
+          确认修改
         </el-button>
       </div>
     </template>
@@ -102,6 +185,7 @@
 import {onMounted, ref} from 'vue';
 import {addTableData, deleteTableData, queryTableInfo, updateTableData} from '../../api/data_management/DataManagement';
 import {ElLoading, ElMessage} from 'element-plus';
+import { Close, DataLine, Delete, Plus, Edit, Download, Check } from '@element-plus/icons-vue';
 import * as XLSX from 'xlsx';
 
 const emit = defineEmits(['closeCard']);
@@ -421,8 +505,16 @@ function getFieldType(keyInfo) {
 
   return result;
 }
+
+// 行点击事件（用于取消选中）
+function handleRowClick(row, column, event) {
+  // 如果点击的是复选框列，不处理
+  if (column.type === 'selection') {
+    return;
+  }
+}
 </script>
-<style scoped>
+<style scoped lang="scss">
 .card {
   width: 100%;
   height: 95vh;
@@ -431,34 +523,265 @@ function getFieldType(keyInfo) {
   left: 0;
   z-index: 999;
   overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.close {
-  float: right;
-  padding: 3px 0;
-  cursor: pointer;
+// 卡片头部样式
+::v-deep .el-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 18px 24px;
+  border-bottom: none;
 }
 
-.close:hover {
-  color: #202020;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .header-icon {
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+  }
+
+  .close {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+
+    &:hover {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: rotate(90deg);
+    }
+  }
 }
 
+// 操作按钮区域
 .operation-box {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .action-button {
+    transition: all 0.3s ease;
+    font-weight: 500;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
 }
 
-*,
-::v-deep .el-table__header th {
-  font-size: 1.2rem !important;
+// 表格美化
+.beautified-table {
+  border-radius: 8px;
+  overflow: hidden;
+
+  ::v-deep .el-table__header {
+    th {
+      background: linear-gradient(to bottom, #f5f7fa 0%, #e8eaed 100%) !important;
+      color: #303133;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 14px 0;
+      border-bottom: 2px solid #dcdfe6;
+    }
+  }
+
+  ::v-deep .el-table__body {
+    tr {
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: #ecf5ff !important;
+        transform: scale(1.005);
+      }
+
+      &.current-row > td {
+        background-color: #e6f2ff !important;
+      }
+    }
+
+    td {
+      padding: 12px 0;
+      font-size: 13px;
+      color: #606266;
+    }
+  }
 }
 
-.label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: block;
+// 分页包装器
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0;
+  background-color: #fafafa;
+  border-top: 1px solid #ebeef5;
+  margin-top: 16px;
 }
 
-.input-container {
-  margin-bottom: 10px;
+.custom-pagination {
+  ::v-deep .btn-prev,
+  ::v-deep .btn-next,
+  ::v-deep .el-pager li {
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+}
+
+// 对话框通用样式
+::v-deep .el-dialog__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  margin: 0;
+
+  .el-dialog__title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .el-dialog__headerbtn .el-dialog__close {
+    color: #fff;
+    font-size: 20px;
+
+    &:hover {
+      color: #f0f0f0;
+    }
+  }
+}
+
+::v-deep .el-dialog__body {
+  padding: 24px;
+}
+
+// 删除对话框
+.delete-dialog {
+  .dialog-content {
+    .warning-alert {
+      margin-bottom: 16px;
+    }
+
+    .dialog-text {
+      font-size: 14px;
+      color: #606266;
+      margin-bottom: 16px;
+
+      strong {
+        color: #f56c6c;
+        font-size: 16px;
+      }
+    }
+
+    .preview-table {
+      border-radius: 8px;
+      overflow: hidden;
+
+      ::v-deep .el-table__header th {
+        background-color: #fef0f0;
+        color: #f56c6c;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+// 表单对话框
+.form-dialog {
+  .custom-form {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+
+    // 滚动条样式
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #dcdfe6;
+      border-radius: 3px;
+
+      &:hover {
+        background-color: #c0c4cc;
+      }
+    }
+
+    .form-item {
+      margin-bottom: 18px;
+
+      ::v-deep .el-form-item__label {
+        font-weight: 500;
+        color: #303133;
+        font-size: 14px;
+        padding-bottom: 6px;
+      }
+
+      ::v-deep .el-input {
+        .el-input__wrapper {
+          transition: all 0.3s ease;
+
+          &:hover {
+            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+          }
+
+          &.is-focus {
+            box-shadow: 0 2px 12px rgba(64, 158, 255, 0.3);
+          }
+        }
+      }
+    }
+  }
+}
+
+// 对话框底部按钮
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 12px;
+
+  .el-button {
+    min-width: 88px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .operation-box {
+    .action-button {
+      width: 100%;
+    }
+  }
 }
 </style>
