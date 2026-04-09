@@ -2064,9 +2064,7 @@ function downloadRainReport() {
   // try {
   // link.href = 'http://10.22.245.246:8080/downloadReport/file/' + wordUrl;
   // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
-  // 根据环境获取对应的 Word 服务器地址
-  const wordServer = import.meta.env.VITE_APP_WORD_SERVER || 'http://localhost:8091';
-  link.href = wordServer + '/downloadReport/file/' + wordUrl;
+  link.href = '/downloadReport/file/' + wordUrl;
   link.download = wordUrl;                         // 强制触发下载
   link.click();
   loadingModel.value = false

@@ -26,7 +26,7 @@
             <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
             <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
           </div>
-          <img :src="getImageUrl(item.imgUrl)" style="width: 95%; height: 80%;"/>
+          <img :src="item.imgUrl" style="width: 95%; height: 80%;"/>
           <p style="margin: 10px; ">{{ item.theme }}</p>
         </div>
       </div>
@@ -62,7 +62,7 @@
     <!-- 图片预览弹窗 -->
     <div class="thematicMapPreview" v-if="isPreviewShow">
       <h2>{{ imgName }}</h2>
-      <img :src="getImageUrl(imgUrl)" style="width: 80%; height: 80%;">
+      <img :src="imgUrl" style="width: 80%; height: 80%;">
       <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
         <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
         <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
@@ -127,17 +127,6 @@ export default {
   },
 
   methods: {
-    // 获取图片 URL（根据环境动态选择）
-    getImageUrl(imgPath) {
-      if (!imgPath) return '';
-      // 如果已经是完整的 http/https 链接，直接返回
-      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-        return imgPath;
-      }
-      // 否则添加环境变量中的图片服务器地址
-      const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://localhost:8090';
-      return imageServer + imgPath;
-    },
     // 初始化方法
     init() {
       this.eventId = this.eventRequests.eventId;
@@ -171,7 +160,7 @@ export default {
 
       // 辅助决策报告：请求数据
       if (this.isPanelShow.AssistantDecision) {
-        console.log("123haha",this.eventId, this.eventQueueId, this.eventFullName)
+        console.log("123haha", this.eventId, this.eventQueueId, this.eventFullName)
         handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
 
           this.outputData = {
@@ -191,7 +180,7 @@ export default {
 
         // 核心数据赋值
         handleOutputData(this.eventId, this.eventQueueId, this.eventFullName, this.eventTypeof, type).then(res => {
-          console.log("123",res,"123123")
+          console.log("123", res, "123123")
           this.outputData = {
             themeName: res.themeName,
             themeData: res.themeData,
@@ -301,7 +290,7 @@ export default {
         // 立即执行一次检查，然后每隔20秒检查一次
         checkReportStatus();
         checkInterval = setInterval(checkReportStatus, 20000);
-      }catch ( error ){
+      } catch (error) {
         ElMessage("报告下载失败");
         console.error('下载错误:', error);
       }
@@ -352,7 +341,7 @@ export default {
         // 立即执行一次检查，然后每隔20秒检查一次
         checkReportStatus();
         checkInterval = setInterval(checkReportStatus, 20000);
-      }catch ( error ){
+      } catch (error) {
         ElMessage("报告下载失败");
         console.error('下载错误:', error);
       }
@@ -367,25 +356,12 @@ export default {
         return;
       }
       let wordUrl = this.wordPath
-      // 如果 wordUrl 包含完整的 http 地址，提取相对路径部分
-      if (wordUrl.includes('http://') || wordUrl.includes('https://')) {
-        try {
-          const urlObj = new URL(wordUrl);
-          wordUrl = urlObj.pathname; // 提取路径部分，如 /imgs/xxx.docx
-        } catch (e) {
-          console.error('URL 解析失败:', e);
-        }
-      }
       let link = document.createElement('a');
-      // 根据环境获取对应的 Word 服务器地址
-      const wordServer = import.meta.env.VITE_APP_WORD_SERVER || 'http://localhost:8091';
-      link.href = wordServer + '/admins/downloadReport/file/' + wordUrl;
-        link.download = wordUrl;                         // 强制触发下载
+      link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
+      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      link.download = wordUrl;                         // 强制触发下载
       link.click();
     },
-
-
-
 
 
 // 辅助函数：从cookie获取值
@@ -506,6 +482,7 @@ export default {
   left: 72%;
   z-index: 100;
 }
+
 .eqTheme .el-button {
   cursor: pointer;
   color: rgba(255, 255, 255, 1);
@@ -644,6 +621,7 @@ export default {
   padding: 0 40px;
   z-index: 3000;
 }
+
 .thematicMapPreview h2 {
   color: rgba(255, 255, 255, 1);
   font-size: 24px;
@@ -653,6 +631,7 @@ export default {
   line-height: 21.12px;
   vertical-align: top;
 }
+
 /* 基础文本样式（统一白色） */
 h2, p {
   color: #fff;

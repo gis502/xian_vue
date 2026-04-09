@@ -34,12 +34,12 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].fileType === "图片") {
                             // ========== 核心修改：拼接完整的图片访问路径 ==========
-                            // 截取sourceFile中/home/后的目录层级（匹配后端存储路径）
-                            const homeIndex = data[i].sourceFile.indexOf('/home/');
+                            // 截取sourceFile中/data/后的目录层级（匹配后端存储路径）
+                            const dataIndex = data[i].sourceFile.indexOf('/data/');
                             let imgPath = '';
-                            if (homeIndex !== -1) {
-                                // 保留/home/后的完整路径，拼接到/imgs/后
-                                const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/home/'.length);
+                            if (dataIndex !== -1) {
+                                // 保留/data/后的完整路径，拼接到/imgs/后
+                                const pathAfterHome = data[i].sourceFile.substring(dataIndex + '/data/'.length);
                                 imgPath = `/imgs/${pathAfterHome}`;
                             } else {
                                 // 兼容无/home/的场景，保留原逻辑
@@ -56,7 +56,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                                     url: '/file/remove',
                                     method: 'post',
                                     params: {
-                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/home/')),
+                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/data/')),
                                     },
                                 }
                             )
@@ -94,11 +94,11 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                         if (data[i].fileType === "图片") {
                             // ========== 核心修改：拼接完整的图片访问路径 ==========
                             // 截取sourceFile中/home/后的目录层级（匹配后端存储路径）
-                            const homeIndex = data[i].sourceFile.indexOf('/home/');
+                            const homeIndex = data[i].sourceFile.indexOf('/data/');
                             let imgPath = '';
                             if (homeIndex !== -1) {
                                 // 保留/home/后的完整路径，拼接到/imgs/后
-                                const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/home/'.length);
+                                const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/data/'.length);
                                 imgPath = `/imgs/${pathAfterHome}`;
                             } else {
                                 // 兼容无/home/的场景，保留原逻辑
@@ -115,7 +115,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                                     url: '/file/remove',
                                     method: 'post',
                                     params: {
-                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/home/')),
+                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/data/')),
                                     },
                                 }
                             )

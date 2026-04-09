@@ -111,68 +111,51 @@
           <div v-if="imageFiles.length === 0" class="empty-data">
             <el-empty description="暂无图片文件" />
           </div>
-          <div v-else class="image-grid">
-            <el-card
-              v-for="(file, index) in imageFiles"
-              :key="index"
-              class="image-card"
-              shadow="hover"
-            >
-              <div class="image-wrapper">
-                <el-image
-                  :src="getImageUrl(file)"
-                  :preview-src-list="[getPreviewUrl(file)]"
-                  fit="cover"
-                  class="preview-image"
-                  :preview-teleported="true"
+          <el-table v-else :data="imageFiles" style="width: 100%">
+            <el-table-column prop="fileName" label="文件名" min-width="300" show-overflow-tooltip />
+            <el-table-column prop="fileExtension" label="格式" width="100" align="center" />
+            <el-table-column prop="fileSize" label="大小" width="120" align="center">
+              <template #default="scope">
+                {{ formatFileSize(scope.row.fileSize) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
+            <el-table-column label="操作" width="150" align="center" fixed="right">
+              <template #default="scope">
+                <el-button
+                  type="primary"
+                  size="small"
+                  icon="Download"
+                  @click="handleDownloadSingle(scope.row)"
                 >
-                  <template #error>
-                    <div class="image-error">
-                      <el-icon><Picture /></el-icon>
-                      <span>加载失败</span>
-                    </div>
-                  </template>
-                </el-image>
-              </div>
-              <div class="image-info">
-                <div class="file-name" :title="file.fileName">{{ file.fileName }}</div>
-                <div class="file-meta">
-                  <el-tag size="small" type="info">{{ file.fileExtension }}</el-tag>
-                  <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
-                </div>
-                <div class="file-actions">
-                  <el-button
-                    type="primary"
-                    size="small"
-                    icon="Download"
-                    @click="handleDownloadSingle(file)"
-                  >
-                    下载
-                  </el-button>
-                </div>
-              </div>
-            </el-card>
-          </div>
+                  下载
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </el-tab-pane>
 
         <el-tab-pane label="文档文件" name="document">
-          <el-table :data="documentFiles" style="width: 100%">
-            <el-table-column prop="fileName" label="文件名" min-width="250" show-overflow-tooltip />
-            <el-table-column prop="fileType" label="文件类型" width="100" align="center">
+          <div v-if="documentFiles.length === 0" class="empty-data">
+            <el-empty description="暂无文档文件" />
+          </div>
+          <el-table v-else :data="documentFiles" style="width: 100%">
+            <el-table-column prop="fileName" label="文件名" min-width="300" show-overflow-tooltip />
+            <el-table-column prop="fileType" label="文件类型" width="120" align="center">
               <template #default="scope">
                 <el-tag size="small" :type="scope.row.type === 1 ? 'primary' : 'success'">
                   {{ scope.row.type === 1 ? '专题图' : '报告' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="fileExtension" label="格式" width="80" align="center" />
-            <el-table-column prop="fileSize" label="大小" width="100" align="center">
+            <el-table-column prop="fileExtension" label="格式" width="100" align="center" />
+            <el-table-column prop="fileSize" label="大小" width="120" align="center">
               <template #default="scope">
                 {{ formatFileSize(scope.row.fileSize) }}
               </template>
             </el-table-column>
-            <el-table-column prop="createTime" label="创建时间" width="170" align="center" />
-            <el-table-column label="操作" width="120" align="center" fixed="right">
+            <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
+            <el-table-column label="操作" width="150" align="center" fixed="right">
               <template #default="scope">
                 <el-button
                   type="primary"
@@ -242,11 +225,7 @@ const documentFiles = computed(() => {
 // 获取图片 URL（根据环境动态选择）
 function getImageUrl(file) {
   if (!file || !file.localSourceFile) return '';
-  let imageServer = import.meta.env.VITE_APP_IMAGE_SERVER;
-  if(file.type == 2) {
-    imageServer = import.meta.env.VITE_APP_WORD_SERVER;
-  }
-  return imageServer + file.localSourceFile;
+  return file.localSourceFile;
 }
 
 // 获取预览图片 URL（使用 sourceFile）
@@ -418,90 +397,10 @@ onMounted(() => {
   padding: 40px 0;
 }
 
-// 图片网格布局
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 10px;
-}
-
-.image-card {
-  transition: all 0.3s;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  .image-wrapper {
-    height: 200px;
-    overflow: hidden;
-    border-radius: 4px 4px 0 0;
-    background-color: #f5f5f5;
-
-    .preview-image {
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-
-      ::v-deep .el-image__inner {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-
-    .image-error {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      color: #909399;
-
-      .el-icon {
-        font-size: 40px;
-        margin-bottom: 10px;
-      }
-    }
-  }
-
-  .image-info {
-    padding: 12px;
-
-    .file-name {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .file-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-
-      .file-size {
-        font-size: 12px;
-        color: #909399;
-      }
-    }
-
-    .file-actions {
-      text-align: center;
-    }
-  }
-}
-
 // 响应式调整
 @media (max-width: 768px) {
-  .image-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+  .el-table {
+    font-size: 12px;
   }
 }
 </style>
