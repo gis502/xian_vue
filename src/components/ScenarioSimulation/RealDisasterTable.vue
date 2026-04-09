@@ -37,6 +37,11 @@
       </tr>
       </thead>
       <tbody>
+      <tr v-if="tableData.length === 0">
+        <td :colspan="tableHeaders.slice(0, 4).length" class="no-data-cell">
+          暂无数据
+        </td>
+      </tr>
       <tr
           v-for="(item, index) in paginatedTableData"
           :key="index"
@@ -406,6 +411,13 @@ onUnmounted(() => {
 
 .data-table tbody tr:hover {
   background-color: rgba(86, 204, 242, 0.3);
+}
+
+.no-data-cell {
+  text-align: center;
+  padding: 30px 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
 }
 
 .pagination-controls {

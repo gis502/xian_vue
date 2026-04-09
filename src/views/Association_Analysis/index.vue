@@ -13,6 +13,11 @@
 
         <tbody>
         <!-- 只渲染当前页的数据 -->
+        <tr v-if="weather_data.length === 0">
+          <td :colspan="tableHeaders.length" class="no-data-cell">
+            正在加载中...
+          </td>
+        </tr>
         <tr v-for="(item, index) in currentPageData" :key="index">
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.name">
             {{ item.name }}
@@ -49,6 +54,11 @@
         </thead>
 
         <tbody>
+        <tr v-if="warn_point.length === 0">
+          <td :colspan="point_tableHeaders.length" class="no-data-cell">
+            暂无数据
+          </td>
+        </tr>
         <!-- 只渲染当前页的数据 -->
         <tr v-for="(item, index) in currentPointPageData" :key="index" @click="pointTableClick(item)" >
           <td style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;" :title="item.disasterName">
@@ -129,7 +139,7 @@
       <div class="disaster-popup">
         <div class="popup-header">
           <h3>{{ popupType === 'riskArea' ? '风险区信息' : '隐患点信息' }}</h3>
-          <button class="toggle-btn" @click="handleMatchHistory">匹配历史案例</button>
+<!--          <button class="toggle-btn" @click="handleMatchHistory">匹配历史案例</button>-->
           <button class="close-btn" @click="handleClosePopup">关闭</button>
         </div>
         <table class="disaster-info-table">
@@ -1455,4 +1465,10 @@ export default {
   background: rgba(0, 225, 255, 0.2);
 }
 
+.no-data-cell {
+  text-align: center;
+  padding: 30px 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
 </style>

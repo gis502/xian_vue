@@ -313,11 +313,11 @@ export default {
   background: linear-gradient(270deg, rgba(46, 147, 165, 0.24) 0%, rgba(21, 66, 143, 0.33) 100%), rgba(13, 32, 76, 0.24);
   box-shadow: 0px 0px 9px  rgba(62, 136, 210, 1);
   color: white;
-  padding: 15px;
+  padding: 10px;
   z-index: 1000;
   font-size: 14px;
   width: 430px;
-  height: 380px;
+  height: 375px;
   border: 1px solid #ddd;
   background-blend-mode: normal;
   opacity: 1;

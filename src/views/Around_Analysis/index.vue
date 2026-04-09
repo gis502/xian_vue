@@ -752,7 +752,6 @@ export default {
         });
 
         // 5. 重新初始化所有组件
-        this.initRainEffect();
         document.addEventListener('keydown', this.onKeyDown);
 
         // 6. 重新加载数据
