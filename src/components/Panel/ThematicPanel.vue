@@ -23,7 +23,7 @@
              @mouseenter="handleOpen(index)" @mouseleave="handleClose()">
           <!-- 鼠标悬浮显示的操作按钮 -->
           <div class="panelButtons" v-if="showPanelButtonsIndex === index">
-            <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>
+<!--            <div class="panelButton download" @click="handleDownloadMap(item.imgUrl)">下载</div>-->
             <div class="panelButton preview" @click="handleOpenPreview(item.theme, item.imgUrl)">预览</div>
           </div>
           <img
@@ -68,7 +68,7 @@
       <h2>{{ imgName }}</h2>
       <img :src="imgUrl" style="width: 80%; height: 80%;">
       <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px">
-        <el-button type="primary" @click="handleDownloadMap()">下载</el-button>
+<!--        <el-button type="primary" @click="handleDownloadMap()">下载</el-button>-->
         <el-button plain type="primary" @click="handleClosePreview()" style="margin-left: 200px;">关闭</el-button>
       </div>
     </div>
@@ -323,7 +323,9 @@ export default {
               // 获取文件名
               let fileName = `report_${this.eqid}.docx`;
               const link = document.createElement('a');
-              link.href = `http://10.22.245.247${res}`;
+              // link.href = `http://10.22.245.247${res}`;
+
+              link.href = `http://localhost:8091${res.replace('\\', '/').replace('D:', '')}`;
               link.download = fileName;
               link.style.display = 'none';
               document.body.appendChild(link);
@@ -361,8 +363,8 @@ export default {
       }
       let wordUrl = this.wordPath
       let link = document.createElement('a');
-      link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
-      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      // link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
+      link.href = 'http://localhost:8091/home/xian/dist/docs/output/storm-disaster/reports/' + wordUrl;
       link.download = wordUrl;                         // 强制触发下载
       link.click();
     },
