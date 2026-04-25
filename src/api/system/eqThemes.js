@@ -35,31 +35,31 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                         if (data[i].fileType === "图片") {
                             // ========== 核心修改：拼接完整的图片访问路径 ==========
                             // 截取sourceFile中/data/后的目录层级（匹配后端存储路径）
-                            const dataIndex = data[i].sourceFile.indexOf('/data/');
-                            let imgPath = '';
-                            if (dataIndex !== -1) {
-                                // 保留/data/后的完整路径，拼接到/imgs/后
-                                const pathAfterHome = data[i].sourceFile.substring(dataIndex + '/data/'.length);
-                                imgPath = `/imgs/${pathAfterHome}`;
-                            } else {
-                                // 兼容无/home/的场景，保留原逻辑
-                                const paths = data[i].sourceFile.split("/");
-                                imgPath = `/imgs/${paths[paths.length - 1]}`;
-                            }
+                            // const dataIndex = data[i].localSourceFile.indexOf('/data/');
+                            let imgPath = 'http://localhost:8091'+data[i].localSourceFile.replace('D:', '');
+                            // if (dataIndex !== -1) {
+                            //     // 保留/data/后的完整路径，拼接到/imgs/后
+                            //     const pathAfterHome = data[i].sourceFile.substring(dataIndex + '/data/'.length);
+                            //     imgPath = `/imgs/${pathAfterHome}`;
+                            // } else {
+                            //     // 兼容无/home/的场景，保留原逻辑
+                            //     const paths = data[i].sourceFile.split("/");
+                            //     imgPath = `/imgs/${paths[paths.length - 1]}`;
+                            // }
                             data[i].sourceFile = imgPath;
                             // ==================================================
 
-                            // 后端请求迁移文件
-                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
-                            request(
-                                {
-                                    url: '/file/remove',
-                                    method: 'post',
-                                    params: {
-                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/data/')),
-                                    },
-                                }
-                            )
+                            // // 后端请求迁移文件
+                            // const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
+                            // request(
+                            //     {
+                            //         url: '/file/remove',
+                            //         method: 'post',
+                            //         params: {
+                            //             url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/data/')),
+                            //         },
+                            //     }
+                            // )
 
                             console.log("-------专题图--------------", data[i].sourceFile)
 
@@ -94,31 +94,31 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                         if (data[i].fileType === "图片") {
                             // ========== 核心修改：拼接完整的图片访问路径 ==========
                             // 截取sourceFile中/home/后的目录层级（匹配后端存储路径）
-                            const homeIndex = data[i].sourceFile.indexOf('/data/');
-                            let imgPath = '';
-                            if (homeIndex !== -1) {
-                                // 保留/home/后的完整路径，拼接到/imgs/后
-                                const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/data/'.length);
-                                imgPath = `/imgs/${pathAfterHome}`;
-                            } else {
-                                // 兼容无/home/的场景，保留原逻辑
-                                const paths = data[i].sourceFile.split("/");
-                                imgPath = `/imgs/${paths[paths.length - 1]}`;
-                            }
+                            // const homeIndex = data[i].sourceFile.indexOf('/data/');
+                            let imgPath = 'http://localhost:8091'+data[i].localSourceFile.replace('D:', '');
+                            // if (homeIndex !== -1) {
+                            //     // 保留/home/后的完整路径，拼接到/imgs/后
+                            //     const pathAfterHome = data[i].sourceFile.substring(homeIndex + '/data/'.length);
+                            //     imgPath = `/imgs/${pathAfterHome}`;
+                            // } else {
+                            //     // 兼容无/home/的场景，保留原逻辑
+                            //     const paths = data[i].sourceFile.split("/");
+                            //     imgPath = `/imgs/${paths[paths.length - 1]}`;
+                            // }
                             data[i].sourceFile = imgPath;
                             // ==================================================
 
                             // 后端请求迁移文件
-                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
-                            request(
-                                {
-                                    url: '/file/remove',
-                                    method: 'post',
-                                    params: {
-                                        url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/data/')),
-                                    },
-                                }
-                            )
+                            // const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
+                            // request(
+                            //     {
+                            //         url: '/file/remove',
+                            //         method: 'post',
+                            //         params: {
+                            //             url: encodeURIComponent(imageServer + data[i].sourceFile.replace('/imgs/','/data/')),
+                            //         },
+                            //     }
+                            // )
 
                             console.log("-------专题图--------------", data[i].sourceFile)
 
