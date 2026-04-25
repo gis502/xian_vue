@@ -60,7 +60,7 @@
           新闻信息列表
         </div>
         <div class="news-scroll-area fixed-header-table">
-          <table class="news-table">
+          <table  v-if="newsDataList.length" class="news-table">
             <thead>
             <tr>
               <th style="width: 50px">序号</th>
@@ -85,7 +85,9 @@
             </tbody>
 
           </table>
+          <div v-else class="no-news-data">暂无灾害新闻信息</div>
         </div>
+
         <div style="display: flex; justify-content: center;">
         <el-pagination
             style="text-align: center; margin-top: 10px;"
@@ -1791,6 +1793,11 @@ onBeforeUnmount(() => {
     }
   }
 
+.no-news-data{
+  font-size: 1.0em;
+  color: #fff;
+  padding-top: 15px;
+}
 
 //多灾害列表***********
   .chat-panel {
