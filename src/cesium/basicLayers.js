@@ -72,6 +72,7 @@ let basicLayers = {
     nishiliuEntities: [], //泥石流实体
     floodEntities: [], //山洪实体
     waterEntities: [], //内涝实体
+    riskEntities: [], //风险区实体
     landslideEntities: [], //滑坡实体
     hospitalEntities: [],//医院实体
     dangerEntities: [],//危险源
@@ -554,6 +555,8 @@ let basicLayers = {
                 this.waterEntities.push(entity);
             }else if(type == "山洪隐患点"){
                 this.floodEntities.push(entity);
+            }else if(type == "风险区域"){
+                this.riskEntities.push(entity);
             }
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
@@ -632,6 +635,8 @@ let basicLayers = {
                         this.waterEntities.push(entity);
                     }else if(type == "山洪"){
                         this.floodEntities.push(entity);
+                    }else if(type == "风险区"){
+                        this.riskEntities.push(entity);
                     }
                 }
             })

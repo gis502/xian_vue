@@ -18,6 +18,7 @@
         :setupEntityClickHandler="setupEntityClickHandler"
         :landSlideEntities="landslideEntities"
         :debrisFlowEntities="debrisFlowEntities"
+        :riskEntities="secondaryRiskEntities"
     />
     <div class="demo-autocomplete">
         <el-autocomplete
@@ -362,6 +363,7 @@ export default {
       disasterEntities: [],
       landslideEntities: [],
       debrisFlowEntities: [],
+      secondaryRiskEntities:  [],
       showChart: false,
       showTable: false,
       viewer: null,

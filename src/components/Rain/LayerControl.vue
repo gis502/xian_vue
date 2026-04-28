@@ -6,6 +6,7 @@
       <label><input type="checkbox" v-model="showDebrisFlow" @change="toggleDebrisFlow"> 显示泥石流 </label>
       <label><input type="checkbox" v-model="showFlashFlood" @change="toggleFlashFlood"> 显示山洪 </label>
       <label><input type="checkbox" v-model="showWater" @change="toggleWater"> 显示内涝 </label>
+      <label><input type="checkbox" v-model="showRisk" @change="toggleRisk"> 显示风险区 </label>
       <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
       <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示危险源 </label>
       <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
@@ -79,12 +80,14 @@ const props = defineProps({
   setupEntityClickHandler: Function,
   landSlideEntities: Object,
   debrisFlowEntities: Object,
+  riskEntities: Object,
 });
 
 const showLandSlide = ref(true);
 const showDebrisFlow = ref(true);
 const showFlashFlood = ref(true);
 const showWater = ref(true);
+const showRisk = ref(true);
 const showHospital = ref(false); // 控制医院显示/隐藏
 const showDangerSource = ref(false); // 控制风险源显示/隐藏
 const showShelter = ref(false); // 控制避难所显示/隐藏
@@ -235,6 +238,18 @@ function toggleWater(){
   }else{
     basicLayers.waterEntities.forEach(entity => {
       entity.show = showWater.value;
+    });
+  }
+}
+
+function toggleRisk(){
+  if(props.riskEntities && props.riskEntities.length > 0){
+    props.riskEntities.forEach(entity => {
+      entity.show = showRisk.value;
+    });
+  }else{
+    basicLayers.riskEntities.forEach(entity => {
+      entity.show = showRisk.value;
     });
   }
 }
