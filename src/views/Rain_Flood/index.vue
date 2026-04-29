@@ -313,7 +313,6 @@
                          :showFloodDisasterInformation="showFloodDisasterInformation"
                          :floodDisasterInformation="floodDisasterInformation" :trigger="'暴雨'" :rainInfo="rainInfo"/>
 
-    <Legend ref="legendRef"/>
 
     <TimeLine :timeDate="timeLabels" v-if="showRadarSatelliteMap" ref="timeLineRef" @radarIndex="radarIndex"/>
 

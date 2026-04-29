@@ -303,8 +303,6 @@
         </table>
       </div>
     </div>
-    <!-- 图例面板 -->
-    <Legend ref="legendRef"></Legend>
     <!-- chart -->
     <Chart v-if="showChart" :chartDatas="chartDatas"></Chart>
     <!-- 表格 -->

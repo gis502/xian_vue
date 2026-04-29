@@ -239,8 +239,9 @@
       </div>
     </div>
     <!-- 图例 -->
-    <rain-layer-control :viewer="viewer"/>
-    <Legend></Legend>
+    <rain-layer-control
+        :viewer="viewer"
+    />
 
     <!-- 表格 -->
     <Table v-if="showTable" :dataTypes="dataTypes"></Table>

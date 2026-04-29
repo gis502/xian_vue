@@ -15,14 +15,14 @@
         <div class="legend-color" id="debrisflow"></div>
         泥石流隐患点
       </div>
-<!--      <div class="legend-item">-->
-<!--        <div class="legend-color" id="flashflood"></div>-->
-<!--        山洪-->
-<!--      </div>-->
-<!--      <div class="legend-item">-->
-<!--        <div class="legend-color" id="water"></div>-->
-<!--        内涝点-->
-<!--      </div>-->
+      <div class="legend-item">
+        <div class="legend-color" id="flashflood"></div>
+        山洪
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" id="water"></div>
+        内涝点
+      </div>
       <div class="legend-item">
         <div class="legend-color" id="riskArea"></div>
         风险区域
@@ -92,7 +92,7 @@
   display: flex;
   flex-direction: column;
   width: 310px;
-  height: 265px;
+  height: 280px;
   overflow: hidden;
   box-shadow:inset 0px 0px 9px  rgba(62, 136, 210, 1);
   color: white; /* 设置所有文字为白色 */
