@@ -69,6 +69,11 @@ let basicLayers = {
     reservoirLayerName: 'xian:xian_reservoir_list',
     subwayLayerName: 'xian:xian_subway',
     disasterEntities: [],//灾害点实体
+    nishiliuEntities: [], //泥石流实体
+    floodEntities: [], //山洪实体
+    waterEntities: [], //内涝实体
+    riskEntities: [], //风险区实体
+    landslideEntities: [], //滑坡实体
     hospitalEntities: [],//医院实体
     dangerEntities: [],//危险源
     storePointsEntities: [],//储备点
@@ -542,6 +547,17 @@ let basicLayers = {
                 },
             });
             this.disasterEntities.push(entity);
+            if(type == "泥石流隐患点"){
+                this.nishiliuEntities.push(entity);
+            }else if(type == "滑坡隐患点"){
+                this.landslideEntities.push(entity);
+            }else if(type == "内涝隐患点"){
+                this.waterEntities.push(entity);
+            }else if(type == "山洪隐患点"){
+                this.floodEntities.push(entity);
+            }else if(type == "风险区域"){
+                this.riskEntities.push(entity);
+            }
             useSimulationPointStore().simulationPoints.push(hiddenDangerPoint);
         });
         return disasterPoints;
@@ -611,6 +627,17 @@ let basicLayers = {
                 }
                 else{
                     this.disasterEntities.push(entity);
+                    if(type == "滑坡"){
+                        this.landslideEntities.push(entity);
+                    }else if(type == "泥石流"){
+                        this.nishiliuEntities.push(entity);
+                    }else if(type == "内涝"){
+                        this.waterEntities.push(entity);
+                    }else if(type == "山洪"){
+                        this.floodEntities.push(entity);
+                    }else if(type == "风险区"){
+                        this.riskEntities.push(entity);
+                    }
                 }
             })
             return points;

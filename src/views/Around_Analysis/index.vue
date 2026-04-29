@@ -12,11 +12,13 @@
         {{ showAdminLayer ? '隐藏行政区划' : '显示行政区划' }}
       </div>
     </div>
-    <rain-layer-control
+    <layer-control
         ref="layerControl"
         :viewer="viewer"
         :setupEntityClickHandler="setupEntityClickHandler"
-        :otherEntities="disasterEntities"
+        :landSlideEntities="landslideEntities"
+        :debrisFlowEntities="debrisFlowEntities"
+        :riskEntities="secondaryRiskEntities"
     />
     <div class="demo-autocomplete">
         <el-autocomplete
@@ -341,11 +343,13 @@ import RainLayerControl from "@/components/ScenarioSimulation/rainLayerControl.v
 import basicLayers from "@/cesium/basicLayers.js";
 import Legend from "@/components/Earthquake/Legend.vue";
 import {nextTick} from "vue";
+import LayerControl from "@/components/Rain/LayerControl.vue";
 
 
 export default {
   name: 'AroundAnalysis',
   components: {
+    LayerControl,
     Legend,
     RainLayerControl,
     Chart,
@@ -357,6 +361,9 @@ export default {
       restaurants: [],
       searchableEntities: [], // 存储所有可搜索的实体信息
       disasterEntities: [],
+      landslideEntities: [],
+      debrisFlowEntities: [],
+      secondaryRiskEntities:  [],
       showChart: false,
       showTable: false,
       viewer: null,
