@@ -1,64 +1,188 @@
 <template>
-  <div class="layerControl-panel">
-    <div class="panel-title">控制显示</div>
-    <div class="panel-content">
-      <label><input type="checkbox" v-model="showDisaster" @change="toggleDisaster"> 显示隐患点 </label>
-      <label><input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" /> 显示医院 </label>
-      <label><input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints"> 显示危险源 </label>
-      <label><input type="checkbox" v-model="showShelter" @change="toggleShelterPoints"> 显示避难所 </label>
-      <label><input type="checkbox" v-model="showFire" @change="toggleFirePoints"> 显示消防站 </label>
-      <label><input type="checkbox" v-model="showStore" @change="toggleStorePoints"> 显示储备点 </label>
-      <label><input type="checkbox" v-model="showSchool" @change="toggleSchool"> 显示学校 </label>
-      <label><input type="checkbox" v-model="showPeople" @change="togglePeople"> 显示人口网格 </label>
-<!--      <label><input type="checkbox" v-model="showCrops" @change="toggleCrops"> 显示农田网格 </label>-->
-      <label><input type="checkbox" v-model="showPipe" @change="toggleWaterPipe"> 显示管网系统 </label>
-      <label><input type="checkbox" v-model="showRoad" @change="toggleRoad"> 显示交通道路 </label>
-      <label><input type="checkbox" v-model="showBridge" @change="toggleBridge"> 显示桥梁 </label>
-      <label><input type="checkbox" v-model="showHighway" @change="toggleHighway"> 显示高速 </label>
-      <label><input type="checkbox" v-model="showNationalRoad" @change="toggleNationalRoad"> 显示国道 </label>
-      <label><input type="checkbox" v-model="showReservoir" @change="toggleReservoir"> 显示水库 </label>
-      <label><input type="checkbox" v-model="showSubway" @change="toggleSubway"> 显示地铁站 </label>
+  <div class="legend-control-panel">
+    <div class="panel-header">
+      <div class="panel-title">图例与控制</div>
+    </div>
+    <div class="panel-body">
+      <!-- 灾害隐患点 -->
+      <div class="legend-section">
+        <div class="section-title">灾害隐患点</div>
+        <div class="legend-item">
+          <span class="legend-color" id="earthquake"></span>
+          <span class="legend-label">历史地震震中 <span class="entity-count">({{ earthquakeCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showEarthquake" @change="toggleEarthquake" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="landslide"></div>
+          <span class="legend-label">滑坡隐患点 <span class="entity-count">({{ landSlideCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showLandSlide" @change="toggleLandSlide" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="debrisflow"></div>
+          <span class="legend-label">泥石流隐患点 <span class="entity-count">({{ debrisFlowCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showDebrisFlow" @change="toggleDebrisFlow" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="riskArea"></div>
+          <span class="legend-label">风险区域 <span class="entity-count">({{ riskCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showRisk" @change="toggleRisk" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="earthquakeline"></div>
+          <span class="legend-label">断裂带</span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showFaultZone" @change="toggleFaultZone" />
+          </label>
+        </div>
+      </div>
+      <!-- 应急设施 -->
+      <div class="legend-section">
+        <div class="section-title">基础设施</div>
+        <div class="legend-item">
+          <div class="legend-color" id="hospital"></div>
+          <span class="legend-label">医院 <span class="entity-count">({{ hospitalCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showHospital" @change="toggleHospitalPoints" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="dangerSource"></div>
+          <span class="legend-label">危险源(加油加气站) <span class="entity-count">({{ dangerSourceCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showDangerSource" @change="toggleDangerPoints" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="shelter"></div>
+          <span class="legend-label">避难所 <span class="entity-count">({{ shelterCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showShelter" @change="toggleShelterPoints" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="firefighter"></div>
+          <span class="legend-label">消防站 <span class="entity-count">({{ fireFighterCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showFire" @change="toggleFirePoints" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="storePoint"></div>
+          <span class="legend-label">储备站 <span class="entity-count">({{ storePointCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showStore" @change="toggleStorePoints" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="bridgePoint"></div>
+          <span class="legend-label">桥梁 <span class="entity-count">({{ bridgeCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showBridge" @change="toggleBridge" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="reservoirPoint"></div>
+          <span class="legend-label">水库 <span class="entity-count">({{ reservoirCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showReservoir" @change="toggleReservoir" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="subwayPoint"></div>
+          <span class="legend-label">地铁站 <span class="entity-count">({{ subwayCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showSubway" @change="toggleSubway" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="schoolPoint"></div>
+          <span class="legend-label">学校 <span class="entity-count">({{ schoolCount }})</span></span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showSchool" @change="toggleSchool" />
+          </label>
+        </div>
+      </div>
+      <!-- 网格与交通系统 -->
+      <div class="legend-section">
+        <div class="section-title">网格与交通系统</div>
+        <div class="legend-item">
+          <div class="legend-color" id="peopleGrid"></div>
+          <span class="legend-label">人口网格</span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showPeople" @change="togglePeople" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="waterPipe"></div>
+          <span class="legend-label">管网系统</span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showPipe" @change="toggleWaterPipe" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="road"></div>
+          <span class="legend-label">交通道路</span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showRoad" @change="toggleRoad" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="highway"></div>
+          <span class="legend-label">高速</span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showHighway" @change="toggleHighway" />
+          </label>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" id="nationalRoad"></div>
+          <span class="legend-label">国道</span>
+          <label class="legend-checkbox">
+            <input type="checkbox" v-model="showNationalRoad" @change="toggleNationalRoad" />
+          </label>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- 人口密度图例（条件显示） -->
   <div class="graph_legend" v-if="showPeople">
     <div class="legend-title1">人口密度图例</div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #b1fe02;"></span>
       <span class="legend-label">Min-0 < 100</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #6bf700;"></span>
       <span class="legend-label">100 ≤ X < 500</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #fcf600;"></span>
       <span class="legend-label">500 ≤ X < 1000</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #fecb02;"></span>
       <span class="legend-label">1000 ≤ X < 2000</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #fc9e00;"></span>
       <span class="legend-label">2000 ≤ X < 4000</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #fe7004;"></span>
       <span class="legend-label">4000 ≤ X < 8000</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #fb3f02;"></span>
       <span class="legend-label">8000 ≤ X < 10000</span>
     </div>
-
     <div class="legend-item1">
       <span class="legend-color" style="background-color: #ff0000;"></span>
       <span class="legend-label">10000 ≤ X < Max</span>
@@ -74,10 +198,16 @@ import * as Cesium from "cesium";
 const props = defineProps({
   viewer: Object,
   setupEntityClickHandler: Function,
-  otherEntities: Object
+  landSlideEntities: Object,
+  debrisFlowEntities: Object,
+  riskEntities: Object,
 });
 
-const showDisaster = ref(true);
+const showLandSlide = ref(true);
+const showDebrisFlow = ref(true);
+const showEarthquake = ref(true);
+const showFaultZone = ref(true);
+const showRisk = ref(true);
 const showHospital = ref(false); // 控制医院显示/隐藏
 const showDangerSource = ref(false); // 控制风险源显示/隐藏
 const showShelter = ref(false); // 控制避难所显示/隐藏
@@ -96,24 +226,40 @@ const showSubway = ref(false);
 
 const layerHandler = ref(null);
 
-function resetShow(){
-  showDisaster.value = true;
-  showHospital.value = false;
-  showDangerSource.value = false;
-  showShelter.value = false;
-  showFire.value = false;
-  showStore.value = false;
-  showSchool.value = false;
-  showPeople.value = false;
-  showCrops.value = false;
-  showPipe.value = false;
-  showRoad.value = false;
-  showBridge.value = false;
-  showHighway.value = false;
-  showNationalRoad.value = false;
-  showReservoir.value = false;
-  showSubway.value = false;
-}
+
+// 固定的实体数量配置
+const ENTITY_COUNTS = {
+  landSlide: 162,
+  debrisFlow: 7,
+  flashFlood: 205,
+  water: 103,
+  risk: 569,
+  hospital: 683,
+  dangerSource: 3982,
+  shelter: 641,
+  fireFighter: 49,
+  storePoint: 62,
+  school: 3508,
+  bridge: 485,
+  reservoir: 76,
+  subway: 255,
+  earthquake: 37
+};
+
+// 根据显示状态计算数量
+const earthquakeCount = computed(() => showEarthquake.value ? ENTITY_COUNTS.earthquake : 0);
+const landSlideCount = computed(() => showLandSlide.value ? ENTITY_COUNTS.landSlide : 0);
+const debrisFlowCount = computed(() => showDebrisFlow.value ? ENTITY_COUNTS.debrisFlow : 0);
+const riskCount = computed(() => showRisk.value ? ENTITY_COUNTS.risk : 0);
+const hospitalCount = computed(() => showHospital.value ? ENTITY_COUNTS.hospital : 0);
+const dangerSourceCount = computed(() => showDangerSource.value ? ENTITY_COUNTS.dangerSource : 0);
+const shelterCount = computed(() => showShelter.value ? ENTITY_COUNTS.shelter : 0);
+const fireFighterCount = computed(() => showFire.value ? ENTITY_COUNTS.fireFighter : 0);
+const storePointCount = computed(() => showStore.value ? ENTITY_COUNTS.storePoint : 0);
+const schoolCount = computed(() => showSchool.value ? ENTITY_COUNTS.school : 0);
+const bridgeCount = computed(() => showBridge.value ? ENTITY_COUNTS.bridge : 0);
+const reservoirCount = computed(() => showReservoir.value ? ENTITY_COUNTS.reservoir : 0);
+const subwayCount = computed(() => showSubway.value ? ENTITY_COUNTS.subway : 0);
 
 // 图层点击事件处理
 function setupLayerClickHandler() {
@@ -206,23 +352,59 @@ function buildGetFeatureInfoUrl(lon, lat, layerName) {
   return `${wmsUrl}?${new URLSearchParams(params).toString()}`;
 }
 
-
-function toggleDisaster(){
-  if(basicLayers.disasterEntities.length === 0 && showDisaster.value){
-    basicLayers.loadLandSlide();
-    basicLayers.Addmudslide();
-    basicLayers.AddDangerAreaDataSource();
-    basicLayers.loadFlashFlood();
-    basicLayers.loadWater();
+function toggleEarthquake(){
+  if(basicLayers.earthquakeEntities.length === 0 && showEarthquake.value){
+    basicLayers.loadHistoricalEarthquake();
+    props.setupEntityClickHandler();
   }else{
-    basicLayers.disasterEntities.forEach(entity => {
-      entity.show = showDisaster.value;
+    basicLayers.earthquakeEntities.forEach(entity => {
+      entity.show = showEarthquake.value;
     });
-    if(props.otherEntities){
-      props.otherEntities.forEach(entity => {
-        entity.show = showDisaster.value;
-      })
-    }
+  }
+}
+
+// 切换断裂带显示
+function toggleFaultZone() {
+  if (showFaultZone.value) {
+    basicLayers.addFaultZone();
+  } else {
+    basicLayers.removeFaultZone();
+  }
+}
+
+function toggleLandSlide(){
+  if(props.landSlideEntities && props.landSlideEntities.length > 0){
+    props.landSlideEntities.forEach(entity => {
+      entity.show = showLandSlide.value;
+    });
+  }else{
+    basicLayers.landslideEntities.forEach(entity => {
+      entity.show = showLandSlide.value;
+    });
+  }
+}
+
+function toggleDebrisFlow(){
+  if(props.debrisFlowEntities && props.debrisFlowEntities.length > 0){
+    props.debrisFlowEntities.forEach(entity => {
+      entity.show = showDebrisFlow.value;
+    });
+  }else{
+    basicLayers.nishiliuEntities.forEach(entity => {
+      entity.show = showDebrisFlow.value;
+    });
+  }
+}
+
+function toggleRisk(){
+  if(props.riskEntities && props.riskEntities.length > 0){
+    props.riskEntities.forEach(entity => {
+      entity.show = showRisk.value;
+    });
+  }else{
+    basicLayers.riskEntities.forEach(entity => {
+      entity.show = showRisk.value;
+    });
   }
 }
 
@@ -389,64 +571,225 @@ function toggleSubway(){
   }
 }
 
-defineExpose({
-  resetShow
-})
-
 </script>
 
 <style scoped lang="scss">
-
-.layerControl-panel {
+.legend-control-panel {
   position: absolute;
-  top: 10px;
-  right: 0px;
-  border-radius: 2px;
+  bottom: 20px;
+  right: 15px;
   z-index: 1000;
-  width: 160px;
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  max-height: 500px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0px 0px 9px rgba(62, 136, 210, 1);
   color: white;
+  font-family: Arial, sans-serif;
   border: 1px solid rgba(0, 225, 255, 1);
 }
 
-.panel-content {
+.panel-header {
+  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.panel-body {
   background: rgba(14, 52, 98, 0.8);
-  padding: 8px;
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  font-size: 12px;
-  gap: 6px;
+  gap: 10px;
 }
 
-.panel-content label {
+.legend-label {
+  flex: 1;
+  white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  color: white;
+  gap: 4px;
 }
 
-.panel-title {
-  font-weight: bold;
+.entity-count {
+  color: rgba(0, 225, 255, 0.9);
   font-size: 12px;
-  background: linear-gradient(180deg, rgba(86, 204, 242, 1) 0%, rgba(47, 128, 237, 1) 100%);
-  padding: 8px;
-  text-align: center;
+  font-weight: normal;
+  transition: all 0.3s ease;
+}
+
+.legend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: rgba(0, 225, 255, 1);
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(0, 225, 255, 0.3);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin: 3px 0;
+  font-size: 13px;
+  gap: 8px;
 }
 
 .legend-color {
   width: 16px;
   height: 16px;
-  margin-right: 6px;
-  border-radius: 2px;
+  flex-shrink: 0;
 }
 
+.legend-label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.legend-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* 图标样式 */
+#earthquake {
+  background-image: url("../../assets/images/eqMark.png");
+  background-size: cover;
+}
+
+#debrisflow {
+  background-image: url("../../assets/images/DebrisFlow.png");
+  background-size: cover;
+}
+
+#landslide {
+  background-image: url("../../assets/images/landslide.png");
+  background-size: cover;
+}
+
+#flashflood {
+  background-image: url("../../assets/images/flashflood.png");
+  background-size: cover;
+}
+
+#water {
+  background-image: url("../../assets/images/water.png");
+  background-size: cover;
+}
+
+#riskArea {
+  background-image: url("../../assets/images/riskArea.png");
+  background-size: cover;
+}
+
+#earthquakeline {
+  background-image: url("../../assets/images/earthquakeline.png");
+  background-size: cover;
+}
+
+#predictHighDisaster {
+  background-image: url("../../assets/images/高风险预警点.png");
+  background-size: cover;
+}
+
+#predictMidDisaster {
+  background-image: url("../../assets/images/中风险预警点.png");
+  background-size: cover;
+}
+
+#hospital {
+  background-image: url("../../assets/images/hospital.png");
+  background-size: cover;
+}
+
+#dangerSource {
+  background-image: url("../../assets/images/gasstation.png");
+  background-size: cover;
+}
+
+#shelter {
+  background-image: url("../../assets/images/emergencyShelter.png");
+  background-size: cover;
+}
+
+#firefighter {
+  background-image: url("../../assets/images/firefighter.png");
+  background-size: cover;
+}
+
+#storePoint {
+  background-image: url("../../assets/images/storePoints.jpg");
+  background-size: cover;
+}
+
+#bridgePoint {
+  background-image: url("../../assets/images/bridge.png");
+  background-size: cover;
+}
+
+#reservoirPoint {
+  background-image: url("../../assets/images/reservoir.png");
+  background-size: cover;
+}
+
+#subwayPoint {
+  background-image: url("../../assets/images/subway.png");
+  background-size: cover;
+}
+
+#schoolPoint {
+  background-image: url("../../assets/images/school.png");
+  background-size: cover;
+}
+
+///* 新增的图标样式（需要导入对应图片） */
+//#peopleGrid {
+//  background: linear-gradient(135deg, #b1fe02, #ff0000);
+//  background-size: cover;
+//}
+
+//#waterPipe {
+//  background-image: url("../../assets/images/waterPipe.png");
+//  background-size: cover;
+//}
+//
+//#road {
+//  background-image: url("../../assets/images/road.png");
+//  background-size: cover;
+//}
+//
+//#highway {
+//  background-image: url("../../assets/images/highway.png");
+//  background-size: cover;
+//}
+//
+//#nationalRoad {
+//  background-image: url("../../assets/images/nationalRoad.png");
+//  background-size: cover;
+//}
+
+/* 人口密度图例样式 */
 .graph_legend {
   padding: 6px;
   position: absolute;
-  bottom: 10px;
+  bottom: 20px;
   left: 15px;
   border-radius: 2px;
   z-index: 1000;
@@ -466,6 +809,7 @@ defineExpose({
   font-weight: bold;
   font-size: 16px;
   text-align: center;
+  margin-bottom: 5px;
 }
 
 .legend-item1 {
@@ -475,6 +819,30 @@ defineExpose({
   font-size: 12px;
   width: 100%;
   color: white;
+  gap: 6px;
 }
 
+.legend-item1 .legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+/* 滚动条样式 */
+.panel-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: rgba(14, 52, 98, 0.5);
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 225, 255, 0.5);
+  border-radius: 3px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 225, 255, 0.8);
+}
 </style>
