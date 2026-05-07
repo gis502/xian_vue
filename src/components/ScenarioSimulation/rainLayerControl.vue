@@ -353,7 +353,14 @@ function buildGetFeatureInfoUrl(lon, lat, layerName) {
 }
 
 function toggleEarthquake(){
-
+  if(basicLayers.earthquakeEntities.length === 0 && showEarthquake.value){
+    basicLayers.loadHistoricalEarthquake();
+    props.setupEntityClickHandler();
+  }else{
+    basicLayers.earthquakeEntities.forEach(entity => {
+      entity.show = showEarthquake.value;
+    });
+  }
 }
 
 // 切换断裂带显示

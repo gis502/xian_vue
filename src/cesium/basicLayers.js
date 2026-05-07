@@ -98,6 +98,7 @@ let basicLayers = {
     bridgePoints: [],
     subwayPoints: [],
     reservoirPoints: [],
+    earthquakeEntities: [],
     landSlideData: null, //滑坡数据
     debrisFlowData: null, //泥石流数据
     waterData: null, //内涝数据
@@ -451,31 +452,26 @@ let basicLayers = {
                     const latitude = item.latitude;
                     const entity = window.viewer.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 5),
-                        // 点
                         billboard: {
-                            // 图像地址，URI或Canvas的属性   @/assets/images/landslide.png
                             image: eqMark,
-                            width: 40, // 图片宽度,单位px
-                            height: 40, // 图片高度，单位px
-                            eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
-                            color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-                            scale: 0.8, // 缩放比例
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
+                            width: 40,
+                            height: 40,
+                            eyeOffset: new Cesium.Cartesian3(0, 0, 0),
+                            color: Cesium.Color.WHITE.withAlpha(1),
+                            scale: 1.5,
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                             scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
-                            depthTest: false, // 禁止深度测试
-                            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不进行深度测试
+                            depthTest: false,
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY,
                             show: true
                         },
-                        // originalColor: Cesium.Color.RED,
-                        // originalPixelSize: 15,
                         name:"历史地震灾害",
-                        // 标记灾害类型
                         disasterType: 'historicalEathquake',
                         disasterData: item
                     });
+                    this.earthquakeEntities.push(entity);
                 }
             })
-            console.log("historicalEarthquakeData",this.historicalEarthquakeData)
         })
     },
     async loadSchool(){
@@ -528,7 +524,7 @@ let basicLayers = {
                     height: 40, // 图片高度，单位px
                     eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
                     color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-                    scale: 0.8, // 缩放比例
+                    scale: 1.5, // 缩放比例
                     heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
                     scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
                     depthTest: false, // 禁止深度测试
@@ -583,7 +579,7 @@ let basicLayers = {
                         height: 40, // 图片高度，单位px
                         eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 与坐标位置的偏移距离
                         color: Cesium.Color.WHITE.withAlpha(1), // 固定颜色
-                        scale: 0.8, // 缩放比例
+                        scale: 1.5, // 缩放比例
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // 绑定到地形高度
                         scaleByDistance: new Cesium.NearFarScalar(500, 1, 5e5, 0.1),
                         depthTest: false, // 禁止深度测试
