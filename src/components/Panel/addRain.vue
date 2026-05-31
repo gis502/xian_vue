@@ -502,14 +502,14 @@ onMounted(() => {
     // 初始化所有区县
     let data = res.data.features
     entries.value.forEach(item => {
-      // console.log(item)
-      let pos = data.find(i => {
-        // console.log(i.properties.adminCode,item.code)
-        return i.properties.adminCode === item.code
-      })
-      if (pos && pos.properties.rainPre12Hours !== 0) {
-        item.rainfall = pos.properties.rainPre12Hours.toFixed(2)
-      }
+      console.log(item)
+      // let pos = data.find(i => {
+      //   // console.log(i.properties.adminCode,item.code)
+      //   return i.properties.adminCode === item.code
+      // })
+      // if (pos && pos.properties.rainPre12Hours !== 0 && item.rainfall === 0) {
+      //   item.rainfall = pos.properties.rainPre12Hours.toFixed(2)
+      // }
       // console.log(pos)
     })
   })
