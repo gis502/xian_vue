@@ -25,14 +25,14 @@
         </RouterLink>
 
         <!-- 其他主菜单：默认精确匹配 -->
-<!--        <RouterLink-->
-<!--          to="/admins/graph"-->
-<!--          class="nav-btn"-->
-<!--          active-class="nav-btn-active"-->
-<!--          @click="selectMenuStore.setCurrentMainMenu('')"-->
-<!--        >-->
-<!--          多灾种灾害链分析-->
-<!--        </RouterLink>-->
+        <RouterLink
+          to="/admins/graph"
+          class="nav-btn"
+          active-class="nav-btn-active"
+          @click="selectMenuStore.setCurrentMainMenu('')"
+        >
+          多灾种灾害链分析
+        </RouterLink>
         <RouterLink
           to="/admins/scenario_simulation"
           class="nav-btn"
