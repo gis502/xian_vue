@@ -323,7 +323,7 @@ export default {
               // 获取文件名
               let fileName = `report_${this.eqid}.docx`;
               const link = document.createElement('a');
-              link.href = `http://10.22.245.247${res}`;
+              link.href = `http://10.17.132.47${res}`;
               link.download = fileName;
               link.style.display = 'none';
               document.body.appendChild(link);
@@ -361,8 +361,8 @@ export default {
       }
       let wordUrl = this.wordPath
       let link = document.createElement('a');
-      link.href = 'http://10.22.245.246:8080/admins/downloadReport/file/' + wordUrl;
-      // link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
+      // link.href = 'http://10.17.132.40:8080/admins/downloadReport/file/' + wordUrl;
+      link.href = 'http://localhost:8080/downloadReport/file/' + wordUrl;
       link.download = wordUrl;                         // 强制触发下载
       link.click();
     },

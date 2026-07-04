@@ -50,7 +50,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                             // ==================================================
 
                             // 后端请求迁移文件
-                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
+                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.17.132.47:8081';
                             request(
                                 {
                                     url: '/file/remove',
@@ -109,7 +109,7 @@ export function handleOutputData(eventId, eventQueueId, eventFullName, eventType
                             // ==================================================
 
                             // 后端请求迁移文件
-                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.22.245.247';
+                            const imageServer = import.meta.env.VITE_APP_IMAGE_SERVER || 'http://10.17.132.47:8081';
                             request(
                                 {
                                     url: '/file/remove',
